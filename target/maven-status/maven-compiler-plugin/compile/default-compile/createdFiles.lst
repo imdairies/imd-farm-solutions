@@ -1,0 +1,17 @@
+com/imd/dto/Animal.class
+com/imd/util/Codes.class
+com/imd/controller/IMDManager.class
+com/imd/util/MessageManager.class
+com/imd/util/Codes$MessageCodes.class
+com/imd/dto/MilkingDetail.class
+com/imd/util/Util.class
+com/imd/util/IMDException.class
+com/imd/dto/Sire.class
+com/imd/dto/ParturationDetail.class
+com/imd/dto/Note.class
+com/imd/util/ParseMilkingRecord.class
+com/imd/util/Message.class
+com/imd/dto/Dam.class
+com/imd/dto/LifeCycleEvent.class
+com/imd/dto/Contact.class
+com/imd/dto/BankDetails.class
