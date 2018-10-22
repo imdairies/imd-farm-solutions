@@ -89,7 +89,7 @@ public class IMDManager {
 	
 	
 	private void loadMessages() {
-		String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath() +".."+File.separatorChar + "resources" + File.separatorChar + "IMDMessages_UR.properties";
+		String rootPath = "IMDMessages_UR.properties";
 		Properties appProps = new Properties();
 		try {
 			appProps.load(new FileInputStream(rootPath));
