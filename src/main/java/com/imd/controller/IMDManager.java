@@ -28,17 +28,17 @@ public class IMDManager {
 		try {
 			   String cwd = System.getProperty("user.dir");
 		        System.out.println("Current working directory : " + cwd);
-		        createTag026(); 
+		        imdManager.createTag026(); 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static void createTag026() throws IMDException {
+	public void createTag026() throws IMDException {
 		Dam c026 = new Dam(/*id*/"026",/*tag*/"026",/*dob*/LocalDate.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"Rs.");
 		c026.setAlias("Laal");
 		c026.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
-				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f));
+				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
 		c026.setPurchaseDate(LocalDate.parse("2017-02-08"));		
 		setPurchaseFromContact(c026);
 		setSireInformation(c026);
@@ -49,7 +49,7 @@ public class IMDManager {
 		System.out.println(c026.convertToJason());
 	}
 
-	private static void setMilkingRecord(Dam c026) throws IMDException {
+	private void setMilkingRecord(Dam c026) throws IMDException {
 		MilkingDetail dailyMilking;
 		short milkFreq = 3;
 		int milkingHr = 5;
@@ -59,11 +59,11 @@ public class IMDManager {
 		LocalDate milkingDate = LocalDate.of(2018,2,14);
 		float milkingVol = 7.0f;
 		boolean isMachineMilked = true;		
-		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol);
+		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
 		c026.addToMilkingRecord(dailyMilking);
 	}
 
-	private static void setSireInformation(Animal c026) throws IMDException {
+	private void setSireInformation(Animal c026) throws IMDException {
 		Sire sire = new Sire("", "NLDM000291306935", LocalDate.parse("2000-02-10"), false, 0, "Rs.");
 		sire.setAlias("MANDERS MARIUS");
 		sire.setMarketedByCompany(new Contact("Not known"));
@@ -74,7 +74,7 @@ public class IMDManager {
 		c026.setAnimalSire(sire);
 	}
 
-	private static void setPurchaseFromContact(Animal c026) throws IMDException {
+	private void setPurchaseFromContact(Animal c026) throws IMDException {
 		Contact contact = new Contact("Babar", "Hameed", "Jathol");
 		contact.setNamePrefix("Mr.");
 		

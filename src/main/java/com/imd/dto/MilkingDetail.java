@@ -26,7 +26,7 @@ public class MilkingDetail {
 	 * indicates which milking does this reading pertains to e.g. will be 1 if this is the first milking of recordDate,
 	 *  will be 2 if this is second milking of record Date, will be 3 if this is third milking of record date.
 	 */
-	private Integer milkingEventNumber;
+	private Short milkingEventNumber;
 	
 	/**
 	 * 
@@ -42,7 +42,7 @@ public class MilkingDetail {
 	 * @param milkingCount indicate the number that indicates the sequence of this milking for the day i.e. set it to 1 if this was the first milking of the day, 2 if this was the second milking of the day and so on.
 	 */
 
-	public MilkingDetail(short frequency, boolean machineMilked, LocalDate recDate, LocalTime recTime, float milkVol)  throws IMDException {
+	public MilkingDetail(short frequency, boolean machineMilked, LocalDate recDate, LocalTime recTime, float milkVol, short milkSeqNbr)  throws IMDException {
 		if (recDate == null ) 
 			throw new IMDException("Record Date can't be null");
 		else {
@@ -51,6 +51,7 @@ public class MilkingDetail {
 			this.recordDate = recDate;
 			this.recordTime= recTime;
 			this.milkVolume = milkVol;
+			this.milkingEventNumber = milkSeqNbr;
 		}	}
 	public float getAverageDailyProduction() {
 		return averageDailyProduction;
@@ -118,10 +119,10 @@ public class MilkingDetail {
 	public void setComments(String comments) {
 		this.comments = comments;
 	}
-	public Integer getMilkingEventNumber() {
+	public Short getMilkingEventNumber() {
 		return milkingEventNumber;
 	}
-	public void setMilkingEventNumber(Integer milkingNumber) {
+	public void setMilkingEventNumber(Short milkingNumber) {
 		this.milkingEventNumber = milkingNumber;
 	}
 	

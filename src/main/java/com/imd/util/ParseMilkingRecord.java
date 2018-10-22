@@ -26,7 +26,7 @@ public class ParseMilkingRecord {
 	final static String  AVG = "Average";
 	final static String  MAX = "Max";
 
-	public static HashMap readMilkingRecordsFromSMS(String singleMilkingRecord, LocalDate recordDate, short milkingFrequency, Integer milkingEventNumber) throws IMDException{
+	public static HashMap readMilkingRecordsFromSMS(String singleMilkingRecord, LocalDate recordDate, short milkingFrequency, Short milkingEventNumber) throws IMDException{
 		HashMap <String, MilkingDetail> milkingInformation = new HashMap<>();
 		String [] allCowsRecordForSingleMilking = singleMilkingRecord.split("\n");
 		for (int i=0; i< allCowsRecordForSingleMilking.length; i++) {
@@ -35,8 +35,7 @@ public class ParseMilkingRecord {
 			try {
 				String animalTag =singleCowSingleMilking[0];
 				String vol =  singleCowSingleMilking[1];
-				MilkingDetail singleCowRecord = new MilkingDetail(milkingFrequency, true, recordDate, null, Float.parseFloat(vol));
-				singleCowRecord.setMilkingEventNumber(milkingEventNumber);
+				MilkingDetail singleCowRecord = new MilkingDetail(milkingFrequency, true, recordDate, null, Float.parseFloat(vol),milkingEventNumber);
 				milkingInformation.put(animalTag, singleCowRecord);
 			} catch (Exception ex) {
 				System.out.println( " Error occurred during parsing will skip this record " + allCowsRecordForSingleMilking[i]);
@@ -90,19 +89,19 @@ public class ParseMilkingRecord {
 	            		if (frequency > 0) {
 	                		if (!dailyRecordText[1].isEmpty() && !dailyRecordText[1].equalsIgnoreCase("0") && !dailyRecordText[1].equalsIgnoreCase("0.0")) {
 	                			 firstMilkingVol = Float.parseFloat(dailyRecordText[1]);
-	                			 firstMilkingRecord = new MilkingDetail(frequency, true, date, null, firstMilkingVol);
+	                			 firstMilkingRecord = new MilkingDetail(frequency, true, date, null, firstMilkingVol,(short)1);
 	                			 dailyRecord.put(eventSequence++, firstMilkingRecord);
 	                			 wasAnimalMilked = true;
 	                		}
 	                		if (!dailyRecordText[2].isEmpty() && !dailyRecordText[2].equalsIgnoreCase("0") && !dailyRecordText[2].equalsIgnoreCase("0.0")) {
 	                			secondMilkingVol = Float.parseFloat(dailyRecordText[2]);
-	                			secondMilkingRecord = new MilkingDetail(frequency, true, date, null, secondMilkingVol);
+	                			secondMilkingRecord = new MilkingDetail(frequency, true, date, null, secondMilkingVol,(short)2);
 	                			dailyRecord.put(eventSequence++, secondMilkingRecord);
 	                			 wasAnimalMilked = true;
 	                		}
 	                		if (!dailyRecordText[3].isEmpty() && !dailyRecordText[3].equalsIgnoreCase("0") && !dailyRecordText[3].equalsIgnoreCase("0.0")) {
 	                			thirdMilkingVol = Float.parseFloat(dailyRecordText[3]);
-	                			thirdMilkingRecord = new MilkingDetail(frequency, true, date, null, thirdMilkingVol);
+	                			thirdMilkingRecord = new MilkingDetail(frequency, true, date, null, thirdMilkingVol,(short)3);
 	                			dailyRecord.put(eventSequence++, thirdMilkingRecord);
 	                			 wasAnimalMilked = true;
 	                		}

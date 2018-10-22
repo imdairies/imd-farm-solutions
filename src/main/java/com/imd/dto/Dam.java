@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.imd.util.IMDException;
 import com.imd.util.Util;
@@ -17,7 +18,7 @@ public class Dam extends Animal {
 	 * Each date can have 1 or more milking events. Therefore to store the milking details we 
 	 * use a HashMap (keyed on Date) of a HashMap (keyed on milking event number of the day). 
 	 */
-	private Map<LocalDate, HashMap<Integer,MilkingDetail>> milkingRecord;
+	private Map<LocalDate, HashMap<Short,MilkingDetail>> milkingRecord;
 
 	public Dam(String tagNumber) throws IMDException {
 		super(tagNumber);
@@ -39,7 +40,7 @@ public class Dam extends Animal {
 	public Map getCompleteMilkingRecord() {
 		return milkingRecord;
 	}
-	public void setCompleteMilkingRecord(HashMap<LocalDate, HashMap<Integer,MilkingDetail>> milkingRecord) {
+	public void setCompleteMilkingRecord(HashMap<LocalDate, HashMap<Short,MilkingDetail>> milkingRecord) {
 		this.milkingRecord = milkingRecord;
 	}
 	
@@ -50,7 +51,7 @@ public class Dam extends Animal {
 		if (milkingRecord == null)
 			milkingRecord = new HashMap<>();
 
-		HashMap <Integer, MilkingDetail> milkingRecordsForTheDay = milkingRecord.get(milkingInformation.getRecordDate());
+		HashMap <Short, MilkingDetail> milkingRecordsForTheDay = milkingRecord.get(milkingInformation.getRecordDate());
 		if (milkingRecordsForTheDay == null) {
 			// this is the first time we are adding record for this date.
 			milkingRecordsForTheDay = new HashMap <> ();
@@ -75,10 +76,10 @@ public class Dam extends Animal {
 	public float getDailyMilkTotal(LocalDate recordDate) throws IMDException {
 
 		float dailyVolume = 0.0f;
-		HashMap<Integer,MilkingDetail> milkingRecForTheDay = milkingRecord.get(recordDate);
+		HashMap<Short,MilkingDetail> milkingRecForTheDay = milkingRecord.get(recordDate);
 		Util.throwExceptionIfNull(milkingRecForTheDay,"[Milking record for the day does not exist]");
 		
-		for (Map.Entry<Integer,MilkingDetail> entry : milkingRecForTheDay.entrySet() ) {
+		for (Map.Entry<Short,MilkingDetail> entry : milkingRecForTheDay.entrySet() ) {
 			dailyVolume += entry.getValue().getMilkVolume();
 		}
 		return dailyVolume;
@@ -115,10 +116,10 @@ public class Dam extends Animal {
 	 */
 	public MilkingDetail getMilkTotalsForSpecifiedPeriod(LocalDate startDate, LocalDate endDate) throws IMDException {
 		float milkVolume = 0.0f;
-		int numberOfDays = 0;
-		MilkingDetail lifetimeMilkingTotals = new MilkingDetail((short)3, true, LocalDate.now(), LocalTime.now(), 0.0f);
+		short numberOfDays = 0;
+		MilkingDetail lifetimeMilkingTotals = new MilkingDetail((short)3, true, LocalDate.now(), LocalTime.now(), 0.0f,(short)1);
 		Util.throwExceptionIfNull(milkingRecord,"[Milking record does not exist]");
-		for (Map.Entry<LocalDate,HashMap<Integer, MilkingDetail>> recordEntry : milkingRecord.entrySet() ) {
+		for (Map.Entry<LocalDate,HashMap<Short, MilkingDetail>> recordEntry : milkingRecord.entrySet() ) {
 			if ( startDate == null || endDate == null || ((recordEntry.getKey().isEqual(startDate) || recordEntry.getKey().isAfter(startDate) ) &&
 				 (recordEntry.getKey().isEqual(endDate)   || recordEntry.getKey().isBefore(endDate)))) {
 				milkVolume += processDailyMilkingEvent(recordEntry);
@@ -129,9 +130,9 @@ public class Dam extends Animal {
 		lifetimeMilkingTotals.setMilkingEventNumber(numberOfDays);
 		return lifetimeMilkingTotals;
 	}
-	private float processDailyMilkingEvent(Map.Entry<LocalDate, HashMap<Integer, MilkingDetail>> recordEntry) {
+	private float processDailyMilkingEvent(Entry<LocalDate, HashMap<Short, MilkingDetail>> recordEntry) {
 		float milkVolume = 0.0f;
-		for (Map.Entry<Integer,MilkingDetail> entry : recordEntry.getValue().entrySet() ) {
+		for (Map.Entry<Short,MilkingDetail> entry : recordEntry.getValue().entrySet() ) {
 			milkVolume += entry.getValue().getMilkVolume();	
 		}
 		return milkVolume;
