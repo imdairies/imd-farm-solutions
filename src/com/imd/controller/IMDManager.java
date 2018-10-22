@@ -24,10 +24,12 @@ public class IMDManager {
 
 	public static void main(String[] args) {
 		 IMDManager imdManager = new IMDManager() ;
-		 imdManager.loadMessages();
+		 imdManager.loadMessagesForAllSupportedLanguages();
 		try {
-			createTag026(); 
-		} catch (IMDException e) {
+			   String cwd = System.getProperty("user.dir");
+		        System.out.println("Current working directory : " + cwd);
+		        createTag026(); 
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -87,19 +89,18 @@ public class IMDManager {
 		c026.setPurchaseFrom(contact);
 	}
 	
-	
-	private void loadMessages() {
-		String rootPath = "IMDMessages_UR.properties";
+	private void loadMessagesForAllSupportedLanguages() {
+		String rootPath = "resources" + File.separatorChar + "IMDMessages_UR.properties";
 		Properties appProps = new Properties();
 		try {
 			appProps.load(new FileInputStream(rootPath));
 			MessageManager.loadMessages("UR", appProps);
-			rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath() +".."+File.separatorChar + "resources" + File.separatorChar + "IMDMessages_EN.properties";
+			rootPath = "resources" + File.separatorChar + "IMDMessages_EN.properties";
 			appProps = new Properties();	
 			appProps.load(new FileInputStream(rootPath));
 			MessageManager.loadMessages("EN", appProps);
 		} catch (IOException e) {
 			e.printStackTrace();
-		} 
+		}
 	}
 }
