@@ -2,10 +2,14 @@
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/LifeCycleEvent.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/Dam.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/BankDetails.java
+/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/util/DBManager.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/util/IMDException.java
+/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/loader/LifeCycleEventLoader.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/ParturationDetail.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/util/Util.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/util/MessageManager.java
+/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/util/IMDProperties.java
+/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/Person.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/Sire.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/Animal.java
 /Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions/src/main/java/com/imd/dto/MilkingDetail.java

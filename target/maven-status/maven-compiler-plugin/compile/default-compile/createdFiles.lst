@@ -7,11 +7,16 @@ com/imd/dto/MilkingDetail.class
 com/imd/util/Util.class
 com/imd/util/IMDException.class
 com/imd/dto/Sire.class
+com/imd/loader/LifeCycleEventLoader.class
+com/imd/util/IMDProperties.class
 com/imd/dto/ParturationDetail.class
+com/imd/dto/Person.class
 com/imd/dto/Note.class
+com/imd/util/DBManager.class
 com/imd/util/ParseMilkingRecord.class
 com/imd/util/Message.class
 com/imd/dto/Dam.class
+com/imd/util/Util$PROPERTIES.class
 com/imd/dto/LifeCycleEvent.class
 com/imd/dto/Contact.class
 com/imd/dto/BankDetails.class

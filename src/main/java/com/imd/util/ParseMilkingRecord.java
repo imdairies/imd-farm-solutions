@@ -140,39 +140,39 @@ public class ParseMilkingRecord {
 	 * @return Array of LifeCycleEvent record keyed on transaction id.
 	 * @throws IMDException 
 	 */
-	public static ArrayList<LifeCycleEvent> readLifeCycleEventFromCSV(String csvFile, boolean continueOnError) throws IMDException {
-		ArrayList<LifeCycleEvent> events = new ArrayList<>();
-        BufferedReader br = null;
-        String line = "";
-        // this ensures that if the values have comma and they are preceded by backslash then we do not split on them by accident.
-        String cvsSplitBy = "(?<!\\\\),"; 
-        try {
-
-            br = new BufferedReader(new FileReader(csvFile));
-            while ((line = br.readLine()) != null) {
-	            	try {
-	            		events.add(new LifeCycleEvent(line));
-	            	} catch (IMDException ex) {
-	            		if (!continueOnError)
-	            			throw ex;
-	            	}
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return events;
-	}	
+//	public static ArrayList<LifeCycleEvent> readLifeCycleEventFromCSV(String csvFile, boolean continueOnError) throws IMDException {
+//		ArrayList<LifeCycleEvent> events = new ArrayList<>();
+//        BufferedReader br = null;
+//        String line = "";
+//        // this ensures that if the values have comma and they are preceded by backslash then we do not split on them by accident.
+//        String cvsSplitBy = "(?<!\\\\),"; 
+//        try {
+//
+//            br = new BufferedReader(new FileReader(csvFile));
+//            while ((line = br.readLine()) != null) {
+//	            	try {
+//	            		events.add(new LifeCycleEvent(line));
+//	            	} catch (IMDException ex) {
+//	            		if (!continueOnError)
+//	            			throw ex;
+//	            	}
+//            }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} finally {
+//            if (br != null) {
+//                try {
+//                    br.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//        return events;
+//	}	
 	
 	
 	
