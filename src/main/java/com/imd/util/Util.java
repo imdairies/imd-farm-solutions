@@ -8,7 +8,13 @@ public class Util {
 		public final static String DB_URL = "DB_URL";
 		public final static String USER = "USER";
 		public final static String PASS = "PASS";
+		public static final String APPLICATION_LOGGING_MODE = "APPLICATION_LOGGING_MODE";
 	}
+	public static final int INFO = 0;
+	public static final int WARNING = 1;
+	public static final int ERROR = 2;
+	
+	
 	public static void throwExceptionIfNullOrEmpty(String stringToCheck, String parameterName) throws IMDException {
 		if (stringToCheck == null)
 				throw new IMDException ("A null value is not allowed for the parameter:" + parameterName);

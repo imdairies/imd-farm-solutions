@@ -8,6 +8,7 @@ com/imd/util/Util.class
 com/imd/util/IMDException.class
 com/imd/dto/Sire.class
 com/imd/loader/LifeCycleEventLoader.class
+com/imd/util/IMDLogger.class
 com/imd/util/IMDProperties.class
 com/imd/dto/ParturationDetail.class
 com/imd/dto/Person.class

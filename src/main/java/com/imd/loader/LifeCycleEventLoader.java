@@ -6,9 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.joda.time.DateTime;
 
@@ -16,6 +14,8 @@ import com.imd.dto.LifeCycleEvent;
 import com.imd.dto.Person;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
+import com.imd.util.IMDLogger;
+import com.imd.util.Util;
 
 public class LifeCycleEventLoader {
 	
@@ -155,7 +155,35 @@ public class LifeCycleEventLoader {
 	public boolean activateLifeCycleEvent(LifeCycleEvent event) {
 		return false;
 	}
-	public boolean updateLifeCycleEvent(LifeCycleEvent event) {
-		return false;
+	public int updateLifeCycleEvent(LifeCycleEvent event) {
+		String qryString = "UPDATE LV_LIFECYCLE_EVENT ";
+		String valuestoBeUpdated = "";
+		int updatedRecordCount = 0;
+		
+		valuestoBeUpdated = event.createUpdateString();
+		
+		if (valuestoBeUpdated.isEmpty()) {
+			updatedRecordCount = 0;
+		} else {
+			qryString = qryString + "SET " + valuestoBeUpdated + " where ORG_ID= '" + event.getOrgCode() + "' AND EVENT_CD = '"+ event.getEventCode() + "'";
+			Statement st = null;
+			IMDLogger.log(qryString, Util.INFO);
+			Connection conn = DBManager.getDBConnection();
+			try {
+				st = conn.createStatement();
+				updatedRecordCount = st.executeUpdate(qryString);			
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+			    try {
+					if (st != null && !st.isClosed()) {
+						st.close();	
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return updatedRecordCount;
 	}
 }

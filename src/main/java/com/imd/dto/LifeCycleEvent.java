@@ -55,7 +55,7 @@ public class LifeCycleEvent {
 
 	private DateTime createdDTTM;
 
-	private boolean active;
+	private boolean isActive;
 
 
 	public LifeCycleEvent(String organization, String lifeCycleEventCode, String shortDescr, String longDescr) throws IMDException{
@@ -242,13 +242,52 @@ public class LifeCycleEvent {
 	}
 
 	public void markActive() {
-		this.active = true;		
+		this.isActive = true;		
 	}
 	public void markInActive() {
-		this.active = false;		
+		this.isActive = false;		
 	}
 	public boolean isActive() {
-		return this.active;
+		return this.isActive;
 	}
 
+	public String createUpdateString() {
+		String updateString = "";		
+		updateString = " ACTIVE_IND=" + (isActive()? "'Y'": "'N'") + ",";
+		if (eventShortDescription != null && !eventShortDescription.isEmpty())
+			updateString += " SHORT_DESCR='" + eventShortDescription + "',";
+		if (eventLongDescription != null && !eventLongDescription.isEmpty())
+			updateString += " LONG_DESCR='" + eventLongDescription + "',";
+		if (createdBy != null && !createdBy.getUserID().isEmpty())
+			updateString += " CREATED_BY='" + createdBy.getUserID() + "',";
+		if (updatedBy != null && !updatedBy.getUserID().isEmpty())
+			updateString += " UPDATED_BY='" + updatedBy.getUserID() + "',";
+		if (createdDTTM != null)
+			updateString += " CREATED_DTTM='" + getCreatedDTTMSQLFormat() + "',";
+		if (updatedDTTM != null)
+			updateString += " UPDATED_DTTM='" + getUpdatedDTTMSQLFormat() + "',";
+		if (!updateString.isEmpty())
+			updateString = updateString.substring(0, updateString.lastIndexOf(","));
+		
+		return updateString;
+	}
+	
+	public String toString() {
+		return "ORG_ID=" + this.orgCode + 
+				"\nEVENT_CD=" + this.eventCode + 
+				"\nACTIVE_IND=" + this.isActive +
+				"\nSHORT_DESCR=" + this.eventShortDescription + 
+				"\nLONG_DESCR=" + this.eventLongDescription +
+				"\nCREATED_BY=" + this.createdBy.getUserID() + 
+				"\nREATED_DTTM=" + this.createdDTTM  +
+				"\nUPDATED_BY=" + this.updatedBy.getUserID() + 
+				"\nUPDATED_DTTM=" + this.updatedDTTM;
+	}
 }
+
+
+
+
+
+
+
