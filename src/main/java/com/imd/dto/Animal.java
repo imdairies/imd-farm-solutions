@@ -24,7 +24,7 @@ public abstract class Animal {
 	private Sire animalSire;
 	private Animal animalDam;
 	private ArrayList<byte[]> photos;
-	private ArrayList<LifeCycleEvent> lifeCycleEvents;
+	private ArrayList<LifeCycleEventCode> lifeCycleEvents;
 	/**
 	 * This is the tag ID that is visible on the animal. Tag id should be unique across all active animals at the farm.
 	 */
@@ -202,16 +202,16 @@ public abstract class Animal {
 		return gson.toJson(this);
 	}
 
-	public ArrayList<LifeCycleEvent> getLifeCycleEvents() {
+	public ArrayList<LifeCycleEventCode> getLifeCycleEvents() {
 		return lifeCycleEvents;
 	}
 
-	public void setLifeCycleEvents(ArrayList<LifeCycleEvent> lifeCycleEvents) {
+	public void setLifeCycleEvents(ArrayList<LifeCycleEventCode> lifeCycleEvents) {
 		this.lifeCycleEvents = lifeCycleEvents;
 	}
-	public void addLifecycleEvent(LifeCycleEvent event) throws IMDException {
+	public void addLifecycleEvent(LifeCycleEventCode event) throws IMDException {
 		if (lifeCycleEvents == null) 
-			lifeCycleEvents = new ArrayList<LifeCycleEvent> ();
+			lifeCycleEvents = new ArrayList<LifeCycleEventCode> ();
 		Util.throwExceptionIfNull(event, "Life Cycle Event");
 		lifeCycleEvents.add(event);
 	}

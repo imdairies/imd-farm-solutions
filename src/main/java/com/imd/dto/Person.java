@@ -1,7 +1,7 @@
 package com.imd.dto;
 
 public class Person {
-	private String userID;
+	private String personID;
 	private String firstName;
 	private String lastName;
 	private String middleName;
@@ -9,16 +9,16 @@ public class Person {
 	private String prefix;
 	private String nic;
 	public Person(String userid, String fname, String mname, String lname) {
-		this.userID = userid;
+		this.personID = userid;
 		this.firstName = fname;
 		this.middleName = mname;
 		this.lastName = lname;
 	}
-	public String getUserID() {
-		return userID;
+	public String getPersonID() {
+		return personID;
 	}
-	public void setUserID(String userID) {
-		this.userID = userID;
+	public void setPersonID(String userID) {
+		this.personID = userID;
 	}
 	public String getFirstName() {
 		return firstName;

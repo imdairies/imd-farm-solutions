@@ -15,14 +15,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.imd.dto.LifecycleEvent;
+import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.Person;
 import com.imd.dto.User;
 import com.imd.util.DBManager;
+import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
-class LifeCycleEventLoaderTest {
+class LVLifeCycleEventLoaderTest {
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
@@ -41,7 +42,7 @@ class LifeCycleEventLoaderTest {
 	}
 
 	@Test
-	void testDatabaseConnection() {
+	void testDBConnection() {
 		try {
 			Connection conn = DBManager.getDBConnection();
 			assertFalse(conn.isClosed(),"DB Connection should have been open");
@@ -52,32 +53,34 @@ class LifeCycleEventLoaderTest {
 		}
 	}
 	@Test
-	void testDatabaseProcessing() {
+	void testDBProcessing() {
 		// 1: Insert a new Lifecycle event and verify the correct insertion.
-		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
-		LifecycleEvent event;
-		try {			
-			event = new LifecycleEvent("IMD", 0, "017","PREGTEST");
-			event.setEventTimeStamp(DateTime.now());
-			event.setEventNote("Positive, الحمدُ للہ");
-			event.setEventOperator(new Person("EMP000", "Kashif", "", "Manzoor"));
+		LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
+		LifeCycleEventCode event;
+		try {
+			event = new LifeCycleEventCode(null, "Test Heat", "Indicates when the cow is in heat");
+			fail("The eventCode was null therefore an exception should have been thrown");
+		} catch (IMDException e) {
+			; 
+		}
+		try {
+			event = new LifeCycleEventCode("TSTHEAT", "Test Heat", "Indicates when the cow is in heat"); 
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
 			event.setUpdatedBy(event.getCreatedBy());
 			event.setUpdatedDTTM(event.getCreatedDTTM());
-			int transactionID = loader.insertLifeCycleEvent(event);
-			event.setEventTransactionID(transactionID);
-			assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			event.markActive();
+			assertEquals(1,loader.insertLifeCycleEvent(event),"One record should have been successfully inserted");
 			// 2: Search for the newly inserted event and verify it is retrieved properly
-			event = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
-			assertEquals("PREGTEST",event.getEventType().getEventCode(),"Retrieved Record should have the correct Event Code");
+			event = loader.retrieveLifeCycleEvent(event.getEventCode());
+			assertEquals("TSTHEAT",event.getEventCode(),"Retrieved Record should have the correct Event Code");
 			// 3: Retrieve All events and ensure one of them is the one that we inserted above.
-			List<LifecycleEvent> events = loader.retrieveAllActiveLifeCycleEventsForAnimal("IMD","017");
-			Iterator<LifecycleEvent> it = events.iterator(); 
+			List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();
+			Iterator<LifeCycleEventCode> it = events.iterator();
 			boolean found = false;
 			while (it.hasNext()) {
-				LifecycleEvent evt = it.next();
-				if (evt.getEventTransactionID() == event.getEventTransactionID()) {
+				LifeCycleEventCode evt = it.next();
+				if (evt.getEventCode().equalsIgnoreCase(event.getEventCode())) {
 					found = true;
 					break;
 				}
@@ -85,26 +88,28 @@ class LifeCycleEventLoaderTest {
 			assertTrue(found,"Could not find the recently inserted record");
 
 			// 4: Update the newly inserted event and verify the update
-			event.getEventType().setEventCode("HEAT");
+			event.setEventShortDescription("This is Test Short Description");
 			DateTime updatedDTTM = DateTime.now().plusDays(3);
 			event.setUpdatedDTTM(updatedDTTM);
+			event.markInActive();
 			int updatedRecCount = loader.updateLifeCycleEvent(event);
 			
 			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 			String updatedDTTMStr = fmt.print(updatedDTTM);
 
 			
-			LifecycleEvent evt = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
+			LifeCycleEventCode evt = loader.retrieveLifeCycleEvent("TSTHEAT");
 			IMDLogger.log(event.toString(), Util.INFO);
 			assertEquals(1, updatedRecCount, " Only one record should have been updated");
-			assertEquals("HEAT",evt.getEventType().getEventCode(),"Event Code should have been updated");
+			assertFalse(evt.isActive(), "The event should have been marked inactive");
+			assertEquals("This is Test Short Description",evt.getEventShortDescription(),"The short description should have been updated");
 			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
 					
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
-			assertEquals(1,loader.deleteLifeCycleEvent("IMD",event.getEventTransactionID()),"One record should have been deleted");
+			assertEquals(1,loader.deleteLifeCycleEvent(event.getEventCode()),"One record should have been deleted");
 
 			// 6: Search for the deleted event and verify it is not retrieved.
-			event = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
+			event = loader.retrieveLifeCycleEvent(event.getEventCode());
 			assertEquals(event,null, "Deleted record should not have been found");
 			
 		} catch (Exception e) {

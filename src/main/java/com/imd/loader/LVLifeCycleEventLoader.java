@@ -10,34 +10,34 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 
-import com.imd.dto.LifeCycleEvent;
+import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.Person;
+import com.imd.dto.User;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
-public class LifeCycleEventLoader {
+public class LVLifeCycleEventLoader {
 	
-	public LifeCycleEventLoader() {
+	public LVLifeCycleEventLoader() {
 	}
 	
-	public int insertLifeCycleEvent(LifeCycleEvent event) throws SQLException {
-		String qryString = "insert into LV_LIFECYCLE_EVENT (ORG_ID,EVENT_CD,ACTIVE_IND,SHORT_DESCR,LONG_DESCR,CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?)";
+	public int insertLifeCycleEvent(LifeCycleEventCode event) throws SQLException {
+		String qryString = "insert into LV_LIFECYCLE_EVENT (EVENT_CD,ACTIVE_IND,SHORT_DESCR,LONG_DESCR,CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?)";
 		int result = -1;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, event.getOrgCode());
-			preparedStatement.setString(2, event.getEventCode());
-			preparedStatement.setString(3, (event.isActive() ? "A":"I"));		
-			preparedStatement.setString(4, event.getEventShortDescription());
-			preparedStatement.setString(5, event.getEventLongDescription());
-			preparedStatement.setString(6, event.getCreatedBy().getUserID());
-			preparedStatement.setString(7, event.getCreatedDTTMSQLFormat());
-			preparedStatement.setString(8, event.getUpdatedBy().getUserID());
-			preparedStatement.setString(9, event.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(1, event.getEventCode());
+			preparedStatement.setString(2, (event.isActive() ? "Y":"N"));		
+			preparedStatement.setString(3, event.getEventShortDescription());
+			preparedStatement.setString(4, event.getEventLongDescription());
+			preparedStatement.setString(5, event.getCreatedBy().getUserId());
+			preparedStatement.setString(6, event.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(7, event.getUpdatedBy().getUserId());
+			preparedStatement.setString(8, event.getUpdatedDTTMSQLFormat());
 			result = preparedStatement.executeUpdate();			
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -52,9 +52,9 @@ public class LifeCycleEventLoader {
 		}		
 		return result;
 	}
-	public LifeCycleEvent retrieveLifeCycleEvent(String organizationID, String eventCode) {
-		String qryString = "Select * from LV_LIFECYCLE_EVENT where ORG_ID= '" + organizationID + "' AND EVENT_CD = '"+ eventCode + "'";
-		LifeCycleEvent event = null;
+	public LifeCycleEventCode retrieveLifeCycleEvent( String eventCode) {
+		String qryString = "Select * from LV_LIFECYCLE_EVENT where EVENT_CD = '"+ eventCode + "'";
+		LifeCycleEventCode event = null;
 		Statement st = null;
 		ResultSet rs = null;
 		try {
@@ -81,27 +81,27 @@ public class LifeCycleEventLoader {
 	    return event;
 	}
 
-	private LifeCycleEvent getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
-		LifeCycleEvent event;
-		event = new LifeCycleEvent(rs.getString("ORG_ID"),rs.getString("EVENT_CD"),rs.getString("SHORT_DESCR"),rs.getString("LONG_DESCR"));
+	private LifeCycleEventCode getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
+		LifeCycleEventCode event;
+		event = new LifeCycleEventCode(rs.getString("EVENT_CD"),rs.getString("SHORT_DESCR"),rs.getString("LONG_DESCR"));
 		if (rs.getString("ACTIVE_IND") == "A") {
 			event.markActive();
 		} else
 			event.markInActive();
-		event.setCreatedBy(new Person(rs.getString("CREATED_BY"),"","",""));
+		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
-		event.setUpdatedBy(new Person(rs.getString("UPDATED_BY"),"","",""));
+		event.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 		event.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
 		return event;
 	}
-	public boolean doesLifecycleEventExist(LifeCycleEvent event) {
+	public boolean doesLifecycleEventExist(LifeCycleEventCode event) {
 		return false;
 	}
-	public List<LifeCycleEvent> retrieveAllActiveLifeCycleEvents() {
-		ArrayList<LifeCycleEvent> allActiveEvents = new ArrayList<LifeCycleEvent>();
+	public List<LifeCycleEventCode> retrieveAllActiveLifeCycleEvents() {
+		ArrayList<LifeCycleEventCode> allActiveEvents = new ArrayList<LifeCycleEventCode>();
 		
 		String qryString = "Select * from LV_LIFECYCLE_EVENT ORDER BY SHORT_DESCR";
-		LifeCycleEvent event = null;
+		LifeCycleEventCode event = null;
 		Statement st = null;
 		ResultSet rs = null;
 		try {
@@ -128,8 +128,8 @@ public class LifeCycleEventLoader {
 		}
 	    return allActiveEvents;
 	}
-	public int deleteLifeCycleEvent(String organizationID, String eventCd) {
-		String qryString = "DELETE FROM LV_LIFECYCLE_EVENT where ORG_ID= '" + organizationID + "' AND EVENT_CD = '"+ eventCd + "'";
+	public int deleteLifeCycleEvent(String eventCd) {
+		String qryString = "DELETE FROM LV_LIFECYCLE_EVENT where EVENT_CD = '"+ eventCd + "'";
 		int result = -1;
 		Statement st = null;
 		Connection conn = DBManager.getDBConnection();
@@ -149,13 +149,13 @@ public class LifeCycleEventLoader {
 		}
 		return result;
 	}
-	public boolean inactivateLifeCycleEvent(LifeCycleEvent event) {
+	public boolean inactivateLifeCycleEvent(LifeCycleEventCode event) {
 		return false;
 	}
-	public boolean activateLifeCycleEvent(LifeCycleEvent event) {
+	public boolean activateLifeCycleEvent(LifeCycleEventCode event) {
 		return false;
 	}
-	public int updateLifeCycleEvent(LifeCycleEvent event) {
+	public int updateLifeCycleEvent(LifeCycleEventCode event) {
 		String qryString = "UPDATE LV_LIFECYCLE_EVENT ";
 		String valuestoBeUpdated = "";
 		int updatedRecordCount = 0;
@@ -165,7 +165,7 @@ public class LifeCycleEventLoader {
 		if (valuestoBeUpdated.isEmpty()) {
 			updatedRecordCount = 0;
 		} else {
-			qryString = qryString + "SET " + valuestoBeUpdated + " where ORG_ID= '" + event.getOrgCode() + "' AND EVENT_CD = '"+ event.getEventCode() + "'";
+			qryString = qryString + "SET " + valuestoBeUpdated + " where EVENT_CD = '"+ event.getEventCode() + "'";
 			Statement st = null;
 			IMDLogger.log(qryString, Util.INFO);
 			Connection conn = DBManager.getDBConnection();
