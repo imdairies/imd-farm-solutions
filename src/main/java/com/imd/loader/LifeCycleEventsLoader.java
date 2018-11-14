@@ -51,7 +51,7 @@ public class LifeCycleEventsLoader {
 			preparedStatement.setString(8, event.getCreatedDTTMSQLFormat());
 			preparedStatement.setString(9, event.getUpdatedBy().getUserId());
 			preparedStatement.setString(10, event.getUpdatedDTTMSQLFormat());
-			result = preparedStatement.executeQuery();
+			preparedStatement.executeUpdate();
 			result = preparedStatement.getGeneratedKeys();
 			if (result.next()) 
 				transactionID = result.getInt(1);

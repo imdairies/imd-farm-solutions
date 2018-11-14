@@ -4,6 +4,9 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class IMDairiesDTO {
 	
 	private User createdBy;
@@ -72,5 +75,12 @@ public class IMDairiesDTO {
 		if (getUpdatedDTTM() != null)
 			updateString += " UPDATED_DTTM='" + getUpdatedDTTMSQLFormat() + "',";
 		return updateString;
+	}
+	public String dtoToJson() throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+
+		//Object to JSON in String
+		String jsonInString = mapper.writeValueAsString(this);
+		return jsonInString;
 	}
 }

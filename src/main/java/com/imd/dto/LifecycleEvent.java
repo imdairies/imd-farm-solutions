@@ -106,7 +106,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 
 	public String createUpdateString() {
 		String updateString = "";
-		updateString = " EVENT_CD='" + this.eventType.getEventCode() + ",";
+		updateString = " EVENT_CD='" + this.eventType.getEventCode() + "',";
 		if (eventTimeStamp != null)
 			updateString += " EVENT_DTTM='" + getEventTimeStampSQLFormat() + "',";
 		

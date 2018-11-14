@@ -19,6 +19,7 @@ com/imd/controller/IMDManager.class
 com/imd/util/MessageManager.class
 com/imd/util/Util.class
 com/imd/dto/Sire.class
+com/imd/dto/User.class
 com/imd/util/IMDLogger.class
 com/imd/util/IMDProperties.class
 com/imd/dto/Note.class
