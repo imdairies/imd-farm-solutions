@@ -3,12 +3,13 @@ package com.imd.util;
 
 public class Util {
 	
-	 public static final class PROPERTIES {	
+	 public static final class PROPERTIES {
 		public final static String JDBC_DRIVER = "JDBC_DRIVER";
 		public final static String DB_URL = "DB_URL";
 		public final static String USER = "USER";
 		public final static String PASS = "PASS";
 		public static final String APPLICATION_LOGGING_MODE = "APPLICATION_LOGGING_MODE";
+		public static final String IMD_SERVICES_URL = "IMD_SERVICES_URL";
 	}
 	public static final int INFO = 0;
 	public static final int WARNING = 1;
