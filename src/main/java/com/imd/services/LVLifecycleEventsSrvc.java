@@ -15,10 +15,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.imd.dto.LifeCycleEventCode;
 import com.imd.loader.LVLifeCycleEventLoader;
 
-@Path("lv-lifecycle-event")
+@Path("/lv-lifecycle-event")
 public class LVLifecycleEventsSrvc {
 
+	/**
+	 * Retrieves ALL the event codes
+	 * @return
+	 */
 	@GET
+	@Path("/all")
 	@Produces(MediaType.TEXT_PLAIN)
     public String getLifecycleEventsLookup() {
     	String lvEvents = "";
@@ -39,17 +44,27 @@ public class LVLifecycleEventsSrvc {
         return lvEvents;
     }
 	
+	/**
+	 * Retrieve a particular life cycle event given its event code. If the event does not exist then return
+	 * No Record Found
+	 * @param eventcode
+	 * @return
+	 */
+	
 	@GET
-	  @Path("{eventcode}")
-	  @Produces(MediaType.TEXT_PLAIN)
-	  public String getLifecycleEvent(@PathParam("eventcode") String eventcode){
+	@Path("{eventcode}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getLifecycleEvent(@PathParam("eventcode") String eventcode){
 		LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
-    	try {
-			return loader.retrieveLifeCycleEvent(eventcode).dtoToJson();
+		LifeCycleEventCode eventCode = null;
+		String event = "";
+		try {
+			eventCode = loader.retrieveLifeCycleEvent(eventcode);
+			event = eventCode == null ? "No Record Found" : eventCode.dtoToJson();
 		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return "Error: " + e.getMessage();
+			event = "Error: " + e.getMessage();
 		}
+		return event;
     }
 }

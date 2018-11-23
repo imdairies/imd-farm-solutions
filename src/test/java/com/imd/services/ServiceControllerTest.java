@@ -57,8 +57,11 @@ class ServiceControllerTest {
 	}
 	@Test
 	void testLVLifecycleEvent() {
-        String responseMsg = target.path("/lv-lifecycle-event/all").request().get(String.class);
-        assertTrue(responseMsg.indexOf("createdBy:") >= 0);
+        String responseMsg = target.path("/lv-lifecycle-event/ERRORVALUE").request().get(String.class);
+        assertEquals("No Record Found", responseMsg);
+        responseMsg = target.path("/lv-lifecycle-event/HEAT").request().get(String.class);
+        assertTrue(responseMsg.indexOf("\"eventCode\":\"HEAT\"") > 0);
+        
 	}
 
 }
