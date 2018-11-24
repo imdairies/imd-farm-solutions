@@ -1,5 +1,6 @@
-package com.imd.controller;
+package com.imd.loader;
 
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,9 +9,16 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.imd.dto.Animal;
 import com.imd.dto.BankDetails;
@@ -19,36 +27,48 @@ import com.imd.dto.Dam;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Sire;
+import com.imd.dto.User;
 import com.imd.util.IMDException;
 import com.imd.util.MessageManager;
+import com.imd.util.Util;
 
-public class IMDManager {
+class AnimalLoaderTest {
 
-	public static void main(String[] args) {
-		 IMDManager imdManager = new IMDManager() ;
-		 imdManager.loadMessagesForAllSupportedLanguages();
-		try {
-			   String cwd = System.getProperty("user.dir");
-		        System.out.println("Current working directory : " + cwd);
-		        imdManager.createTag026(); 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	@BeforeAll
+	static void setUpBeforeClass() throws Exception {
 	}
 
-	public void createTag026() throws IMDException {
+	@AfterAll
+	static void tearDownAfterClass() throws Exception {
+	}
+
+	@BeforeEach
+	void setUp() throws Exception {
+	}
+
+	@AfterEach
+	void tearDown() throws Exception {
+	}
+
+	public Animal createTag026() throws IMDException {
 		Dam c026 = new Dam(/*id*/"026",/*tag*/"026",/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"Rs.");
 		c026.setAlias("Laal");
+		c026.setOrgID("IMD");
+		c026.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
 		c026.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
 				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
-		c026.setPurchaseDate(DateTime.parse("2017-02-08"));		
+		c026.setPurchaseDate(DateTime.parse("2017-02-08"));
+		c026.setCreatedBy(new User("KASHIF"));
+		c026.setCreatedDTTM(DateTime.now());
+		c026.setUpdatedBy(c026.getCreatedBy());
+		c026.setUpdatedDTTM(c026.getCreatedDTTM());
 		setPurchaseFromContact(c026);
 		setSireInformation(c026);
 		c026.setDamInformation(null);
 		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
 		c026.addNote(newNote);
 		setMilkingRecord(c026);
-		//System.out.println(c026.convertToJason());
+		return c026;
 	}
 
 	private void setMilkingRecord(Dam c026) throws IMDException {
@@ -66,7 +86,7 @@ public class IMDManager {
 	}
 
 	private void setSireInformation(Animal c026) throws IMDException {
-		Sire sire = new Sire("IMD","NLDM000291306935", DateTime.parse("2000-02-10"), false, 0, "Rs.");
+		Sire sire = new Sire("IMD","NLDM000291306935", DateTime.parse("2000-02-10"), false, 0d, "PKR");
 		sire.setAlias("MANDERS MARIUS");
 		sire.setMarketedByCompany(new Contact("Not known"));
 		Contact company = new Contact("CRV");
@@ -105,4 +125,36 @@ public class IMDManager {
 			e.printStackTrace();
 		}
 	}
+	 
+	@Test
+	void testAnimalProcessing() {
+		try {
+			// 1: Insert a new Animal.
+			Animal animal;
+			animal = createTag026();
+			AnimalLoader loader = new AnimalLoader();
+			int transactionID = loader.insertAnimal(animal);
+			assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			List <Animal>  animals = loader.retrieveActiveAnimals("IMD");
+			Iterator<Animal> it = animals.iterator();
+			boolean found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("026")) {
+					found = true;
+				}
+			}
+			assertTrue(found, "Tag 026 should have been found");
+			animal = loader.retrieveAnimal("IMD", "026");
+			assertEquals("026",animal.getAnimalTag());
+			int transactionId  = loader.deleteAnimal("IMD", "026");
+			assertEquals(1,transactionId);
+			animal = loader.retrieveAnimal("IMD", "026");
+			assertEquals(null,animal);					
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}
+	}	
+
 }

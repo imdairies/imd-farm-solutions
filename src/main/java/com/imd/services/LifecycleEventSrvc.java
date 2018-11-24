@@ -6,9 +6,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 /**
- * Root resource (exposed at "myresource" path)
+ * Root resource (exposed at "lifecycle-event" path)
  */
-@Path("myresource")
+@Path("lifecycle-event")
 public class LifecycleEventSrvc {
 
     /**

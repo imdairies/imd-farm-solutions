@@ -35,11 +35,10 @@ class LifecycleEventDTOTest {
 	void testDTOTOJSON() {
 		try { 
 			LifecycleEvent event = new LifecycleEvent("IMD", (int)0, "021", "VACCINE");
-			IMDLogger.log(event.dtoToJson(),Util.INFO);
-			assertTrue(event.dtoToJson().indexOf("\"orgID\":\"IMD\"")>=0,"Org ID should be IMD");
-			assertTrue(event.dtoToJson().indexOf("\"eventCode\":\"VACCINE\"")>=0,"Event Cd should be VACCINE");
-		} catch (IMDException | JsonProcessingException e) {
-			// TODO Auto-generated catch block
+			IMDLogger.log(event.dtoToJson("  "),Util.INFO);
+			assertTrue(event.dtoToJson("  ").indexOf("\"orgID\":\"IMD\"")>=0,"Org ID should be IMD");
+			assertTrue(event.dtoToJson("  ").indexOf("\"eventCode\":\"VACCINE\"")>=0,"Event Cd should be VACCINE");
+		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Exception occurred");
 		}

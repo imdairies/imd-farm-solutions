@@ -25,17 +25,17 @@ public class LVLifecycleEventsSrvc {
 	@GET
 	@Path("/all")
 	@Produces(MediaType.TEXT_PLAIN)
-    public String getLifecycleEventsLookup() {
+    public String getActiveLifecycleEventsLookup() {
     	String lvEvents = "";
-    	List<LifeCycleEventCode> events = new ArrayList<LifeCycleEventCode>();
     	try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
-	    	events = loader.retrieveAllActiveLifeCycleEvents();	    	
+		 	List<LifeCycleEventCode> events = loader.retrieveAllLifeCycleEvents();	    	
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
 	    		LifeCycleEventCode event = eventIt.next();
-	    		lvEvents += event.dtoToJson() + "\n";	    		
+	    		lvEvents += "{\n" + event.dtoToJson("  ") + "\n},\n";	    		
 	    	}
+	    	lvEvents = lvEvents.substring(0,lvEvents.lastIndexOf(",\n"));
 	    	System.out.println(lvEvents);
     	} catch (Exception ex) {
     		ex.printStackTrace();
@@ -43,6 +43,31 @@ public class LVLifecycleEventsSrvc {
     	}
         return lvEvents;
     }
+	/**
+	 * Retrieves ALL the event codes
+	 * @return
+	 */
+	@GET
+	@Path("/allactive")
+	@Produces(MediaType.TEXT_PLAIN)
+    public String getAllActiveLifecycleEventsLookup() {
+    	String lvEvents = "";
+    	try {
+			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
+		 	List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();	    	
+	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
+	    	while (eventIt.hasNext()) {
+	    		LifeCycleEventCode event = eventIt.next();
+	    		lvEvents += "{\n" + event.dtoToJson("  ") + "\n},\n";	    		
+	    	}
+	    	lvEvents = lvEvents.substring(0,lvEvents.lastIndexOf(",\n"));
+	    	System.out.println(lvEvents);
+    	} catch (Exception ex) {
+    		ex.printStackTrace();
+    		System.out.println(ex.getMessage());
+    	}
+        return lvEvents;
+    }	
 	
 	/**
 	 * Retrieve a particular life cycle event given its event code. If the event does not exist then return
@@ -60,8 +85,8 @@ public class LVLifecycleEventsSrvc {
 		String event = "";
 		try {
 			eventCode = loader.retrieveLifeCycleEvent(eventcode);
-			event = eventCode == null ? "No Record Found" : eventCode.dtoToJson();
-		} catch (JsonProcessingException e) {
+			event = eventCode == null ? "No Record Found" : "{\n" + eventCode.dtoToJson("  ") +"\n}\n";
+		} catch (Exception e) {
 			e.printStackTrace();
 			event = "Error: " + e.getMessage();
 		}

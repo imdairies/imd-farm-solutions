@@ -3,15 +3,17 @@ package com.imd.dto;
 import java.net.URI;
 import java.time.LocalDate;
 
+import org.joda.time.DateTime;
+
 import com.imd.util.IMDException;
 
 public class Sire extends Animal {
 	private Contact marketedByCompany;
 	private Contact ownerCompany;
 	private URI sireSpecification;
-	public Sire(String systemID, String tagNumber, LocalDate dateOfBirth, boolean isDobEstimated, double purPrice,
+	public Sire(String orgID, String tagNumber, DateTime dateOfBirth, boolean isDobEstimated, double purPrice,
 			String priceCurr) throws IMDException {
-			super(systemID, tagNumber, dateOfBirth, isDobEstimated, purPrice, priceCurr);
+			super(orgID, tagNumber, dateOfBirth, isDobEstimated, purPrice, priceCurr);
 			super.setGender('M');
 	}
 	

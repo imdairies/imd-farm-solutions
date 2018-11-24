@@ -6,7 +6,6 @@ import org.joda.time.DateTime;
 import com.imd.util.IMDException;
 
 public class LifecycleEvent extends IMDairiesDTO{
-	private String orgID;
 	private int eventTransactionID;
 	private LifeCycleEventCode eventType;
 	private String animalTag;
@@ -16,7 +15,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 	
 
 	public LifecycleEvent(String orgID, int transactionID, String animalTag, String eventCode) throws IMDException {
-		this.orgID = orgID;
+		this.setOrgID(orgID);
 		this.eventTransactionID = transactionID;
 		this.animalTag = animalTag;
 		this.eventType = new LifeCycleEventCode(eventCode, "", "");
@@ -70,15 +69,6 @@ public class LifecycleEvent extends IMDairiesDTO{
 	}
 
 
-	public String getOrgID() {
-		return orgID;
-	}
-
-
-	public void setOrgID(String orgID) {
-		this.orgID = orgID;
-	}
-
 
 	public int getEventID() {
 		return eventTransactionID;
@@ -119,6 +109,15 @@ public class LifecycleEvent extends IMDairiesDTO{
 			updateString = updateString.substring(0, updateString.lastIndexOf(","));		
 		return updateString;
 	}
-	
-	
+	public String dtoToJson(String prefix)  {
+		String json = prefix + fieldToJson("orgID", this.getOrgID()) + "," +
+				prefix + prefix + fieldToJson("eventTransactionID",this.eventTransactionID) + ",\n" + 
+				prefix + fieldToJson("eventType", this.eventType.dtoToJson(prefix)) + ",\n" + 
+				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" + 
+				prefix + fieldToJson("eventComments", this.eventComments) + ",\n" + 
+				prefix + fieldToJson("eventTimeStamp", this.eventTimeStamp) + ",\n" + 
+				prefix + fieldToJson("eventOperator", this.eventOperator) + ",\n" + 
+				super.dtoToJson(prefix);
+		return json;
+	}
 }

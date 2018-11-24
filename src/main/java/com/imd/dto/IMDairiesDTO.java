@@ -10,11 +10,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class IMDairiesDTO {
 	
 	private User createdBy;
-
 	private User updatedBy;
-
 	private DateTime updatedDTTM;
 	private DateTime createdDTTM;
+	private String orgID;
 
 	public User getCreatedBy() {
 		return createdBy;
@@ -45,10 +44,19 @@ public class IMDairiesDTO {
 	}
 
 
+	/**
+	 * Returns the created date in "yyyy-MM-dd HH:mm:ss" format
+	 * @return
+	 */
+
 	public String getCreatedDTTMSQLFormat() {		
 		return getDateInSQLFormart(createdDTTM);
 	}
 
+	/**
+	 * Returns the updated date in "yyyy-MM-dd HH:mm:ss" format
+	 * @return
+	 */
 	public String getUpdatedDTTMSQLFormat() {
 		return getDateInSQLFormart(updatedDTTM);
 	}
@@ -76,11 +84,39 @@ public class IMDairiesDTO {
 			updateString += " UPDATED_DTTM='" + getUpdatedDTTMSQLFormat() + "',";
 		return updateString;
 	}
-	public String dtoToJson() throws JsonProcessingException {
-		ObjectMapper mapper = new ObjectMapper();
+	public String dtoToJson(String prefix){
+		String json = prefix + fieldToJson("createdBy", this.createdBy) + ",\n" + 
+				prefix + fieldToJson("createdDTTM", this.getCreatedDTTMSQLFormat()) + ",\n" +
+				prefix + fieldToJson("createdBy", this.updatedBy) + ",\n" +
+				prefix + fieldToJson("updatedDTTM", this.getUpdatedDTTMSQLFormat());
+		return json;
 
-		//Object to JSON in String
-		String jsonInString = mapper.writeValueAsString(this);
-		return jsonInString;
+	}
+	protected String fieldToJson(String fieldName, String strValue) {		
+		return ("\"" + fieldName + "\":" + (strValue == null ? "\"\"" : "\"" + strValue + "\""));
+	}
+	protected String fieldToJson(String fieldName, DateTime valueDTTM) {
+		return ("\"" + fieldName + "\":" + (valueDTTM == null ? "\"\"" : "\"" + this.getDateInSQLFormart(valueDTTM) + "\""));
+	}
+	protected String fieldToJson(String fieldName, int intValue) {
+		return ("\"" + fieldName + "\":" + Integer.toString(intValue));
+	}
+	protected String fieldToJson(String fieldName, double dblValue) {
+		return ("\"" + fieldName + "\":" + Double.toString(dblValue));
+	}
+	protected String fieldToJson(String fieldName, Person personValue) {
+		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" + personValue.getPersonID() + "\""));
+	}
+	protected String fieldToJson(String fieldName, User usrValue) {
+		return ("\"" + fieldName + "\":" + (usrValue == null ? "\"\"" : "\"" + usrValue.getUserId() + "\""));
+	}
+	protected String fieldToJson(String fieldName, boolean boolValue) {
+		return ("\"" + fieldName + "\":" + (boolValue ? "true" : "false"));
+	}
+	public String getOrgID() {
+		return orgID;
+	}
+	public void setOrgID(String orgID) {
+		this.orgID = orgID;
 	}
 }

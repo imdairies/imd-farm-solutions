@@ -84,7 +84,7 @@ public class LVLifeCycleEventLoader {
 	private LifeCycleEventCode getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
 		LifeCycleEventCode event;
 		event = new LifeCycleEventCode(rs.getString("EVENT_CD"),rs.getString("SHORT_DESCR"),rs.getString("LONG_DESCR"));
-		if (rs.getString("ACTIVE_IND") == "A") {
+		if (rs.getString("ACTIVE_IND").equalsIgnoreCase("Y")) {
 			event.markActive();
 		} else
 			event.markInActive();
@@ -97,10 +97,19 @@ public class LVLifeCycleEventLoader {
 	public boolean doesLifecycleEventExist(LifeCycleEventCode event) {
 		return false;
 	}
+
 	public List<LifeCycleEventCode> retrieveAllActiveLifeCycleEvents() {
-		ArrayList<LifeCycleEventCode> allActiveEvents = new ArrayList<LifeCycleEventCode>();
+		return retrieveLifeCycleEvents(true);
 		
-		String qryString = "Select * from LV_LIFECYCLE_EVENT ORDER BY SHORT_DESCR";
+	}	
+
+	public List<LifeCycleEventCode> retrieveAllLifeCycleEvents() {
+		return retrieveLifeCycleEvents(false);
+		
+	}
+	private List<LifeCycleEventCode> retrieveLifeCycleEvents(boolean retrieveActiveOnly) {
+		ArrayList<LifeCycleEventCode> allActiveEvents = new ArrayList<LifeCycleEventCode>();		
+		String qryString = "Select * from LV_LIFECYCLE_EVENT " + (retrieveActiveOnly ? " WHERE ACTIVE_IND = 'Y' " : "") + " ORDER BY SHORT_DESCR";
 		LifeCycleEventCode event = null;
 		Statement st = null;
 		ResultSet rs = null;

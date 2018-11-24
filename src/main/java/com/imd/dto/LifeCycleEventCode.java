@@ -94,6 +94,17 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 				"\nSHORT_DESCR=" + this.eventShortDescription + 
 				"\nLONG_DESCR=" + this.eventLongDescription + super.toString();
 	}
+	
+	public String dtoToJson(String prefix)  {
+		String json =  prefix + fieldToJson("eventCode", this.eventCode) + ",\n" +
+				prefix + fieldToJson("eventShortDescription", this.eventShortDescription) + ",\n" + 
+				prefix + fieldToJson("eventLongDescription", this.eventLongDescription) + ",\n" + 
+				prefix + fieldToJson("isActive", this.isActive) + ",\n" + 
+				super.dtoToJson(prefix);
+		return json;
+	}
+	
+	
 }
 
 

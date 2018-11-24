@@ -104,7 +104,34 @@ class LVLifeCycleEventLoaderTest {
 			assertFalse(evt.isActive(), "The event should have been marked inactive");
 			assertEquals("This is Test Short Description",evt.getEventShortDescription(),"The short description should have been updated");
 			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
-					
+
+			// Retrieve All active events and ensure the above event does NOT appear as we had marked it inactive.
+			events = loader.retrieveAllActiveLifeCycleEvents();
+			it = events.iterator();
+			found = false;
+			while (it.hasNext()) {
+				evt = it.next();
+				if (evt.getEventCode().equalsIgnoreCase(event.getEventCode())) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found,"The inactive event should have been picked up in the list of all events.");	
+
+			// Retrieve All events and ensure the above event DOES appear as we had marked it inactive.
+			events = loader.retrieveAllLifeCycleEvents();
+			it = events.iterator();
+			found = false;
+			while (it.hasNext()) {
+				evt = it.next();
+				if (evt.getEventCode().equalsIgnoreCase(event.getEventCode())) {
+					found = true;
+					break;
+				}
+			}
+			assertFalse(found,"The inactive event should not have been picked up in the list of all active events.");	
+			
+			
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
 			assertEquals(1,loader.deleteLifeCycleEvent(event.getEventCode()),"One record should have been deleted");
 

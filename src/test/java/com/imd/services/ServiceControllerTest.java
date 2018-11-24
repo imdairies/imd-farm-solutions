@@ -38,11 +38,8 @@ class ServiceControllerTest {
         server = ServiceController.startServer();
         // create the client
         Client c = ClientBuilder.newClient();
-
 //        c.configuration().enable(new org.glassfish.jersey.media.json.JsonJaxbFeature());
-
-        target = c.target(IMDProperties.getProperty(Util.PROPERTIES.IMD_SERVICES_URL));
-		
+        target = c.target(IMDProperties.getProperty(Util.PROPERTIES.IMD_SERVICES_URL));	
 	}
 
 	@AfterEach
@@ -52,7 +49,7 @@ class ServiceControllerTest {
 
 	@Test
 	void testServiceController() {
-        String responseMsg = target.path("myresource").request().get(String.class);
+        String responseMsg = target.path("lifecycle-event").request().get(String.class);
         assertEquals("Got it!", responseMsg);
 	}
 	@Test
@@ -60,8 +57,12 @@ class ServiceControllerTest {
         String responseMsg = target.path("/lv-lifecycle-event/ERRORVALUE").request().get(String.class);
         assertEquals("No Record Found", responseMsg);
         responseMsg = target.path("/lv-lifecycle-event/HEAT").request().get(String.class);
-        assertTrue(responseMsg.indexOf("\"eventCode\":\"HEAT\"") > 0);
-        
+        assertTrue(responseMsg.indexOf("\"eventCode\":\"HEAT\"") >= 0,responseMsg);
+        responseMsg = target.path("/lv-lifecycle-event/all").request().get(String.class);
+        assertTrue(responseMsg.indexOf("\"eventCode\":\"HEAT\"") >= 0,responseMsg);
+        responseMsg = target.path("/lv-lifecycle-event/allactive").request().get(String.class);
+        assertTrue(responseMsg.indexOf("\"eventCode\":\"INSEMINATE\"") >= 0,responseMsg);
 	}
+	
 
 }

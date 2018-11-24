@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.joda.time.DateTime;
+
 import com.imd.util.IMDException;
 import com.imd.util.Util;
 
@@ -25,8 +27,8 @@ public class Dam extends Animal {
 		milkingRecord = new HashMap <>();
 		super.setGender('F');
 	}
-	public Dam(String id, String tag, LocalDate dob, boolean isAgeEstimated, double purchasePrice, String currency) throws IMDException {
-		super(id, tag, dob, isAgeEstimated, purchasePrice, currency);
+	public Dam(String orgID, String tag, DateTime dob, boolean isAgeEstimated, double purchasePrice, String currency) throws IMDException {
+		super(orgID, tag, dob, isAgeEstimated, purchasePrice, currency);
 		milkingRecord = new HashMap <>();
 		super.setGender('F');
 	}

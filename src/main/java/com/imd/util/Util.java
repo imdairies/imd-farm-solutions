@@ -1,5 +1,9 @@
 package com.imd.util;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public class Util {
 	
@@ -14,7 +18,18 @@ public class Util {
 	public static final int INFO = 0;
 	public static final int WARNING = 1;
 	public static final int ERROR = 2;
-	
+
+	 public static final class GENDER {
+		public static final char MALE = 'M';
+		public static final char FEMALE = 'F';
+		public static final char UNKNOWN = 'U';
+	 }
+	 
+	 public static final class ANIMAL_STATUS {
+		public static final String ACTIVE = "ACTIVE";
+		public static final String DEAD = "DEAD";
+		public static final String CULLED = "CULLED";
+	 }
 	
 	public static void throwExceptionIfNullOrEmpty(String stringToCheck, String parameterName) throws IMDException {
 		if (stringToCheck == null)
@@ -33,4 +48,8 @@ public class Util {
 		return originalValue.replaceAll(escapeSequence, "");
 	}
 	
+	public static String getDateInSQLFormart(DateTime dttm) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+		return fmt.print(dttm);
+	}
 }

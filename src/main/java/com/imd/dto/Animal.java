@@ -5,21 +5,23 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+import org.joda.time.Duration;
+
 import com.google.gson.Gson;
 import com.imd.util.IMDException;
 import com.imd.util.Util;
 
-public abstract class Animal {
-	/**
-	 * Animal's unique system identifier
-	 */
-	private String animalID;
-	private LocalDate dateOfBirth;
+public class Animal extends IMDairiesDTO{
+
+	private String animalTag;
+	private DateTime dateOfBirth;
 	private boolean isDateOfBirthEstimated;
 	private double purchasePrice;
 	private String purchaseCurrency = "Rs.";
 	private Contact purchaseFromContact;
-	private LocalDate purchaseDate;
+	private DateTime purchaseDate;
 	private String alias;
 	private Sire animalSire;
 	private Animal animalDam;
@@ -40,14 +42,15 @@ public abstract class Animal {
 	 * Holds any user entered text against this Animal.
 	 */
 	private ArrayList<Note> notes;
+	private String animalStatus;
 
-	public Animal(String systemID, String tagNumber, LocalDate birthDate, boolean isDobEstimated, double purPrice, String priceCurr) throws IMDException{
+	public Animal(String orgID, String tagNumber, DateTime birthDate, boolean isDobEstimated, double purPrice, String priceCurr) throws IMDException{
 
-		if (systemID == null || tagNumber == null || birthDate == null || priceCurr == null)
+		if (tagNumber == null || birthDate == null || priceCurr == null)
 			throw new IMDException ("One or more values contain null. Please provide valid values for all the parameters");
-		else {	
-			this.animalID = systemID;
-			this.tagID = tagNumber;
+		else {
+			this.setOrgID(orgID);
+			this.animalTag = tagNumber;
 			this.dateOfBirth = birthDate;
 			this.isDateOfBirthEstimated = isDobEstimated;
 			this.purchasePrice = purPrice;
@@ -62,16 +65,16 @@ public abstract class Animal {
 			this.tagID = tagNumber;
 		}
 	}
-	public String getAID() {
-		return animalID;
+	public String getAnimalTag() {
+		return this.animalTag;
 	}
-	public void setAID(String aID) {
-		animalID = aID;
+	public void setAnimalTag(String aID) {
+		this.animalTag = aID;
 	}
-	public LocalDate getDateOfBirth() {
+	public DateTime getDateOfBirth() {
 		return dateOfBirth;
 	}
-	public void setDateOfBirth(LocalDate dateOfBirth) {
+	public void setDateOfBirth(DateTime dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
 	}
 	public boolean isDateOfBirthEstimated() {
@@ -123,8 +126,8 @@ public abstract class Animal {
 	 * returns the period between today and the date of birth.
 	 * @return
 	 */
-	public Period getCurrentAge() {
-		return Period.between(dateOfBirth, LocalDate.now());
+	public Days getCurrentAge() {
+		return Days.daysBetween(dateOfBirth, DateTime.now());
 	}
 	public double getPurchasePrice() {
 		return purchasePrice;
@@ -144,14 +147,14 @@ public abstract class Animal {
 	public void setPurchaseFrom(Contact purchaseFrom) {
 		this.purchaseFromContact = purchaseFrom;
 	}
-	public LocalDate getPurchaseDate() {
+	public DateTime getPurchaseDate() {
 		return purchaseDate;
 	}
-	public void setPurchaseDate(LocalDate purchaseDate) {
+	public void setPurchaseDate(DateTime purchaseDate) {
 		this.purchaseDate = purchaseDate;
 	}
-	public Period getAgeAtPurchase() {
-		return Period.between(dateOfBirth,purchaseDate);
+	public Days getAgeAtPurchase() {
+		return Days.daysBetween(dateOfBirth,purchaseDate);
 	}
 	public String getAlias() {
 		return alias;
@@ -197,10 +200,6 @@ public abstract class Animal {
 	public void setDamInformation(Dam dam) {
 		
 	}
-	public String convertToJason() {
-		Gson gson = new Gson();
-		return gson.toJson(this);
-	}
 
 	public ArrayList<LifeCycleEventCode> getLifeCycleEvents() {
 		return lifeCycleEvents;
@@ -215,5 +214,13 @@ public abstract class Animal {
 		Util.throwExceptionIfNull(event, "Life Cycle Event");
 		lifeCycleEvents.add(event);
 	}
+
+	public String getAnimalStatus() {
+		return this.animalStatus;
+	}	
+	
+	public void setAnimalStatus(String animalStatus) {
+		this.animalStatus = animalStatus;
+	}	
 	
 }

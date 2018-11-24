@@ -1,6 +1,6 @@
 package com.imd.dto;
 
-public class Person {
+public class Person extends IMDairiesDTO {
 	private String personID;
 	private String firstName;
 	private String lastName;

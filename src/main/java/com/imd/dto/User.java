@@ -2,7 +2,7 @@ package com.imd.dto;
 
 import org.joda.time.DateTime;
 
-public class User extends IMDairiesDTO{
+public class User extends IMDairiesDTO {
 	private String userId;
 	private boolean isActive;
 	private String password;
