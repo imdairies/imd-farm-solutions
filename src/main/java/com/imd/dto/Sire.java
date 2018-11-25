@@ -14,21 +14,12 @@ public class Sire extends Animal {
 	public Sire(String orgID, String tagNumber, DateTime dateOfBirth, boolean isDobEstimated, double purPrice,
 			String priceCurr) throws IMDException {
 			super(orgID, tagNumber, dateOfBirth, isDobEstimated, purPrice, priceCurr);
-			super.setGender('M');
+			setGender('M');
 	}
 	
-	
-	
-	/**
-	 * Gender will always be 'Male' for Sire. So we won't allow you to change the gender, irrespective of what you set we will set the gender to 'M'.
-	 */
-	@Override
-	public void setGender(char gender) {
-		super.setGender('M');
-	}
 	public Sire(String tagNumber) throws IMDException  {
 		super(tagNumber);
-		super.setGender('M');
+		setGender('M');
 	}
 	public Contact getMarketedByCompany() {
 		return marketedByCompany;

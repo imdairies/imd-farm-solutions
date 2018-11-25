@@ -1,7 +1,6 @@
 package com.imd.services;
 
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,7 +10,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.imd.dto.LifeCycleEventCode;
 import com.imd.loader.LVLifeCycleEventLoader;
 
@@ -36,7 +34,7 @@ public class LVLifecycleEventsSrvc {
 	    		lvEvents += "{\n" + event.dtoToJson("  ") + "\n},\n";	    		
 	    	}
 	    	lvEvents = lvEvents.substring(0,lvEvents.lastIndexOf(",\n"));
-	    	System.out.println(lvEvents);
+//	    	System.out.println(lvEvents);
     	} catch (Exception ex) {
     		ex.printStackTrace();
     		System.out.println(ex.getMessage());
@@ -61,7 +59,7 @@ public class LVLifecycleEventsSrvc {
 	    		lvEvents += "{\n" + event.dtoToJson("  ") + "\n},\n";	    		
 	    	}
 	    	lvEvents = lvEvents.substring(0,lvEvents.lastIndexOf(",\n"));
-	    	System.out.println(lvEvents);
+//	    	System.out.println(lvEvents);
     	} catch (Exception ex) {
     		ex.printStackTrace();
     		System.out.println(ex.getMessage());

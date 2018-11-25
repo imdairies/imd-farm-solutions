@@ -48,12 +48,12 @@ class ServiceControllerTest {
 	}
 
 	@Test
-	void testServiceController() {
+	void testLifecycleEventSrvc() {
         String responseMsg = target.path("lifecycle-event").request().get(String.class);
         assertEquals("Got it!", responseMsg);
 	}
 	@Test
-	void testLVLifecycleEvent() {
+	void testLVLifecycleEventsSrvc() {
         String responseMsg = target.path("/lv-lifecycle-event/ERRORVALUE").request().get(String.class);
         assertEquals("No Record Found", responseMsg);
         responseMsg = target.path("/lv-lifecycle-event/HEAT").request().get(String.class);
@@ -62,6 +62,15 @@ class ServiceControllerTest {
         assertTrue(responseMsg.indexOf("\"eventCode\":\"HEAT\"") >= 0,responseMsg);
         responseMsg = target.path("/lv-lifecycle-event/allactive").request().get(String.class);
         assertTrue(responseMsg.indexOf("\"eventCode\":\"INSEMINATE\"") >= 0,responseMsg);
+	}
+	@Test
+	void testAnimalSrvc() {
+        String responseMsg = target.path("/animals/all").request().get(String.class);
+        assertTrue(responseMsg.indexOf("\"animalTag\":") >= 0 || responseMsg.equalsIgnoreCase("No Record Found"),responseMsg);
+        responseMsg = target.path("/animals/allactive").request().get(String.class);
+        assertTrue(responseMsg.indexOf("\"animalTag\":") >= 0 || responseMsg.equalsIgnoreCase("No Record Found"),responseMsg);
+        responseMsg = target.path("/animals/NONEXISTENT").request().get(String.class);
+        assertEquals("No Record Found", responseMsg);
 	}
 	
 

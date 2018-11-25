@@ -12,7 +12,7 @@ public class ParturationDetail {
 	 */
 	private Integer inseminationCount;
 	private LocalDateTime parturationDateTime;
-	private Sire semenSireDetail;
+	private Sire semenSireDetail; 
 	private Animal calf;
 	private Note parturationComments;
 	public LocalDateTime getHeatDateTime() {

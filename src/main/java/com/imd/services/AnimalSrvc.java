@@ -27,14 +27,8 @@ public class AnimalSrvc {
     	String animalsJson = "";
     	try {
 			AnimalLoader loader = new AnimalLoader();
-		 	List<Animal> animals = loader.retrieveAllAnimals("IMD");	    	
-	    	Iterator<Animal> animalIt = animals.iterator();
-	    	while (animalIt.hasNext()) {
-	    		Animal animal = animalIt.next();
-	    		animalsJson += "{\n" + animal.dtoToJson("  ") + "\n},\n";	    		
-	    	}
-	    	animalsJson = animalsJson.substring(0,animalsJson.lastIndexOf(",\n"));
-	    	System.out.println(animalsJson);
+		 	List<Animal> animals = loader.retrieveAllAnimals("IMD");
+		 	animalsJson = processAnimalRecords(animalsJson, animals);
     	} catch (Exception ex) {
     		ex.printStackTrace();
     		System.out.println(ex.getMessage());
@@ -52,21 +46,15 @@ public class AnimalSrvc {
 	   	String animalsJson = "";
     	try {
 			AnimalLoader loader = new AnimalLoader();
-		 	List<Animal> animals = loader.retrieveActiveAnimals("IMD");	    	
-	    	Iterator<Animal> animalIt = animals.iterator();
-	    	while (animalIt.hasNext()) {
-	    		Animal animal = animalIt.next();
-	    		animalsJson += "{\n" + animal.dtoToJson("  ") + "\n},\n";	    		
-	    	}
-	    	animalsJson = animalsJson.substring(0,animalsJson.lastIndexOf(",\n"));
-	    	System.out.println(animalsJson);
+		 	List<Animal> animals = loader.retrieveActiveAnimals("IMD");
+		 	animalsJson = processAnimalRecords(animalsJson, animals);
     	} catch (Exception ex) {
     		ex.printStackTrace();
     		System.out.println(ex.getMessage());
     	}
         return animalsJson;
-    }	
-	
+    }
+
 	/**
 	 * Retrieve a particular life cycle event given its event code. If the event does not exist then return
 	 * No Record Found
@@ -90,4 +78,20 @@ public class AnimalSrvc {
     	}
         return animalsJson;
     }
+	
+	private String processAnimalRecords(String animalsJson, List<Animal> animals) {
+		if (animals == null || animals.isEmpty()) {
+			animalsJson = "No Record Found";
+		} else {
+		
+			Iterator<Animal> animalIt = animals.iterator();
+			while (animalIt.hasNext()) {
+				Animal animal = animalIt.next();
+				animalsJson += "{\n" + animal.dtoToJson("  ") + "\n},\n";	    		
+			}
+			animalsJson = animalsJson.substring(0,animalsJson.lastIndexOf(",\n"));
+		}
+//		System.out.println(animalsJson);
+		return animalsJson;
+	}	
 }

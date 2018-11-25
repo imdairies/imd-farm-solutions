@@ -44,7 +44,7 @@ public class IMDManager {
 		c026.setPurchaseDate(DateTime.parse("2017-02-08"));		
 		setPurchaseFromContact(c026);
 		setSireInformation(c026);
-		c026.setDamInformation(null);
+		c026.setAnimalDam(null);
 		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
 		c026.addNote(newNote);
 		setMilkingRecord(c026);

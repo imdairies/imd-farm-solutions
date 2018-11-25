@@ -160,14 +160,25 @@ public class AnimalLoader {
 		String ind = rs.getString("DOB_ACCURACY_IND");
 		DateTime dob = (rs.getTimestamp("DOB") != null ? new DateTime(rs.getTimestamp("DOB")) : null);
 		String gender = rs.getString("GENDER");
+		String damTag = rs.getString("DAM_TAG");
+		String sireTag = rs.getString("SIRE_TAG");
+		String orgId = rs.getString("ORG_ID");
 		boolean isEstimated = (ind == null || ind.trim().isEmpty() || ind.trim().equalsIgnoreCase("N") ? true : false);
-
 		Animal animal;
 		if (gender != null && gender.trim().equalsIgnoreCase("F")) {
-			animal = new Dam(rs.getString("ORG_ID"), rs.getString("ANIMAL_TAG"),dob,isEstimated,324000d,"PKR");
+			animal = new Dam(orgId, rs.getString("ANIMAL_TAG"),dob,isEstimated,324000d,"PKR");
 		} else {
-			animal = new Sire(rs.getString("ORG_ID"), rs.getString("ANIMAL_TAG"),dob,isEstimated,324000d,"PKR");	
-		}		 
+			animal = new Sire(orgId, rs.getString("ANIMAL_TAG"),dob,isEstimated,324000d,"PKR");	
+		}
+		
+		if (damTag != null) {
+			animal.setAnimalDam(new Dam(damTag));
+		}
+		if (sireTag != null) {
+			animal.setAnimalSire(new Sire(sireTag));
+		}
+		
+		animal.setAnimalStatus(rs.getString("STATUS"));
 		animal.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		animal.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
 		animal.setUpdatedBy(new User(rs.getString("UPDATED_BY")));

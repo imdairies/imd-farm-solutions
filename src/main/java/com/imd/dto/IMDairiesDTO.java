@@ -101,6 +101,9 @@ public class IMDairiesDTO {
 	protected String fieldToJson(String fieldName, int intValue) {
 		return ("\"" + fieldName + "\":" + Integer.toString(intValue));
 	}
+	protected String fieldToJson(String fieldName, char charValue) {
+		return ("\"" + fieldName + "\":\"" + charValue + "\"");
+	}
 	protected String fieldToJson(String fieldName, double dblValue) {
 		return ("\"" + fieldName + "\":" + Double.toString(dblValue));
 	}

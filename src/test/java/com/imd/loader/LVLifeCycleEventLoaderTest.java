@@ -64,16 +64,27 @@ class LVLifeCycleEventLoaderTest {
 			; 
 		}
 		try {
-			event = new LifeCycleEventCode("TSTHEAT", "Test Heat", "Indicates when the cow is in heat"); 
+			// 0: Search for the test record, if it exists then delete it so that we can start afresh.
+			event = loader.retrieveLifeCycleEvent("TSTHEAT");
+			if (event != null) {
+				loader.deleteLifeCycleEvent("TSTHEAT");
+				IMDLogger.log("TSTHEAT record already exists, have deleted it now", Util.ERROR);
+			}
+			// 1: Now insert the test record without having to worry about whether it already exists or not.
+			event = new LifeCycleEventCode("TSTHEAT", "Test Heat", "Indicates when the cow is in heat"); 			
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
 			event.setUpdatedBy(event.getCreatedBy());
 			event.setUpdatedDTTM(event.getCreatedDTTM());
 			event.markActive();
 			assertEquals(1,loader.insertLifeCycleEvent(event),"One record should have been successfully inserted");
+			IMDLogger.log("TSTHEAT record has been successfully inserted", Util.INFO);
+
 			// 2: Search for the newly inserted event and verify it is retrieved properly
 			event = loader.retrieveLifeCycleEvent(event.getEventCode());
 			assertEquals("TSTHEAT",event.getEventCode(),"Retrieved Record should have the correct Event Code");
+			IMDLogger.log("TSTHEAT record has been successfully retrieved through retrieveLifeCycleEvent ", Util.INFO);
+
 			// 3: Retrieve All events and ensure one of them is the one that we inserted above.
 			List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();
 			Iterator<LifeCycleEventCode> it = events.iterator();
@@ -86,6 +97,7 @@ class LVLifeCycleEventLoaderTest {
 				}
 			}
 			assertTrue(found,"Could not find the recently inserted record");
+			IMDLogger.log("TSTHEAT record has been successfully retrieved through retrieveAllActiveLifeCycleEvents", Util.INFO);
 
 			// 4: Update the newly inserted event and verify the update
 			event.setEventShortDescription("This is Test Short Description");
@@ -93,17 +105,17 @@ class LVLifeCycleEventLoaderTest {
 			event.setUpdatedDTTM(updatedDTTM);
 			event.markInActive();
 			int updatedRecCount = loader.updateLifeCycleEvent(event);
-			
-			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-			String updatedDTTMStr = fmt.print(updatedDTTM);
+			assertEquals(1, updatedRecCount, " Only one record should have been updated");			
+			IMDLogger.log("TSTHEAT record has been successfully updated", Util.INFO);
 
-			
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+			String updatedDTTMStr = fmt.print(updatedDTTM);			
 			LifeCycleEventCode evt = loader.retrieveLifeCycleEvent("TSTHEAT");
 			IMDLogger.log(event.toString(), Util.INFO);
-			assertEquals(1, updatedRecCount, " Only one record should have been updated");
 			assertFalse(evt.isActive(), "The event should have been marked inactive");
 			assertEquals("This is Test Short Description",evt.getEventShortDescription(),"The short description should have been updated");
 			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
+			IMDLogger.log("TSTHEAT record has been successfully updated and all new values have been verified", Util.INFO);
 
 			// Retrieve All active events and ensure the above event does NOT appear as we had marked it inactive.
 			events = loader.retrieveAllActiveLifeCycleEvents();
@@ -116,7 +128,7 @@ class LVLifeCycleEventLoaderTest {
 					break;
 				}
 			}
-			assertTrue(found,"The inactive event should have been picked up in the list of all events.");	
+			assertFalse(found,"The inactive event should NOT have been picked up in the list of all active events.");	
 
 			// Retrieve All events and ensure the above event DOES appear as we had marked it inactive.
 			events = loader.retrieveAllLifeCycleEvents();
@@ -129,7 +141,7 @@ class LVLifeCycleEventLoaderTest {
 					break;
 				}
 			}
-			assertFalse(found,"The inactive event should not have been picked up in the list of all active events.");	
+			assertTrue(found,"The inactive event should have been picked up in the list of all events.");	
 			
 			
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
