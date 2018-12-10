@@ -60,7 +60,7 @@ class LifeCycleEventLoaderTest {
 			event = new LifecycleEvent("IMD", 0, "017","PREGTEST");
 			event.setEventTimeStamp(DateTime.now());
 			event.setEventNote("Positive, الحمدُ للہ");
-			event.setEventOperator(new Person("EMP000", "Kashif", "", "Manzoor"));
+			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
 			event.setUpdatedBy(event.getCreatedBy());
@@ -88,6 +88,8 @@ class LifeCycleEventLoaderTest {
 			event.getEventType().setEventCode("HEAT");
 			DateTime updatedDTTM = DateTime.now().plusDays(3);
 			event.setUpdatedDTTM(updatedDTTM);
+			event.setAuxField1Value("UNIQUE 1HO10660\"'%\n\n");
+			event.setAuxField2Value("CONVENTIONAL");
 			int updatedRecCount = loader.updateLifeCycleEvent(event);
 			
 			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
@@ -98,6 +100,8 @@ class LifeCycleEventLoaderTest {
 			IMDLogger.log(event.toString(), Util.INFO);
 			assertEquals(1, updatedRecCount, " Only one record should have been updated");
 			assertEquals("HEAT",evt.getEventType().getEventCode(),"Event Code should have been updated");
+			assertEquals("UNIQUE 1HO10660\"'%\n\n",evt.getAuxField1Value(),"Aux Field1 Value should have been updated");
+			assertEquals("CONVENTIONAL",evt.getAuxField2Value(),"Aux Field2 Value should have been updated");
 			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
 					
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.

@@ -4,51 +4,64 @@ package com.imd.services;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 
 import com.imd.dto.LifeCycleEventCode;
+import com.imd.dto.User;
 import com.imd.loader.LVLifeCycleEventLoader;
+import com.imd.services.bean.LifeCycleEventCodeBean;
+import com.imd.util.IMDLogger;
+import com.imd.util.Util;
 
 @Path("/lv-lifecycle-event")
 public class LVLifecycleEventsSrvc {
 
 	/**
-	 * Retrieves ALL the event codes
+	 * Retrieves ALL the event codes whether they are active or inactive
+	 * Sample Use Case: Call this API to populate the list of all the lifecycle events e.g. on the Lifecycle code maintenance screen. 
 	 * @return
 	 */
+	
 	@GET
 	@Path("/all")
 	@Produces(MediaType.TEXT_PLAIN)
-    public String getActiveLifecycleEventsLookup() {
+    public String getAllLifecycleEvents() {
     	String lvEvents = "";
     	try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
-		 	List<LifeCycleEventCode> events = loader.retrieveAllLifeCycleEvents();	    	
+		 	List<LifeCycleEventCode> events = loader.retrieveAllLifeCycleEvents();
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
 	    		LifeCycleEventCode event = eventIt.next();
-	    		lvEvents += "{\n" + event.dtoToJson("  ") + "\n},\n";	    		
+	    		lvEvents += "{\n" + event.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
-	    	lvEvents = lvEvents.substring(0,lvEvents.lastIndexOf(",\n"));
-//	    	System.out.println(lvEvents);
+	    	lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
     	} catch (Exception ex) {
     		ex.printStackTrace();
     		System.out.println(ex.getMessage());
     	}
+    	    	
         return lvEvents;
     }
 	/**
-	 * Retrieves ALL the event codes
+	 * Retrieves ALL the active event codes.
+	 * Sample Use Case: Call this API to populate the Lifecycle Event Drop down. 
 	 * @return
 	 */
 	@GET
 	@Path("/allactive")
 	@Produces(MediaType.TEXT_PLAIN)
-    public String getAllActiveLifecycleEventsLookup() {
+    public String getAllActiveLifecycleEvents() {
     	String lvEvents = "";
     	try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
@@ -56,10 +69,12 @@ public class LVLifecycleEventsSrvc {
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
 	    		LifeCycleEventCode event = eventIt.next();
-	    		lvEvents += "{\n" + event.dtoToJson("  ") + "\n},\n";	    		
+	    		lvEvents += "{\n" + event.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
-	    	lvEvents = lvEvents.substring(0,lvEvents.lastIndexOf(",\n"));
-//	    	System.out.println(lvEvents);
+	    	if (lvEvents != null && !lvEvents.isEmpty())    	
+	    		lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
+	    	else
+	    		lvEvents = "[ ]";
     	} catch (Exception ex) {
     		ex.printStackTrace();
     		System.out.println(ex.getMessage());
@@ -68,26 +83,177 @@ public class LVLifecycleEventsSrvc {
     }	
 	
 	/**
-	 * Retrieve a particular life cycle event given its event code. If the event does not exist then return
-	 * No Record Found
+	 * Retrieves a particular life cycle event given its event code.
+	 * Sample Use Case: Call this API to retrieve a particular event code e.g. on the screen where you wish to show the life cycle events of an animal. 
 	 * @param eventcode
 	 * @return
 	 */
 	
 	@GET
 	@Path("{eventcode}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String getLifecycleEvent(@PathParam("eventcode") String eventcode){
-		LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
-		LifeCycleEventCode eventCode = null;
-		String event = "";
-		try {
-			eventCode = loader.retrieveLifeCycleEvent(eventcode);
-			event = eventCode == null ? "No Record Found" : "{\n" + eventCode.dtoToJson("  ") +"\n}\n";
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getLifecycleEvent(@PathParam("eventcode") String eventcode){
+    	String lvEvents = "";
+    	try {
+			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
+			List<LifeCycleEventCode> events = loader.retrieveLifeCycleEvent(eventcode);
+			if (events == null || events.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No record found\"}").build();
+
+			}
+	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
+	    	while (eventIt.hasNext()) {
+	    		LifeCycleEventCode event = eventIt.next();
+	    		lvEvents += "{\n" + event.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			event = "Error: " + e.getMessage();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return event;
-    }
+		return Response.status(200).entity(lvEvents).build(); 
+	}
+	
+	/**
+	 * Retrieve a particular life cycle event given its event code and/or short description. This API incorporates % wild card as well.
+	 * Sample Use Case: Call this API to search for a particular event code when you don't know the exact event code e.g. on Event Code Maintenance screen 
+	 * @param eventcode
+	 * @return
+	 */
+	
+	@POST
+	@Path("/search")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response searchLifecycleEvent(LifeCycleEventCodeBean eventBean){
+    	String lvEvents = "";
+    	try {
+			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
+			List<LifeCycleEventCode> events = loader.retrieveMatchingLifeCycleEvents(eventBean);
+			if (events == null || events.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+
+			}
+	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
+	    	while (eventIt.hasNext()) {
+	    		LifeCycleEventCode event = eventIt.next();
+	    		lvEvents += "{\n" + event.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+		return Response.status(200).entity(lvEvents).build();
+    }	
+	
+	/**
+	 * This API adds a new life cycle event.
+	 * Sample Use Case: Call this API to add a new life cycle event e.g. on the Event Code Maintenance screen
+	 * @param eventBean
+	 * @return
+	 */
+	@POST
+	@Path("/addevent")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response addLifecycleEvent(LifeCycleEventCodeBean eventBean){
+		String eventCode = eventBean.getEventCode();
+		String shortDescription  = eventBean.getEventShortDescription();
+		String longDescription  = eventBean.getEventLongDescription();
+		String isActive  = eventBean.getActiveIndicator();
+		IMDLogger.log("Add Event Called with following input values", Util.INFO);
+		IMDLogger.log("eventCode : " + eventCode, Util.INFO);
+		IMDLogger.log("eventShortDescription : " + shortDescription, Util.INFO);
+		IMDLogger.log("eventLongDescription : " + longDescription, Util.INFO);
+		IMDLogger.log("isActive : " + isActive, Util.INFO);
+		
+		if (eventCode == null || eventCode.trim().isEmpty()) {			
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
+		}
+		if (shortDescription == null || shortDescription.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
+		}
+		if (longDescription == null || longDescription.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
+		}
+		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
+		String userID  = "KASHIF";
+		int result = -1;
+		try {
+			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
+			event.setCreatedBy(new User(userID));
+			event.setCreatedDTTM(DateTime.now());
+			event.setUpdatedBy(new User(userID));
+			event.setUpdatedDTTM(DateTime.now());
+			result = loader.insertLifeCycleEvent(event);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (result == 1)
+			return Response.status(200).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully\"}").build();
+		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' already exists\"}").build();
+		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be added. Please reduce the field length and try again.\"}").build();
+		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lifecycle Event '" + eventCode+ "' could not be added. Please submit a bug report.\"}").build();
+		else 
+			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
+	}   
+	/**
+	 * This API adds a new life cycle event.
+	 * If an empty field is passed in request JSON it will be updated to empty value; therefore if you do not wish to update a field
+	 * then do not pass the field in the request JSON.
+	 * Sample Use Case: Call this API to add a new life cycle event e.g. on the Event Code Maintenance screen
+	 * @param eventBean
+	 * @return
+	 */
+	@POST
+	@Path("/editevent")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response editLifecycleEvent(LifeCycleEventCodeBean eventBean){
+		String eventCode = eventBean.getEventCode();
+		String shortDescription  = eventBean.getEventShortDescription();
+		String longDescription  = eventBean.getEventLongDescription();
+		String isActive  = eventBean.getActiveIndicator();
+		IMDLogger.log("Edit Event Called with following input values", Util.INFO);
+		IMDLogger.log("eventCode : " + eventCode, Util.INFO);
+		IMDLogger.log("eventShortDescription : " + shortDescription, Util.INFO);
+		IMDLogger.log("eventLongDescription : " + longDescription, Util.INFO);
+		IMDLogger.log("isActive : " + isActive, Util.INFO);
+		
+		if (eventCode == null || eventCode.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
+		}
+//		if (shortDescription == null || shortDescription.trim().isEmpty()) {
+//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
+//		}
+//		if (longDescription == null || longDescription.trim().isEmpty()) {
+//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
+//		}
+		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
+		String userID  = "KASHIF";
+		int result = -1;
+		try {
+			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
+			event.setCreatedBy(new User(userID));
+			event.setCreatedDTTM(DateTime.now());
+			event.setUpdatedBy(new User(userID));
+			event.setUpdatedDTTM(DateTime.now());
+			result = loader.updateLifeCycleEvent(event);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (result == 1)
+			return Response.status(200).entity("{ \"error\": false, \"message\":\"The Lifecycle event has been edited successfully\"}").build();
+		else if (result == 0)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' may not exist\"}").build();
+		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be updated. Please reduce the field length and try again.\"}").build();
+		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the syntax of the update string. This indicates a bug that we may have left in the code. Lifecycle Event '" + eventCode+ "' could not be edited. Please submit a bug report with IMDLabs.\"}").build();
+		else 
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred while editing the lifecycle event\"}").build();
+	}  	
 }

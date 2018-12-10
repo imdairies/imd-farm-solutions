@@ -5,6 +5,8 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
+
 public class Util {
 	
 	 public static final class PROPERTIES {
@@ -24,6 +26,14 @@ public class Util {
 		public static final char FEMALE = 'F';
 		public static final char UNKNOWN = 'U';
 	 }
+
+	 public static final class ERROR_CODE {
+			public static final int UNKNOWN_ERROR = -1000;
+			public static final int ALREADY_EXISTS = -1001;
+			public static final int DATA_LENGTH_ISSUE = -1002;
+			public static final int SQL_SYNTAX_ERROR = -1003;
+	 }
+	 
 	 
 	 public static final class ANIMAL_STATUS {
 		public static final String ACTIVE = "ACTIVE";

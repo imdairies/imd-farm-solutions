@@ -93,5 +93,5 @@ public class AnimalSrvc {
 		}
 //		System.out.println(animalsJson);
 		return animalsJson;
-	}	
+	}		
 }

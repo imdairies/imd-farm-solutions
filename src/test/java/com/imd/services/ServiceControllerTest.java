@@ -8,6 +8,7 @@ import java.net.URI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.jupiter.api.AfterAll;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
@@ -49,19 +51,23 @@ class ServiceControllerTest {
 
 	@Test
 	void testLifecycleEventSrvc() {
-        String responseMsg = target.path("lifecycle-event").request().get(String.class);
-        assertEquals("Got it!", responseMsg);
+        String responseMsg = target.path("lifecycle-event/all/NONEXISTENT").request().get(String.class);
+        assertEquals("{ \"error\": true, \"message\":\"Either the animal does not exist or it does not have any life cycle events specified\"}", responseMsg);
 	}
 	@Test
 	void testLVLifecycleEventsSrvc() {
         String responseMsg = target.path("/lv-lifecycle-event/ERRORVALUE").request().get(String.class);
-        assertEquals("No Record Found", responseMsg);
+        assertEquals("{ \"error\": true, \"message\":\"No record found\"}", responseMsg);
         responseMsg = target.path("/lv-lifecycle-event/HEAT").request().get(String.class);
         assertTrue(responseMsg.indexOf("\"eventCode\":\"HEAT\"") >= 0,responseMsg);
         responseMsg = target.path("/lv-lifecycle-event/all").request().get(String.class);
         assertTrue(responseMsg.indexOf("\"eventCode\":\"HEAT\"") >= 0,responseMsg);
         responseMsg = target.path("/lv-lifecycle-event/allactive").request().get(String.class);
-        assertTrue(responseMsg.indexOf("\"eventCode\":\"INSEMINATE\"") >= 0,responseMsg);
+        assertTrue(responseMsg.indexOf("\"eventCode\":\"") >= 0,"\nAt least one event should have been active\n" + responseMsg);
+        
+        Response response = target.path("/lv-lifecycle-event/addevent").request().get();
+        IMDLogger.log("" + response.getStatus(),Util.INFO);
+        
 	}
 	@Test
 	void testAnimalSrvc() {
@@ -72,6 +78,5 @@ class ServiceControllerTest {
         responseMsg = target.path("/animals/NONEXISTENT").request().get(String.class);
         assertEquals("No Record Found", responseMsg);
 	}
-	
 
 }

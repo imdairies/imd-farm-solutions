@@ -91,7 +91,7 @@ class AnimalLoaderTest {
 		Contact company = new Contact("CRV");
 		company.setWebURI(URI.create("https://www.crv4all-international.com/find-bull/"));
 		sire.setOwnerCompany(company);
-		sire.addNote(new Note(1,"Not sure if this is truly the sire. Got minimal information of the sire of 026 from Babar Hameed Jathol", LocalDateTime.now()));
+		sire.addNote(new Note(1,"Not sure if this is truly the sire. Got minimal'\"%\n information of the sire of 026 from Babar Hameed Jathol", LocalDateTime.now()));
 		c000.setAnimalSire(sire);
 	}
 
@@ -100,7 +100,7 @@ class AnimalLoaderTest {
 		contact.setNamePrefix("Mr.");
 		
 		// Address related tests
-		contact.setAddress("Jathol Farm", "25 Km from Jaran Wala","", "Joray Khoo", "Punjab", "Pakistan", null);
+		contact.setAddress("Jathol Farm", "25 Km from Jaran Wala","", "Joray Khoo\n'", "Punjab", "Pakistan", null);
 		contact.setAddressInstructions("Take motorway from Lahore to Islamabad and take the first exit and continue straight on that road for 25 km. Then take left.");
 		
 		// Test for bank details

@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.Person;
 import com.imd.dto.User;
+import com.imd.services.bean.LifeCycleEventBean;
+import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
@@ -58,20 +60,20 @@ class LVLifeCycleEventLoaderTest {
 		LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
 		LifeCycleEventCode event;
 		try {
-			event = new LifeCycleEventCode(null, "Test Heat", "Indicates when the cow is in heat");
+			event = new LifeCycleEventCode(null, "01Test Heat", "Indicates when the cow is in heat");
 			fail("The eventCode was null therefore an exception should have been thrown");
 		} catch (IMDException e) {
 			; 
 		}
 		try {
 			// 0: Search for the test record, if it exists then delete it so that we can start afresh.
-			event = loader.retrieveLifeCycleEvent("TSTHEAT");
-			if (event != null) {
+			List<LifeCycleEventCode> events = loader.retrieveLifeCycleEvent("TSTHEAT");
+			if (events != null || events.size() > 0) {
 				loader.deleteLifeCycleEvent("TSTHEAT");
 				IMDLogger.log("TSTHEAT record already exists, have deleted it now", Util.ERROR);
 			}
 			// 1: Now insert the test record without having to worry about whether it already exists or not.
-			event = new LifeCycleEventCode("TSTHEAT", "Test Heat", "Indicates when the cow is in heat"); 			
+			event = new LifeCycleEventCode("TSTHEAT", "01Test Heat", "Indicates when the cow is in heat. \nCow's heat % \"'\" testing - notice the special character in the description to test SQL escape functionality."); 			
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
 			event.setUpdatedBy(event.getCreatedBy());
@@ -80,13 +82,42 @@ class LVLifeCycleEventLoaderTest {
 			assertEquals(1,loader.insertLifeCycleEvent(event),"One record should have been successfully inserted");
 			IMDLogger.log("TSTHEAT record has been successfully inserted", Util.INFO);
 
-			// 2: Search for the newly inserted event and verify it is retrieved properly
-			event = loader.retrieveLifeCycleEvent(event.getEventCode());
+			// 2a: Search for the newly inserted event and verify it is retrieved properly
+			event = loader.retrieveLifeCycleEvent(event.getEventCode()).get(0);
 			assertEquals("TSTHEAT",event.getEventCode(),"Retrieved Record should have the correct Event Code");
 			IMDLogger.log("TSTHEAT record has been successfully retrieved through retrieveLifeCycleEvent ", Util.INFO);
 
+			// 2b: Search for the newly inserted event and verify it is retrieved properly
+			List<LifeCycleEventCode> records = null;
+			LifeCycleEventCodeBean bean = new LifeCycleEventCodeBean();
+			bean.setEventCode("%" + event.getEventCode().substring(2) + "%");
+			bean.setEventShortDescription(null);
+			records = loader.retrieveMatchingLifeCycleEvents(bean);
+			int size = records.size();
+			event = records.get(0);
+			assertEquals("TSTHEAT",event.getEventCode(),"Retrieved Record should have the correct Event Code");
+			
+			bean.setEventCode(null);
+			bean.setEventShortDescription("%1Test Hea%");
+			records = loader.retrieveMatchingLifeCycleEvents(bean);
+			size = (size < records.size() ? records.size() : size);
+			assertTrue(records != null && records.size() >0," The test event should have been retrieved by retrieveMatchingLifeCycleEvents method");
+			event = records.get(0);
+			assertEquals("TSTHEAT",event.getEventCode(),"Retrieved Record should have the correct Event Code [" + bean.getEventCode() + "]");
+
+			bean.setEventCode("haha");
+			bean.setEventShortDescription("%1Test Hea%");
+			records = loader.retrieveMatchingLifeCycleEvents(bean);
+			assertTrue(records.size() ==0," No record should have been retrieved");
+			
+			
+			bean.setEventCode(null);
+			bean.setEventShortDescription("");
+			records = loader.retrieveMatchingLifeCycleEvents(bean);
+			event = records.get(0);			
+			assertTrue(size <= records.size(), " Search with no where clause should NOT have brought less records than the search with a where clause");						
 			// 3: Retrieve All events and ensure one of them is the one that we inserted above.
-			List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();
+			events = loader.retrieveAllActiveLifeCycleEvents();
 			Iterator<LifeCycleEventCode> it = events.iterator();
 			boolean found = false;
 			while (it.hasNext()) {
@@ -105,12 +136,12 @@ class LVLifeCycleEventLoaderTest {
 			event.setUpdatedDTTM(updatedDTTM);
 			event.markInActive();
 			int updatedRecCount = loader.updateLifeCycleEvent(event);
-			assertEquals(1, updatedRecCount, " Only one record should have been updated");			
+			assertEquals(1, updatedRecCount, "Exactly one record should have been updated");			
 			IMDLogger.log("TSTHEAT record has been successfully updated", Util.INFO);
 
 			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 			String updatedDTTMStr = fmt.print(updatedDTTM);			
-			LifeCycleEventCode evt = loader.retrieveLifeCycleEvent("TSTHEAT");
+			LifeCycleEventCode evt = loader.retrieveLifeCycleEvent("TSTHEAT").get(0);
 			IMDLogger.log(event.toString(), Util.INFO);
 			assertFalse(evt.isActive(), "The event should have been marked inactive");
 			assertEquals("This is Test Short Description",evt.getEventShortDescription(),"The short description should have been updated");
@@ -148,8 +179,8 @@ class LVLifeCycleEventLoaderTest {
 			assertEquals(1,loader.deleteLifeCycleEvent(event.getEventCode()),"One record should have been deleted");
 
 			// 6: Search for the deleted event and verify it is not retrieved.
-			event = loader.retrieveLifeCycleEvent(event.getEventCode());
-			assertEquals(event,null, "Deleted record should not have been found");
+			events = loader.retrieveLifeCycleEvent(event.getEventCode());
+			assertTrue(events == null || events.size()==0,"Deleted record should not have been found");
 			
 		} catch (Exception e) {
 			e.printStackTrace();

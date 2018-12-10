@@ -4,8 +4,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.util.BufferRecyclers;
 
 public class IMDairiesDTO {
 	
@@ -52,6 +51,14 @@ public class IMDairiesDTO {
 	public String getCreatedDTTMSQLFormat() {		
 		return getDateInSQLFormart(createdDTTM);
 	}
+	/**
+	 * Returns the created date in specified format
+	 * @return
+	 */
+
+	public String getCreatedDTTMSQLFormat(DateTimeFormatter fmt) {		
+		return getDateInSQLFormart(createdDTTM, fmt);
+	}
 
 	/**
 	 * Returns the updated date in "yyyy-MM-dd HH:mm:ss" format
@@ -60,9 +67,19 @@ public class IMDairiesDTO {
 	public String getUpdatedDTTMSQLFormat() {
 		return getDateInSQLFormart(updatedDTTM);
 	}
+	/**
+	 * Returns the updated date in specified format
+	 * @return
+	 */
+	public String getUpdatedDTTMSQLFormat(DateTimeFormatter fmt) {
+		return getDateInSQLFormart(updatedDTTM, fmt);
+	}
 	
 	protected String getDateInSQLFormart(DateTime dttm) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+		return fmt.print(dttm);
+	}
+	protected String getDateInSQLFormart(DateTime dttm, DateTimeFormatter fmt) {
 		return fmt.print(dttm);
 	}
 	public String toString() {
@@ -72,28 +89,24 @@ public class IMDairiesDTO {
 				"\nUPDATED_BY=" + getUpdatedBy().getUserId() + 
 				"\nUPDATED_DTTM=" + getUpdatedDTTM();
 	}
-	public String createUpdateString() {
-		String updateString = "";
-		if (getCreatedBy() != null && !getCreatedBy().getUserId().isEmpty())
-			updateString += " CREATED_BY='" + getCreatedBy().getUserId() + "',";
-		if (getUpdatedBy() != null && !getUpdatedBy().getUserId().isEmpty())
-			updateString += " UPDATED_BY='" + getUpdatedBy().getUserId() + "',";
-		if (getCreatedDTTM() != null)
-			updateString += " CREATED_DTTM='" + getCreatedDTTMSQLFormat() + "',";
-		if (getUpdatedDTTM() != null)
-			updateString += " UPDATED_DTTM='" + getUpdatedDTTMSQLFormat() + "',";
-		return updateString;
-	}
 	public String dtoToJson(String prefix){
 		String json = prefix + fieldToJson("createdBy", this.createdBy) + ",\n" + 
 				prefix + fieldToJson("createdDTTM", this.getCreatedDTTMSQLFormat()) + ",\n" +
-				prefix + fieldToJson("createdBy", this.updatedBy) + ",\n" +
+				prefix + fieldToJson("updatedBy", this.updatedBy) + ",\n" +
 				prefix + fieldToJson("updatedDTTM", this.getUpdatedDTTMSQLFormat());
 		return json;
 
 	}
+	public String dtoToJson(String prefix, DateTimeFormatter fmt){
+		String json = prefix + fieldToJson("createdBy", this.createdBy) + ",\n" + 
+				prefix + fieldToJson("createdDTTM", this.getCreatedDTTMSQLFormat(fmt)) + ",\n" +
+				prefix + fieldToJson("updatedBy", this.updatedBy) + ",\n" +
+				prefix + fieldToJson("updatedDTTM", this.getUpdatedDTTMSQLFormat(fmt));
+		return json;
+
+	}
 	protected String fieldToJson(String fieldName, String strValue) {		
-		return ("\"" + fieldName + "\":" + (strValue == null ? "\"\"" : "\"" + strValue + "\""));
+		return ("\"" + fieldName + "\":" + (strValue == null ? "\"\"" : "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(strValue)) + "\""));
 	}
 	protected String fieldToJson(String fieldName, DateTime valueDTTM) {
 		return ("\"" + fieldName + "\":" + (valueDTTM == null ? "\"\"" : "\"" + this.getDateInSQLFormart(valueDTTM) + "\""));
@@ -108,10 +121,10 @@ public class IMDairiesDTO {
 		return ("\"" + fieldName + "\":" + Double.toString(dblValue));
 	}
 	protected String fieldToJson(String fieldName, Person personValue) {
-		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" + personValue.getPersonID() + "\""));
+		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(personValue.getPersonID()))  + "\""));
 	}
 	protected String fieldToJson(String fieldName, User usrValue) {
-		return ("\"" + fieldName + "\":" + (usrValue == null ? "\"\"" : "\"" + usrValue.getUserId() + "\""));
+		return ("\"" + fieldName + "\":" + (usrValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(usrValue.getUserId())) + "\""));
 	}
 	protected String fieldToJson(String fieldName, boolean boolValue) {
 		return ("\"" + fieldName + "\":" + (boolValue ? "true" : "false"));

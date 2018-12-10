@@ -27,7 +27,7 @@ public class ServiceController {
         final ResourceConfig rc = new ResourceConfig().packages("com.imd.services");
 
         // create and start a new instance of grizzly http server
-        // exposing the Jersey application at BASE_URI
+        // exposing the Jersey application at IMD_SERVICES_URL
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(IMDProperties.getProperty(Util.PROPERTIES.IMD_SERVICES_URL)), rc);
     }
 
@@ -43,5 +43,7 @@ public class ServiceController {
         System.in.read();
         server.stop();
     }
+     
+   
 }
 

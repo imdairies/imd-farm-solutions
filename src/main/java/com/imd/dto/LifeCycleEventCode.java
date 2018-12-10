@@ -2,11 +2,15 @@ package com.imd.dto;
 
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.format.DateTimeFormatter;
+import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.IMDException;
 import com.imd.util.Util;
 
-public class LifeCycleEventCode extends IMDairiesDTO{
-	
+public class LifeCycleEventCode extends IMDairiesDTO{	
 	/** 
 	 * This is the unique code of this particular event. This comes from the master list of event codes.
 	 */
@@ -20,9 +24,7 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 	 */
 	private String eventLongDescription;
 
-
 	private boolean isActive;
-
 
 	public LifeCycleEventCode(String lifeCycleEventCode, String shortDescr, String longDescr) throws IMDException{
 		super();
@@ -32,18 +34,20 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 		this.eventLongDescription = longDescr;
 	}
 
-
-
+	public LifeCycleEventCode(LifeCycleEventCodeBean eventBean) {
+		this.eventCode = eventBean.getEventCode();
+		this.eventShortDescription = eventBean.getEventShortDescription();
+		this.eventLongDescription = eventBean.getEventLongDescription();
+		this.isActive = eventBean.isActive();
+	}
 
 	public String getEventCode() {
 		return eventCode;
 	}
 
-
 	public void setEventCode(String eventID) {
 		this.eventCode = eventID;
 	}
-
 
 	public String getEventShortDescription() {
 		return eventShortDescription;
@@ -74,25 +78,16 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 	public boolean isActive() {
 		return this.isActive;
 	}
-
-	public String createUpdateString() {
-		String updateString = "";		
-		updateString = " ACTIVE_IND=" + (isActive()? "'Y'": "'N'") + ",";
-		if (eventShortDescription != null && !eventShortDescription.isEmpty())
-			updateString += " SHORT_DESCR='" + eventShortDescription + "',";
-		if (eventLongDescription != null && !eventLongDescription.isEmpty())	
-			updateString += " LONG_DESCR='" + eventLongDescription + "',";
-		updateString += super.createUpdateString();
-		if (!updateString.isEmpty())
-			updateString = updateString.substring(0, updateString.lastIndexOf(","));		
-		return updateString;
-	}
 	
 	public String toString() {
 		return  "\nEVENT_CD=" + this.eventCode + 
 				"\nACTIVE_IND=" + this.isActive +
 				"\nSHORT_DESCR=" + this.eventShortDescription + 
-				"\nLONG_DESCR=" + this.eventLongDescription + super.toString();
+				"\nLONG_DESCR=" + this.eventLongDescription + 
+				"\nCREATED_BY" + (this.getCreatedBy() != null ? this.getCreatedBy().getUserId() : "null") + 
+				"\nCREATED_DTTM" + this.getCreatedDTTMSQLFormat() + ",\n" +
+				"\nUPDATED_BY" + (this.getUpdatedBy() != null ? this.getCreatedBy().getUserId() : "null")+
+				"\nUPDATED_DTTM" + this.getUpdatedDTTMSQLFormat();
 	}
 	
 	public String dtoToJson(String prefix)  {
@@ -101,6 +96,14 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 				prefix + fieldToJson("eventLongDescription", this.eventLongDescription) + ",\n" + 
 				prefix + fieldToJson("isActive", this.isActive) + ",\n" + 
 				super.dtoToJson(prefix);
+		return json;
+	}
+	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
+		String json =  prefix + fieldToJson("eventCode", this.eventCode) + ",\n" +
+				prefix + fieldToJson("eventShortDescription", this.eventShortDescription) + ",\n" + 
+				prefix + fieldToJson("eventLongDescription", this.eventLongDescription) + ",\n" + 
+				prefix + fieldToJson("isActive", this.isActive) + ",\n" + 
+				super.dtoToJson(prefix, fmt);
 		return json;
 	}
 	
