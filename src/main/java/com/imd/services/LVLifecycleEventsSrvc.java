@@ -46,6 +46,7 @@ public class LVLifecycleEventsSrvc {
 	    		lvEvents += "{\n" + event.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
 	    	lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
+	    	IMDLogger.log(lvEvents, Util.INFO);
     	} catch (Exception ex) {
     		ex.printStackTrace();
     		System.out.println(ex.getMessage());
@@ -60,26 +61,28 @@ public class LVLifecycleEventsSrvc {
 	 */
 	@GET
 	@Path("/allactive")
-	@Produces(MediaType.TEXT_PLAIN)
-    public String getAllActiveLifecycleEvents() {
+	@Produces(MediaType.APPLICATION_JSON)
+    public Response getAllActiveLifecycleEvents() {
     	String lvEvents = "";
     	try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
-		 	List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();	    	
+			List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();
+			if (events == null || events.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No lifecycle event code found\"}").build();
+			}
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
 	    		LifeCycleEventCode event = eventIt.next();
 	    		lvEvents += "{\n" + event.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
-	    	if (lvEvents != null && !lvEvents.isEmpty())    	
-	    		lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
-	    	else
-	    		lvEvents = "[ ]";
-    	} catch (Exception ex) {
-    		ex.printStackTrace();
-    		System.out.println(ex.getMessage());
-    	}
-        return lvEvents;
+	    	lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
+	    	IMDLogger.log(lvEvents, Util.INFO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+		return Response.status(200).entity(lvEvents).build(); 
     }	
 	
 	/**
@@ -133,14 +136,16 @@ public class LVLifecycleEventsSrvc {
 			if (events == null || events.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
 			}
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
 	    		LifeCycleEventCode event = eventIt.next();
 	    		lvEvents += "{\n" + event.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
-	    	lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
+	    	if (lvEvents == null || lvEvents.trim().isEmpty())
+		    	lvEvents = "[ ]";
+	    	else
+	    		lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
@@ -155,7 +160,7 @@ public class LVLifecycleEventsSrvc {
 	 * @return
 	 */
 	@POST
-	@Path("/addevent")
+	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addLifecycleEvent(LifeCycleEventCodeBean eventBean){
 		String eventCode = eventBean.getEventCode();
@@ -210,7 +215,7 @@ public class LVLifecycleEventsSrvc {
 	 * @return
 	 */
 	@POST
-	@Path("/editevent")
+	@Path("/update")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response editLifecycleEvent(LifeCycleEventCodeBean eventBean){
 		String eventCode = eventBean.getEventCode();

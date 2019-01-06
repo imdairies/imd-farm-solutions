@@ -72,11 +72,12 @@ class LifeCycleEventLoaderTest {
 			event = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
 			assertEquals("PREGTEST",event.getEventType().getEventCode(),"Retrieved Record should have the correct Event Code");
 			// 3: Retrieve All events and ensure one of them is the one that we inserted above.
-			List<LifecycleEvent> events = loader.retrieveAllActiveLifeCycleEventsForAnimal("IMD","017");
+			List<LifecycleEvent> events = loader.retrieveAllLifeCycleEventsForAnimal("IMD","017");
 			Iterator<LifecycleEvent> it = events.iterator(); 
 			boolean found = false;
 			while (it.hasNext()) {
 				LifecycleEvent evt = it.next();
+				IMDLogger.log(evt.dtoToJson(" ", DateTimeFormat.forPattern("d MMM yyyy h:mm a")), Util.INFO);				
 				if (evt.getEventTransactionID() == event.getEventTransactionID()) {
 					found = true;
 					break;

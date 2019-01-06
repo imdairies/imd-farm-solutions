@@ -50,11 +50,6 @@ class ServiceControllerTest {
 	}
 
 	@Test
-	void testLifecycleEventSrvc() {
-        String responseMsg = target.path("lifecycle-event/all/NONEXISTENT").request().get(String.class);
-        assertEquals("{ \"error\": true, \"message\":\"Either the animal does not exist or it does not have any life cycle events specified\"}", responseMsg);
-	}
-	@Test
 	void testLVLifecycleEventsSrvc() {
         String responseMsg = target.path("/lv-lifecycle-event/ERRORVALUE").request().get(String.class);
         assertEquals("{ \"error\": true, \"message\":\"No record found\"}", responseMsg);
@@ -71,12 +66,8 @@ class ServiceControllerTest {
 	}
 	@Test
 	void testAnimalSrvc() {
-        String responseMsg = target.path("/animals/all").request().get(String.class);
+        String responseMsg = target.path("/animals/allactive").request().get(String.class);
         assertTrue(responseMsg.indexOf("\"animalTag\":") >= 0 || responseMsg.equalsIgnoreCase("No Record Found"),responseMsg);
-        responseMsg = target.path("/animals/allactive").request().get(String.class);
-        assertTrue(responseMsg.indexOf("\"animalTag\":") >= 0 || responseMsg.equalsIgnoreCase("No Record Found"),responseMsg);
-        responseMsg = target.path("/animals/NONEXISTENT").request().get(String.class);
-        assertEquals("No Record Found", responseMsg);
 	}
 
 }

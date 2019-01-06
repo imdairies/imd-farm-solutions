@@ -12,6 +12,7 @@ import java.util.List;
 import org.joda.time.DateTime;
 
 import com.imd.dto.LifeCycleEventCode;
+import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.DBManager;
@@ -75,15 +76,16 @@ public class LVLifeCycleEventLoader {
 	}
 	public List<LifeCycleEventCode> retrieveLifeCycleEvent(String eventCode) {
 		ArrayList<LifeCycleEventCode> allMatchingEvents = new ArrayList<LifeCycleEventCode>();
-		String qryString = "Select * from LV_LIFECYCLE_EVENT where EVENT_CD = '"+ eventCode + "' ORDER BY SHORT_DESCR";
+		String qryString = "Select * from LV_LIFECYCLE_EVENT where EVENT_CD = ? ORDER BY SHORT_DESCR";		
 		IMDLogger.log(qryString,Util.INFO);
 		LifeCycleEventCode event = null;
-		Statement st = null;
 		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
 		try {
 			Connection conn = DBManager.getDBConnection();
-			st = conn.createStatement();
-		    rs = st.executeQuery(qryString);
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, eventCode);
+		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
 		        event = getLifeCycleEventFromSQLRecord(rs);
 		        allMatchingEvents.add(event);
@@ -95,8 +97,8 @@ public class LVLifeCycleEventLoader {
 				if (rs != null && !rs.isClosed()) {
 					rs.close();	
 				}
-				if (st != null && !st.isClosed()) {
-					st.close();	
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();

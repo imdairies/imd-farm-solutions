@@ -13,18 +13,21 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.User;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
 /**
- * Root resource (exposed at "lifecycle-event" path)
+ * Root resource (exposed at "animalevent" path)
  */
-@Path("lifecycle-event")
+@Path("animalevent")
 public class LifecycleEventSrvc {
 
     
@@ -33,25 +36,27 @@ public class LifecycleEventSrvc {
 	 * @return
 	 */
 	
-	@GET
-	@Path("/all/{animalTag}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public Response getAnimalLifecycleEvent(@PathParam("animalTag") String animalTag){
+	@POST
+	@Path("/search")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAnimalLifecycleEvent(AnimalBean animalBean){
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		String animalEvents = "";
 		try {
-			List<LifecycleEvent> events = loader.retrieveAllActiveLifeCycleEventsForAnimal("IMD",animalTag);
+			List<LifecycleEvent> events = loader.retrieveAllLifeCycleEventsForAnimal("IMD",animalBean.getAnimalTag());
 			if (events == null || events.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Either the animal does not exist or it does not have any life cycle events specified\"}").build();
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No life events found for specified animal\"}").build();
 
 			}
 	    	Iterator<LifecycleEvent> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
 	    		LifecycleEvent event = eventIt.next();
-	    		animalEvents += "{\n" + event.dtoToJson("  ") + "\n},\n";	    		
+	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
+	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt) + "\n},\n";	    		
 	    	}
 	    	animalEvents = "[" + animalEvents.substring(0,animalEvents.lastIndexOf(",\n")) + "]";
+	    	IMDLogger.log(animalEvents, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
@@ -60,9 +65,10 @@ public class LifecycleEventSrvc {
     }
     
 	@POST
-	@Path("/addevent")
+	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response addCustomer(LifeCycleEventBean eventBean){
+	public Response addEvent(LifeCycleEventBean eventBean){
+		eventBean.setOrgID("IMD");
 		String orgID = eventBean.getOrgID();
 		String animalTag = eventBean.getAnimalTag();
 		String auxField1Value = eventBean.getAuxField1Value();
@@ -97,7 +103,7 @@ public class LifecycleEventSrvc {
 		String userID  = "KASHIF";
 		int result = -1;
 		try {
-			event = new LifecycleEvent(eventBean);
+			event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			event.setCreatedBy(new User(userID));
 			event.setCreatedDTTM(DateTime.now());

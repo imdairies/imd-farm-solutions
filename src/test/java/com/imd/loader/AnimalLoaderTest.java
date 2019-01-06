@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,6 +29,7 @@ import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
+import com.imd.services.bean.AnimalBean;
 import com.imd.util.IMDException;
 import com.imd.util.MessageManager;
 import com.imd.util.Util;
@@ -50,10 +52,15 @@ class AnimalLoaderTest {
 	void tearDown() throws Exception {
 	}
 
-	public Animal createTestAnimalTag000() throws IMDException {
+	public Animal createTestAnimalTag000() throws Exception {
 		Dam c000 = new Dam(/*orgid*/"IMD",/*tag*/"000",/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"PKR");
 		c000.setAlias("Laal");
+		c000.setAnimalType("LACTATING");
 		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
+		c000.setFrontImageURL("/assets/img/cow-thumbnails/000/1.png");
+		c000.setBacksideImageURL("/assets/img/cow-thumbnails/000/2.png");
+		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
+		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
 		c000.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
 				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
 		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
@@ -128,10 +135,15 @@ class AnimalLoaderTest {
 	@Test
 	void testAnimalProcessing() {
 		try {
-			// 1: Insert a new Animal.
 			Animal animal;
 			animal = createTestAnimalTag000();
 			AnimalLoader loader = new AnimalLoader();
+			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			DateTime now = DateTime.now();
+			animal.setDateOfBirth(now.minusDays(1));
+			assertEquals(0,animal.getCurrentAge().getYears(), " The current age should be less than a year");
+			assertEquals(0,animal.getCurrentAge().getMonths(), " The current age should be less than a month");
+			assertEquals(1,animal.getCurrentAge().getDays(), " The current age should be one day");
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
 			List <Animal>  animals = loader.retrieveActiveAnimals("IMD");
@@ -141,19 +153,106 @@ class AnimalLoaderTest {
 				animal = it.next();
 				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
 					found = true;
+					break;
 				}
 			}
 			assertTrue(found, "Tag 000 should have been found");
-			animal = loader.retrieveAnimal("IMD", "000");
+			assertEquals("Laal", animal.getAlias(), " Animal Alias should have been Laal");
+			assertEquals("/assets/img/cow-thumbnails/000/1.png", animal.getFrontImageURL(), " Animal Front Pose Image URL should have been /assets/img/cow-thumbnails/000/1.png");
+			AnimalBean animalBean = new AnimalBean();
+			animalBean.setOrgID("IMD");
+			animalBean.setAnimalTag("000");
+			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
 			assertEquals("000",animal.getAnimalTag());
+
+			animals = loader.retrieveActiveLactatingAnimals(animalBean);
+			it = animals.iterator();
+			found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "Tag 000 is a lactating cow so it should have been found by retrieveActiveLactatingAnimals API");
+
+			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			animal = createTestAnimalTag000();
+			animal.setAnimalType("BULL");
+			transactionID = loader.insertAnimal(animal);
+			animals = loader.retrieveActiveLactatingAnimals(animalBean);
+			it = animals.iterator();
+			found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+					break;
+				}
+			}
+			assertFalse(found, "Tag 000 is NOT a lactating cow so it should NOT have been found by retrieveActiveLactatingAnimals API");
+			
+			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
+			assertEquals("000",animal.getAnimalTag());
+			animalBean.setAnimalType("DUMMY12");
+			assertEquals(0,loader.retrieveMatchingAnimals(animalBean).size());
+			AnimalBean searchBean = new AnimalBean();
+			searchBean.setOrgID("IMD");
+			searchBean.setGender('F');
+			animals = loader.retrieveDamOrSire(searchBean);
+			it = animals.iterator();
+			found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "Tag 000 should have been found as a Dam");
+			searchBean.setOrgID("IMD");
+			searchBean.setGender('M');
+			animals = loader.retrieveDamOrSire(searchBean);
+			it = animals.iterator();
+			found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+				}
+			}
+			assertFalse(found, "Tag 000 should NOT have been found as a Sire");
+			
 			int transactionId  = loader.deleteAnimal("IMD", "000");
 			assertEquals(1,transactionId);
-			animal = loader.retrieveAnimal("IMD", "000");
-			assertEquals(null,animal);					
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
 		}
-	}	
+	}
+	
+	@Test
+	void testSireRetrieval() {
+		try {
+			AnimalLoader loader = new AnimalLoader();
+			List <Sire>  sires = loader.retrieveAISire();
+			Iterator<Sire> it = sires.iterator();
+			Sire sire = null;
+			boolean found = false;
+			while (it.hasNext()) {
+				sire = it.next();
+				if (sire.getOrgID().equalsIgnoreCase("GBL") && sire.getAlias().equalsIgnoreCase("JUNIOR")) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "JUNIOR Bull should have been found");
+			assertEquals("1HO10219", sire.getAnimalTag(), " Junior code should have been 1HO10219");
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Sire Retrieval Failed.");
+		}
+	}		
 
 }

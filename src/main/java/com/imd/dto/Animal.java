@@ -1,15 +1,15 @@
 package com.imd.dto;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-import org.joda.time.Duration;
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
+import org.joda.time.format.DateTimeFormatter;
 
-import com.google.gson.Gson;
 import com.imd.util.IMDException;
 import com.imd.util.Util;
 
@@ -31,6 +31,16 @@ public class Animal extends IMDairiesDTO{
 	private Dam animalDam;
 	private ArrayList<byte[]> photos;
 	private ArrayList<LifeCycleEventCode> lifeCycleEvents;
+	private String animalType;
+	private String frontSideImageURL;
+	private String backSideImageURL;
+	private String leftSideImageURL;
+	private String rightSideImageURL;
+	private boolean isBornThroughAI;
+
+
+	
+	
 	/**
 	 * M: Male
 	 * F: Female
@@ -116,12 +126,11 @@ public class Animal extends IMDairiesDTO{
 			this.notes.remove(index);
 	}
 	
-	/**
-	 * returns the period between today and the date of birth.
-	 * @return
-	 */
-	public Days getCurrentAge() {
-		return Days.daysBetween(dateOfBirth, DateTime.now());
+	public Period getCurrentAge() {
+		LocalDate now = new LocalDate();
+		if (this.dateOfBirth == null ) return new Period(now, now, PeriodType.yearMonthDay());
+		LocalDate birthdate =  new LocalDate(dateOfBirth.getYear(), dateOfBirth.getMonthOfYear(), dateOfBirth.getDayOfMonth());
+		return new Period(birthdate, now, PeriodType.yearMonthDay());
 	}
 	public double getPurchasePrice() {
 		return purchasePrice;
@@ -213,20 +222,83 @@ public class Animal extends IMDairiesDTO{
 	public void setAnimalStatus(String animalStatus) {
 		this.animalStatus = animalStatus;
 	}	
+
 	
-	public String dtoToJson(String prefix)  {
-		String json =  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
+	private String stringify(String prefix) {
+		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
-				prefix + fieldToJson("status", this.animalStatus) + ",\n" + 
+				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
+				prefix + fieldToJson("animalStatus", this.animalStatus) + ",\n" + 
 				prefix + fieldToJson("dateOfBirth", this.dateOfBirth) + ",\n" + 
 				prefix + fieldToJson("isDateOfBirthEstimated", this.isDateOfBirthEstimated) + ",\n" + 
+				prefix + fieldToJson("currentAge", this.getCurrentAge()) + ",\n" + 
 				prefix + fieldToJson("gender", this.gender) + ",\n" + 
 				prefix + fieldToJson("animalDam", this.animalDam == null ? "" : this.animalDam.getAnimalTag()) + ",\n" + 
-				prefix + fieldToJson("animalSire", this.animalSire == null ? "" : this.animalSire.getAnimalTag()) + ",\n" + 
-				super.dtoToJson(prefix);
-		return json;
+				prefix + fieldToJson("animalSire", this.animalSire == null ? "" : this.animalSire.getAnimalTag()) + ",\n" +
+				prefix + fieldToJson("animalSireURL", this.animalSire == null ? "" : this.animalSire.getSireSpecification()) + ",\n" +
+				prefix + fieldToJson("animalSireAlias", this.animalSire == null ? "" : this.animalSire.getAlias()) + ",\n" +
+				prefix + fieldToJson("isBornThroughAI", this.isBornThroughAI) + ",\n" + 
+				prefix + fieldToJson("alias", this.alias == null ? "" : this.alias) + ",\n" +
+				prefix + fieldToJson("frontSideImageURL", this.frontSideImageURL) + ",\n" +
+				prefix + fieldToJson("backSideImageURL", this.backSideImageURL) + ",\n" + 
+				prefix + fieldToJson("rightSideImageURL", this.rightSideImageURL) + ",\n" +
+				prefix + fieldToJson("leftSideImageURL", this.leftSideImageURL) + ",\n";
 	}
 	
+
+	public String dtoToJson(String prefix)  {		
+		return stringify(prefix) + super.dtoToJson(prefix);
+	}
 	
+	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
+		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+	}
+
+	public String getAnimalType() {
+		return animalType;
+	}
+
+	public void setAnimalType(String animalType) {
+		this.animalType = animalType;
+	}
+
+	public String getFrontImageURL() {
+		return frontSideImageURL;
+	}
+
+	public void setFrontImageURL(String frontImageURL) {
+		this.frontSideImageURL = frontImageURL;
+	}
+
+	public String getLeftSideImageURL() {
+		return leftSideImageURL;
+	}
+
+	public void setLeftSideImageURL(String leftSideImageURL) {
+		this.leftSideImageURL = leftSideImageURL;
+	}
+
+	public String getRightSideImageURL() {
+		return rightSideImageURL;
+	}
+
+	public void setRightSideImageURL(String rightSideImageURL) {
+		this.rightSideImageURL = rightSideImageURL;
+	}
+
+	public String getBacksideImageURL() {
+		return backSideImageURL;
+	}
+
+	public void setBacksideImageURL(String backsideImageURL) {
+		this.backSideImageURL = backsideImageURL;
+	}	
+	public boolean isBornThroughAI() {
+		return isBornThroughAI;
+	}
+	public void setBornThroughAI(boolean isBornThroughAI) {
+		this.isBornThroughAI = isBornThroughAI;
+	}
+
 	
 }

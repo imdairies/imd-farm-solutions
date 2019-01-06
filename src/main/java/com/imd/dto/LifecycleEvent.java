@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDException;
+import com.imd.util.Util;
 
 public class LifecycleEvent extends IMDairiesDTO{
 	private int eventTransactionID;
@@ -29,6 +30,13 @@ public class LifecycleEvent extends IMDairiesDTO{
 
 
 	public LifecycleEvent(LifeCycleEventBean eventBean) throws IMDException {
+		this(eventBean,null);
+	}
+
+	public LifecycleEvent(LifeCycleEventBean eventBean, String dateTimeFormat) throws IMDException {
+		
+		if (dateTimeFormat == null || dateTimeFormat.trim().isEmpty())
+			dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
 		this.setOrgID(eventBean.getOrgID());
 		this.animalTag = eventBean.getAnimalTag();
 		this.auxField1Value = eventBean.getAuxField1Value();
@@ -36,8 +44,10 @@ public class LifecycleEvent extends IMDairiesDTO{
 		this.auxField3Value = eventBean.getAuxField3Value();
 		this.eventComments = eventBean.getEventComments();
 		this.eventType = new LifeCycleEventCode(eventBean.getEventCode(),null,null);
-		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")));
+		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern(dateTimeFormat)));
+//		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp()));
 		this.eventOperator = new Person(eventBean.getOperatorID(),null,null,null);
+		
 	}
 
 
@@ -112,18 +122,32 @@ public class LifecycleEvent extends IMDairiesDTO{
 	public String getEventTimeStampSQLFormat() {
 		return super.getDateInSQLFormart(this.getEventTimeStamp());
 	}
-	public String dtoToJson(String prefix)  {
+		
+	
+	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
+		return (stringify(prefix, fmt) + super.dtoToJson(prefix, fmt));
+	}
+
+	public String dtoToJson(String prefix)  {		
+		return stringify(prefix, null) + super.dtoToJson(prefix);
+	}
+	
+	
+	public String stringify(String prefix, DateTimeFormatter fmt)  {
 		String json = prefix + fieldToJson("orgID", this.getOrgID()) + ",\n" +
 				prefix + fieldToJson("eventTransactionID",this.eventTransactionID) + ",\n" + 
 				prefix + fieldToJson("eventCode", this.eventType.getEventCode()) + ",\n" + 
+				prefix + fieldToJson("eventShortDescription", this.eventType.getEventShortDescription()) + ",\n" + 				
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" + 
-				prefix + fieldToJson("eventComments", this.eventComments) + ",\n" + 
-				prefix + fieldToJson("eventTimeStamp", this.eventTimeStamp) + ",\n" + 
-				prefix + fieldToJson("eventOperator", this.eventOperator) + ",\n" +
+				prefix + fieldToJson("eventComments", this.eventComments) + ",\n";
+		if (fmt == null) 
+			json += prefix + fieldToJson("eventTimeStamp",this.eventTimeStamp) + ",\n";
+		else 
+			json += prefix + fieldToJson("eventTimeStamp",getDateInSQLFormart(this.eventTimeStamp, fmt)) + ",\n";
+		json += prefix + fieldToJson("eventOperator", this.eventOperator) + ",\n" +
 				prefix + fieldToJson("auxField1Value", this.auxField1Value) + ",\n" +
 				prefix + fieldToJson("auxField2Value", this.eventOperator) + ",\n" +
-				prefix + fieldToJson("auxField3Value", this.auxField3Value) + ",\n" +
-				super.dtoToJson(prefix);
+				prefix + fieldToJson("auxField3Value", this.auxField3Value) + ",\n";
 		return json;
 	}
 

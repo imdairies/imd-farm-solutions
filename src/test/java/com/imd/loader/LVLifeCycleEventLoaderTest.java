@@ -68,7 +68,7 @@ class LVLifeCycleEventLoaderTest {
 		try {
 			// 0: Search for the test record, if it exists then delete it so that we can start afresh.
 			List<LifeCycleEventCode> events = loader.retrieveLifeCycleEvent("TSTHEAT");
-			if (events != null || events.size() > 0) {
+			if (events != null && events.size() > 0) {
 				loader.deleteLifeCycleEvent("TSTHEAT");
 				IMDLogger.log("TSTHEAT record already exists, have deleted it now", Util.ERROR);
 			}

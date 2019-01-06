@@ -80,7 +80,15 @@ public class LifeCycleEventsLoader {
 		return transactionID;
 	}
 	public LifecycleEvent retrieveLifeCycleEvent(String orgId, int transID) {
-		String qryString = "Select * from LIFECYCLE_EVENTS where ID ="+ transID + " AND ORG_ID='" + orgId + "'";
+		String qryString = "Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
+		  " from LIFECYCLE_EVENTS a  " +
+		  "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " +
+		  "  ON	a.EVENT_CD = b.EVENT_CD  " +
+		  "  LEFT OUTER JOIN LOOKUP_VALUES c " +
+		  "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " +
+	      " where a.ORG_ID='" + orgId + "' AND a.ID ="+ transID + "  ORDER BY a.EVENT_DTTM DESC"; 		
+		
+		
 		LifecycleEvent event = null;
 		Statement st = null;
 		ResultSet rs = null;
@@ -111,9 +119,10 @@ public class LifeCycleEventsLoader {
 	private LifecycleEvent getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
 		LifecycleEvent event;
 		event = new LifecycleEvent(rs.getString("ORG_ID"),rs.getInt("ID"),rs.getString("ANIMAL_TAG"), rs.getString("EVENT_CD"));
+		event.getEventType().setEventShortDescription(rs.getString("EVENT_SHORT_DESCR"));
 		event.setEventTimeStamp(new DateTime(rs.getTimestamp("EVENT_DTTM")));
 		event.setEventNote(rs.getString("COMMENTS"));
-		event.setEventOperator(new Person(rs.getString("OPERATOR"),"","",""));
+		event.setEventOperator(new Person(rs.getString("OPERATOR_SHORT_DESCR"),"","",""));
 		event.setAuxField1Value(rs.getString("AUX_FL1_VALUE"));
 		event.setAuxField2Value(rs.getString("AUX_FL2_VALUE"));
 		event.setAuxField3Value(rs.getString("AUX_FL3_VALUE"));
@@ -123,12 +132,19 @@ public class LifeCycleEventsLoader {
 		event.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
 		return event;
 	}
-	public List<LifecycleEvent> retrieveAllActiveLifeCycleEventsForAnimal(String orgId, String tagNumber) {
+	public List<LifecycleEvent> retrieveAllLifeCycleEventsForAnimal(String orgId, String tagNumber) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
-		String qryString = "Select * from LIFECYCLE_EVENTS WHERE ORG_ID='" + orgId + "' AND ANIMAL_TAG='" + tagNumber + "'   ORDER BY EVENT_DTTM DESC";
+		String qryString = " Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
+		  " from LIFECYCLE_EVENTS a  " +
+		  "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " +
+		  "  ON	a.EVENT_CD = b.EVENT_CD  " +
+		  "  LEFT OUTER JOIN LOOKUP_VALUES c " +
+		  "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " +
+	      " where a.ORG_ID='" + orgId + "' AND a.ANIMAL_TAG ="+ tagNumber + " ORDER BY a.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
 		Statement st = null;
 		ResultSet rs = null;
+		IMDLogger.log(qryString, Util.INFO);
 		try {
 			Connection conn = DBManager.getDBConnection();
 			st = conn.createStatement();

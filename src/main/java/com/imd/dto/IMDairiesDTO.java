@@ -1,6 +1,9 @@
 package com.imd.dto;
 
+import java.net.URL;
+
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -84,10 +87,10 @@ public class IMDairiesDTO {
 	}
 	public String toString() {
 		
-		return "\nCREATED_BY=" + getCreatedBy().getUserId() + 
-				"\nCREATED_DTTM=" + getCreatedDTTM()  +
-				"\nUPDATED_BY=" + getUpdatedBy().getUserId() + 
-				"\nUPDATED_DTTM=" + getUpdatedDTTM();
+		return "\nCREATED_BY=" + (this.createdBy == null ? "null" : getCreatedBy().getUserId()) + 
+				"\nCREATED_DTTM=" + (this.getCreatedDTTM() == null ? "null" : this.getCreatedDTTMSQLFormat()) +
+				"\nUPDATED_BY=" + (this.updatedBy == null ? "null" : this.updatedBy.getUserId()) + 
+				"\nUPDATED_DTTM=" + (this.getUpdatedDTTM() == null ? "null" : this.getUpdatedDTTMSQLFormat());
 	}
 	public String dtoToJson(String prefix){
 		String json = prefix + fieldToJson("createdBy", this.createdBy) + ",\n" + 
@@ -105,8 +108,21 @@ public class IMDairiesDTO {
 		return json;
 
 	}
+	
+	protected String fieldToJson(String fieldName, Period dateDifference) {
+		return ("\"" + fieldName + "\":\"" + (dateDifference == null ? "\"\"" : 
+				(dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") +
+				(dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") +
+				(dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "")) + "\"");
+
+	
+	}
+	
 	protected String fieldToJson(String fieldName, String strValue) {		
 		return ("\"" + fieldName + "\":" + (strValue == null ? "\"\"" : "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(strValue)) + "\""));
+	}
+	protected String fieldToJson(String fieldName, URL url) {		
+		return ("\"" + fieldName + "\":" + (url == null ? "\"\"" : "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(url.toString())) + "\""));
 	}
 	protected String fieldToJson(String fieldName, DateTime valueDTTM) {
 		return ("\"" + fieldName + "\":" + (valueDTTM == null ? "\"\"" : "\"" + this.getDateInSQLFormart(valueDTTM) + "\""));
@@ -121,10 +137,10 @@ public class IMDairiesDTO {
 		return ("\"" + fieldName + "\":" + Double.toString(dblValue));
 	}
 	protected String fieldToJson(String fieldName, Person personValue) {
-		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(personValue.getPersonID()))  + "\""));
+		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(personValue.getPersonID() == null ? "" : personValue.getPersonID()))  + "\""));
 	}
 	protected String fieldToJson(String fieldName, User usrValue) {
-		return ("\"" + fieldName + "\":" + (usrValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(usrValue.getUserId())) + "\""));
+		return ("\"" + fieldName + "\":" + (usrValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(usrValue.getUserId() == null ? "" : usrValue.getUserId())) + "\""));
 	}
 	protected String fieldToJson(String fieldName, boolean boolValue) {
 		return ("\"" + fieldName + "\":" + (boolValue ? "true" : "false"));

@@ -1,6 +1,7 @@
 package com.imd.util;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -20,6 +21,10 @@ public class Util {
 	public static final int INFO = 0;
 	public static final int WARNING = 1;
 	public static final int ERROR = 2;
+	
+	public static final DateTimeZone FARM_TIMEZONE = DateTimeZone.forID("Asia/Karachi");
+	public static final DateTimeZone UTC_TIMEZONE = DateTimeZone.forID("UTC");
+
 
 	 public static final class GENDER {
 		public static final char MALE = 'M';

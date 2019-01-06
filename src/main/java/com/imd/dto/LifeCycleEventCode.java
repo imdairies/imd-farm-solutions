@@ -90,24 +90,20 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 				"\nUPDATED_DTTM" + this.getUpdatedDTTMSQLFormat();
 	}
 	
-	public String dtoToJson(String prefix)  {
-		String json =  prefix + fieldToJson("eventCode", this.eventCode) + ",\n" +
+	public String stringify(String prefix)  {
+		return  prefix + fieldToJson("eventCode", this.eventCode) + ",\n" +
 				prefix + fieldToJson("eventShortDescription", this.eventShortDescription) + ",\n" + 
 				prefix + fieldToJson("eventLongDescription", this.eventLongDescription) + ",\n" + 
-				prefix + fieldToJson("isActive", this.isActive) + ",\n" + 
-				super.dtoToJson(prefix);
-		return json;
+				prefix + fieldToJson("isActive", this.isActive) + ",\n";
 	}
+
+	public String dtoToJson(String prefix)  {		
+		return stringify(prefix) + super.dtoToJson(prefix);
+	}
+	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
-		String json =  prefix + fieldToJson("eventCode", this.eventCode) + ",\n" +
-				prefix + fieldToJson("eventShortDescription", this.eventShortDescription) + ",\n" + 
-				prefix + fieldToJson("eventLongDescription", this.eventLongDescription) + ",\n" + 
-				prefix + fieldToJson("isActive", this.isActive) + ",\n" + 
-				super.dtoToJson(prefix, fmt);
-		return json;
+		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
 	}
-	
-	
 }
 
 
