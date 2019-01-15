@@ -39,8 +39,8 @@ public class IMDManager {
 	public void createTag026() throws IMDException {
 		Dam c026 = new Dam(/*id*/"026",/*tag*/"026",/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"Rs.");
 		c026.setAlias("Laal");
-		c026.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
-				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
+	//	c026.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
+//				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
 		c026.setPurchaseDate(DateTime.parse("2017-02-08"));		
 		setPurchaseFromContact(c026);
 		setSireInformation(c026);
@@ -61,8 +61,8 @@ public class IMDManager {
 		LocalDate milkingDate = LocalDate.of(2018,2,14);
 		float milkingVol = 7.0f;
 		boolean isMachineMilked = true;		
-		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
-		c026.addToMilkingRecord(dailyMilking);
+//		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
+//		c026.addToMilkingRecord(dailyMilking);
 	}
 
 	private void setSireInformation(Animal c026) throws IMDException {

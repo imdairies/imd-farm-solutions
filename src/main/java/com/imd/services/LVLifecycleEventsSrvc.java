@@ -183,7 +183,7 @@ public class LVLifecycleEventsSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
 		}
 		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
-		String userID  = "KASHIF";
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
@@ -238,7 +238,7 @@ public class LVLifecycleEventsSrvc {
 //			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
 //		}
 		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
-		String userID  = "KASHIF";
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();

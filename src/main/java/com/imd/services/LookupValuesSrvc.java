@@ -91,7 +91,7 @@ public class LookupValuesSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
 		}
 		LookupValues luValue = new LookupValues(luValueBean);
-		String userID  = "KASHIF";
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
 			LookupValuesLoader loader = new LookupValuesLoader();
@@ -146,7 +146,7 @@ public class LookupValuesSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
 		}
 		LookupValues luValue = new LookupValues(luValueBean);
-		String userID  = "KASHIF";
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
 			LookupValuesLoader loader = new LookupValuesLoader();

@@ -61,8 +61,8 @@ class AnimalLoaderTest {
 		c000.setBacksideImageURL("/assets/img/cow-thumbnails/000/2.png");
 		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
 		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
-		c000.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
-				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
+//		c000.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
+//				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
 		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
 		c000.setCreatedBy(new User("KASHIF"));
 		c000.setCreatedDTTM(DateTime.now());
@@ -87,8 +87,8 @@ class AnimalLoaderTest {
 		LocalDate milkingDate = LocalDate.of(2018,2,14);
 		float milkingVol = 7.0f;
 		boolean isMachineMilked = true;		
-		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
-		c000.addToMilkingRecord(dailyMilking);
+//		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
+//		c000.addToMilkingRecord(dailyMilking);
 	}
 
 	private void setSireInformation(Animal c000) throws IMDException {

@@ -59,7 +59,7 @@ public class Dam extends Animal {
 			milkingRecordsForTheDay = new HashMap <> ();
 		}
 		milkingRecordsForTheDay.put(milkingInformation.getMilkingEventNumber(), milkingInformation);
-		milkingRecord.put(milkingInformation.getRecordDate(), milkingRecordsForTheDay);
+		//milkingRecord.put(milkingInformation.getRecordDate(), milkingRecordsForTheDay);
 	}
 	
 	/**
@@ -119,7 +119,7 @@ public class Dam extends Animal {
 	public MilkingDetail getMilkTotalsForSpecifiedPeriod(LocalDate startDate, LocalDate endDate) throws IMDException {
 		float milkVolume = 0.0f;
 		short numberOfDays = 0;
-		MilkingDetail lifetimeMilkingTotals = new MilkingDetail((short)3, true, LocalDate.now(), LocalTime.now(), 0.0f,(short)1);
+		MilkingDetail lifetimeMilkingTotals = null;//new MilkingDetail((short)3, true, LocalDate.now(), LocalTime.now(), 0.0f,(short)1);
 		Util.throwExceptionIfNull(milkingRecord,"[Milking record does not exist]");
 		for (Map.Entry<LocalDate,HashMap<Short, MilkingDetail>> recordEntry : milkingRecord.entrySet() ) {
 			if ( startDate == null || endDate == null || ((recordEntry.getKey().isEqual(startDate) || recordEntry.getKey().isAfter(startDate) ) &&

@@ -124,6 +124,5 @@ public class LookupValues extends IMDairiesDTO{
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
 		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
 	}
-	
 
 }

@@ -1,58 +1,71 @@
 package com.imd.dto;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.Period;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.util.IMDException;
 
-public class MilkingDetail {
-	/**
-	 * average daily milk production averaged over the last 7 days.
-	 */
+public class MilkingDetail extends IMDairiesDTO{
+	private String animalTag;
+	private String orgID;
 	private float averageDailyProduction;
-	private Short dailyMilkingFrequency;
+	private short dailyMilkingFrequency;
 	private boolean isMilkedOnMachine;
 	private LocalDate recordDate;
 	private LocalTime recordTime;
 	private float milkVolume;
-	private float lrValue;
-	private float fatValue;
-	private float temperatureInCentigrade;
-	private LocalDate lastParturationDate;
-	private float humidity;
+	private String volUnit;
+	private Float lrValue;
+	private Float fatValue;
+	private Float toxinValue;
+	private Float temperatureInCentigrade;
+	private Float humidity;
 	private String comments;
-	/**
-	 * indicates which milking does this reading pertains to e.g. will be 1 if this is the first milking of recordDate,
-	 *  will be 2 if this is second milking of record Date, will be 3 if this is third milking of record date.
-	 */
-	private Short milkingEventNumber;
-	
-	/**
-	 * 
-	 * @param frequency  Number of times the cow is milked every day. Would usually be 2 or 3.
-	 * @param machineMilked set to true if the cow was milked on machine
-	 * @param recDate set to the date when this milking was conducted.
-	 * @param recTime set to the time when this milking was conducted.
-	 * @param milkVol the raw volume of the milk
-	 * @param lrVal the LR value of the milk
-	 * @param fatVal the Fat value of the milk
-	 * @param temperatureCelsius The temperature in Celsius of when the milking was conducted.
-	 * @param humidity the %Humidity of when the milking was conducted.
-	 * @param milkingCount indicate the number that indicates the sequence of this milking for the day i.e. set it to 1 if this was the first milking of the day, 2 if this was the second milking of the day and so on.
-	 */
+	private short milkingEventNumber;
 
-	public MilkingDetail(short frequency, boolean machineMilked, LocalDate recDate, LocalTime recTime, float milkVol, short milkSeqNbr)  throws IMDException {
-		if (recDate == null ) 
-			throw new IMDException("Record Date can't be null");
-		else {
-			this.dailyMilkingFrequency = frequency;
-			this.isMilkedOnMachine = machineMilked;
-			this.recordDate = recDate;
-			this.recordTime= recTime;
-			this.milkVolume = milkVol;
-			this.milkingEventNumber = milkSeqNbr;
-		}	}
+	private String stringify(String prefix) {
+		return  prefix + fieldToJson("orgID", this.orgID) + ",\n" + 
+				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
+				prefix + fieldToJson("milkingEventNumber", this.getMilkingEventNumber()) + ",\n" + 
+				prefix + fieldToJson("recordDate", this.recordDate) + ",\n" + 
+				prefix + fieldToJson("recordTime", this.recordTime) + ",\n" + 
+				prefix + fieldToJson("dailyMilkingFrequency", this.getDailyMilkingFrequency()) + ",\n" + 
+				prefix + fieldToJson("isMilkedOnMachine", this.isMilkedOnMachine) + ",\n" + 
+				prefix + fieldToJson("milkVolume", this.milkVolume) + ",\n" + 
+				prefix + fieldToJson("volUnit", this.volUnit) + ",\n" + 
+				prefix + fieldToJson("lrValue", this.lrValue) + ",\n" + 
+				prefix + fieldToJson("fatValue", this.fatValue) + ",\n" + 
+				prefix + fieldToJson("toxinValue", this.toxinValue) + ",\n" + 
+				prefix + fieldToJson("temperatureInCentigrade", this.temperatureInCentigrade) + ",\n" + 
+				prefix + fieldToJson("humidity", this.humidity) + ",\n" + 
+				prefix + fieldToJson("comments", this.comments) + ",\n";
+	}
+	
+
+	public String dtoToJson(String prefix)  {		
+		return stringify(prefix) + super.dtoToJson(prefix);
+	}
+	
+	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
+		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+	}
+ 
+	
+	public MilkingDetail(String orgID, String tagNbr, short frequency, boolean machineMilked, LocalDate recDate, LocalTime recTime, float milkVol, short milkSeqNbr)  throws IMDException {
+		this.dailyMilkingFrequency = frequency;
+		this.isMilkedOnMachine = machineMilked;
+		this.recordDate = recDate;
+		this.recordTime= recTime;
+		this.milkVolume = milkVol;
+		this.milkingEventNumber = milkSeqNbr;
+		this.orgID = orgID;
+		this.animalTag = tagNbr;
+	}
+	public MilkingDetail() {
+		// TODO Auto-generated constructor stub
+	}
 	public float getAverageDailyProduction() {
 		return averageDailyProduction;
 	}
@@ -89,28 +102,28 @@ public class MilkingDetail {
 	public void setMilkVolume(float milkVolume) {
 		this.milkVolume = milkVolume;
 	}
-	public float getLrValue() {
+	public Float getLrValue() {
 		return lrValue;
 	}
-	public void setLrValue(float lrValue) {
+	public void setLrValue(Float lrValue) {
 		this.lrValue = lrValue;
 	}
-	public float getFatValue() {
+	public Float getFatValue() {
 		return fatValue;
 	}
-	public void setFatValue(float fatValue) {
+	public void setFatValue(Float fatValue) {
 		this.fatValue = fatValue;
 	}
-	public float getTemperatureInCentigrade() {
+	public Float getTemperatureInCentigrade() {
 		return temperatureInCentigrade;
 	}
-	public void setTemperatureInCentigrade(float temperatureInCentigrade) {
+	public void setTemperatureInCentigrade(Float temperatureInCentigrade) {
 		this.temperatureInCentigrade = temperatureInCentigrade;
 	}
-	public float getHumidity() {
+	public Float getHumidity() {
 		return humidity;
 	}
-	public void setHumidity(float humidity) {
+	public void setHumidity(Float humidity) {
 		this.humidity = humidity;
 	}
 	public String getComments() {
@@ -119,7 +132,7 @@ public class MilkingDetail {
 	public void setComments(String comments) {
 		this.comments = comments;
 	}
-	public Short getMilkingEventNumber() {
+	public short getMilkingEventNumber() {
 		return milkingEventNumber;
 	}
 	public void setMilkingEventNumber(Short milkingNumber) {
@@ -127,22 +140,46 @@ public class MilkingDetail {
 	}
 	
 	
-	public LocalDate getLastParturationDate() {
-		return lastParturationDate;
-	}
-	public void setLastParturationDate(LocalDate lastParturationDate) {
-		this.lastParturationDate = lastParturationDate;
-	}
+//	public LocalDate getLastParturationDate() {
+//		return lastParturationDate;
+//	}
+//	public void setLastParturationDate(LocalDate lastParturationDate) {
+//		this.lastParturationDate = lastParturationDate;
+//	}
 	/**
 	 * This method retrieves the period between the last parturation date and the recod date.
 	 * If any of the dates are null it returns a 0 day period.
 	 * @return
 	 */
-	public Period getDaysSinceLastParturation() {
-		if (recordDate != null && lastParturationDate != null) {
-			return Period.between(lastParturationDate, recordDate);
-		}
-		else
-			return Period.parse("0");
+//	public Period getDaysSinceLastParturation() {
+//		if (recordDate != null && lastParturationDate != null) {
+//			return Period.between(lastParturationDate, recordDate);
+//		}
+//		else
+//			return Period.parse("0");
+//	}
+	public Float getToxinValue() {
+		return toxinValue;
+	}
+	public void setToxinValue(float toxinValue) {
+		this.toxinValue = toxinValue;
+	}
+	public String getAnimalTag() {
+		return animalTag;
+	}
+	public void setAnimalTag(String animalTag) {
+		this.animalTag = animalTag;
+	}
+	public String getOrgID() {
+		return orgID;
+	}
+	public void setOrgID(String orgID) {
+		this.orgID = orgID;
+	}
+	public String getVolUnit() {
+		return volUnit;
+	}
+	public void setVolUnit(String volUnit) {
+		this.volUnit = volUnit;
 	}
 }

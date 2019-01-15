@@ -3,6 +3,8 @@ package com.imd.dto;
 import java.net.URL;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -82,6 +84,12 @@ public class IMDairiesDTO {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 		return fmt.print(dttm);
 	}
+
+	protected String getDateInSQLFormart(LocalDate dt) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+		return fmt.print(dt);
+	}
+	
 	protected String getDateInSQLFormart(DateTime dttm, DateTimeFormatter fmt) {
 		return fmt.print(dttm);
 	}
@@ -117,7 +125,15 @@ public class IMDairiesDTO {
 
 	
 	}
+
+	protected String fieldToJson(String fieldName, LocalDate valueDt) {
+		return ("\"" + fieldName + "\":" + (valueDt == null ? "\"\"" : "\"" + this.getDateInSQLFormart(valueDt) + "\""));
+	}
 	
+	protected String fieldToJson(String fieldName, LocalTime valueTm) {
+		return ("\"" + fieldName + "\":" + (valueTm == null ? "\"\"" : "\"" + valueTm.getHourOfDay() + ":" + valueTm.getMinuteOfHour() + "\""));
+	}
+
 	protected String fieldToJson(String fieldName, String strValue) {		
 		return ("\"" + fieldName + "\":" + (strValue == null ? "\"\"" : "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(strValue)) + "\""));
 	}
@@ -130,11 +146,23 @@ public class IMDairiesDTO {
 	protected String fieldToJson(String fieldName, int intValue) {
 		return ("\"" + fieldName + "\":" + Integer.toString(intValue));
 	}
+	protected String fieldToJson(String fieldName, short shortValue) {
+		return ("\"" + fieldName + "\":" + shortValue);
+	}
+	protected String fieldToJson(String fieldName, Short shortValue) {
+		return ("\"" + fieldName + "\":" + (shortValue == null ? "\"\"" : shortValue));
+	}
+	protected String fieldToJson(String fieldName, Integer intValue) {
+		return ("\"" + fieldName + "\":" + (intValue == null ? "\"\"" : intValue));
+	}
 	protected String fieldToJson(String fieldName, char charValue) {
 		return ("\"" + fieldName + "\":\"" + charValue + "\"");
 	}
 	protected String fieldToJson(String fieldName, double dblValue) {
 		return ("\"" + fieldName + "\":" + Double.toString(dblValue));
+	}
+	protected String fieldToJson(String fieldName, float flValue) {
+		return ("\"" + fieldName + "\":" + flValue);
 	}
 	protected String fieldToJson(String fieldName, Person personValue) {
 		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(personValue.getPersonID() == null ? "" : personValue.getPersonID()))  + "\""));

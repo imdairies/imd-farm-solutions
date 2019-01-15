@@ -36,7 +36,7 @@ public class AnimalSrvc {
 //    	String animalsJson = "";
 //    	try {
 //			AnimalLoader loader = new AnimalLoader();
-//		 	List<Animal> animals = loader.retrieveAllAnimals("IMD");
+//		 	List<Animal> animals = loader.retrieveAllAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
 //		 	animalsJson = processAnimalRecords(animalsJson, animals);
 //    	} catch (Exception ex) {
 //    		ex.printStackTrace();
@@ -55,7 +55,7 @@ public class AnimalSrvc {
 	   	String animalsJson = "";
     	try {
 			AnimalLoader loader = new AnimalLoader();
-		 	List<Animal> animals = loader.retrieveActiveAnimals("IMD");
+		 	List<Animal> animals = loader.retrieveActiveAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
 		 	animalsJson = processAnimalRecords(animalsJson, animals);
     	} catch (Exception ex) {
     		ex.printStackTrace();
@@ -130,7 +130,7 @@ public class AnimalSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response searchAnimals(AnimalBean searchBean){
     	String animalValueResult = "";
-    	searchBean.setOrgID("IMD");
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
@@ -167,7 +167,7 @@ public class AnimalSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveLactatingAnimals(AnimalBean searchBean){
     	String animalValueResult = "";
-    	searchBean.setOrgID("IMD");
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();

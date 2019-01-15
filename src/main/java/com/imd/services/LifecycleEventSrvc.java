@@ -43,7 +43,7 @@ public class LifecycleEventSrvc {
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		String animalEvents = "";
 		try {
-			List<LifecycleEvent> events = loader.retrieveAllLifeCycleEventsForAnimal("IMD",animalBean.getAnimalTag());
+			List<LifecycleEvent> events = loader.retrieveAllLifeCycleEventsForAnimal((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID),animalBean.getAnimalTag());
 			if (events == null || events.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No life events found for specified animal\"}").build();
@@ -68,7 +68,7 @@ public class LifecycleEventSrvc {
 	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addEvent(LifeCycleEventBean eventBean){
-		eventBean.setOrgID("IMD");
+		eventBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
 		String orgID = eventBean.getOrgID();
 		String animalTag = eventBean.getAnimalTag();
 		String auxField1Value = eventBean.getAuxField1Value();
@@ -100,7 +100,7 @@ public class LifecycleEventSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
 		}
 		LifecycleEvent event;
-		String userID  = "KASHIF";
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
 			event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");

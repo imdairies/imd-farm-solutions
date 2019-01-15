@@ -1,14 +1,19 @@
 package com.imd.util;
 
+import java.util.HashMap;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
 
 public class Util {
+	
+	private static ConfigurationManager imdConfigurations;
 	
 	 public static final class PROPERTIES {
 		public final static String JDBC_DRIVER = "JDBC_DRIVER";
@@ -18,13 +23,16 @@ public class Util {
 		public static final String APPLICATION_LOGGING_MODE = "APPLICATION_LOGGING_MODE";
 		public static final String IMD_SERVICES_URL = "IMD_SERVICES_URL";
 	}
+	 
+	
 	public static final int INFO = 0;
 	public static final int WARNING = 1;
 	public static final int ERROR = 2;
 	
 	public static final DateTimeZone FARM_TIMEZONE = DateTimeZone.forID("Asia/Karachi");
 	public static final DateTimeZone UTC_TIMEZONE = DateTimeZone.forID("UTC");
-
+	public static final String VOL_UNIT = "LTR";
+	
 
 	 public static final class GENDER {
 		public static final char MALE = 'M';
@@ -32,6 +40,17 @@ public class Util {
 		public static final char UNKNOWN = 'U';
 	 }
 
+		public static final class  ConfigKeys {
+			public static final String FARM_TIMEZONE = "FARM_TIMEZONE";
+			public static final String VOL_UNIT = "VOL_UNIT";
+			public static final String UTC_TIMEZONE = "UTC_TIMEZONE";
+			public static final String ORG_ID = "ORG_ID";
+			public static final String USER_ID = "USER_ID";			
+			public static final String USER_NAME = "USER_NAME";			
+		}
+
+	 
+	 
 	 public static final class ERROR_CODE {
 			public static final int UNKNOWN_ERROR = -1000;
 			public static final int ALREADY_EXISTS = -1001;
@@ -67,4 +86,19 @@ public class Util {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 		return fmt.print(dttm);
 	}
+	public static String getDateInSQLFormart(LocalDate dt) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+		return fmt.print(dt);
+	}
+	
+	public static String getTimeInSQLFormart(LocalTime tm) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
+		return fmt.print(tm);
+	}
+	public static ConfigurationManager getConfigurations() {
+		if (imdConfigurations == null)
+			imdConfigurations = new ConfigurationManager();
+		return imdConfigurations;
+	}	
 }
+
