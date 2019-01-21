@@ -24,6 +24,8 @@ import com.imd.util.Util;
 public class AnimalLoader {
 	
 	
+	private static final String LACTATING_INDICATOR = "LACTATING=Y";
+
 	public int insertAnimal(Animal animal) throws SQLException {
 		int recordAdded = -1;
 		String qryString = "insert into ANIMALS (ORG_ID,"
@@ -294,7 +296,7 @@ public class AnimalLoader {
 				"	ON a.SIRE_TAG=b.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
 				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
-				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD2='LACTATING=Y' ORDER BY ANIMAL_TAG";
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD2='" + LACTATING_INDICATOR + "' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String> ();
 		values.add(animalBean.getOrgID());		
 		Animal animalValue = null;

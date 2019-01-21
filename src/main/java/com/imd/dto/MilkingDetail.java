@@ -5,6 +5,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.imd.services.bean.MilkingDetailBean;
 import com.imd.util.IMDException;
 
 public class MilkingDetail extends IMDairiesDTO{
@@ -181,5 +182,11 @@ public class MilkingDetail extends IMDairiesDTO{
 	}
 	public void setVolUnit(String volUnit) {
 		this.volUnit = volUnit;
+	}
+	public MilkingDetailBean getMilkingDetailBean() {
+//		return new MilkingDetailBean(this.animalTag,this.orgID, this.recordDate.toString(),this.recordTime.toString(),
+//				this.milkingEventNumber, this.milkVolume, this.fatValue, this.lrValue, this.toxinValue, this.temperatureInCentigrade,
+//				this.humidity, this.comments);
+		return null;
 	}
 }
