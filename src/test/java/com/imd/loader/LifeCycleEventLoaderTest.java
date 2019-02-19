@@ -59,13 +59,21 @@ class LifeCycleEventLoaderTest {
 		try {			
 			event = new LifecycleEvent("IMD", 0, "017","PREGTEST");
 			event.setEventTimeStamp(DateTime.now());
-			event.setEventNote("Positive, الحمدُ للہ");
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
 			event.setUpdatedBy(event.getCreatedBy());
 			event.setUpdatedDTTM(event.getCreatedDTTM());
+			event.setEventNote("Part of the 10-5 cow exchange. Approximately sold for Rs. 150K. "
+					+ "Was bought for Rs. 200K. The cow was pregnant with a female calf through natural mating. "
+					+ "Had conception issues - was a repeater. "
+					+ "This cow had dried off after approximately 6 months of first lactation and had been "
+					+ "dried for several months by the time we sold it");
 			int transactionID = loader.insertLifeCycleEvent(event);
+			assertEquals(Util.ERROR_CODE.DATA_LENGTH_ISSUE,transactionID, "Length of comments field should have been too long");
+			event.setEventNote("Positive, الحمدُ للہ");
+			transactionID = loader.insertLifeCycleEvent(event);
+			
 			event.setEventTransactionID(transactionID);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
 			// 2: Search for the newly inserted event and verify it is retrieved properly

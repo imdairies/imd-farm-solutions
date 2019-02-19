@@ -1,10 +1,12 @@
 package com.imd.services.bean;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
-import com.imd.dto.Contact;
-import com.imd.dto.Dam;
-import com.imd.dto.Sire;
+import com.imd.dto.LifeCycleEventCode;
+import com.imd.dto.Person;
+import com.imd.util.Util;
 
 public class AnimalBean {
 	private String orgID;
@@ -13,6 +15,16 @@ public class AnimalBean {
 	private boolean activeOnly;
 	private String animalType;
 	private char gender;
+	private String dateOfBirthStr;
+	private String dobAccuracyInd;
+	private String aiIndicator;
+	private String dam;
+	private String sire;
+	private String aiInd;
+	private String frontPoseImage;
+	private String backPoseImage;
+	private String rightPoseImage;
+	private String leftPoseImage;
 //	private DateTime dateOfBirth;
 //	private boolean isDateOfBirthEstimated;
 //	private Sire animalSire;
@@ -117,6 +129,15 @@ public class AnimalBean {
 				"\n animalType:" + animalType + 
 				"\n alias:" + alias + 
 				"\n gender:" + gender + 
+				"\n dateOfBirthStr:" + dateOfBirthStr + 
+				"\n dobAccuracyInd:" + dobAccuracyInd + 
+				"\n dam:" + dam + 
+				"\n sire:" + sire + 
+				"\n aiInd:" + aiInd +
+				"\n frontPoseImage:" + frontPoseImage +
+				"\n backPoseImage:" + backPoseImage +
+				"\n rightPoseImage:" + rightPoseImage +
+				"\n leftPoseImage:" + leftPoseImage +
 				"\n activeOnly:" + activeOnly;
 	}
 	public String getOrgID() {
@@ -130,6 +151,74 @@ public class AnimalBean {
 	}
 	public void setGender(char gender) {
 		this.gender = gender;
+	}
+	public String getDateOfBirthStr() {
+		return dateOfBirthStr;
+	}
+	public void setDateOfBirthStr(String dobStr) {
+		dateOfBirthStr = dobStr;
+	}
+	public String getDobAccuracyInd() {
+		return dobAccuracyInd;
+	}
+	public void setDobAccuracyInd(String dobAccuracyInd) {
+		this.dobAccuracyInd = dobAccuracyInd;
+	}
+	public String getAiInd() {
+		return aiInd;
+	}
+	public void setAiInd(String aiInd) {
+		this.aiInd = aiInd;
+	}
+	public String getDam() {
+		return dam;
+	}
+	public void setDam(String dam) {
+		this.dam = dam;
+	}
+	public String getSire() {
+		return sire;
+	}
+	public void setSire(String sire) {
+		this.sire = sire;
+	}
+	public String getFrontPoseImage() {
+		return frontPoseImage;
+	}
+	public void setFrontPoseImage(String frontPoseImage) {
+		this.frontPoseImage = frontPoseImage;
+	}
+	public String getBackPoseImage() {
+		return backPoseImage;
+	}
+	public void setBackPoseImage(String backPoseImage) {
+		this.backPoseImage = backPoseImage;
+	}
+	public String getRightPoseImage() {
+		return rightPoseImage;
+	}
+	public void setRightPoseImage(String rightPoseImage) {
+		this.rightPoseImage = rightPoseImage;
+	}
+	public String getLeftPoseImage() {
+		return leftPoseImage;
+	}
+	public void setLeftPoseImage(String leftPoseImage) {
+		this.leftPoseImage = leftPoseImage;
+	}
+	public DateTime getDateOfBirth() {	
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+		return (DateTime.parse(dateOfBirthStr, fmt));
+	}
+	public DateTime getDateOfBirth(String string) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern(string);
+		return (DateTime.parse(dateOfBirthStr, fmt));
+	}
+	public String getAiIndicator() {
+		return aiIndicator;
+	}
+	public void setAiIndicator(String aiIndicator) {
+		this.aiIndicator = aiIndicator;
 	}
 	
 }

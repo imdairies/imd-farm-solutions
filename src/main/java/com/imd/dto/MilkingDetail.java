@@ -1,6 +1,8 @@
 package com.imd.dto;
 
 
+import java.util.HashMap;
+
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -24,6 +26,7 @@ public class MilkingDetail extends IMDairiesDTO{
 	private Float temperatureInCentigrade;
 	private Float humidity;
 	private String comments;
+	private HashMap<String, Float> averages = new HashMap<String, Float>();
 	private short milkingEventNumber;
 
 	private String stringify(String prefix) {
@@ -36,14 +39,32 @@ public class MilkingDetail extends IMDairiesDTO{
 				prefix + fieldToJson("isMilkedOnMachine", this.isMilkedOnMachine) + ",\n" + 
 				prefix + fieldToJson("milkVolume", this.milkVolume) + ",\n" + 
 				prefix + fieldToJson("volUnit", this.volUnit) + ",\n" + 
-				prefix + fieldToJson("lrValue", this.lrValue) + ",\n" + 
-				prefix + fieldToJson("fatValue", this.fatValue) + ",\n" + 
-				prefix + fieldToJson("toxinValue", this.toxinValue) + ",\n" + 
-				prefix + fieldToJson("temperatureInCentigrade", this.temperatureInCentigrade) + ",\n" + 
-				prefix + fieldToJson("humidity", this.humidity) + ",\n" + 
+				prefix + fieldToJson("lrValue", this.lrValue == null ? 0: this.lrValue) + ",\n" + 
+				prefix + fieldToJson("fatValue", this.fatValue == null ? 0: this.fatValue) + ",\n" + 
+				prefix + fieldToJson("toxinValue", this.toxinValue == null ? 0: this.toxinValue) + ",\n" + 
+				prefix + fieldToJson("temperatureInCentigrade", this.temperatureInCentigrade == null ? 0 : this.temperatureInCentigrade) + ",\n" + 
+				prefix + fieldToJson("humidity", this.humidity == null ? 0:this.humidity) + ",\n" + 
 				prefix + fieldToJson("comments", this.comments) + ",\n";
 	}
-	
+
+	public String toString() {
+		return  "orgID=" + this.orgID + ",\n" + 
+				"animalTag=" +  this.animalTag + ",\n" +
+				"milkingEventNumber=" +  this.getMilkingEventNumber() + ",\n" + 
+				"recordDate=" +  this.recordDate + ",\n" + 
+				"recordTime=" +  this.recordTime + ",\n" + 
+				"dailyMilkingFrequency=" +  this.getDailyMilkingFrequency() + ",\n" + 
+				"isMilkedOnMachine=" +  this.isMilkedOnMachine + ",\n" + 
+				"milkVolume=" +  this.milkVolume + ",\n" + 
+				"volUnit=" +  this.volUnit + ",\n" + 
+				"lrValue=" +  this.lrValue == null ? "0": this.lrValue + ",\n" + 
+				"fatValue=" +  this.fatValue == null ? "0": this.fatValue + ",\n" + 
+				"toxinValue=" + this.toxinValue == null ? "0": this.toxinValue + ",\n" + 
+				"temperatureInCentigrade=" + (this.temperatureInCentigrade == null ? 0 : this.temperatureInCentigrade) + ",\n" + 
+				"humidity=" + (this.humidity == null ? 0:this.humidity) + ",\n" + 
+				"comments=" + this.comments + "\n" + super.toString();
+		
+	}
 
 	public String dtoToJson(String prefix)  {		
 		return stringify(prefix) + super.dtoToJson(prefix);
@@ -65,8 +86,8 @@ public class MilkingDetail extends IMDairiesDTO{
 		this.animalTag = tagNbr;
 	}
 	public MilkingDetail() {
-		// TODO Auto-generated constructor stub
 	}
+	
 	public float getAverageDailyProduction() {
 		return averageDailyProduction;
 	}
@@ -184,9 +205,17 @@ public class MilkingDetail extends IMDairiesDTO{
 		this.volUnit = volUnit;
 	}
 	public MilkingDetailBean getMilkingDetailBean() {
-//		return new MilkingDetailBean(this.animalTag,this.orgID, this.recordDate.toString(),this.recordTime.toString(),
-//				this.milkingEventNumber, this.milkVolume, this.fatValue, this.lrValue, this.toxinValue, this.temperatureInCentigrade,
-//				this.humidity, this.comments);
-		return null;
+		return new MilkingDetailBean(this.animalTag,this.orgID, this.recordDate.toString(),this.recordTime.toString(),
+				this.milkingEventNumber, this.milkVolume, this.fatValue, this.lrValue, this.toxinValue, this.temperatureInCentigrade,
+				this.humidity, this.comments);
+//		return null;
+	}
+
+	public HashMap<String, Float> getAverages() {
+		return averages;
+	}
+
+	public void setAverages(HashMap<String, Float> averages) {
+		this.averages = averages;
 	}
 }

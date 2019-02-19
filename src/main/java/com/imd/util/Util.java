@@ -1,6 +1,5 @@
 package com.imd.util;
 
-import java.util.HashMap;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -9,11 +8,14 @@ import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
-
 public class Util {
 	
 	private static ConfigurationManager imdConfigurations;
+	
+	public static String COW_FRONT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/1.png";
+	public static String COW_BACK_IMAGE_PHOTO_URL = "/assets/img/cow-photos/2.png";
+	public static String COW_RIGHT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/3.png";
+	public static String COW_LEFT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/4.png";
 	
 	 public static final class PROPERTIES {
 		public final static String JDBC_DRIVER = "JDBC_DRIVER";
@@ -32,6 +34,33 @@ public class Util {
 	public static final DateTimeZone FARM_TIMEZONE = DateTimeZone.forID("Asia/Karachi");
 	public static final DateTimeZone UTC_TIMEZONE = DateTimeZone.forID("UTC");
 	public static final String VOL_UNIT = "LTR";
+
+	public static final String COW_PHOTOS_URI_PREFIX = "/assets/img/cow-photos/";
+
+	public static final String DAILY_AVERAGE = "DAILY_AVERAGE";
+
+	public static final class LifeCycleEvents {
+		public static final String INSEMINATE = "INSEMINATE";
+		public static final String DEHORN = "DEHORN";
+		public static final String FMDVACCINE = "FMDVACCINE";	
+	}
+
+	public static final class AdvisementRules {
+		public static final String DRYCOW = "DRYCOW";
+		public static final String DEHORN = "DEHORN";
+		public static final String VACCINEFMD = "VACCINEFMD";
+		public static final String PREGNANCYTEST = "PREGNANCYTEST";
+	}
+	
+	public static final class AnimalTypes {
+		public static final String HEIFER = "HEIFER";
+		public static final String FEMALECALF = "FEMALECALF";
+		public static final String MALECALF = "MALECALF";
+		public static final String HFRPREGN = "HFRPREGN";
+		public static final String LACTATING = "LACTATING";
+		public static final String LCTINSEMIN = "LCTINSEMIN";
+		public static final String LCTPRGNT = "LCTPRGNT";
+	}
 	
 
 	 public static final class GENDER {
@@ -45,8 +74,12 @@ public class Util {
 			public static final String VOL_UNIT = "VOL_UNIT";
 			public static final String UTC_TIMEZONE = "UTC_TIMEZONE";
 			public static final String ORG_ID = "ORG_ID";
-			public static final String USER_ID = "USER_ID";			
-			public static final String USER_NAME = "USER_NAME";			
+			public static final String USER_ID = "USER_ID";
+			public static final String USER_NAME = "USER_NAME";
+			public static final String MILKING_FREQUENCY = "MILKING_FREQUENCY";
+			public static final String FIRST_MILKING_TIME = "FIRST_MILKING_TIME";
+			public static final String SECOND_MILKING_TIME = "SECOND_MILKING_TIME";
+			public static final String THIRD_MILKING_TIME = "THIRD_MILKING_TIME";
 		}
 
 	 
@@ -56,6 +89,7 @@ public class Util {
 			public static final int ALREADY_EXISTS = -1001;
 			public static final int DATA_LENGTH_ISSUE = -1002;
 			public static final int SQL_SYNTAX_ERROR = -1003;
+			public static final int DOES_NOT_EXIST = -1004;
 	 }
 	 
 	 
@@ -90,6 +124,10 @@ public class Util {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
 		return fmt.print(dt);
 	}
+	public static String getDateInSpecifiedFormart(DateTime dttm, String format) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+		return fmt.print(dttm);
+	}
 	
 	public static String getTimeInSQLFormart(LocalTime tm) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
@@ -99,6 +137,10 @@ public class Util {
 		if (imdConfigurations == null)
 			imdConfigurations = new ConfigurationManager();
 		return imdConfigurations;
-	}	
+	}
+	public static String getDateInSpecifiedFormart(LocalDate dt, String format) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+		return fmt.print(dt);
+	}
 }
 

@@ -25,7 +25,11 @@ public class AnimalLoader {
 	
 	
 	private static final String LACTATING_INDICATOR = "LACTATING=Y";
-
+	private static final String PREGNANT_INDICATOR = "PREGNANT=Y";
+	private static final String HEIFER_INDICATOR = "HEIFER=Y";
+	private static final String DRY_INDICATOR = "DRY=Y";
+	private static final String INSEMINATED_INDICATOR = "INSEMINATED=Y";
+	
 	public int insertAnimal(Animal animal) throws SQLException {
 		int recordAdded = -1;
 		String qryString = "insert into ANIMALS (ORG_ID,"
@@ -62,8 +66,8 @@ public class AnimalLoader {
 			preparedStatement.setString(9, (animal.getAnimalDam() == null ? null : animal.getAnimalDam().getAnimalTag()));
 			preparedStatement.setString(10, (animal.getAnimalSire() == null ? null : animal.getAnimalSire().getAnimalTag()));
 			preparedStatement.setString(11, (animal.isBornThroughAI() ? "Y" : "N"));
-			preparedStatement.setString(12, (animal.getFrontImageURL() == null ? null : animal.getFrontImageURL().toString()));
-			preparedStatement.setString(13, (animal.getBacksideImageURL() == null ? null : animal.getBacksideImageURL().toString()));
+			preparedStatement.setString(12, (animal.getFrontSideImageURL() == null ? null : animal.getFrontSideImageURL().toString()));
+			preparedStatement.setString(13, (animal.getBackSideImageURL() == null ? null : animal.getBackSideImageURL().toString()));
 			preparedStatement.setString(14, (animal.getLeftSideImageURL() == null ? null : animal.getLeftSideImageURL().toString()));
 			preparedStatement.setString(15, (animal.getRightSideImageURL() == null ? null : animal.getRightSideImageURL().toString()));
 			preparedStatement.setString(16, (animal.getCreatedBy() == null ? null : animal.getCreatedBy().getUserId()));
@@ -71,6 +75,18 @@ public class AnimalLoader {
 			preparedStatement.setString(18,(animal.getUpdatedBy() == null ? null : animal.getUpdatedBy().getUserId()));
 			preparedStatement.setString(19,(animal.getUpdatedDTTM() == null ? null :animal.getUpdatedDTTMSQLFormat()));
 			recordAdded = preparedStatement.executeUpdate();
+		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			ex.printStackTrace();
+		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
+			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
+			ex.printStackTrace();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -106,20 +122,12 @@ public class AnimalLoader {
 		}
 		return result;
 	}
-	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean) throws Exception {
+	
+	
+	public List<Animal> getAnimalRawInfo(AnimalBean animalBean) throws Exception {
+		boolean isWildCardSearch = false;
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
-		boolean isWildCardSearch = true;
-		//String qryString = "Select a.*,s.RECORD_URL, s.ALIAS SIRE_ALIAS, s.ID from ANIMALS a LEFT OUTER JOIN LV_SIRE s ON a.SIRE_TAG=s.ID WHERE ( a.ORG_ID=? ";
-
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
-				" WHERE ( a.ORG_ID=? ";
-		
-		
+		String qryString = "Select a.*, \" \" as RECORD_URL, \" \"  SIRE_ALIAS, \" \" as ID, a.TYPE_CD as ANIMAL_TYPE from ANIMALS a WHERE ( a.ORG_ID=? ";		
 		List<String> values = new ArrayList<String> ();
 		values.add(animalBean.getOrgID());		
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
@@ -158,7 +166,83 @@ public class AnimalLoader {
 	    	allMatchingValues.add(animalValue);
 	    }
 	    return allMatchingValues;
+	}		
+	
+	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean) throws Exception {
+		return retrieveMatchingAnimals(animalBean,true,null);
+	}
+	
+	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean, boolean isWildCardSearch, String additionalQuery) throws Exception {
+		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
+		//String qryString = "Select a.*,s.RECORD_URL, s.ALIAS SIRE_ALIAS, s.ID from ANIMALS a LEFT OUTER JOIN LV_SIRE s ON a.SIRE_TAG=s.ID WHERE ( a.ORG_ID=? ";
+
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE ( a.ORG_ID=? ";
+		
+		
+		List<String> values = new ArrayList<String> ();
+		values.add(animalBean.getOrgID());		
+		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
+			qryString +=  " AND ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
+			values.add(animalBean.getAnimalTag());
+			if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
+				qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
+				values.add(animalBean.getAnimalType());
+			}
+		} else if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
+			qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
+			values.add(animalBean.getAnimalType());
+		}
+		if (animalBean.getGender() == 'M' || animalBean.getGender() == 'F') {
+			qryString +=  " AND GENDER='" + animalBean.getGender() + "' " ;
+			
+		}
+		if (additionalQuery != null && !additionalQuery.trim().isEmpty()) 
+			qryString += " AND " + additionalQuery;
+		if (animalBean.getActiveOnly()) {
+			qryString +=  " AND STATUS='ACTIVE') ORDER BY ANIMAL_TAG";
+		} else {
+			qryString += ") ORDER BY ANIMAL_TAG";
+		}
+		IMDLogger.log(qryString,Util.INFO);
+		Animal animalValue = null;
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		preparedStatement = conn.prepareStatement(qryString);
+		Iterator<String> it = values.iterator();
+		int i=1;
+		while (it.hasNext())
+			preparedStatement.setString(i++,it.next());
+
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		
+		
+	    rs = preparedStatement.executeQuery();
+	    while (rs.next()) {
+	    	animalValue = getAnimalFromSQLRecord(rs);
+	    	allMatchingValues.add(animalValue);
+	    }
+	    return allMatchingValues;
+	}
+	
+	
+	
+	public List<Animal> retrieveActiveDams(String orgID) throws Exception {
+		AnimalBean animalBean = new AnimalBean();
+		animalBean.setOrgID(orgID);
+		animalBean.setActiveOnly(true);
+		animalBean.setGender('F');
+		String additionalQuery = " TYPE_CD NOT IN ('FEMALECALF', 'HEIFER') ";
+		return retrieveMatchingAnimals(animalBean, false, additionalQuery);
 	}	
+	
+	
 	public List<Animal> retrieveActiveAnimals(String orgID) throws Exception {
 		AnimalBean animalBean = new AnimalBean();
 		animalBean.setOrgID(orgID);
@@ -177,7 +261,8 @@ public class AnimalLoader {
 		String ind = rs.getString("DOB_ACCURACY_IND");
 		DateTime dob = (rs.getTimestamp("DOB") != null ? new DateTime(rs.getTimestamp("DOB")) : null);
 		String gender = rs.getString("GENDER");
-		String type = rs.getString("ANIMAL_TYPE");
+		String typeCD = rs.getString("TYPE_CD");
+		String typeDescr = rs.getString("ANIMAL_TYPE");
 		String damTag = rs.getString("DAM_TAG");
 		String sireTag = rs.getString("SIRE_TAG");
 		String orgId = rs.getString("ORG_ID");
@@ -206,9 +291,10 @@ public class AnimalLoader {
 			animal.getAnimalSire().setAlias(rs.getString("SIRE_ALIAS"));
 		}
 		animal.setAlias(alias);
-		animal.setAnimalType(type);
-		animal.setFrontImageURL(frontPoseImage);
-		animal.setBacksideImageURL(backPoseImage);
+		animal.setAnimalType(typeDescr);
+		animal.setAnimalTypeCD(typeCD);
+		animal.setFrontSideImageURL(frontPoseImage);
+		animal.setBackSideImageURL(backPoseImage);
 		animal.setRightSideImageURL(rightPoseImage);
 		animal.setLeftSideImageURL(leftPoseImage);
 		animal.setBornThroughAI((aiInd != null && aiInd.equalsIgnoreCase("Y")) ? true : false);
@@ -288,7 +374,7 @@ public class AnimalLoader {
 	    return allMatchingValues;
 	}
 
-	public List<Animal> retrieveActiveLactatingAnimals(AnimalBean animalBean) throws Exception {
+	public List<Animal> retrieveActiveLactatingAnimals(String orgID) throws Exception {
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
 		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
 				"from ANIMALS a " + 
@@ -296,9 +382,9 @@ public class AnimalLoader {
 				"	ON a.SIRE_TAG=b.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
 				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
-				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD2='" + LACTATING_INDICATOR + "' ORDER BY ANIMAL_TAG";
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String> ();
-		values.add(animalBean.getOrgID());		
+		values.add(orgID);		
 		Animal animalValue = null;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
@@ -316,4 +402,105 @@ public class AnimalLoader {
 	    }
 	    return allMatchingValues;
 	}
+
+	public List<Animal> retrieveActivePregnantAnimals(String orgID) throws Exception {
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+		return retrieveAnimalTypes(orgID, qryString);
+	}
+	
+	public List<Animal> retrieveActiveNonDryPregnantAnimals(String orgID) throws Exception {
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+		return retrieveAnimalTypes(orgID, qryString);
+	}
+	
+	public List<Animal> retrieveActiveDryPregnantAnimals(String orgID) throws Exception {
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+		return retrieveAnimalTypes(orgID, qryString);
+	}
+
+	private ArrayList<Animal> retrieveAnimalTypes(String orgID, String qryString) throws SQLException, IMDException {
+		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
+		List<String> values = new ArrayList<String> ();
+		values.add(orgID);		
+		Animal animalValue = null;
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		preparedStatement = conn.prepareStatement(qryString);
+		Iterator<String> it = values.iterator();
+		int i=1;
+		while (it.hasNext())
+			preparedStatement.setString(i++,it.next());
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
+	    rs = preparedStatement.executeQuery();
+	    while (rs.next()) {
+	    	animalValue = getAnimalFromSQLRecord(rs);
+	    	allMatchingValues.add(animalValue);
+	    }
+		return allMatchingValues;
+	}
+
+	public List<Animal> retrieveActiveHeifers(String orgId) throws Exception {
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+		return retrieveAnimalTypes(orgId, qryString);
+	}
+
+	public List<Animal> retrieveActiveFemaleCalves(String orgID) throws Exception {
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND a.TYPE_CD='" + Util.AnimalTypes.FEMALECALF + "' ORDER BY ANIMAL_TAG";
+		return retrieveAnimalTypes(orgID, qryString);
+	}
+
+
+	public List<Animal> retrieveCalves(String orgId) throws Exception {
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND (a.TYPE_CD='" + Util.AnimalTypes.FEMALECALF +"' OR a.TYPE_CD='" + Util.AnimalTypes.MALECALF + "') ORDER BY ANIMAL_TAG";
+		return retrieveAnimalTypes(orgId, qryString);
+	}
+
+	public List<Animal> retrieveActiveInseminatedNonPregnantAnimals(String orgId) throws Exception {
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + INSEMINATED_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+		return retrieveAnimalTypes(orgId, qryString);
+	}
+	
 }

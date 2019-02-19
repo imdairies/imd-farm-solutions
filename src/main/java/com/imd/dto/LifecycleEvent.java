@@ -47,6 +47,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern(dateTimeFormat)));
 //		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp()));
 		this.eventOperator = new Person(eventBean.getOperatorID(),null,null,null);
+		this.eventTransactionID = (eventBean.getEventTransactionID() != null ? Integer.parseInt(eventBean.getEventTransactionID()) : 0);
 		
 	}
 

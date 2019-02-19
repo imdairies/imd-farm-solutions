@@ -57,8 +57,8 @@ class AnimalLoaderTest {
 		c000.setAlias("Laal");
 		c000.setAnimalType("LACTATING");
 		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
-		c000.setFrontImageURL("/assets/img/cow-thumbnails/000/1.png");
-		c000.setBacksideImageURL("/assets/img/cow-thumbnails/000/2.png");
+		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
+		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
 		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
 		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
 //		c000.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
@@ -73,23 +73,23 @@ class AnimalLoaderTest {
 		c000.setAnimalDam(null);
 		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
 		c000.addNote(newNote);
-		setMilkingRecord(c000);
+//		setMilkingRecord(c000);
 		return c000;
 	}
 
-	private void setMilkingRecord(Dam c000) throws IMDException {
-		MilkingDetail dailyMilking;
-		short milkFreq = 3;
-		int milkingHr = 5;
-		int milkingMin = 0;
-		int milkingSec = 0;
-		LocalTime milkingTime = LocalTime.of(milkingHr,milkingMin,milkingSec);
-		LocalDate milkingDate = LocalDate.of(2018,2,14);
-		float milkingVol = 7.0f;
-		boolean isMachineMilked = true;		
+//	private void setMilkingRecord(Dam c000) throws IMDException {
+//		MilkingDetail dailyMilking;
+//		short milkFreq = 3;
+//		int milkingHr = 5;
+//		int milkingMin = 0;
+//		int milkingSec = 0;
+//		LocalTime milkingTime = LocalTime.of(milkingHr,milkingMin,milkingSec);
+//		LocalDate milkingDate = LocalDate.of(2018,2,14);
+//		float milkingVol = 7.0f;
+//		boolean isMachineMilked = true;		
 //		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
 //		c000.addToMilkingRecord(dailyMilking);
-	}
+//	}
 
 	private void setSireInformation(Animal c000) throws IMDException {
 		Sire sire = new Sire("IMD","NLDM000291306935", DateTime.parse("2000-02-10"), false, 0d, "PKR");
@@ -158,14 +158,14 @@ class AnimalLoaderTest {
 			}
 			assertTrue(found, "Tag 000 should have been found");
 			assertEquals("Laal", animal.getAlias(), " Animal Alias should have been Laal");
-			assertEquals("/assets/img/cow-thumbnails/000/1.png", animal.getFrontImageURL(), " Animal Front Pose Image URL should have been /assets/img/cow-thumbnails/000/1.png");
+			assertEquals("/assets/img/cow-thumbnails/000/1.png", animal.getFrontSideImageURL(), " Animal Front Pose Image URL should have been /assets/img/cow-thumbnails/000/1.png");
 			AnimalBean animalBean = new AnimalBean();
 			animalBean.setOrgID("IMD");
 			animalBean.setAnimalTag("000");
 			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
 			assertEquals("000",animal.getAnimalTag());
 
-			animals = loader.retrieveActiveLactatingAnimals(animalBean);
+			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
@@ -181,7 +181,7 @@ class AnimalLoaderTest {
 			animal = createTestAnimalTag000();
 			animal.setAnimalType("BULL");
 			transactionID = loader.insertAnimal(animal);
-			animals = loader.retrieveActiveLactatingAnimals(animalBean);
+			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
@@ -253,6 +253,110 @@ class AnimalLoaderTest {
 			e.printStackTrace();
 			fail("Sire Retrieval Failed.");
 		}
+	}
+	
+	
+	@Test
+	void testPregnantRetrieval() {
+		try {
+			Animal animal;
+			animal = createTestAnimalTag000();
+			AnimalLoader loader = new AnimalLoader();
+			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			animal.setAnimalType(Util.AnimalTypes.HFRPREGN);
+			int transactionID = loader.insertAnimal(animal);
+			assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			List <Animal>  animals = loader.retrieveActivePregnantAnimals("IMD");
+			Iterator<Animal> it = animals.iterator();
+			boolean found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "Tag 000 should have been found");
+			int transactionId  = loader.deleteAnimal("IMD", "000");
+			assertEquals(1,transactionId);
+			
+			animal.setAnimalType(Util.AnimalTypes.LCTPRGNT);
+			transactionID = loader.insertAnimal(animal);
+			assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			animals = loader.retrieveActivePregnantAnimals("IMD");
+			it = animals.iterator();
+			found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "Tag 000 should have been found");
+			transactionId  = loader.deleteAnimal("IMD", "000");
+			assertEquals(1,transactionId);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}
 	}		
 
+	@Test
+	void testHeifersRetrieval() {
+		try {
+			Animal animal;
+			animal = createTestAnimalTag000();
+			AnimalLoader loader = new AnimalLoader();
+			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			animal.setAnimalType(Util.AnimalTypes.HEIFER);
+			int transactionID = loader.insertAnimal(animal);
+			assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			List <Animal>  animals = loader.retrieveActiveHeifers("IMD");
+			Iterator<Animal> it = animals.iterator();
+			boolean found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "Tag 000 should have been found");
+			int transactionId  = loader.deleteAnimal("IMD", "000");
+			assertEquals(1,transactionId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}
+	}		
+	@Test
+	void testFemaleCalvesRetrieval() {
+		try {
+			Animal animal;
+			animal = createTestAnimalTag000();
+			AnimalLoader loader = new AnimalLoader();
+			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			animal.setAnimalType(Util.AnimalTypes.FEMALECALF);
+			int transactionID = loader.insertAnimal(animal);
+			assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			List <Animal>  animals = loader.retrieveActiveFemaleCalves("IMD");
+			Iterator<Animal> it = animals.iterator();
+			boolean found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "Tag 000 should have been found");
+			int transactionId  = loader.deleteAnimal("IMD", "000");
+			assertEquals(1,transactionId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}
+	}	
 }

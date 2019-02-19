@@ -2,6 +2,8 @@ package com.imd.util;
 
 import java.util.HashMap;
 
+import org.joda.time.LocalTime;
+
 public class ConfigurationManager {
 	
 	private static HashMap<String, Object> orgConfigurations = null;
@@ -34,6 +36,7 @@ public class ConfigurationManager {
 	
 	private void loadUserSessionConfigurationsIfNeeded() {
 		if (sessionConfigurations.isEmpty()) {
+			sessionConfigurations.put(Util.ConfigKeys.ORG_ID, "IMD");
 			sessionConfigurations.put(Util.ConfigKeys.USER_ID, "KASHIF");
 			sessionConfigurations.put(Util.ConfigKeys.USER_NAME, "Kashif Manzoor");					
 		}
@@ -66,6 +69,10 @@ public class ConfigurationManager {
 			orgConfigurations.put(Util.ConfigKeys.ORG_ID, "IMD");
 			orgConfigurations.put(Util.ConfigKeys.FARM_TIMEZONE, Util.FARM_TIMEZONE);
 			orgConfigurations.put(Util.ConfigKeys.VOL_UNIT, Util.VOL_UNIT);
+			orgConfigurations.put(Util.ConfigKeys.MILKING_FREQUENCY, new Short((short)3));
+			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(5,0,0));
+			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(13,0,0));
+			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(21,0,0));
 		}
 	}
 	public void reLoadOrganizationConfigurations() {

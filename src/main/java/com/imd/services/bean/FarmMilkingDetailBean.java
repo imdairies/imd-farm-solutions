@@ -1,49 +1,46 @@
 package com.imd.services.bean;
 
 
+import java.util.List;
+
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MilkingDetailBean {
-	private String animalTag;
+import javassist.bytecode.Descriptor.Iterator;
+
+
+public class FarmMilkingDetailBean {
+//	private String animalTag;
 	private String orgID;
 	private String milkingDateStr;
 	private String milkingTimeStr;
 	private short milkingEventNumber;
-	private float milkVolume;
 	private Float fatValue;
 	private Float lrValue;
 	private Float toxinValue;
 	private Float temperatureInCentigrade;
 	private Float humidity;
-	private String comments;
+	@JsonProperty("farmMilkingEventRecords")
+    private List<TagVolumeCommentTriplet> farmMilkingEventRecords;
+//    private String tagVolume;
 
-	public MilkingDetailBean() {
+	public FarmMilkingDetailBean() {
 		// TODO Auto-generated constructor stub
 	}
-	public MilkingDetailBean(String animalTag2, String orgID2, String milkingDateStr2, String milkingTimeStr2, short milkingEventNumber2,
+	public FarmMilkingDetailBean( String orgID2, String milkingDateStr2, String milkingTimeStr2, short milkingEventNumber2,
 			float milkVolume2, Float fatValue2, Float lrValue2, Float toxinValue2, Float temperatureInCentigrade2,
-			Float humidity2, String comments2) {
-		this.animalTag = animalTag2;
+			Float humidity2) {
 		this.orgID = orgID2;
 		this.milkingDateStr = milkingDateStr2;
 		this.milkingTimeStr = milkingTimeStr2;
 		this.milkingEventNumber = milkingEventNumber2;
-		this.milkVolume = milkVolume2;
 		this.fatValue = fatValue2;
 		this.lrValue = lrValue2;
 		this.toxinValue = toxinValue2;
 		this.temperatureInCentigrade = temperatureInCentigrade2;
-		this.humidity = humidity2;
-		this.comments = comments2;
-		
-	}
-	public String getAnimalTag() {
-		return animalTag;
-	}
-	public void setAnimalTag(String animalTag) {
-		this.animalTag = animalTag;
+		this.humidity = humidity2;		
 	}
 	public String getOrgID() {
 		return orgID;
@@ -59,18 +56,17 @@ public class MilkingDetailBean {
 		return new LocalTime(this.milkingTimeStr);
 	}
 	public String toString() {
-		return "\nanimalTag: " + this.animalTag + "\n" + 
-		"orgID:" + this.orgID + "\n" + 
+		String value = "orgID:" + this.orgID + "\n" + 
 		"milkingDateStr:" +  this.milkingDateStr + "\n" + 
 		"milkingTimeStr:" +  this.milkingTimeStr + "\n" + 
 		"milkingEventNumber:" +  this.milkingEventNumber + "\n" + 
-		"milkVolume:" +  this.milkVolume + "\n" + 
 		"fatValue:" + this.fatValue + "\n" + 
 		"lrValue::" + this.lrValue + "\n" + 
 		"toxinValue:" +  this.toxinValue + "\n" + 
 		"temperatureInCentigrade:" +  this.temperatureInCentigrade + "\n" + 
 		"humidity:" +  this.humidity + "\n" + 
-		"comments:" +  this.comments + "\n";
+		"farmMilkingEventRecords:" + this.farmMilkingEventRecords;
+		return value;
 	}
 	public String getMilkingDateStr() {
 		return milkingDateStr;
@@ -91,12 +87,6 @@ public class MilkingDetailBean {
 		this.milkingTimeStr = recordTime.toString();
 		
 	}
-	public float getMilkVolume() {
-		return milkVolume;
-	}
-	public void setMilkVolume(float milkVolume) {
-		this.milkVolume = milkVolume;
-	}
 	public Float getLrValue() {
 		return lrValue;
 	}
@@ -115,11 +105,11 @@ public class MilkingDetailBean {
 	public void setMilkingEventNumber(short milkingEventNumber) {
 		this.milkingEventNumber = milkingEventNumber;
 	}
-	public String getComments() {
-		return comments;
+	public List<TagVolumeCommentTriplet> getFarmMilkingEventRecords() {
+		return farmMilkingEventRecords;
 	}
-	public void setComments(String comments) {
-		this.comments = comments;
+	public void setFarmMilkingEventRecords(List<TagVolumeCommentTriplet> tagList) {
+		farmMilkingEventRecords = tagList;
 	}
 	public Float getTemperatureInCentigrade() {
 		return temperatureInCentigrade;

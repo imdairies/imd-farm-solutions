@@ -1,7 +1,10 @@
 package com.imd.services.bean;
 
+import com.imd.util.IMDLogger;
+import com.imd.util.Util;
 
 public class LifeCycleEventBean {
+	private String eventTransactionID;
 	private String orgID;
 	private String eventCode;
 	private String animalTag;
@@ -69,4 +72,25 @@ public class LifeCycleEventBean {
 	public String setOrgID(String orgID) {
 		return this.orgID = orgID;
 	}
+	public String toString() {
+	
+		return "\norgID : " + orgID + 
+			"\neventCode : " + eventCode + 
+			"\neventTransactionID : " + eventTransactionID + 
+			"\nanimalTag : " + animalTag + 
+			"\nauxField1Value : " + auxField1Value + 
+			"\nauxField2Value : " + auxField2Value + 
+			"\nauxField3Value : " + auxField3Value + 
+			"\neventTimeStamp : " + eventTimeStamp + 
+			"\noperatorID : " + operatorID + 
+			"\neventComments : " + eventComments;
+	}
+	public String getEventTransactionID() {
+		return eventTransactionID;
+	}
+	public void setEventTransactionID(String eventTransactionID) {
+		this.eventTransactionID = eventTransactionID;
+	}
+	
+	
 }

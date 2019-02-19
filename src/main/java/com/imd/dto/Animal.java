@@ -1,6 +1,7 @@
 package com.imd.dto;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -30,16 +31,17 @@ public class Animal extends IMDairiesDTO{
 	private Sire animalSire;
 	private Dam animalDam;
 	private ArrayList<byte[]> photos;
-	private ArrayList<LifeCycleEventCode> lifeCycleEvents;
+	private ArrayList<LifecycleEvent> lifeCycleEvents;
 	private String animalType;
+	private String animalTypeCD;
 	private String frontSideImageURL;
 	private String backSideImageURL;
 	private String leftSideImageURL;
 	private String rightSideImageURL;
 	private boolean isBornThroughAI;
-
-
-	
+	private boolean isThreshold1Violated;
+	private boolean isThreshold2Violated;
+	private boolean isThreshold3Violated;
 	
 	/**
 	 * M: Male
@@ -201,16 +203,16 @@ public class Animal extends IMDairiesDTO{
 	}
 
 
-	public ArrayList<LifeCycleEventCode> getLifeCycleEvents() {
+	public ArrayList<LifecycleEvent> getLifeCycleEvents() {
 		return lifeCycleEvents;
 	}
 
-	public void setLifeCycleEvents(ArrayList<LifeCycleEventCode> lifeCycleEvents) {
+	public void setLifeCycleEvents(ArrayList<LifecycleEvent> lifeCycleEvents) {
 		this.lifeCycleEvents = lifeCycleEvents;
 	}
-	public void addLifecycleEvent(LifeCycleEventCode event) throws IMDException {
+	public void addLifecycleEvent(LifecycleEvent event) throws IMDException {
 		if (lifeCycleEvents == null) 
-			lifeCycleEvents = new ArrayList<LifeCycleEventCode> ();
+			lifeCycleEvents = new ArrayList<LifecycleEvent> ();
 		Util.throwExceptionIfNull(event, "Life Cycle Event");
 		lifeCycleEvents.add(event);
 	}
@@ -223,11 +225,22 @@ public class Animal extends IMDairiesDTO{
 		this.animalStatus = animalStatus;
 	}	
 
-	
+	public String toString() {
+		String value =  stringify(" ");
+		if (this.lifeCycleEvents == null || this.lifeCycleEvents.isEmpty())
+			return value;
+		Iterator<LifecycleEvent> it = this.lifeCycleEvents.iterator();
+		value += " LIFE CYCLE EVENTS [\n";
+		while (it.hasNext()) {
+			value +=  "  {\n" + it.next().dtoToJson("     ") + "\n  }\n";
+		}
+		return value;
+	}
 	private String stringify(String prefix) {
 		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
+				prefix + fieldToJson("animalTypeCD", this.animalTypeCD) + ",\n" +
 				prefix + fieldToJson("animalStatus", this.animalStatus) + ",\n" + 
 				prefix + fieldToJson("dateOfBirth", this.dateOfBirth) + ",\n" + 
 				prefix + fieldToJson("isDateOfBirthEstimated", this.isDateOfBirthEstimated) + ",\n" + 
@@ -262,11 +275,11 @@ public class Animal extends IMDairiesDTO{
 		this.animalType = animalType;
 	}
 
-	public String getFrontImageURL() {
+	public String getFrontSideImageURL() {
 		return frontSideImageURL;
 	}
 
-	public void setFrontImageURL(String frontImageURL) {
+	public void setFrontSideImageURL(String frontImageURL) {
 		this.frontSideImageURL = frontImageURL;
 	}
 
@@ -286,11 +299,11 @@ public class Animal extends IMDairiesDTO{
 		this.rightSideImageURL = rightSideImageURL;
 	}
 
-	public String getBacksideImageURL() {
+	public String getBackSideImageURL() {
 		return backSideImageURL;
 	}
 
-	public void setBacksideImageURL(String backsideImageURL) {
+	public void setBackSideImageURL(String backsideImageURL) {
 		this.backSideImageURL = backsideImageURL;
 	}	
 	public boolean isBornThroughAI() {
@@ -300,5 +313,36 @@ public class Animal extends IMDairiesDTO{
 		this.isBornThroughAI = isBornThroughAI;
 	}
 
+	public String getAnimalTypeCD() {
+		return animalTypeCD;
+	}
+
+	public void setAnimalTypeCD(String animalTypeCD) {
+		this.animalTypeCD = animalTypeCD;
+	}
+
+	public boolean isThreshold1Violated() {
+		return isThreshold1Violated;
+	}
+
+	public void setThreshold1Violated(boolean isThreshold1Violated) {
+		this.isThreshold1Violated = isThreshold1Violated;
+	}
+
+	public boolean isThreshold2Violated() {
+		return isThreshold2Violated;
+	}
+
+	public void setThreshold2Violated(boolean isThreshold2Violated) {
+		this.isThreshold2Violated = isThreshold2Violated;
+	}
+
+	public boolean isThreshold3Violated() {
+		return isThreshold3Violated;
+	}
+
+	public void setThreshold3Violated(boolean isThreshold3Violated) {
+		this.isThreshold3Violated = isThreshold3Violated;
+	}
 	
 }

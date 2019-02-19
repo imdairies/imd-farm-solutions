@@ -13,16 +13,26 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 
 import com.imd.dto.Animal;
+import com.imd.dto.Dam;
+import com.imd.dto.LifeCycleEventCode;
+import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.Sire;
+import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
+import com.imd.loader.LVLifeCycleEventLoader;
+import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.MilkingDetailLoader;
 import com.imd.services.bean.AnimalBean;
+import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.services.bean.MilkingDetailBean;
+import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;;
 
@@ -55,18 +65,62 @@ public class AnimalSrvc {
 	 */
 	@GET
 	@Path("/allactive")
-	@Produces(MediaType.TEXT_PLAIN)
-    public String getAllActiveLifecycleEventsLookup() {
-	   	String animalsJson = "";
+	@Produces(MediaType.APPLICATION_JSON)
+    public Response getAllActiveAnimals() {
+
+		String animalsJson = "";
     	try {
 			AnimalLoader loader = new AnimalLoader();
 		 	List<Animal> animals = loader.retrieveActiveAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-		 	animalsJson = processAnimalRecords(animalsJson, animals);
-    	} catch (Exception ex) {
-    		ex.printStackTrace();
-    		System.out.println(ex.getMessage());
-    	}
-        return animalsJson;
+    		
+			if (animals == null || animals.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found\"}").build();
+			}
+	    	Iterator<Animal> animalIt = animals.iterator();
+	    	while (animalIt.hasNext()) {
+	    		Animal aimal = animalIt.next();
+	    		animalsJson += "{\n" + aimal.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	animalsJson = "[" + animalsJson.substring(0,animalsJson.lastIndexOf(",\n")) + "]";
+	    	IMDLogger.log(animalsJson, Util.INFO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+		return Response.status(200).entity(animalsJson).build(); 
+    }
+
+	/**
+	 * Retrieves ALL the active animals in a farm
+	 * @return
+	 */
+	@GET
+	@Path("/animalpopulationdistribution")
+	@Produces(MediaType.APPLICATION_JSON)
+    public Response getAnimalPopulationDistribution() {
+
+		String animalsJson = "";
+    	try {
+			AnimalLoader loader = new AnimalLoader();
+		 	List<Animal> animals = loader.retrieveActiveAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    		
+			if (animals == null || animals.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found\"}").build();
+			}
+	    	Iterator<Animal> animalIt = animals.iterator();
+	    	while (animalIt.hasNext()) {
+	    		Animal aimal = animalIt.next();
+	    		animalsJson += "{\n" + aimal.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	animalsJson = "[" + animalsJson.substring(0,animalsJson.lastIndexOf(",\n")) + "]";
+	    	IMDLogger.log(animalsJson, Util.INFO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+		return Response.status(200).entity(animalsJson).build(); 
     }
 	
 	
@@ -77,54 +131,126 @@ public class AnimalSrvc {
 	 * @return
 	 */
 	@POST
-	@Path("/add")
+	@Path("/addanimal")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response addLifecycleEvent(AnimalBean animalBean){
+	public Response addAnimal(AnimalBean animalBean){
+		Animal animal = null;			
 		String tag = animalBean.getAnimalTag();
 		String alias  = animalBean.getAlias();
-//		String longDescription  = eventBean.getEventLongDescription();
-//		String isActive  = eventBean.getActiveIndicator();
+		String typeCD = animalBean.getAnimalType();
+		String dob = animalBean.getDateOfBirthStr();
+		String gender = "" + animalBean.getGender();
+		String damTag = animalBean.getDam();
+		String sireTag = animalBean.getSire();
+		String dobAccuracyInd = animalBean.getDobAccuracyInd();
+		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
 		IMDLogger.log("Add Animal Called with following input values", Util.INFO);
-		IMDLogger.log("animalTag : " + tag, Util.INFO);
-		IMDLogger.log("alias : " + alias, Util.INFO);
-//		IMDLogger.log("eventLongDescription : " + longDescription, Util.INFO);
-//		IMDLogger.log("isActive : " + isActive, Util.INFO);
+		IMDLogger.log(animalBean.toString(), Util.INFO);
 		
 		if (tag == null || tag.trim().isEmpty()) {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
 		}
-//		if (shortDescription == null || shortDescription.trim().isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
-//		}
-//		if (longDescription == null || longDescription.trim().isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
-//		}
-//		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
-		String userID  = "KASHIF";
+		else if (typeCD == null || typeCD.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
+		}
+		else if (dob == null || dob.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
+		}
+		else if (gender == "" || gender.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal gender.\"}").build();
+		}
+		else if (dobAccuracyInd == null || dobAccuracyInd.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
+		}
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
+		String frontPose = animalBean.getFrontPoseImage() == null || animalBean.getFrontPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/1.png": animalBean.getFrontPoseImage();
+		String backPose =  animalBean.getBackPoseImage() == null || animalBean.getBackPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/2.png": animalBean.getBackPoseImage();
+		String rightPose = animalBean.getRightPoseImage() == null || animalBean.getRightPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/3.png": animalBean.getRightPoseImage();
+		String leftPose =  animalBean.getLeftPoseImage() == null || animalBean.getLeftPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/4.png": animalBean.getLeftPoseImage();
+
 		try {
 			AnimalLoader loader = new AnimalLoader();
-//			event.setCreatedBy(new User(userID));
-//			event.setCreatedDTTM(DateTime.now());
-//			event.setUpdatedBy(new User(userID));
-//			event.setUpdatedDTTM(DateTime.now());
-//			result = loader.insertLifeCycleEvent(event);
+			if (gender.equalsIgnoreCase("M"))
+				animal = new Sire(tag);
+			else 
+				animal = new Dam(tag);
+			animal.setFrontSideImageURL(frontPose);
+			animal.setBackSideImageURL(backPose);
+			animal.setRightSideImageURL(rightPose);
+			animal.setLeftSideImageURL(leftPose);
+			animal.setAnimalStatus(typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")? typeCD : Util.ANIMAL_STATUS.ACTIVE);
+			animal.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+			if (alias != null && !alias.trim().isEmpty())
+				animal.setAlias(animalBean.getAlias());
+			animal.setAnimalType(animalBean.getAnimalType());
+			animal.setDateOfBirth(animalBean.getDateOfBirth("MM/dd/yyyy, hh:mm:ss aa"));
+			animal.setDateOfBirthEstimated(!dobAccuracyInd.equalsIgnoreCase("Y"));
+			animal.setBornThroughAI(aiInd.equalsIgnoreCase("Y"));
+			if (damTag != null && !damTag.trim().isEmpty())
+				animal.setAnimalDam(new Dam(damTag));
+			if (sireTag != null && !sireTag.trim().isEmpty())
+				animal.setAnimalSire(new Sire(sireTag));
+			animal.setFrontSideImageURL(frontPose);
+			animal.setBackSideImageURL(backPose);
+			animal.setRightSideImageURL(rightPose);
+			animal.setLeftSideImageURL(leftPose);
+			animal.setCreatedBy(new User(userID));
+			animal.setCreatedDTTM(DateTime.now());
+			animal.setUpdatedBy(new User(userID));
+			animal.setUpdatedDTTM(DateTime.now());
+			result = loader.insertAnimal(animal);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-//		if (result == 1)
-//			return Response.status(200).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully\"}").build();
-//		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' already exists\"}").build();
-//		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be added. Please reduce the field length and try again.\"}").build();
-//		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lifecycle Event '" + eventCode+ "' could not be added. Please submit a bug report.\"}").build();
-//		else 
+		if (result == 1) {
+			String message = performPostInsertionSteps(animal);
+			return Response.status(200).entity("{ \"error\": false, \"message\":\"New Animal has been created successfully. "+ message + "\"}").build();
+		}
+		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"Another animal with the same tag already exists. Please use a different tag number.\"}").build();
+		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
+		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be added. Please submit a bug report.\"}").build();
+		else
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred during animal addition\"}").build();
 
-	}  	
-	
+	}
+
+	private String performPostInsertionSteps(Animal animalDto) {
+		LifeCycleEventBean eventBean = new LifeCycleEventBean();
+		eventBean.setOrgID(animalDto.getOrgID());
+		eventBean.setAnimalTag(animalDto.getAnimalTag());
+		eventBean.setEventComments("This birth event was automatically created during creation of the new animal");
+		eventBean.setEventCode("BIRTH");
+		eventBean.setEventTimeStamp(Util.getDateInSQLFormart(animalDto.getDateOfBirth()));
+		//TODO: May be also add a parturition event automatically for the Dam ?
+		
+		IMDLogger.log("Add Event Called with following input values", Util.INFO);
+		IMDLogger.log(eventBean.toString(), Util.INFO);
+		
+		LifecycleEvent event;
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
+		int result = -1;
+		try {
+			event = new LifecycleEvent(eventBean, "yyyy-MM-dd HH:mm:ss");
+			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+			event.setCreatedBy(new User(userID));
+			event.setCreatedDTTM(DateTime.now());
+			event.setUpdatedBy(new User(userID));
+			event.setUpdatedDTTM(DateTime.now());
+			result = loader.insertLifeCycleEvent(event);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (result > 0)
+			return "A birth event was automatically created for this animal";
+		else
+			return "A birth event COULD NOT be created automatically for this animal. Please remember to add it manually.";
+	}
+
+
 	/**
 	 * 
 	 * @param AnimalBean
@@ -161,12 +287,42 @@ public class AnimalSrvc {
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(200).entity(animalValueResult).build();
     }
-
 	/**
 	 * 
 	 * @param AnimalBean
 	 * @return
 	 */
+	@POST
+	@Path("/getactivedams")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response getActiveFemale(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }
+
 	@POST
 	@Path("/lactatingcows")
 	@Consumes (MediaType.APPLICATION_JSON)
@@ -176,7 +332,7 @@ public class AnimalSrvc {
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean);
+			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -198,12 +354,157 @@ public class AnimalSrvc {
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(200).entity(animalValueResult).build();
     }	
-	
+	@POST
+	@Path("/heifers")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveHeifers(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveActiveHeifers(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }
+	@POST
+	@Path("/femalecalves")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveFemaleCalves(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveActiveFemaleCalves(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }
+	@POST
+	@Path("/pregnantcows")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrievePregnantAnimals(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveActivePregnantAnimals(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }
+	@POST
+	@Path("/lactatingcowsmilkrecord")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveLactatingAnimalsMilkRecord(MilkingDetailBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+    		MilkingDetailLoader milkingLoader = new MilkingDetailLoader();
+			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		searchBean.setAnimalTag(animalValue.getAnimalTag());
+	    		//animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
+	    		// add milking detail information to the data
+	    		animalValueResult += appendMilkingDetails(milkingLoader.retrieveSingleMilkingRecordsOfCow(searchBean), searchBean);
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }	
+	private String appendMilkingDetails(List<MilkingDetail> milkingRecords, MilkingDetailBean searchBean) throws IMDException {
+		String milkingDetail = "";
+		String prefix = "  ";
+		if (milkingRecords.size() == 0) {
+	    	MilkingDetail recordDetail = new MilkingDetail(searchBean.getOrgID(), searchBean.getAnimalTag(), 
+	    			(short) 0, true, null, null, (short) 0, (short) 0);
+	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
+		} else {
+	    	Iterator<MilkingDetail> recordsIt = milkingRecords.iterator();
+	    	while (recordsIt.hasNext()) {
+	    		MilkingDetail recordDetail = recordsIt.next();
+	    		milkingDetail += "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
+	    	}
+		}    	
+		return milkingDetail;
+	}
+
+
 	@POST
 	@Path("/addmilkingrecord")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addCowMilkingRecord(MilkingDetailBean milkingRecord){
-    	String milkingInformation = "";
+    	int responseCode = 0;
     	milkingRecord.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(milkingRecord.toString(), Util.INFO);
     	try {
@@ -211,19 +512,28 @@ public class AnimalSrvc {
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
 			}
+			if (milkingRecord.getMilkingEventNumber() <1)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
+			}
+			if (!(milkingRecord.getMilkVolume() > 0))
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
+			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
-    		int responseCode = loader.insertMilkRecord(milkingRecord);
+    		responseCode = loader.insertMilkRecord(milkingRecord);
     		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
-        		milkingInformation = "{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}";
-    		if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-        		milkingInformation = "{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}";
-    		if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
+    			return Response.status(400).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
+    		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
+    		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
     			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
- 		} catch (Exception e) {
+    		else
+    			return Response.status(200).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
+    	} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(200).entity(milkingInformation).build();
     }	
 
 	@POST
@@ -239,14 +549,31 @@ public class AnimalSrvc {
 			if (searchBean.getAnimalTag() == null || searchBean.getAnimalTag().isEmpty())
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
-
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
+    		AnimalLoader animalLoader = new AnimalLoader();
+    		AnimalBean animalBean = new AnimalBean();
+    		animalBean.setOrgID(searchBean.getOrgID());
+    		animalBean.setAnimalTag(searchBean.getAnimalTag());    		
+    		List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean);
+    		if (animals.size() != 1) {
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"Unable to find the animal. foud " + animals.size() + " records\"}").build();    			    			
+    		}
+    		Animal animal = animals.get(0);
+    		IMDLogger.log(animal.getAnimalType(), Util.INFO);
+    		if (animal.getGender() != Util.GENDER.FEMALE) {
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information only applies to female animals\"}").build();    			
+    		}
+    		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.FEMALECALF)) {
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to female calves\"}").build();    			
+    		}
+    		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.HEIFER)) {
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to heifers\"}").build();    			
+    		}    		
 			List<MilkingDetail> animalValues = loader.retrieveMonthlyMilkingRecordsOfCow(searchBean);
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
 			}
 	    	Iterator<MilkingDetail> recValuesIt = animalValues.iterator();
 	    	while (recValuesIt.hasNext()) {
@@ -282,16 +609,28 @@ public class AnimalSrvc {
 	    		MilkingDetail recValue = dailyRecords.get(0);
     			json = "{\n" + prefix + "\"milkingDate\":\""+ recValue.getRecordDate() + "\",\n";
 	    		json += prefix + "\"milkVol1\":" + recValue.getMilkVolume() + ",\n";
+	    		json += prefix + "\"event1Time\":\"" + (recValue == null || recValue.getRecordTime() == null ? "" : Util.getTimeInSQLFormart(recValue.getRecordTime())) + "\",\n";
+	    		json += prefix + "\"event1Temperature\":" + recValue.getTemperatureInCentigrade() + ",\n";
+	    		json += prefix + "\"event1Humidity\":" + recValue.getHumidity() + ",\n";
+	    		json += prefix + "\"event1Comments\":\"" + (recValue.getComments()== null ? "" : recValue.getComments()) + "\",\n";
 	    		if (dailyRecords.size() >= 2)
 	    			recValue = dailyRecords.get(1);
 	    		else 
 	    			recValue = null;
 	    		json += prefix + "\"milkVol2\":" + (recValue == null ? "\"\"" : recValue.getMilkVolume()) + ",\n";
+	    		json += prefix + "\"event2Time\":\"" + (recValue == null || recValue.getRecordTime() == null ? "" : Util.getTimeInSQLFormart(recValue.getRecordTime())) + "\",\n";
+	    		json += prefix + "\"event2Temperature\":" + (recValue == null ? "\"\"" : recValue.getTemperatureInCentigrade()) + ",\n";
+	    		json += prefix + "\"event2Humidity\":" + (recValue == null ? "\"\"" : recValue.getHumidity()) + ",\n";
+	    		json += prefix + "\"event2Comments\":\"" + (recValue == null || recValue.getComments()== null ? "" : recValue.getComments()) + "\",\n";
 	    		if (dailyRecords.size() >= 3)
 	    			recValue = dailyRecords.get(2);
 	    		else 
 	    			recValue = null;
-	    		json += prefix + "\"milkVol3\":" + (recValue == null ? "\"\"" : recValue.getMilkVolume()) + "\n}";
+	    		json += prefix + "\"milkVol3\":" + (recValue == null ? "\"\"" : recValue.getMilkVolume()) + ",\n";
+	    		json += prefix + "\"event3Time\":\"" + (recValue == null || recValue.getRecordTime() == null ? "" : Util.getTimeInSQLFormart(recValue.getRecordTime())) + "\",\n";
+	    		json += prefix + "\"event3Temperature\":" + (recValue == null ? "\"\"" : recValue.getTemperatureInCentigrade()) + ",\n";
+	    		json += prefix + "\"event3Humidity\":" + (recValue == null ? "\"\"" : recValue.getHumidity()) + ",\n";
+	    		json += prefix + "\"event3Comments\":\"" + (recValue == null || recValue.getComments()== null ? "" : recValue.getComments()) + "\"\n}";
 	    	}
 		return json;
 	}
@@ -347,7 +686,6 @@ public class AnimalSrvc {
 			}
 			animalsJson = animalsJson.substring(0,animalsJson.lastIndexOf(",\n"));
 		}
-//		System.out.println(animalsJson);
 		return animalsJson;
 	}		
 }
