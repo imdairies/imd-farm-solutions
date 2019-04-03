@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -57,7 +56,7 @@ class AdvisementLoaderTest {
 	void testWeanOffAdvisementRule() {
 
 		try {
-			WeanOffAdvisement delayedHeatAdvisement = new WeanOffAdvisement();
+			WeanOffAdvisement weanOffHeatAdvisement = new WeanOffAdvisement();
 			AnimalLoader animalLoader = new AnimalLoader();
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
@@ -122,7 +121,7 @@ class AdvisementLoaderTest {
 			int transTh3Violation = animalLoader.insertAnimal(th3Violation);
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 
-			List<Animal> animalPop = delayedHeatAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = weanOffHeatAdvisement.getAdvisementRuleAddressablePopulation("IMD");
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
@@ -182,7 +181,7 @@ class AdvisementLoaderTest {
 	void testWeightMeasurementAdvisementRule() {
 
 		try {
-			WeightMeasurementAdvisement delayedHeatAdvisement = new WeightMeasurementAdvisement();
+			WeightMeasurementAdvisement weightMeasurementAdvisement = new WeightMeasurementAdvisement();
 			AnimalLoader animalLoader = new AnimalLoader();
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
@@ -283,7 +282,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 			assertTrue(eventsLoader.insertLifeCycleEvent(th3ViolationEvent)>0);	
 
-			List<Animal> animalPop = delayedHeatAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = weightMeasurementAdvisement.getAdvisementRuleAddressablePopulation("IMD");
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
@@ -344,7 +343,7 @@ class AdvisementLoaderTest {
 	void testDelayedHeatCowAdvisementRule() {
 
 		try {
-			DelayedHeatCowAdvisement delayedHeatAdvisement = new DelayedHeatCowAdvisement();
+			DelayedHeatCowAdvisement delayedHeatCowAdvisement = new DelayedHeatCowAdvisement();
 			AnimalLoader animalLoader = new AnimalLoader();
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
@@ -354,13 +353,52 @@ class AdvisementLoaderTest {
 			animalLoader.deleteAnimal("IMD", "-997"); // TH2 violated
 			animalLoader.deleteAnimal("IMD", "-996"); // TH3 violated
 			animalLoader.deleteAnimal("IMD", "-995"); // OK - Recently parturated but had a heat soon after
+			animalLoader.deleteAnimal("IMD", "-994"); // TH1 - aborted and hasn't come in heat yet
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
 			///////////////////
 
+			
+			Animal th1_1Violated = createTestAnimal("-994");
+			th1_1Violated.setAnimalStatus("ACTIVE");
+			th1_1Violated.setAnimalType("DRYAWTHEAT");
+
+			int transTh1_1Violated = animalLoader.insertAnimal(th1_1Violated);
+			assertEquals(1,transTh1_1Violated, "Exactly one record -994 should have been inserted");			
+			
+			LifeCycleEventBean th1_1ViolatedBean1 = new LifeCycleEventBean();
+			th1_1ViolatedBean1.setAnimalTag(th1_1Violated.getAnimalTag());
+			th1_1ViolatedBean1.setEventCode(Util.LifeCycleEvents.ABORTION);
+			th1_1ViolatedBean1.setEventComments("Test  Event - violates 1st threshold");
+			th1_1ViolatedBean1.setOrgID("IMD");
+			th1_1ViolatedBean1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(61)));
+			LifecycleEvent th1_1ViolatedBeanEvent1 = new LifecycleEvent(th1_1ViolatedBean1);
+			th1_1ViolatedBeanEvent1.setCreatedBy(new User("KASHIF"));
+			th1_1ViolatedBeanEvent1.setUpdatedBy(new User("KASHIF"));
+			th1_1ViolatedBeanEvent1.setCreatedDTTM(DateTime.now());
+			th1_1ViolatedBeanEvent1.setUpdatedDTTM(DateTime.now());
+			eventsLoader.insertLifeCycleEvent(th1_1ViolatedBeanEvent1);
+
+			LifeCycleEventBean th1_1ViolatedBean2 = new LifeCycleEventBean();
+			th1_1ViolatedBean2.setAnimalTag(th1_1Violated.getAnimalTag());
+			th1_1ViolatedBean2.setEventCode(Util.LifeCycleEvents.HEAT);
+			th1_1ViolatedBean2.setEventComments("Test  Event - violates 1st threshold");
+			th1_1ViolatedBean2.setOrgID("IMD");
+			th1_1ViolatedBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(240)));
+			LifecycleEvent th1_1ViolatedBeanEvent2 = new LifecycleEvent(th1_1ViolatedBean2);
+			th1_1ViolatedBeanEvent2.setCreatedBy(new User("KASHIF"));
+			th1_1ViolatedBeanEvent2.setUpdatedBy(new User("KASHIF"));
+			th1_1ViolatedBeanEvent2.setCreatedDTTM(DateTime.now());
+			th1_1ViolatedBeanEvent2.setUpdatedDTTM(DateTime.now());
+			eventsLoader.insertLifeCycleEvent(th1_1ViolatedBeanEvent2);
+			
+			
+			
+			
 			Animal recentlyParturated = createTestAnimal("-999");
 			recentlyParturated.setAnimalStatus("ACTIVE");
 			recentlyParturated.setAnimalType("LACTATING");
@@ -464,11 +502,16 @@ class AdvisementLoaderTest {
 			int transTh1Violated = animalLoader.insertAnimal(th1Violated);
 			eventsLoader.insertLifeCycleEvent(th1ViolatedEvent);
 			assertEquals(1,transTh1Violated, "Exactly one record -998 should have been inserted");
+			
+			
+			
+			
 
-			List<Animal> animalPop = delayedHeatAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = delayedHeatCowAdvisement.getAdvisementRuleAddressablePopulation("IMD");
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
+			boolean th1_1Found = false;
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -479,6 +522,11 @@ class AdvisementLoaderTest {
 						fail(recentlyParturated.getAnimalTag() +  "("+ recentlyParturated.getAnimalType() + ") parturated recently, it is not expected to come to heat so soon");
 					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(th0Violated.getAnimalTag())) {
 						fail(th0Violated.getAnimalTag() +  "("+ th0Violated.getAnimalType() + ") has recently come in heat. The late heat advisement should not have been triggered for this animal");
+					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(th1_1Violated.getAnimalTag())) {
+						assertTrue(populationAnimal.isThreshold1Violated(),"This animal should have violated first threshold.");
+						assertFalse(populationAnimal.isThreshold2Violated(),"This animal should have violated first threshold.");
+						assertFalse(populationAnimal.isThreshold3Violated(),"This animal should have violated first threshold.");
+						th1_1Found = true;
 					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(th1Violated.getAnimalTag())) {
 						assertTrue(populationAnimal.isThreshold1Violated(),"This animal should have violated first threshold.");
 						assertFalse(populationAnimal.isThreshold2Violated(),"This animal should have violated first threshold.");
@@ -500,6 +548,7 @@ class AdvisementLoaderTest {
 			assertTrue(th3Found,th3Violated.getAnimalTag() +  "("+ th3Violated.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
 			assertTrue(th2Found,th2Violated.getAnimalTag() +  "("+ th2Violated.getAnimalType() + ") should have been included in the Threshold2 Violation Advisement population");
 			assertTrue(th1Found,th1Violated.getAnimalTag() +  "("+ th1Violated.getAnimalType() + ") should have been included in the Threshold1 Violation Advisement population");
+			assertTrue(th1_1Found,th1_1Violated.getAnimalTag() +  "("+ th1_1Violated.getAnimalType() + ") should have been included in the Threshold1 Violation Advisement population");
 			
 			///// clean up /////
 			animalLoader.deleteAnimal("IMD", "-999");
@@ -507,11 +556,13 @@ class AdvisementLoaderTest {
 			animalLoader.deleteAnimal("IMD", "-997");
 			animalLoader.deleteAnimal("IMD", "-996");
 			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
 			///////////////////
 			
 		} catch (Exception ex) {
@@ -525,7 +576,9 @@ class AdvisementLoaderTest {
 	void testDelayedHeatHeiferAdvisementRule() {
 
 		try {
-			DelayedHeatHeiferAdvisement delayedHeatAdvisement = new DelayedHeatHeiferAdvisement();
+			
+			//TODO: Add a test case that handles the 022 scenario i.e. the heifer aborted in 6 months. So the delayed heat advisement should have kicked in 60 days after abortion
+			DelayedHeatHeiferAdvisement delayedHeatHeiferAdvisement = new DelayedHeatHeiferAdvisement();
 			AnimalLoader animalLoader = new AnimalLoader();
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
@@ -619,7 +672,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh3WithHeatHeifer, "Exactly one record -995 should have been inserted");
 			assertEquals(1,transTh0WithHeatHeifer, "Exactly one record -994 should have been inserted");
 
-			List<Animal> animalPop = delayedHeatAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = delayedHeatHeiferAdvisement.getAdvisementRuleAddressablePopulation("IMD");
 			boolean th3WithHeatHeiferFound = false;
 			boolean th2HeiferFound = false;
 			boolean th1HeiferFound = false;

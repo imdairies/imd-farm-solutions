@@ -29,7 +29,7 @@ import com.imd.util.Util;
 public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 	
 	private static final int HEAT_FREQUENCY_THRESHOLD = 60;
-	private static final String HEAT_FREQUENCY_THRESHOLD_MESSAGE = "The following animals came in heat more than two months ago. They should have come in heata again by now. Please get them checked by a vet";
+	private static final String HEAT_FREQUENCY_THRESHOLD_MESSAGE = "The following animals came in heat more than two months ago. They should have come in heat again by now. Please get them checked by a vet";
 
 	public DelayedHeatHeiferAdvisement(){
 		setAdvisementID(Util.AdvisementRules.DELAYEDHEATHEIFER);
@@ -61,7 +61,7 @@ public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.HEAT, null);
+								Util.LifeCycleEvents.HEAT, Util.LifeCycleEvents.ABORTION);
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No heat event found - indicates that the animal has never come in heat since its birth.
 							int currentAgeInDays = getDaysBetween(DateTime.now(), animal.getDateOfBirth());

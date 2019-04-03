@@ -509,14 +509,14 @@ public class AnimalLoader {
 		return allMatchingValues;
 	}
 	
-	public List<Animal> retrieveActiveNonPregnantNonInseminatedLactatingCows(String orgId) throws Exception {
+	public List<Animal> retrieveActiveNonPregnantNonInseminatedLactatingOrDryCows(String orgId) throws Exception {
 		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
 				"from ANIMALS a " + 
 				"	LEFT OUTER JOIN LV_SIRE b " + 
 				"	ON a.SIRE_TAG=b.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
 				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
-				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND (c.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' OR c.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%') AND c.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);
 		return retrieveAnimalTypes(values, qryString);
@@ -525,10 +525,10 @@ public class AnimalLoader {
 	public List<Animal> retrieveActiveNonPregnantNonInseminatedHeifers(String orgId) throws Exception {
 		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
 				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+				"	LEFT OUTER JOIN LV_SIRE b " +
+				"	ON a.SIRE_TAG=b.ID " +
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " +
+				"	ON a.TYPE_CD=c.LOOKUP_CD " +
 				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);
@@ -538,12 +538,12 @@ public class AnimalLoader {
 
 	
 	public List<Animal> retrieveActiveHeifers(String orgId) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON a.TYPE_CD=c.LOOKUP_CD " + 
+		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " +
+				" from ANIMALS a " +
+				"	LEFT OUTER JOIN LV_SIRE b " +
+				"	ON a.SIRE_TAG=b.ID " +
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " +
+				"	ON a.TYPE_CD=c.LOOKUP_CD " +
 				" WHERE a.ORG_ID=? AND STATUS='ACTIVE' AND c.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);

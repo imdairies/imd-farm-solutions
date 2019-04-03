@@ -51,7 +51,7 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 			if (ruleDto != null) {
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
-				animalPopulation = animalLoader.retrieveActiveNonPregnantNonInseminatedLactatingCows(orgId);
+				animalPopulation = animalLoader.retrieveActiveNonPregnantNonInseminatedLactatingOrDryCows(orgId);
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
@@ -62,11 +62,11 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.PARTURATE, null);
+								Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION);
 						if (parturitionEvents == null || parturitionEvents.isEmpty()) {
 							IMDLogger.log("This animal (" + animal.getAnimalTag() + ") is lactating cow which is neither inseminated nor pregnant. "
-									+ "It must have had a parturition event in the past - we did not find any. "
-									+ "Either the animal's Type is incorrectly set or a parturition event has not been entered. Please fix the erroneous data ", Util.ERROR);
+									+ "It must have had a parturition or abortion event in the past - we did not find any. "
+									+ "Either the animal's Type is incorrectly set or a parturition/abortion event has not been entered. Please fix the erroneous data ", Util.ERROR);
 						} else {
 							List<LifecycleEvent> heatEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 									orgId,animal.getAnimalTag(),
