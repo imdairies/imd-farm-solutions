@@ -56,26 +56,27 @@ public class DehorningAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.DEHORN);
+								Util.LifeCycleEvents.DEHORN, null);
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No dehorning event found - the calf was never dehorned.
 							IMDLogger.log("Birth Date: " + animal.getDateOfBirth(), Util.INFO);
-							int daysSinceBirth= getDaysBetween(DateTime.now(), animal.getDateOfBirth());
-							String message = animal.getAnimalTag() + " was born " + daysSinceBirth + " days ago and it hasn't been dehorned yet.";							
+							int daysSinceBirth= Util.getDaysBetween(DateTime.now(), animal.getDateOfBirth());
+							String ruleNote = "";
+							String animalNote = animal.getAnimalTag() + " was born " + daysSinceBirth + " days ago and it hasn't been dehorned yet.";							
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceBirth >= ruleDto.getThirdThreshold()) {
-								message += " " + ruleDto.getThirdThresholdMessage();
+								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
 							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceBirth >= ruleDto.getSecondThreshold()) {
-								message += " " + ruleDto.getSecondThresholdMessage();
+								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
 							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceBirth >= ruleDto.getFirstThreshold()) {
-								message += " " + ruleDto.getFirstThresholdMessage();
+								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
 							} 
 							if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
-								IMDLogger.log(message, Util.INFO);
 								ArrayList<Note> notesList = new ArrayList<Note>();
-								notesList.add(new Note(1,message));
+								notesList.add(new Note(1,ruleNote));
+								notesList.add(new Note(2,animalNote));
 								animal.setNotes(notesList);
 								eligiblePopulation.add(animal);
 							}
@@ -100,11 +101,6 @@ public class DehorningAdvisement extends AdvisementRule {
 	public HashMap<Animal, Integer> channelAdvisementRuleOutcome(List<Animal> addressablePopulation) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-	private int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
-		if (endTimeStamp == null || startTimeStamp == null) 
-			return 0;
-		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
 	}
 
 }

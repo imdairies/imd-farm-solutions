@@ -1,5 +1,6 @@
 package com.imd.dto;
 
+
 public class Person extends IMDairiesDTO {
 	private String personID;
 	private String firstName;
@@ -55,6 +56,9 @@ public class Person extends IMDairiesDTO {
 	}
 	public void setNic(String nic) {
 		this.nic = nic;
+	}
+	public String getDisplayName() {
+		return (firstName == null ? "" : firstName) + (lastName == null ? "" : lastName);
 	}
 
 }

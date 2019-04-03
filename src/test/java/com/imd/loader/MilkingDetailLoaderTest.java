@@ -2,38 +2,23 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
-import org.joda.time.Months;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.imd.dto.Animal;
-import com.imd.dto.BankDetails;
-import com.imd.dto.Contact;
-import com.imd.dto.Dam;
 import com.imd.dto.MilkingDetail;
-import com.imd.dto.Note;
-import com.imd.dto.Sire;
 import com.imd.dto.User;
-import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.MilkingDetailBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
-import com.imd.util.MessageManager;
 import com.imd.util.Util;
 
 class MilkingDetailLoaderTest {
@@ -145,7 +130,7 @@ class MilkingDetailLoaderTest {
 
 			searchBean.setRecordDate(new LocalDate(2019,1,1));
 			searchBean.setMilkingEventNumber((short)3);
-			milkRecords = loader.retrieveSingleMilkingRecordsOfCow(searchBean);
+			milkRecords = loader.retrieveSingleMilkingRecordsOfCow(searchBean, true);
 			assertEquals(1, milkRecords.size(), "Exactly one milking record should have been returned");
 			milkRec = milkRecords.get(0);
 			assertEquals(13.0,milkRec.getMilkVolume(), " Milking volume should have been 13.0");
@@ -158,6 +143,7 @@ class MilkingDetailLoaderTest {
 			assertEquals("2019-01-01",milkRec.getRecordDate().toString(), " Record Date should have been 2019-01-01");
 			assertEquals(21,milkRec.getRecordTime().getHourOfDay(), " Record Time should have been 21:00");
 			assertEquals(0,milkRec.getRecordTime().getMinuteOfHour(), " Record Time should have been 21:00");
+			assertTrue(milkRec.getAdditionalStatistics()== null || milkRec.getAdditionalStatistics().size() == 0 ? false: true," There should be some additional statistics e.g. " + Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE);
 
 			assertEquals(1,loader.deleteOneMilkingRecord("IMD", "TST", new LocalDate(2019,1,1), 1),"One record should have been deleted");
 			assertEquals(2,loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,1,1)),"Two records should have been deleted");
@@ -267,7 +253,7 @@ class MilkingDetailLoaderTest {
 				milkRec = it.next();
 				if (milkRec.getMilkVolume() > 0) {
 					volumes[recordDays++] = milkRec.getMilkVolume();
-					assertEquals(milkRec.getMilkVolume(), (float)milkRec.getAverages().get(Util.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");
+					assertEquals(milkRec.getMilkVolume(), (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");
 					totalMonthVolume += milkRec.getMilkVolume();
 				}
 				else 
@@ -305,9 +291,9 @@ class MilkingDetailLoaderTest {
 				milkRec = it.next();
 				if (milkRec.getMilkVolume() > 0) {
 					if (recordDays == 0) {
-						assertEquals(35.0f, (float)milkRec.getAverages().get(Util.DAILY_AVERAGE), "Daily average should have been 35");						
+						assertEquals(35.0f, (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Daily average should have been 35");						
 					} else {
-						assertEquals(milkRec.getMilkVolume(), (float)milkRec.getAverages().get(Util.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");	
+						assertEquals(milkRec.getMilkVolume(), (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");	
 					}					
 					volumes[recordDays++] = milkRec.getMilkVolume();
 					totalMonthVolume += milkRec.getMilkVolume();
@@ -449,7 +435,7 @@ class MilkingDetailLoaderTest {
 			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTSTS2_10_2.getMilkingDetailBean()), "One record should have been inserted");
 			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTSTS2_10_3.getMilkingDetailBean()), "One record should have been inserted");
 
-			List <MilkingDetail>  milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedYear(new LocalDate(1900,1,1), true);
+			List <MilkingDetail>  milkRecords = loader.retrieveFarmMonthlyMilkVolumeForSpecifiedYear(new LocalDate(1900,1,1), true);
 			Iterator<MilkingDetail> it = milkRecords.iterator();
 			assertEquals(12, milkRecords.size(), "12 months information should have been returned.");
 			MilkingDetail milkRec = null;
@@ -483,7 +469,7 @@ class MilkingDetailLoaderTest {
 			assertEquals(240.0,totalMonthVolume, " Milking volume for the year should have been 240");
 
 			
-			milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedYear(new LocalDate(1900,1,1), false);
+			milkRecords = loader.retrieveFarmMonthlyMilkVolumeForSpecifiedYear(new LocalDate(1900,1,1), false);
 			it = milkRecords.iterator();
 			assertEquals(3, milkRecords.size(), "3 months information should have been returned.");
 			milkRec = null;

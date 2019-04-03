@@ -5,6 +5,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -25,8 +27,7 @@ public class Util {
 		public static final String APPLICATION_LOGGING_MODE = "APPLICATION_LOGGING_MODE";
 		public static final String IMD_SERVICES_URL = "IMD_SERVICES_URL";
 	}
-	 
-	
+
 	public static final int INFO = 0;
 	public static final int WARNING = 1;
 	public static final int ERROR = 2;
@@ -37,12 +38,31 @@ public class Util {
 
 	public static final String COW_PHOTOS_URI_PREFIX = "/assets/img/cow-photos/";
 
-	public static final String DAILY_AVERAGE = "DAILY_AVERAGE";
+	public static final class DataTypes {
+		public static final String FLOAT = "FLOAT";
+		public static final String TEXT = "TEXT";
+		public static final String DATETIME = "DATETIME";
+	}
+
+	
+	public static final class MilkingDetailStatistics {
+		public static final String DAILY_AVERAGE = "DAILY_AVERAGE";
+		public static final String SEQ_NBR_MONTHLY_AVERAGE = "SEQ_NBR_MONTHLY_AVERAGE";
+		public static final String YESTERDAY_SEQ_NBR_VOL = "YESTERDAY_SEQ_NBR_VOL";
+	}
 
 	public static final class LifeCycleEvents {
 		public static final String INSEMINATE = "INSEMINATE";
 		public static final String DEHORN = "DEHORN";
 		public static final String FMDVACCINE = "FMDVACCINE";	
+		public static final String MATING = "MATING";
+		public static final String HEAT = "HEAT";
+		public static final String PARTURATE = "PARTURATE";
+		public static final String PREGTEST = "PREGTEST";
+		public static final String ABORTION = "ABORTION";
+		public static final String WEIGHT = "WEIGHT";
+		public static final String WEANEDOFF = "WEANEDOFF";
+		public static final String BIRTH = "BIRTH";
 	}
 
 	public static final class AdvisementRules {
@@ -50,6 +70,12 @@ public class Util {
 		public static final String DEHORN = "DEHORN";
 		public static final String VACCINEFMD = "VACCINEFMD";
 		public static final String PREGNANCYTEST = "PREGNANCYTEST";
+		public static final String HEATWARNING = "HEATWARNING";
+		public static final String DELAYEDHEATHEIFER = "DELAYEDHEATHEIFER";
+		public static final String DELAYEDHEATCOW = "DELAYEDHEATCOW";
+		public static final String WEIGHTMEASUREMENT = "WEIGHTMEASUREMENT";
+		public static final String HEIFERWEIGHT = "HEIFERWEIGHT";
+		public static final String WEANOFF = "WEANOFF";
 	}
 	
 	public static final class AnimalTypes {
@@ -60,6 +86,9 @@ public class Util {
 		public static final String LACTATING = "LACTATING";
 		public static final String LCTINSEMIN = "LCTINSEMIN";
 		public static final String LCTPRGNT = "LCTPRGNT";
+		public static final String HFRINSEMIN = "HFRINSEMIN";
+		public static final String DRYINSEMIN = "DRYINSEMIN";
+		public static final String DRYPRENG = "DRYPRENG";
 	}
 	
 
@@ -142,5 +171,12 @@ public class Util {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
 		return fmt.print(dt);
 	}
+	
+	public static int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
+		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
+	}
+
+	
+	
 }
 

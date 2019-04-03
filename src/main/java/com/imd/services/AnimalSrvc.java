@@ -2,6 +2,7 @@ package com.imd.services;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -15,18 +16,16 @@ import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.dto.Animal;
 import com.imd.dto.Dam;
-import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
-import com.imd.loader.LVLifeCycleEventLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.MilkingDetailLoader;
 import com.imd.services.bean.AnimalBean;
@@ -39,26 +38,6 @@ import com.imd.util.Util;;
 @Path("/animals")
 public class AnimalSrvc {
 
-//	/**
-//	 * Retrieves ALL the animals of all the farms
-//	 * @return
-//	 * @deprecated
-//	 */
-//	@GET
-//	@Path("/all")
-//	@Produces(MediaType.TEXT_PLAIN)
-//    public String getAllAnimals() {
-//    	String animalsJson = "";
-//    	try {
-//			AnimalLoader loader = new AnimalLoader();
-//		 	List<Animal> animals = loader.retrieveAllAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-//		 	animalsJson = processAnimalRecords(animalsJson, animals);
-//    	} catch (Exception ex) {
-//    		ex.printStackTrace();
-//    		System.out.println(ex.getMessage());
-//    	}
-//        return animalsJson;
-//    }
 	/**
 	 * Retrieves ALL the active animals in a farm
 	 * @return
@@ -250,6 +229,106 @@ public class AnimalSrvc {
 			return "A birth event COULD NOT be created automatically for this animal. Please remember to add it manually.";
 	}
 
+
+	@POST
+	@Path("/adultfemalecows")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response getAdultFemaleCows(AnimalBean searchBean){
+    	String animalValueResult = "";
+		DateTimeFormatter fmt = null;
+    	String prefix = "  ";
+    	List<String> sortedJsonArray = new ArrayList<String>();
+    	String noInseminationRecordJson = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader animalLoader = new AnimalLoader();
+    		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+			List<Animal> animalValues = animalLoader.retrieveAdultFemaleCows(searchBean.getOrgID(),270);
+			List<LifecycleEvent> animalEvents = null;
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+    		int largestInseminatedDays = -999;
+    		String additionalInfo = "";
+	    	while (animalValueIt.hasNext()) {
+	    		additionalInfo = "";
+	    		Animal animalValue = animalValueIt.next();
+		    	String strInseminationTimeInfo = "";
+	    		if (isPregnant(animalValue) || isInseminated(animalValue)) {
+	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
+	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(270), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
+	    			if (animalEvents != null && !animalEvents.isEmpty()) {
+	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
+		    			int daysSinceInseminated = Util.getDaysBetween( DateTime.now(), inseminatedDate);
+	    				if (animalEvents.get(0).getEventTimeStamp().getHourOfDay() == 0 && 
+	    						animalEvents.get(0).getEventTimeStamp().getMinuteOfDay() == 0)
+	    					fmt = DateTimeFormat.forPattern("d MMM yyyy");
+	    				else
+	    					fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
+	    				int inseminationAttempts = eventLoader.determineInseminationAttemptCountInCurrentLactation(animalValue.getOrgID(),animalValue.getAnimalTag());
+	    				strInseminationTimeInfo = ",\n" + prefix + "\"lastInseminationTimeStamp\":\"" + fmt.print(animalEvents.get(0).getEventTimeStamp()) +"\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"inseminationSummary\":\"" + (isPregnant(animalValue) ? "✅ " : "❓ ") +  animalEvents.get(0).getAuxField1Value() + "\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"sexed\":\"" + animalEvents.get(0).getAuxField2Value() + "\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"inseminationAttempts\":\"" + inseminationAttempts +"\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"daysSinceInsemination\":\"" + daysSinceInseminated +"\"";
+			    		animalValueResult = "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + strInseminationTimeInfo + "\n},\n";
+			    		//IMDLogger.log("Previous oldest " + largestInseminatedDays + " current value " + daysSinceInseminated, Util.ERROR);
+			    		if (daysSinceInseminated > largestInseminatedDays) {
+			    			//IMDLogger.log("New oldest found. Will simply Add", Util.ERROR);
+							sortedJsonArray.add(animalValueResult);
+							largestInseminatedDays = daysSinceInseminated;
+						} else {
+			    			//IMDLogger.log("New value is smaller. Will swap", Util.ERROR);
+							//sortedJsonArray.add(sortedJsonArray.size()-1,animalValueResult);
+			    			int j = sortedJsonArray.size()-1;
+							for (;j>=0; j--){
+								String days = sortedJsonArray.get(j);
+								days = days.substring(days.indexOf("daysSinceInsemination\":") + "daysSinceInsemination\":\"".length(),days.lastIndexOf('"'));		
+								//IMDLogger.log("Previous days value: " + days, Util.ERROR);
+								int iDays = Integer.parseInt(days);
+								if (daysSinceInseminated >= iDays) {
+									sortedJsonArray.add(j+1,animalValueResult);
+									break;
+								}	
+							}
+							if (j < 0)
+								sortedJsonArray.add(0,animalValueResult);
+						}
+	    			} else {
+		    			additionalInfo = ",\n" + prefix + "\"sexed\":\"\",\n" + prefix + "\"inseminationSummary\":\"\"";
+		    			noInseminationRecordJson += "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + additionalInfo + "\n},\n";
+	    			}
+	    		} else {
+	    			additionalInfo = ",\n" + prefix + "\"sexed\":\"\",\n" + prefix + "\"inseminationSummary\":\"\"";
+	    			noInseminationRecordJson += "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + additionalInfo + "\n},\n";
+	    		}
+	    	}
+	    	animalValueResult = "";
+	    	for (int i=sortedJsonArray.size()-1; i>=0 ; i--) {
+	    		animalValueResult += sortedJsonArray.get(i) + "\n";
+	    	}
+	    	animalValueResult += noInseminationRecordJson;
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }
+	private boolean isInseminated(Animal animalValue) {
+		return (animalValue.getStatusIndicators() == null ? false : animalValue.getStatusIndicators().indexOf(AnimalLoader.INSEMINATED_INDICATOR)>=0);
+	}
+
+	private boolean isPregnant(Animal animalValue) {
+		return (animalValue.getStatusIndicators() == null ? false : animalValue.getStatusIndicators().indexOf(AnimalLoader.PREGNANT_INDICATOR)>=0);
+	}
 
 	/**
 	 * 
@@ -451,6 +530,9 @@ public class AnimalSrvc {
 	@Path("/lactatingcowsmilkrecord")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveLactatingAnimalsMilkRecord(MilkingDetailBean searchBean){
+		//TODO: Improve the implementation of this service. It is inefficient and counter intuitive. 
+		// TODO: The monthly average averages across the month in all of the lifetime of the cow instead of only for one month i.e.
+		// Feb average will be for Febs of all the years, instead of only the Feb for a given year.
     	String animalValueResult = "";
     	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(searchBean.toString(), Util.INFO);
@@ -467,38 +549,64 @@ public class AnimalSrvc {
 	    	while (animalValueIt.hasNext()) {
 	    		Animal animalValue = animalValueIt.next();
 	    		searchBean.setAnimalTag(animalValue.getAnimalTag());
-	    		//animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
-	    		// add milking detail information to the data
-	    		animalValueResult += appendMilkingDetails(milkingLoader.retrieveSingleMilkingRecordsOfCow(searchBean), searchBean);
+	    		MilkingDetailBean yesterdaySearchBean = new MilkingDetailBean(searchBean);
+	    		yesterdaySearchBean.setRecordDate(searchBean.getRecordDate().minusDays(1));
+	    		List <MilkingDetail> specifiedMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(searchBean, true);
+	    		List <MilkingDetail> prevDayMilkingInfo = null;
+	    		if (specifiedMilkingInfo == null || specifiedMilkingInfo.size() ==0)
+	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(yesterdaySearchBean, true);
+	    		else
+	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(yesterdaySearchBean, false);
+	    		
+	    		animalValueResult += appendMilkingDetails(specifiedMilkingInfo,prevDayMilkingInfo,searchBean);
 	    	}
 	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
 	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
 	    	else
 	    		animalValueResult = "[]";
+	    	IMDLogger.log(animalValueResult, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(200).entity(animalValueResult).build();
-    }	
-	private String appendMilkingDetails(List<MilkingDetail> milkingRecords, MilkingDetailBean searchBean) throws IMDException {
+    }
+	private String appendMilkingDetails(List<MilkingDetail> selectedDaysMilkingRecords, List<MilkingDetail> previousDaysMilkingRecords, MilkingDetailBean searchBean) throws IMDException {
 		String milkingDetail = "";
 		String prefix = "  ";
-		if (milkingRecords.size() == 0) {
+		if (selectedDaysMilkingRecords == null || selectedDaysMilkingRecords.size() == 0) {
 	    	MilkingDetail recordDetail = new MilkingDetail(searchBean.getOrgID(), searchBean.getAnimalTag(), 
 	    			(short) 0, true, null, null, (short) 0, (short) 0);
+	    	recordDetail.setAdditionalStatistics(getPreviousDaysVolumeForAnimal(searchBean.getAnimalTag(),previousDaysMilkingRecords));
 	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
 		} else {
-	    	Iterator<MilkingDetail> recordsIt = milkingRecords.iterator();
+	    	Iterator<MilkingDetail> recordsIt = selectedDaysMilkingRecords.iterator();
 	    	while (recordsIt.hasNext()) {
 	    		MilkingDetail recordDetail = recordsIt.next();
+	    		
+	    		HashMap<String, Float> prevDayValues = getPreviousDaysVolumeForAnimal(recordDetail.getAnimalTag(),previousDaysMilkingRecords);
+	    		if (prevDayValues != null)
+	    			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL, prevDayValues.get(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL));
 	    		milkingDetail += "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
+	    		IMDLogger.log(milkingDetail, Util.WARNING);
 	    	}
-		}    	
+		}
 		return milkingDetail;
 	}
-
+	private HashMap <String, Float> getPreviousDaysVolumeForAnimal(String animalTag, List<MilkingDetail> previousDaysMilkingRecords) {
+		HashMap <String, Float> values = null;
+    	Iterator<MilkingDetail> recordsIt = previousDaysMilkingRecords.iterator();
+    	while (recordsIt.hasNext()) {
+    		MilkingDetail recordDetail = recordsIt.next();
+    		if (recordDetail.getAnimalTag().equalsIgnoreCase(animalTag)) {
+    			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL, recordDetail.getMilkVolume());
+    			values = recordDetail.getAdditionalStatistics();
+    			break;
+    		}
+    	}
+    	return values;
+	}
 
 	@POST
 	@Path("/addmilkingrecord")
@@ -672,20 +780,4 @@ public class AnimalSrvc {
     	IMDLogger.log(sireValueResult, Util.INFO);
 		return Response.status(200).entity(sireValueResult).build();
     }	
-		
-	
-	private String processAnimalRecords(String animalsJson, List<Animal> animals) {
-		if (animals == null || animals.isEmpty()) {
-			animalsJson = "No Record Found";
-		} else {
-		
-			Iterator<Animal> animalIt = animals.iterator();
-			while (animalIt.hasNext()) {
-				Animal animal = animalIt.next();
-				animalsJson += "{\n" + animal.dtoToJson("  ") + "\n},\n";
-			}
-			animalsJson = animalsJson.substring(0,animalsJson.lastIndexOf(",\n"));
-		}
-		return animalsJson;
-	}		
 }

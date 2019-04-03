@@ -59,6 +59,10 @@ public class LookupValues extends IMDairiesDTO{
 		this.activeIndicator = "Y";
 	}
 
+	public void setActiveIndicator(String activeInd) {
+		this.activeIndicator = activeInd;
+	}
+	
 	public void markInActive() {
 		this.activeIndicator = "N";
 	}

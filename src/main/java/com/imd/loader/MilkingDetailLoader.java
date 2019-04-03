@@ -65,9 +65,9 @@ public class MilkingDetailLoader {
 			preparedStatement.setString(12,  (milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
 			preparedStatement.setString(13, milkingRecord.getComments());
 			preparedStatement.setString(14, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(15, LocalDate.now().toString());
+			preparedStatement.setString(15, Util.getDateInSQLFormart(DateTime.now()));
 			preparedStatement.setString(16, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(17, LocalDate.now().toString());
+			preparedStatement.setString(17, Util.getDateInSQLFormart(DateTime.now()));
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
@@ -123,7 +123,7 @@ public class MilkingDetailLoader {
 			preparedStatement.setString(8,  (milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
 			preparedStatement.setString(9, milkingRecord.getComments());
 			preparedStatement.setString(10, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(11, LocalDate.now().toString());
+			preparedStatement.setString(11, Util.getDateInSQLFormart(DateTime.now()));
 			preparedStatement.setString(12, (milkingRecord.getOrgID() == null ? null : milkingRecord.getOrgID()));
 			preparedStatement.setString(13, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
 			preparedStatement.setString(14, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormart(milkingRecord.getRecordDate())));
@@ -181,9 +181,9 @@ public class MilkingDetailLoader {
 		return result;
 	}
 	public List<MilkingDetail> retrieveAllMilkingRecordsOfCow(MilkingDetail milkingSearchParam) throws Exception {
-		String qryString = "SELECT * FROM imd.MILK_LOG " + 
-				"where org_id=? " + 
-				"and animal_tag=? ORDER BY MILK_DATE, SEQ_NBR DESC";
+		String qryString = "SELECT A.*, 0 AS AVERAGE_VOL FROM imd.MILK_LOG A " + 
+				"where A.org_id=? " + 
+				"and A.animal_tag=? ORDER BY A.MILK_DATE, A.SEQ_NBR DESC";
 		List<String> values = new ArrayList<String> ();
 		values.add(milkingSearchParam.getOrgID());		
 		values.add(milkingSearchParam.getAnimalTag());
@@ -196,7 +196,7 @@ public class MilkingDetailLoader {
 	}
 	
 	private List<MilkingDetail> retrieveMonthlyMilkingRecordsOfCow(String orgID, String tagNbr, int monthOfYear, int year) throws Exception {
-		String qryString = "SELECT * FROM imd.MILK_LOG " + 
+		String qryString = "SELECT *, 0 AS AVERAGE_VOL FROM imd.MILK_LOG " + 
 				"where org_id=? " + 
 				"and animal_tag=? and MILK_DATE >= CAST(? AS DATE) and MILK_DATE < CAST(? AS DATE) ORDER BY MILK_DATE, SEQ_NBR ASC";
 		LocalDate fromDate = new LocalDate(year, monthOfYear, 1);
@@ -226,23 +226,63 @@ public class MilkingDetailLoader {
 	    	allMatchingValues.add(milkingRecord);
 	    }
 		return allMatchingValues;
-	}	
+	}
 	
 	
-	public List<MilkingDetail> retrieveSingleMilkingRecordsOfCow(MilkingDetailBean milkingSearchParam) throws Exception {
-		String qryString = "SELECT * FROM imd.MILK_LOG " + 
-				"where org_id=? " + 
-				"and animal_tag=? and MILK_DATE=? and SEQ_NBR=? ";
+	public List<MilkingDetail> retrieveSingleMilkingRecordsOfCow(MilkingDetailBean milkingSearchParam, boolean isMonthlyAverageRequired) throws Exception {
+		String qryString = "";
+		if (isMonthlyAverageRequired)
+			qryString = "SELECT A.*,B.AVERAGE_VOL AS AVERAGE_VOL FROM imd.MILK_LOG A, imd.MILK_SEQ_AVG_VW B " + 
+					"where A.org_id=? " + 
+					"and A.animal_tag=? and A.MILK_DATE=? and A.SEQ_NBR=? AND A.ORG_ID=B.ORG_ID AND A.ANIMAL_TAG=B.ANIMAL_TAG AND A.SEQ_NBR=B.SEQ_NBR AND B.MONTH = MONTH(A.MILK_DATE)";
+		else
+			qryString = "SELECT A.*, 0 AS AVERAGE_VOL FROM imd.MILK_LOG A " + 
+					"where A.org_id=? " + 
+					"and A.animal_tag=? and A.MILK_DATE=? and A.SEQ_NBR=? ";
+		
 		List<String> values = new ArrayList<String> ();
 		values.add(milkingSearchParam.getOrgID());		
 		values.add(milkingSearchParam.getAnimalTag());
 		values.add(Util.getDateInSQLFormart(milkingSearchParam.getRecordDate()));
 		values.add("" + milkingSearchParam.getMilkingEventNumber());
 		return readRecords(qryString, values);
-	}	
+	}
+	public MilkingDetail[] retrieveFarmMilkVolumeForEachDayOfSpecifiedYear(LocalDate startDate) throws SQLException {
+		LocalDate startOfYear = new LocalDate(startDate.getYear(), 1, 1);
+		LocalDate endOfTheYear = new LocalDate(startDate.getYear(),12, 31);
+		MilkingDetail[] dailyRecordofTheYear = new MilkingDetail[365];
+		List<MilkingDetail> dailyRecordforTheYear = retrieveFarmMilkVolumeForSpecifiedDateRange(startOfYear, endOfTheYear, false);		
+		Iterator<MilkingDetail> it = dailyRecordforTheYear.iterator();
+		int dayIndex = 1;
+		LocalDate lastInsertedRecordDate = null;
+		while (it.hasNext()) {
+			MilkingDetail milkDetail = it.next();
+			int dayOfYear = milkDetail.getRecordDate().getDayOfYear();
+			for (; dayOfYear > dayIndex; dayIndex++) {
+				int dateDiffInDays = dayOfYear - dayIndex;
+				MilkingDetail emptyRecord = new MilkingDetail();
+				emptyRecord.setRecordDate(milkDetail.getRecordDate().minusDays(dateDiffInDays));
+				emptyRecord.setMilkVolume(0.0f);
+				dailyRecordofTheYear[dayIndex-1] = emptyRecord;
+				lastInsertedRecordDate = emptyRecord.getRecordDate();
+			}
+			dailyRecordofTheYear[dayIndex-1] = milkDetail;
+			lastInsertedRecordDate = milkDetail.getRecordDate();
+			dayIndex++;
+		}
+		for (; dayIndex <= endOfTheYear.getDayOfYear()  ;) {
+			MilkingDetail emptyRecord = new MilkingDetail();
+			lastInsertedRecordDate = lastInsertedRecordDate.plusDays(1);
+			emptyRecord.setRecordDate(lastInsertedRecordDate);
+			emptyRecord.setMilkVolume(0.0f);
+			dailyRecordofTheYear[dayIndex-1] = emptyRecord;
+			dayIndex++;
+		}
+		return dailyRecordofTheYear;
+	}
 
 	
-	public List<MilkingDetail> retrieveFarmMilkVolumeForSpecifiedYear(LocalDate startDate, boolean shouldIncludeMissingMonths) throws SQLException {
+	public List<MilkingDetail> retrieveFarmMonthlyMilkVolumeForSpecifiedYear(LocalDate startDate, boolean shouldIncludeMissingMonths) throws SQLException {
 		LocalDate startOfYear = new LocalDate(startDate.getYear(), 1, 1);
 		LocalDate endOfTheYear = new LocalDate(startDate.getYear(),12, 31);
 		List<MilkingDetail> monthlyRecordforTheYear = new ArrayList<MilkingDetail>();
@@ -260,19 +300,19 @@ public class MilkingDetailLoader {
 				prevRecord.setLrValue(milkDetail.getLrValue());
 				prevRecord.setFatValue(milkDetail.getFatValue());
 				prevRecord.setTemperatureInCentigrade(milkDetail.getTemperatureInCentigrade());
-				prevRecord.getAverages().put(Util.DAILY_AVERAGE, milkDetail.getAverages().get(Util.DAILY_AVERAGE));
+				prevRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, milkDetail.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE));
 				totatRecordProcessedInGivenMonth++;
 			} else if (prevRecord.getRecordDate().getMonthOfYear() == milkDetail.getRecordDate().getMonthOfYear()) {
 				float totalVolume = prevRecord.getMilkVolume() + milkDetail.getMilkVolume();
 				float averageLR = ((prevRecord.getLrValue()*totatRecordProcessedInGivenMonth) + milkDetail.getLrValue())/(totatRecordProcessedInGivenMonth+1);
 				float averageFat = ((prevRecord.getFatValue()*totatRecordProcessedInGivenMonth) + milkDetail.getFatValue())/(totatRecordProcessedInGivenMonth+1);
 				float averageTemp = ((prevRecord.getTemperatureInCentigrade()*totatRecordProcessedInGivenMonth) + milkDetail.getTemperatureInCentigrade())/(totatRecordProcessedInGivenMonth+1);
-				float averagePerAnimal = ((prevRecord.getAverages().get(Util.DAILY_AVERAGE)*totatRecordProcessedInGivenMonth) + milkDetail.getAverages().get(Util.DAILY_AVERAGE))/(totatRecordProcessedInGivenMonth+1);
+				float averagePerAnimal = ((prevRecord.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE)*totatRecordProcessedInGivenMonth) + milkDetail.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE))/(totatRecordProcessedInGivenMonth+1);
 				prevRecord.setMilkVolume(totalVolume);
 				prevRecord.setLrValue(averageLR);
 				prevRecord.setFatValue(averageFat);
 				prevRecord.setTemperatureInCentigrade(averageTemp);
-				prevRecord.getAverages().put(Util.DAILY_AVERAGE, averagePerAnimal);
+				prevRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, averagePerAnimal);
 				totatRecordProcessedInGivenMonth++;
 			} else {
 				monthlyRecordforTheYear.add(prevRecord);				
@@ -282,7 +322,7 @@ public class MilkingDetailLoader {
 				prevRecord.setLrValue(milkDetail.getLrValue());
 				prevRecord.setFatValue(milkDetail.getFatValue());
 				prevRecord.setTemperatureInCentigrade(milkDetail.getTemperatureInCentigrade());
-				prevRecord.getAverages().put(Util.DAILY_AVERAGE, milkDetail.getAverages().get(Util.DAILY_AVERAGE));
+				prevRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, milkDetail.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE));
 				totatRecordProcessedInGivenMonth = 1;
 			}
 		}
@@ -328,7 +368,7 @@ public class MilkingDetailLoader {
 		LocalDate endOfTheMonth = beginingOfStartDateMonth.plusMonths(1).minusDays(1);
 		return retrieveFarmMilkVolumeForSpecifiedDateRange(beginingOfStartDateMonth, endOfTheMonth, shouldIncludeMissingDays);
 	}	
-	
+		
 	/**
 	 * Retrieves data from the startDate till endDate both dates inclusive. The data is grouped by day i.e. each record represents the consolidated milk volume for a given day.
 	 * If a day does not have any milking information recorded in the DB then a 0 milking volume is reported for that day.
@@ -365,13 +405,13 @@ public class MilkingDetailLoader {
 			milkDetail.setLrValue(rs.getFloat("AVG_LR"));
 			milkDetail.setFatValue(rs.getFloat("AVG_FAT"));
 			milkDetail.setTemperatureInCentigrade(rs.getFloat("AVG_TEMPERATURE"));
-			milkDetail.getAverages().put(Util.DAILY_AVERAGE, new Float(milkDetail.getMilkVolume()/rs.getInt("MILKED_ANIMALS")));
+			milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, new Float(milkDetail.getMilkVolume()/rs.getInt("MILKED_ANIMALS")));
 			if (shouldIncludeMissingDays) {
 				while (dayOfMonth < milkDetail.getRecordDate().getDayOfMonth()) {
 					MilkingDetail noRecord = new MilkingDetail();
 					noRecord.setRecordDate(new LocalDate(milkDetail.getRecordDate().getYear(), milkDetail.getRecordDate().getMonthOfYear(), dayOfMonth));
 					noRecord.setMilkVolume(0);
-					noRecord.getAverages().put(Util.DAILY_AVERAGE, 0f);
+					noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
 					allMatchingValues.add(noRecord);
 					dayOfMonth++;
 					IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
@@ -388,12 +428,12 @@ public class MilkingDetailLoader {
 				MilkingDetail noRecord = new MilkingDetail();
 				noRecord.setRecordDate(new LocalDate(startDate.getYear(), startDate.getMonthOfYear(), dayOfMonth));
 				noRecord.setMilkVolume(0);
-				allMatchingValues.add(noRecord); 
+				allMatchingValues.add(noRecord);
 				IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
 				dayOfMonth++;
 		    }
 		}
-	    return allMatchingValues;			
+	    return allMatchingValues;
 	}
 	private MilkingDetail getMilkingDetailFromSQLRecord(ResultSet rs) throws Exception {
 		MilkingDetail milkDetail = new MilkingDetail();
@@ -418,6 +458,13 @@ public class MilkingDetailLoader {
 		milkDetail.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
 		milkDetail.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 		milkDetail.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		try {
+			milkDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE, Float.parseFloat(rs.getString("AVERAGE_VOL")));
+		} catch (SQLException ex) {
+			IMDLogger.log("The column AVERAGE_VOL does not exist in the resultset. This is probably because the query does not have a join with MILK_SEQ_AVG_VW view. This may not be a critical error and may be ignored, but its certainly worth investigating. [ANIMAL_TAG=" + milkDetail.getAnimalTag() +"]", Util.WARNING);
+			ex.printStackTrace();
+		}
+			
 		return milkDetail;
 	}
 	public List<TagVolumeCommentTriplet> addOrEditFarmMilkingEventRecord(FarmMilkingDetailBean milkingEventRecord) {

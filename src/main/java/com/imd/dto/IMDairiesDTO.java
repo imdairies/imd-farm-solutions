@@ -94,11 +94,7 @@ public class IMDairiesDTO {
 		return fmt.print(dttm);
 	}
 	public String toString() {
-		
-		return "\nCREATED_BY=" + (this.createdBy == null ? "null" : getCreatedBy().getUserId()) + 
-				"\nCREATED_DTTM=" + (this.getCreatedDTTM() == null ? "null" : this.getCreatedDTTMSQLFormat()) +
-				"\nUPDATED_BY=" + (this.updatedBy == null ? "null" : this.updatedBy.getUserId()) + 
-				"\nUPDATED_DTTM=" + (this.getUpdatedDTTM() == null ? "null" : this.getUpdatedDTTMSQLFormat());
+		return dtoToJson("   ");
 	}
 	public String dtoToJson(String prefix){
 		String json = prefix + fieldToJson("createdBy", this.createdBy) + ",\n" + 

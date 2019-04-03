@@ -2,8 +2,6 @@ package com.imd.advisement;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,16 +21,16 @@ import com.imd.util.Util;
 /**
  * This advisement class implements the following advise:
  * Trigger Condition: 
- * 	If a cow has been inseminated long enough and its pregnancy has not yet been tested
- *  
+ * 	Calves should be weaned off at three months of age.
  * @author kashif.manzoor
  *
  */
-public class PregnancyTestAdvisement extends AdvisementRule {
-	private static final int LACTATION_DURATION = 270;
+public class WeanOffAdvisement extends AdvisementRule {
 	
-	public PregnancyTestAdvisement(){
-		setAdvisementID(Util.AdvisementRules.PREGNANCYTEST);
+	private static final int YOUNG_ANIMAL_AGE_LIMIT = 180;
+
+	public WeanOffAdvisement(){
+		setAdvisementID(Util.AdvisementRules.WEANOFF);
 	}
 
 	@Override
@@ -41,50 +39,51 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
-			IMDLogger.log("Retrieving cows whose pregnancy should be tested: " + getAdvisementID(), Util.INFO);
+			IMDLogger.log("Retrieve animals who are younger than " + YOUNG_ANIMAL_AGE_LIMIT + " days. " +  getAdvisementID(), Util.INFO);
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
-			if (ruleDto == null) {
-				return null;
-			} else {
+			int thirdThreshold  =  (int) ruleDto.getThirdThreshold();
+			int secondThreshold = (int)ruleDto.getSecondThreshold();
+			int firstThreshold  = (int)ruleDto.getFirstThreshold();
+
+			if (ruleDto != null) {
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
-				animalPopulation = animalLoader.retrieveActiveInseminatedNonPregnantAnimals(orgId);
+				animalPopulation = animalLoader.retrieveAnimalsYoungerThanSpecifiedDays(orgId, LocalDate.now().minusDays(YOUNG_ANIMAL_AGE_LIMIT));
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now().minusDays(LACTATION_DURATION);
-						LocalDate endDate = LocalDate.now().plusDays(1);
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
-								startDate,
-								endDate,
-								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
-						if (lifeEvents != null && !lifeEvents.isEmpty()) {
-							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
-							int daysSinceInseminated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
-							String animalNote = "This cow (" + animal.getAnimalTag() + ") was successfully inseminated " + daysSinceInseminated + " days ago.";							
-							String ruleNote = "";
-							if (ruleDto.getThirdThreshold() > 0 && daysSinceInseminated >= ruleDto.getThirdThreshold()) {
+								null,
+								null,
+								Util.LifeCycleEvents.WEANEDOFF, null);
+						int currentAgeInDays = Util.getDaysBetween(DateTime.now(), animal.getDateOfBirth());
+						String ruleNote = "";
+						String animalNote = "";
+						if (lifeEvents == null || lifeEvents.isEmpty()) {
+							// This calf doesn't have any weanoff event i.e. it is not weaned off yet.
+							animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weaned off";	
+							if (currentAgeInDays >= thirdThreshold) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
-							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceInseminated >= ruleDto.getSecondThreshold()) {
+							} else 	if (currentAgeInDays >= secondThreshold) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
-							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceInseminated >= ruleDto.getFirstThreshold()) {
+							} else if (currentAgeInDays >= firstThreshold) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
+							} else {
+								//the young animal should not be weanedoff yet
+								IMDLogger.log("Animal " + animal.getAnimalTag() + " is too young to be weaned off. Its just " +currentAgeInDays + " days old", Util.INFO);
 							}
 							if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
-								animal.addLifecycleEvent(lifeEvents.get(0));
 								ArrayList<Note> notesList = new ArrayList<Note>();
 								notesList.add(new Note(1,ruleNote));
 								notesList.add(new Note(2,animalNote));
 								animal.setNotes(notesList);
 								eligiblePopulation.add(animal);
 							}
-						} else {
-							IMDLogger.log("This inseminated cow (" + animal.getAnimalTag() + ") does not have an insemination event in the last " + LACTATION_DURATION + " days. This indicates that the user has either forgotten to add inseimnation event or has set the wrong current status (" + animal.getAnimalType() + ") of the animal", Util.ERROR);
 						}
 					}
 				}
@@ -94,13 +93,6 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 			e.printStackTrace();
 		}
 		return eligiblePopulation;
-	}
-
-	private int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
-		if (endTimeStamp == null || startTimeStamp == null) 
-			return 0;
-//		return (new Period(startTimeStamp, endTimeStamp, PeriodType.yearMonthDay()).getDays());
-		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
 	}
 
 	@Override

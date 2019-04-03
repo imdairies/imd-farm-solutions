@@ -26,17 +26,11 @@ public class LVLifeCycleEventLoader {
 	}
 	
 	public int insertLifeCycleEvent(LifeCycleEventCode event) {
-		String qryString = "insert into LV_LIFECYCLE_EVENT (EVENT_CD,ACTIVE_IND,SHORT_DESCR,LONG_DESCR,CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?)";
+		String qryString = "insert into LV_LIFECYCLE_EVENT (EVENT_CD,ACTIVE_IND,SHORT_DESCR,LONG_DESCR,"
+				+ "FIELD1_LABEL,FIELD1_TYPE,FIELD1_UNIT,"
+				+ "FIELD2_LABEL,FIELD2_TYPE,FIELD2_UNIT,"
+				+ "CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		int result = -1;
-		IMDLogger.log(
-				"EVENT_CD=" + event.getEventCode() + "\n" +
-				"ACTIVE_IND=" + (event.isActive() ? "Y":"N") + "\n" +
-				"SHORT_DESCR=" + event.getEventShortDescription() + "\n" +
-				"LONG_DESCR=" + event.getEventLongDescription() + "\n" +
-				"CREATED_BY=" + event.getCreatedBy().getUserId() + "\n" +
-				"CREATED_DTTM=" + event.getCreatedDTTMSQLFormat() + "\n" +
-				"UPDATED_BY=" + event.getUpdatedBy().getUserId() + "\n" +
-				"UPDATED_DTTM=" + event.getUpdatedDTTMSQLFormat(), Util.INFO);
 		// using prepared statement automatically takes care of the special characters.
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
@@ -46,10 +40,17 @@ public class LVLifeCycleEventLoader {
 			preparedStatement.setString(2, (event.isActive() ? "Y":"N"));		
 			preparedStatement.setString(3, event.getEventShortDescription());
 			preparedStatement.setString(4, event.getEventLongDescription());
-			preparedStatement.setString(5, event.getCreatedBy().getUserId());
-			preparedStatement.setString(6, event.getCreatedDTTMSQLFormat());
-			preparedStatement.setString(7, event.getUpdatedBy().getUserId());
-			preparedStatement.setString(8, event.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(5, event.getField1Label());
+			preparedStatement.setString(6, event.getField1DataType());
+			preparedStatement.setString(7, event.getField1DataUnit());
+			preparedStatement.setString(8, event.getField2Label());
+			preparedStatement.setString(9, event.getField2DataType());
+			preparedStatement.setString(10, event.getField2DataUnit());
+			preparedStatement.setString(11, event.getCreatedBy().getUserId());
+			preparedStatement.setString(12, event.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(13, event.getUpdatedBy().getUserId());
+			preparedStatement.setString(14, event.getUpdatedDTTMSQLFormat());
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			result = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
 			result = Util.ERROR_CODE.ALREADY_EXISTS;
@@ -76,8 +77,7 @@ public class LVLifeCycleEventLoader {
 	}
 	public List<LifeCycleEventCode> retrieveLifeCycleEvent(String eventCode) {
 		ArrayList<LifeCycleEventCode> allMatchingEvents = new ArrayList<LifeCycleEventCode>();
-		String qryString = "Select * from LV_LIFECYCLE_EVENT where EVENT_CD = ? ORDER BY SHORT_DESCR";		
-		IMDLogger.log(qryString,Util.INFO);
+		String qryString = "Select * from LV_LIFECYCLE_EVENT where EVENT_CD = ? ORDER BY SHORT_DESCR";
 		LifeCycleEventCode event = null;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
@@ -85,6 +85,7 @@ public class LVLifeCycleEventLoader {
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, eventCode);
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
 		        event = getLifeCycleEventFromSQLRecord(rs);
@@ -162,6 +163,16 @@ public class LVLifeCycleEventLoader {
 			event.markActive();
 		} else
 			event.markInActive();
+		event.setField1Label(rs.getString("FIELD1_LABEL"));
+		event.setField1DataType(rs.getString("FIELD1_TYPE"));
+
+		event.setField2Label(rs.getString("FIELD2_LABEL"));
+		event.setField2DataType(rs.getString("FIELD2_TYPE"));
+
+		event.setField1DataUnit(rs.getString("FIELD1_UNIT"));
+		event.setField2DataUnit(rs.getString("FIELD2_UNIT"));
+
+		
 		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
 		event.setUpdatedBy(new User(rs.getString("UPDATED_BY")));

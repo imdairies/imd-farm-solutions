@@ -51,7 +51,7 @@ public class MilkingInformationSrvc {
 	    		searchBean.setAnimalTag(animalValue.getAnimalTag());
 	    		//animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
 	    		// add milking detail information to the data
-	    		animalValueResult += appendMilkingDetails(milkingLoader.retrieveSingleMilkingRecordsOfCow(searchBean), searchBean);
+	    		animalValueResult += appendMilkingDetails(milkingLoader.retrieveSingleMilkingRecordsOfCow(searchBean, false), searchBean);
 	    	}
 	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
 	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
@@ -64,6 +64,8 @@ public class MilkingInformationSrvc {
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(200).entity(animalValueResult).build();
     }
+	
+
 	
 	@POST
 	@Path("/milkingrecordofyear")
@@ -79,14 +81,14 @@ public class MilkingInformationSrvc {
     	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
-			List <MilkingDetail>  milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedYear(new LocalDate(searchBean.getRecordDate()), true);
+			List <MilkingDetail>  milkRecords = loader.retrieveFarmMonthlyMilkVolumeForSpecifiedYear(new LocalDate(searchBean.getRecordDate()), true);
 			Iterator<MilkingDetail> it = milkRecords.iterator();
 			MilkingDetail milkRec = null;
 			while (it.hasNext()) {
 				milkRec = it.next();
 				milkMonthList += "\"" + Util.getDateInSpecifiedFormart(milkRec.getRecordDate(),"MMM") + "\",";
 				monthlyVolList += milkRec.getMilkVolume() + ",";
-				monthlyAverageList += (milkRec.getAverages().get(Util.DAILY_AVERAGE) == null ? 0.0 : Math.round(((float)milkRec.getAverages().get(Util.DAILY_AVERAGE))*10))/10 + ",";
+				monthlyAverageList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE) == null ? 0.0 : Math.round(((float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE))*10))/10 + ",";
 
 			}
 			if (monthlyAverageList != null) {
@@ -131,7 +133,7 @@ public class MilkingInformationSrvc {
 				milkRec = it.next();
 				milkDayList += milkRec.getRecordDate().getDayOfMonth() + ",";
 				dailyVolList += milkRec.getMilkVolume() + ",";
-				dailyAverageList += (milkRec.getAverages().get(Util.DAILY_AVERAGE) == null ? 0.0 : Math.round(((float)milkRec.getAverages().get(Util.DAILY_AVERAGE))*10))/10 + ",";
+				dailyAverageList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE) == null ? 0.0 : Math.round(((float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE))*10))/10 + ",";
 			}
 			if (dailyAverageList != null) {
 				int commatoremove = dailyAverageList.lastIndexOf(",");
@@ -153,6 +155,50 @@ public class MilkingInformationSrvc {
     	IMDLogger.log(milkingRecordInformation, Util.INFO);
 		return Response.status(200).entity(milkingRecordInformation).build();
     }		
+	
+	@POST
+	@Path("/milkingrecordofeachdayofyear")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveMilkingRecordOfEachDayOfYear(MilkingDetailBean searchBean){
+		String milkDayList = "";
+		String dailyVolList = "";
+		String dateList = "";
+		String milkingRecordInformation = "";
+		String prefix = "   ";
+    	
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+			MilkingDetail[]  milkRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedYear(searchBean.getRecordDate());
+			MilkingDetail milkRec = null;
+			for (int i=0; i<milkRecords.length; i++) {
+				milkRec = milkRecords[i];
+				milkDayList += milkRec.getRecordDate().getDayOfYear() + ",";
+				dailyVolList += milkRec.getMilkVolume() + ",";
+				dateList += "\"" + Util.getDateInSpecifiedFormart(milkRec.getRecordDate(),"dd-MMM") + "\",";
+			}
+			if (dateList != null) {
+				int commatoremove = dateList.lastIndexOf(",");
+				dateList = dateList.substring(0,commatoremove);
+			}
+			if (milkDayList != null) {
+				int commatoremove = milkDayList.lastIndexOf(",");
+				milkDayList = milkDayList.substring(0,commatoremove);
+			}
+			if (dailyVolList != null) {
+				int commatoremove = dailyVolList.lastIndexOf(",");
+				dailyVolList = dailyVolList.substring(0,commatoremove);
+			}
+			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix + "\"dates\":[" + dateList + "],\n"  + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(milkingRecordInformation, Util.INFO);
+		return Response.status(200).entity(milkingRecordInformation).build();
+    }		
+		
 	
 	private String appendMilkingDetails(List<MilkingDetail> milkingRecords, MilkingDetailBean searchBean) throws IMDException {
 		String milkingDetail = "";

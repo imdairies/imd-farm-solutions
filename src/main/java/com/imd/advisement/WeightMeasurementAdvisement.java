@@ -2,8 +2,6 @@ package com.imd.advisement;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,15 +21,16 @@ import com.imd.util.Util;
 /**
  * This advisement class implements the following advise:
  * Trigger Condition: 
- * 	If a cow's last FMD vaccination was more than 5 months ago
- *  
+ * 	All animals younger than 6 months whose weight has not been measured in the last couple of weeks.
  * @author kashif.manzoor
  *
  */
-public class FMDVaccinationAdvisement extends AdvisementRule {
+public class WeightMeasurementAdvisement extends AdvisementRule {
 	
-	public FMDVaccinationAdvisement(){
-		setAdvisementID(Util.AdvisementRules.VACCINEFMD);
+	private static final int YOUNG_ANIMAL_AGE_LIMIT = 180;
+
+	public WeightMeasurementAdvisement(){
+		setAdvisementID(Util.AdvisementRules.WEIGHTMEASUREMENT);
 	}
 
 	@Override
@@ -40,58 +39,55 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
-			IMDLogger.log("Retreiving cows that have not been given FMD vaccination: " + getAdvisementID(), Util.INFO);
+			IMDLogger.log("Retrieve animals who are younger than " + YOUNG_ANIMAL_AGE_LIMIT + " days. " +  getAdvisementID(), Util.INFO);
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
-			if (ruleDto == null) {
-				return null;
-			} else {
+			int thirdThreshold  =  (int) ruleDto.getThirdThreshold();
+			int secondThreshold = (int)ruleDto.getSecondThreshold();
+			int firstThreshold  = (int)ruleDto.getFirstThreshold();
+
+			if (ruleDto != null) {
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
-				animalPopulation = animalLoader.retrieveActiveAnimals(orgId);
+				animalPopulation = animalLoader.retrieveAnimalsYoungerThanSpecifiedDays(orgId, LocalDate.now().minusDays(YOUNG_ANIMAL_AGE_LIMIT));
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
-						String message = "";
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now().minusDays((int)ruleDto.getThirdThreshold());
-						LocalDate endDate = LocalDate.now().plusDays(1);
+						LocalDate startDate = LocalDate.now().minusDays(thirdThreshold);
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								startDate,
-								endDate,
-								Util.LifeCycleEvents.FMDVACCINE, null);
+								null,
+								Util.LifeCycleEvents.WEIGHT, null);
+						int currentAgeInDays = Util.getDaysBetween(DateTime.now(), animal.getDateOfBirth());
 						String ruleNote = "";
-						String animalNote = ""; 						
-						if (lifeEvents != null && !lifeEvents.isEmpty()) {
-							// The cow has not been applied FMD vaccination in the last THRESHOLD3 days.
-							IMDLogger.log("Latest Vaccination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
-							int daysSinceVaccinated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
-							animalNote = "This animal was given vaccination " + daysSinceVaccinated + " days ago.";	
-							if (ruleDto.getThirdThreshold() > 0 && daysSinceVaccinated >= ruleDto.getThirdThreshold()) {
-								ruleNote = ruleDto.getThirdThresholdMessage();
-								animal.setThreshold3Violated(true);
-							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceVaccinated >= ruleDto.getSecondThreshold()) {
-								ruleNote = ruleDto.getSecondThresholdMessage();
-								animal.setThreshold2Violated(true);
-							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceVaccinated >= ruleDto.getFirstThreshold()) {
-								ruleNote = ruleDto.getFirstThresholdMessage();
-								animal.setThreshold1Violated(true);
-							}
-						} else {
-							// the cow was not vaccinated with in the last THRESHOLD3 days
+						String animalNote = "";
+						if (lifeEvents == null || lifeEvents.isEmpty()) {
+							// No weight event found - indicates that the animal was not weighed in the last Threshold3 days.
+							animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days";	
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
+						} else {
+							int daysSinceLatestWeightEvent = Util.getDaysBetween(DateTime.now(),lifeEvents.get(0).getEventTimeStamp());
+							if (daysSinceLatestWeightEvent > secondThreshold) {
+								ruleNote = ruleDto.getSecondThresholdMessage();
+								animal.setThreshold2Violated(true);
+							} else if (daysSinceLatestWeightEvent > firstThreshold) {
+								ruleNote = ruleDto.getFirstThresholdMessage();
+								animal.setThreshold1Violated(true);
+							} else {
+								//the young animal was weighed recently
+								IMDLogger.log("Animal " + animal.getAnimalTag() + " was weighed recently i.e. " + daysSinceLatestWeightEvent + " days ago. No Weight Measurement advisement necessary", Util.INFO);
+							}
+							animal.addLifecycleEvent(lifeEvents.get(0));
 						}
 						if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
-							if (lifeEvents != null && !lifeEvents.isEmpty())
-								animal.addLifecycleEvent(lifeEvents.get(0));
 							ArrayList<Note> notesList = new ArrayList<Note>();
 							notesList.add(new Note(1,ruleNote));
 							notesList.add(new Note(2,animalNote));
 							animal.setNotes(notesList);
 							eligiblePopulation.add(animal);
 						}
-						
 					}
 				}
 			}
@@ -100,13 +96,6 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 			e.printStackTrace();
 		}
 		return eligiblePopulation;
-	}
-
-	private int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
-		if (endTimeStamp == null || startTimeStamp == null) 
-			return 0;
-//		return (new Period(startTimeStamp, endTimeStamp, PeriodType.yearMonthDay()).getDays());
-		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
 	}
 
 	@Override

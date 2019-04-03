@@ -66,12 +66,12 @@ public class LookupValuesLoader {
 		return result;
 	}
 	public List<LookupValues> retrieveLookupValues(LookupValuesBean searchBean) {
-		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.isActive(), false);
+		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.getActiveIndicator(), false);
 	}
 	public List<LookupValues> retrieveMatchingLookupValues(LookupValuesBean searchBean) {
-		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.isActive(), true);
+		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.getActiveIndicator(), true);
 	}
-	private List<LookupValues> performSearch(String categoryCD, String lookupCD, boolean retrieveActiveOnly, boolean isWildCardSearch) {
+	private List<LookupValues> performSearch(String categoryCD, String lookupCD, String retrieveActiveOnlyInd, boolean isWildCardSearch) {
 		ArrayList<LookupValues> allMatchingValues = new ArrayList<LookupValues>();
 		String qryString = "Select * from LOOKUP_VALUES ";
 		List<String> values = new ArrayList<String> ();
@@ -82,12 +82,27 @@ public class LookupValuesLoader {
 			if (lookupCD != null && !lookupCD.trim().isEmpty()) {
 				qryString +=  " AND LOOKUP_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 				values.add(lookupCD);
+				if (retrieveActiveOnlyInd != null && !retrieveActiveOnlyInd.trim().isEmpty()) {
+					qryString +=  " AND ACTIVE_IND = ? ";				
+					values.add(retrieveActiveOnlyInd);
+				}				
+			} else if (retrieveActiveOnlyInd != null && !retrieveActiveOnlyInd.trim().isEmpty()) {
+					qryString +=  " AND ACTIVE_IND = ? ";				
+					values.add(retrieveActiveOnlyInd);
 			}
 		} else if (lookupCD != null && !lookupCD.trim().isEmpty()) {
 			qryString +=  " WHERE LOOKUP_CD " + (isWildCardSearch ?  " LIKE ? " : "= ?");
 			values.add(lookupCD);
+			if (retrieveActiveOnlyInd != null && !retrieveActiveOnlyInd.trim().isEmpty()) {
+				qryString +=  " AND ACTIVE_IND = ? ";				
+				values.add(retrieveActiveOnlyInd);
+			}
 		} else {
-			qryString = "Select * from LOOKUP_VALUES "; 
+			qryString = "Select * from LOOKUP_VALUES " ; 
+			if (retrieveActiveOnlyInd != null && !retrieveActiveOnlyInd.trim().isEmpty()) {
+				qryString +=  " WHERE ACTIVE_IND = ? ";				
+				values.add(retrieveActiveOnlyInd);
+			}
 		}
 		qryString += " ORDER BY CATEGORY_CD,LOOKUP_CD" ;		
 		IMDLogger.log(qryString,Util.INFO);
@@ -123,53 +138,6 @@ public class LookupValuesLoader {
 	    return allMatchingValues;
 	}
 	
-//	public List<LifeCycleEventCode> retrieveMatchingLifeCycleEvents( LifeCycleEventCodeBean eventBean) {
-//		ArrayList<LifeCycleEventCode> allMatchingEvents = new ArrayList<LifeCycleEventCode>();		
-//		String qryString = "Select * from LV_LIFECYCLE_EVENT ";
-//		
-//		if (!isNullOrEmpty(eventBean.getEventCode())) {
-//			qryString +=  " WHERE EVENT_CD  LIKE '" + eventBean.getEventCode() + "' ";
-//			if (!isNullOrEmpty(eventBean.getEventShortDescription())) {
-//				qryString +=  " AND SHORT_DESCR LIKE '" + eventBean.getEventShortDescription() + "' ORDER BY SHORT_DESCR";
-//			}
-//		} else if (!isNullOrEmpty(eventBean.getEventShortDescription())) {
-//			qryString +=  " WHERE SHORT_DESCR LIKE '" + eventBean.getEventShortDescription() + "' ORDER BY SHORT_DESCR";
-//		} else {
-//			qryString = "Select * from LV_LIFECYCLE_EVENT ORDER BY SHORT_DESCR" ;
-//		}
-//		IMDLogger.log(qryString,Util.INFO);
-//		LifeCycleEventCode event = null;
-//		Statement st = null;
-//		ResultSet rs = null;
-//		try {
-//			Connection conn = DBManager.getDBConnection();
-//			st = conn.createStatement();
-//		    rs = st.executeQuery(qryString);
-//		    while (rs.next()) {
-//		        event = getLifeCycleEventFromSQLRecord(rs);
-//		        allMatchingEvents.add(event);
-//		    }
-//		} catch (Exception ex) {
-//			ex.printStackTrace();
-//		} finally {
-//		    try {
-//				if (rs != null && !rs.isClosed()) {
-//					rs.close();	
-//				}
-//				if (st != null && !st.isClosed()) {
-//					st.close();	
-//				}
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	    return allMatchingEvents;
-//	}
-//
-//	private boolean isNullOrEmpty(String strValue) {
-//		return (strValue == null || strValue.trim().isEmpty());
-//	}		
-//	
 	private LookupValues getDTOFromSQLRecord(ResultSet rs) throws Exception {
 		LookupValues luValue;
 		luValue = new LookupValues(rs.getString("CATEGORY_CD"),rs.getString("LOOKUP_CD"),rs.getString("SHORT_DESCR"),rs.getString("LONG_DESCR"));
@@ -186,49 +154,7 @@ public class LookupValuesLoader {
 		luValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
 		return luValue;
 	}
-//	public boolean doesLifecycleEventExist(LifeCycleEventCode event) {
-//		return false;
-//	}
-//
-//	public List<LifeCycleEventCode> retrieveAllActiveLifeCycleEvents() {
-//		return retrieveLifeCycleEvents(true);
-//		
-//	}	
-//
-//	public List<LifeCycleEventCode> retrieveAllLifeCycleEvents() {
-//		return retrieveLifeCycleEvents(false);
-//		
-//	}
-//	private List<LifeCycleEventCode> retrieveLifeCycleEvents(boolean retrieveActiveOnly) {
-//		ArrayList<LifeCycleEventCode> allActiveEvents = new ArrayList<LifeCycleEventCode>();		
-//		String qryString = "Select * from LV_LIFECYCLE_EVENT " + (retrieveActiveOnly ? " WHERE ACTIVE_IND = 'Y' " : "") + " ORDER BY SHORT_DESCR";
-//		LifeCycleEventCode event = null;
-//		Statement st = null;
-//		ResultSet rs = null;
-//		try {
-//			Connection conn = DBManager.getDBConnection();
-//			st = conn.createStatement();
-//		    rs = st.executeQuery(qryString);
-//		    while (rs.next()) {
-//		        event = getLifeCycleEventFromSQLRecord(rs);
-//		        allActiveEvents.add(event);
-//		    }
-//		} catch (Exception ex) {
-//			ex.printStackTrace();
-//		} finally {
-//		    try {
-//				if (rs != null && !rs.isClosed()) {
-//					rs.close();	
-//				}
-//				if (st != null && !st.isClosed()) {
-//					st.close();	
-//				}
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	    return allActiveEvents;
-//	}
+
 	/**
 	 * We should not use this method. This method is only for internal use. This Delete method does not have any corresponding API; so it can't be 
 	 * called from the front end application. We should mark records "inactive" instead of deleting them. This method is only used during
@@ -266,12 +192,6 @@ public class LookupValuesLoader {
 	}
 
 	
-//	public boolean inactivateLifeCycleEvent(LifeCycleEventCode event) {
-//		return false;
-//	}
-//	public boolean activateLifeCycleEvent(LifeCycleEventCode event) {
-//		return false;
-//	}
 	public int updateLookupValues(LookupValues luValue) {
 		String qryString = "UPDATE LOOKUP_VALUES ";
 		String valuestoBeUpdated = "";

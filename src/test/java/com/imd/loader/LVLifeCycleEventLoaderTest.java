@@ -74,6 +74,12 @@ class LVLifeCycleEventLoaderTest {
 			}
 			// 1: Now insert the test record without having to worry about whether it already exists or not.
 			event = new LifeCycleEventCode("TSTHEAT", "01Test Heat", "Indicates when the cow is in heat. \nCow's heat % \"'\" testing - notice the special character in the description to test SQL escape functionality."); 			
+			event.setField1Label("Standing Heat Time");
+			event.setField1DataType(Util.DataTypes.DATETIME);
+			event.setField1DataUnit("hh:mm:ss");
+			event.setField2Label("Comments");
+			event.setField2DataType(Util.DataTypes.TEXT);
+			event.setField2DataUnit("haha");
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
 			event.setUpdatedBy(event.getCreatedBy());
@@ -104,6 +110,14 @@ class LVLifeCycleEventLoaderTest {
 			assertTrue(records != null && records.size() >0," The test event should have been retrieved by retrieveMatchingLifeCycleEvents method");
 			event = records.get(0);
 			assertEquals("TSTHEAT",event.getEventCode(),"Retrieved Record should have the correct Event Code [" + bean.getEventCode() + "]");
+
+			assertEquals("Standing Heat Time",event.getField1Label());
+			assertEquals(Util.DataTypes.DATETIME,event.getField1DataType());
+			assertEquals("hh:mm:ss",event.getField1DataUnit());
+
+			assertEquals("Comments",event.getField2Label());
+			assertEquals(Util.DataTypes.TEXT,event.getField2DataType());
+			assertEquals("haha",event.getField2DataUnit());
 
 			bean.setEventCode("haha");
 			bean.setEventShortDescription("%1Test Hea%");

@@ -23,33 +23,39 @@ public class AdvisementRuleManager {
 		advisementRulesMap.put(Util.AdvisementRules.DRYCOW, new DryCowAdvisement());
 		advisementRulesMap.put(Util.AdvisementRules.VACCINEFMD, new FMDVaccinationAdvisement());
 		advisementRulesMap.put(Util.AdvisementRules.PREGNANCYTEST, new PregnancyTestAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.HEATWARNING, new HeatWarningAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.DELAYEDHEATHEIFER, new DelayedHeatHeiferAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.DELAYEDHEATCOW, new DelayedHeatCowAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.WEIGHTMEASUREMENT, new WeightMeasurementAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.HEIFERWEIGHT, new HeiferWeightAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.WEANOFF, new WeanOffAdvisement());
 	}
 
 	public List<AnimalAdvisement> executeAllRules(List<Advisement> activeRules, boolean includeThreshold1, boolean includeThreshold2, boolean includeThreshold3) {
 		List<AnimalAdvisement> advisementOutcomes = new ArrayList<AnimalAdvisement> ();
-		if (activeRules == null || activeRules.isEmpty())
-			return advisementOutcomes;
-		Iterator<Advisement> advRuleIt = activeRules.iterator();
-		while (advRuleIt.hasNext()) {
-			Advisement advConfig = advRuleIt.next();
-			AdvisementRule advRule = advisementRulesMap.get(advConfig.getAdvisementID());
-			if (advRule != null) {
-			List <Animal> animalsInViolation = advRule.getAdvisementRuleAddressablePopulation(advConfig.getOrgId());
-			if (animalsInViolation != null && !animalsInViolation.isEmpty()) {
-				Iterator<Animal> it = animalsInViolation.iterator();
-				while (it.hasNext()) {
-					Animal animalInViolation = it.next();
-					if (animalInViolation.isThreshold1Violated() && includeThreshold1) {
-						advisementOutcomes.add(new AnimalAdvisement(animalInViolation.getAnimalTag(),SEVERITY_THRESHOLD1,animalInViolation.getNote(0).getNoteText(),advConfig.getAdvisementID()));
-					} else if (animalInViolation.isThreshold2Violated() && includeThreshold2) {
-						advisementOutcomes.add(new AnimalAdvisement(animalInViolation.getAnimalTag(),SEVERITY_THRESHOLD2,animalInViolation.getNote(0).getNoteText(),advConfig.getAdvisementID()));
-					} else if (animalInViolation.isThreshold3Violated() && includeThreshold3) {
-						advisementOutcomes.add(new AnimalAdvisement(animalInViolation.getAnimalTag(),SEVERITY_THRESHOLD3,animalInViolation.getNote(0).getNoteText(),advConfig.getAdvisementID()));
+		if (activeRules != null && !activeRules.isEmpty()) {
+			Iterator<Advisement> advRuleIt = activeRules.iterator();
+			while (advRuleIt.hasNext()) {
+				Advisement advConfig = advRuleIt.next();
+				AdvisementRule advRule = advisementRulesMap.get(advConfig.getAdvisementID());
+				if (advRule != null) {
+					List <Animal> animalsInViolation = advRule.getAdvisementRuleAddressablePopulation(advConfig.getOrgId());
+					if (animalsInViolation != null && !animalsInViolation.isEmpty()) {
+						Iterator<Animal> it = animalsInViolation.iterator();
+						while (it.hasNext()) {
+							Animal animalInViolation = it.next();
+							if (animalInViolation.isThreshold1Violated() && includeThreshold1) {
+								advisementOutcomes.add(new AnimalAdvisement(animalInViolation.getAnimalTag(),SEVERITY_THRESHOLD1,animalInViolation.getNote(0).getNoteText(),advConfig.getAdvisementID()));
+							} else if (animalInViolation.isThreshold2Violated() && includeThreshold2) {
+								advisementOutcomes.add(new AnimalAdvisement(animalInViolation.getAnimalTag(),SEVERITY_THRESHOLD2,animalInViolation.getNote(0).getNoteText(),advConfig.getAdvisementID()));
+							} else if (animalInViolation.isThreshold3Violated() && includeThreshold3) {
+								advisementOutcomes.add(new AnimalAdvisement(animalInViolation.getAnimalTag(),SEVERITY_THRESHOLD3,animalInViolation.getNote(0).getNoteText(),advConfig.getAdvisementID()));
+							}
+						}
 					}
+				} else {
+					IMDLogger.log("The following active Advisement Rule exists in the database but it does not have any implementation: " + advConfig.getAdvisementID() , Util.ERROR);
 				}
-			}
-			} else {
-				IMDLogger.log("The following active Advisement Rule exists in the database but it does not have any implementation : " + advConfig.getAdvisementID() , Util.ERROR);
 			}
 		}
 		return advisementOutcomes;

@@ -42,6 +42,8 @@ public class Animal extends IMDairiesDTO{
 	private boolean isThreshold1Violated;
 	private boolean isThreshold2Violated;
 	private boolean isThreshold3Violated;
+	private String statusIndicators;
+	private int parturationCount;
 	
 	/**
 	 * M: Male
@@ -227,12 +229,17 @@ public class Animal extends IMDairiesDTO{
 
 	public String toString() {
 		String value =  stringify(" ");
+		int eventCount = 0;
 		if (this.lifeCycleEvents == null || this.lifeCycleEvents.isEmpty())
 			return value;
 		Iterator<LifecycleEvent> it = this.lifeCycleEvents.iterator();
-		value += " LIFE CYCLE EVENTS [\n";
+		value += "\"lifecycleEvents\"=[\n";
 		while (it.hasNext()) {
-			value +=  "  {\n" + it.next().dtoToJson("     ") + "\n  }\n";
+			eventCount++;
+			if (eventCount == this.lifeCycleEvents.size())
+				value +=  "  {\n" + it.next().dtoToJson("     ") + "\n }\n";
+			else
+				value +=  "  {\n" + it.next().dtoToJson("     ") + "\n },\n";
 		}
 		return value;
 	}
@@ -240,8 +247,10 @@ public class Animal extends IMDairiesDTO{
 		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
-				prefix + fieldToJson("animalTypeCD", this.animalTypeCD) + ",\n" +
+				prefix + fieldToJson("statusIndicators", this.statusIndicators == null ? "" : this.statusIndicators) + ",\n" + 
+				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
 				prefix + fieldToJson("animalStatus", this.animalStatus) + ",\n" + 
+				prefix + fieldToJson("parturationCount", this.parturationCount) + ",\n" + 
 				prefix + fieldToJson("dateOfBirth", this.dateOfBirth) + ",\n" + 
 				prefix + fieldToJson("isDateOfBirthEstimated", this.isDateOfBirthEstimated) + ",\n" + 
 				prefix + fieldToJson("currentAge", this.getCurrentAge()) + ",\n" + 
@@ -343,6 +352,22 @@ public class Animal extends IMDairiesDTO{
 
 	public void setThreshold3Violated(boolean isThreshold3Violated) {
 		this.isThreshold3Violated = isThreshold3Violated;
+	}
+
+	public String getStatusIndicators() {
+		return statusIndicators;
+	}
+
+	public void setStatusIndicators(String statusIndicators) {
+		this.statusIndicators = statusIndicators;
+	}
+
+	public int getParturationCount() {
+		return parturationCount;
+	}
+
+	public void setParturationCount(int parturationCount) {
+		this.parturationCount = parturationCount;
 	}
 	
 }

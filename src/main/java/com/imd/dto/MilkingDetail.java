@@ -2,6 +2,8 @@ package com.imd.dto;
 
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
@@ -26,11 +28,11 @@ public class MilkingDetail extends IMDairiesDTO{
 	private Float temperatureInCentigrade;
 	private Float humidity;
 	private String comments;
-	private HashMap<String, Float> averages = new HashMap<String, Float>();
+	private HashMap<String, Float> additionalStatistics = new HashMap<String, Float>();
 	private short milkingEventNumber;
 
 	private String stringify(String prefix) {
-		return  prefix + fieldToJson("orgID", this.orgID) + ",\n" + 
+		String retValue =  prefix + fieldToJson("orgID", this.orgID) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("milkingEventNumber", this.getMilkingEventNumber()) + ",\n" + 
 				prefix + fieldToJson("recordDate", this.recordDate) + ",\n" + 
@@ -45,25 +47,19 @@ public class MilkingDetail extends IMDairiesDTO{
 				prefix + fieldToJson("temperatureInCentigrade", this.temperatureInCentigrade == null ? 0 : this.temperatureInCentigrade) + ",\n" + 
 				prefix + fieldToJson("humidity", this.humidity == null ? 0:this.humidity) + ",\n" + 
 				prefix + fieldToJson("comments", this.comments) + ",\n";
+		if (additionalStatistics != null) {
+			Iterator<String> additionalValues = additionalStatistics.keySet().iterator();
+			while(additionalValues.hasNext()) {
+				String key = additionalValues.next();
+				Float value = additionalStatistics.get(key);
+				retValue += prefix + fieldToJson(key, value) + ",\n";
+			}
+		}
+		return retValue;
 	}
 
 	public String toString() {
-		return  "orgID=" + this.orgID + ",\n" + 
-				"animalTag=" +  this.animalTag + ",\n" +
-				"milkingEventNumber=" +  this.getMilkingEventNumber() + ",\n" + 
-				"recordDate=" +  this.recordDate + ",\n" + 
-				"recordTime=" +  this.recordTime + ",\n" + 
-				"dailyMilkingFrequency=" +  this.getDailyMilkingFrequency() + ",\n" + 
-				"isMilkedOnMachine=" +  this.isMilkedOnMachine + ",\n" + 
-				"milkVolume=" +  this.milkVolume + ",\n" + 
-				"volUnit=" +  this.volUnit + ",\n" + 
-				"lrValue=" +  this.lrValue == null ? "0": this.lrValue + ",\n" + 
-				"fatValue=" +  this.fatValue == null ? "0": this.fatValue + ",\n" + 
-				"toxinValue=" + this.toxinValue == null ? "0": this.toxinValue + ",\n" + 
-				"temperatureInCentigrade=" + (this.temperatureInCentigrade == null ? 0 : this.temperatureInCentigrade) + ",\n" + 
-				"humidity=" + (this.humidity == null ? 0:this.humidity) + ",\n" + 
-				"comments=" + this.comments + "\n" + super.toString();
-		
+		return  stringify(" ");
 	}
 
 	public String dtoToJson(String prefix)  {		
@@ -211,11 +207,16 @@ public class MilkingDetail extends IMDairiesDTO{
 //		return null;
 	}
 
-	public HashMap<String, Float> getAverages() {
-		return averages;
+	public HashMap<String, Float> getAdditionalStatistics() {
+		return additionalStatistics;
 	}
 
-	public void setAverages(HashMap<String, Float> averages) {
-		this.averages = averages;
+	public void setAdditionalStatistics(HashMap<String, Float> averages) {
+		this.additionalStatistics = averages;
+	}
+	public void addToAdditionalStatistics(String key, Float value) {
+		if (this.additionalStatistics == null)
+			additionalStatistics = new HashMap<String, Float>();
+		additionalStatistics.put(key, value);
 	}
 }

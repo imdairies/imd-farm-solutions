@@ -39,6 +39,20 @@ public class MilkingDetailBean {
 		this.comments = comments2;
 		
 	}
+	public MilkingDetailBean(MilkingDetailBean searchBean) {
+		this.animalTag = searchBean.getAnimalTag();
+		this.orgID = searchBean.getOrgID();
+		this.milkingDateStr = searchBean.getMilkingDateStr();
+		this.milkingTimeStr = searchBean.getMilkingTimeStr();
+		this.milkingEventNumber = searchBean.getMilkingEventNumber();
+		this.milkVolume = searchBean.getMilkVolume();
+		this.fatValue = searchBean.getFatValue();
+		this.lrValue = searchBean.getLrValue();
+		this.toxinValue = searchBean.getToxinValue();
+		this.temperatureInCentigrade = searchBean.getTemperatureInCentigrade();
+		this.humidity = searchBean.getHumidity();
+		this.comments = searchBean.getComments();
+	}
 	public String getAnimalTag() {
 		return animalTag;
 	}

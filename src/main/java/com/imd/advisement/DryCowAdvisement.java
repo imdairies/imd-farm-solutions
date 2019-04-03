@@ -67,26 +67,28 @@ public class DryCowAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.INSEMINATE);
+								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceInseminated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
-							String message = "This cow was successfully inseminated " + daysSinceInseminated + " days ago.";							
+							String ruleNote = "";
+							String animalNote = "This cow was successfully inseminated " + daysSinceInseminated + " days ago.";							
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceInseminated >= ruleDto.getThirdThreshold()) {
-								message += " " + ruleDto.getThirdThresholdMessage();
+								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
 							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceInseminated >= ruleDto.getSecondThreshold()) {
-								message += " " + ruleDto.getSecondThresholdMessage();
+								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
 							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceInseminated >= ruleDto.getFirstThreshold()) {
-								message += " " + ruleDto.getFirstThresholdMessage();
+								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
 							}
 							if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 								// This cow has not yet been dried off
 								animal.addLifecycleEvent(lifeEvents.get(0));
 								ArrayList<Note> notesList = new ArrayList<Note>();
-								notesList.add(new Note(1,message));
+								notesList.add(new Note(1,ruleNote));
+								notesList.add(new Note(2,animalNote));
 								animal.setNotes(notesList);
 								eligiblePopulation.add(animal);
 							}

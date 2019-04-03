@@ -45,10 +45,13 @@ public class LifecycleEvent extends IMDairiesDTO{
 		this.eventComments = eventBean.getEventComments();
 		this.eventType = new LifeCycleEventCode(eventBean.getEventCode(),null,null);
 		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern(dateTimeFormat)));
-//		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp()));
 		this.eventOperator = new Person(eventBean.getOperatorID(),null,null,null);
 		this.eventTransactionID = (eventBean.getEventTransactionID() != null ? Integer.parseInt(eventBean.getEventTransactionID()) : 0);
 		
+	}
+	
+	public String toString() {
+		return this.dtoToJson("   ");
 	}
 
 
@@ -136,18 +139,18 @@ public class LifecycleEvent extends IMDairiesDTO{
 	
 	public String stringify(String prefix, DateTimeFormatter fmt)  {
 		String json = prefix + fieldToJson("orgID", this.getOrgID()) + ",\n" +
-				prefix + fieldToJson("eventTransactionID",this.eventTransactionID) + ",\n" + 
-				prefix + fieldToJson("eventCode", this.eventType.getEventCode()) + ",\n" + 
-				prefix + fieldToJson("eventShortDescription", this.eventType.getEventShortDescription()) + ",\n" + 				
+				prefix + fieldToJson("eventTransactionID",this.eventTransactionID) + ",\n" +
+				eventType.dtoToJson(prefix,false) + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" + 
 				prefix + fieldToJson("eventComments", this.eventComments) + ",\n";
 		if (fmt == null) 
 			json += prefix + fieldToJson("eventTimeStamp",this.eventTimeStamp) + ",\n";
 		else 
 			json += prefix + fieldToJson("eventTimeStamp",getDateInSQLFormart(this.eventTimeStamp, fmt)) + ",\n";
-		json += prefix + fieldToJson("eventOperator", this.eventOperator) + ",\n" +
+		json += prefix + fieldToJson("eventOperatorID", this.eventOperator) + ",\n" +
+				prefix + fieldToJson("eventOperator", (this.eventOperator == null ? "" : this.eventOperator.getDisplayName())) + ",\n" +
 				prefix + fieldToJson("auxField1Value", this.auxField1Value) + ",\n" +
-				prefix + fieldToJson("auxField2Value", this.eventOperator) + ",\n" +
+				prefix + fieldToJson("auxField2Value", this.auxField2Value) + ",\n" +
 				prefix + fieldToJson("auxField3Value", this.auxField3Value) + ",\n";
 		return json;
 	}

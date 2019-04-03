@@ -12,9 +12,13 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.imd.dto.Animal;
+import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.Person;
 import com.imd.dto.User;
+import com.imd.services.bean.AnimalBean;
+import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
@@ -59,6 +63,7 @@ public class LifeCycleEventsLoader {
 			preparedStatement.setString(11, event.getCreatedDTTMSQLFormat());
 			preparedStatement.setString(12, event.getUpdatedBy().getUserId());
 			preparedStatement.setString(13, event.getUpdatedDTTMSQLFormat());
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			preparedStatement.executeUpdate();
 			result = preparedStatement.getGeneratedKeys();
 			if (result.next()) 
@@ -94,14 +99,16 @@ public class LifeCycleEventsLoader {
 
 	
 	public LifecycleEvent retrieveLifeCycleEvent(String orgId, int transID) {
-		String qryString = "Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
-		  " from LIFECYCLE_EVENTS a  " +
-		  "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " +
-		  "  ON	a.EVENT_CD = b.EVENT_CD  " +
-		  "  LEFT OUTER JOIN LOOKUP_VALUES c " +
-		  "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " +
-	      " where a.ORG_ID=? AND a.ID =?  ORDER BY a.EVENT_DTTM DESC"; 		
-		
+		String qryString = "Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, "
+				+ "b.FIELD1_LABEL, b.FIELD1_TYPE, b.FIELD1_UNIT,"
+				+ "b.FIELD2_LABEL, b.FIELD2_TYPE, b.FIELD2_UNIT,"
+				+ "c.SHORT_DESCR as OPERATOR_SHORT_DESCR "
+				+ " from LIFECYCLE_EVENTS a  "
+				+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  "
+				+ "  ON	a.EVENT_CD = b.EVENT_CD  "
+				+ "  LEFT OUTER JOIN LOOKUP_VALUES c "
+				+ "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' "
+				+ " where a.ORG_ID=? AND a.ID =?  ORDER BY a.EVENT_DTTM DESC";
 		
 		LifecycleEvent event = null;
 		Statement st = null;
@@ -140,10 +147,11 @@ public class LifeCycleEventsLoader {
 		event.getEventType().setEventShortDescription(rs.getString("EVENT_SHORT_DESCR"));
 		event.setEventTimeStamp(new DateTime(rs.getTimestamp("EVENT_DTTM")));
 		event.setEventNote(rs.getString("COMMENTS"));
-		event.setEventOperator(new Person(rs.getString("OPERATOR_SHORT_DESCR"),"","",""));
+		event.setEventOperator(new Person(rs.getString("OPERATOR"),rs.getString("OPERATOR_SHORT_DESCR"),"",""));
 		event.setAuxField1Value(rs.getString("AUX_FL1_VALUE"));
 		event.setAuxField2Value(rs.getString("AUX_FL2_VALUE"));
 		event.setAuxField3Value(rs.getString("AUX_FL3_VALUE"));
+		event.setEventType(getLifeCycleEventCodeFromSQLRecord(rs));
 		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
 		event.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
@@ -152,7 +160,43 @@ public class LifeCycleEventsLoader {
 	}
 	
 	
-	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD) {
+	private LifeCycleEventCode getLifeCycleEventCodeFromSQLRecord(ResultSet rs) {
+		String eventCd = setValueIfAvailable(rs, "EVENT_CD");
+		String eventShortDescription = setValueIfAvailable(rs, "EVENT_SHORT_DESCR");
+		String eventLongDescription = setValueIfAvailable(rs, "EVENT_LONG_DESCR");
+		String field1Label = setValueIfAvailable(rs, "FIELD1_LABEL");
+		String field1DataType = setValueIfAvailable(rs, "FIELD1_TYPE");
+		String field1DataUnit = setValueIfAvailable(rs, "FIELD1_UNIT");
+		String field2Label = setValueIfAvailable(rs, "FIELD2_LABEL");
+		String field2DataType = setValueIfAvailable(rs, "FIELD2_TYPE");
+		String field2DataUnit = setValueIfAvailable(rs, "FIELD1_UNIT");
+		LifeCycleEventCode eventCode = null;
+		try {
+			eventCode = new LifeCycleEventCode(eventCd, eventShortDescription, eventLongDescription);
+			eventCode.setField1Label(field1Label);
+			eventCode.setField1DataType(field1DataType);
+			eventCode.setField1DataUnit(field1DataUnit);
+			eventCode.setField2Label(field2Label);
+			eventCode.setField2DataType(field2DataType);
+			eventCode.setField2DataUnit(field2DataUnit);		
+		} catch (IMDException ex) {
+			ex.printStackTrace();
+		}
+		return eventCode;
+	}
+
+	private String setValueIfAvailable(ResultSet rs, String columnName) {
+		String valueOrEmpty = "";
+		try {
+			valueOrEmpty = rs.getString(columnName);
+			
+		} catch (Exception ex) {
+			;//IMDLogger.log("Column " + columnName + " does not exist in the ResultSet", Util.ERROR);
+		}
+		return valueOrEmpty;
+	}
+
+	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
 		String qryString = " Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
 		  " from LIFECYCLE_EVENTS a  " +
@@ -160,10 +204,21 @@ public class LifeCycleEventsLoader {
 		  "  ON	a.EVENT_CD = b.EVENT_CD  " +
 		  "  LEFT OUTER JOIN LOOKUP_VALUES c " +
 		  "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " +
-		  " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  " 
-		  + (eventTypeCD == null || eventTypeCD.trim().isEmpty() ? "" : " AND a.EVENT_CD=?  ") 
-		  + (fromDate != null ? " AND a.EVENT_DTTM >=? " : "" ) 
-		  + (toDate != null ? " AND a.EVENT_DTTM <=? " : "" ) +  " ORDER BY a.EVENT_DTTM DESC";		
+		  " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  ";
+		String event1Str = "";
+		String event2Str = "";
+		if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty()) {
+			event1Str = " a.EVENT_CD=? ";
+		} 
+		if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty()) {
+			event2Str = " a.EVENT_CD=? ";
+		}
+		if (event1Str.isEmpty() || event2Str.isEmpty()) {
+			qryString += " AND " + event1Str + event2Str;
+		} else if (!event1Str.isEmpty() && !event2Str.isEmpty()) {
+			qryString += " AND (" + event1Str +  " OR " + event2Str + ") ";
+		}
+		qryString += (fromDate != null ? " AND a.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND a.EVENT_DTTM <=? " : "" ) +  " ORDER BY a.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
 		Statement st = null;
 		ResultSet rs = null;
@@ -174,8 +229,10 @@ public class LifeCycleEventsLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(index++, orgId);
 			preparedStatement.setString(index++, tagNumber);
-			if (eventTypeCD != null && !eventTypeCD.trim().isEmpty())
-				preparedStatement.setString(index++, eventTypeCD);
+			if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty())
+				preparedStatement.setString(index++, eventTypeCD1);
+			if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty())
+				preparedStatement.setString(index++, eventTypeCD2);
 			if (fromDate != null) 
 				preparedStatement.setString(index++, fromDate.toString());
 			if (toDate != null) 
@@ -213,7 +270,6 @@ public class LifeCycleEventsLoader {
 		  "  ON	a.EVENT_CD = b.EVENT_CD  " +
 		  "  LEFT OUTER JOIN LOOKUP_VALUES c " +
 		  "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " +
-//	      " where a.ORG_ID='" + orgId + "' AND a.ANIMAL_TAG ='"+ tagNumber + "' ORDER BY a.EVENT_DTTM DESC";		
 		  " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  ORDER BY a.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
 		Statement st = null;
@@ -390,6 +446,72 @@ public class LifeCycleEventsLoader {
 		return result;
 	}
 
+	public int determineInseminationAttemptCountInCurrentLactation(String orgID, String animalTag) {
+		String qryString = "select animal_tag,count(*) AS INSEMINATION_ATTEMPTS_COUNT from LIFECYCLE_EVENTS a "
+				+ "where A.ORG_ID = ? AND a.animal_tag=? and (event_cd=? OR event_cd=?) and "
+				+ "event_dttm >= (select max(EVENT_DTTM) from LIFECYCLE_EVENTS where org_id=a.org_id and animal_tag=a.animal_tag and (event_cd=? OR event_cd=?  OR event_cd=?) )";
+		int inseminationAttemptsCount = 0;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		ResultSet rs = null;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, orgID);
+			preparedStatement.setString(2, animalTag);
+			preparedStatement.setString(3, Util.LifeCycleEvents.INSEMINATE);
+			preparedStatement.setString(4, Util.LifeCycleEvents.MATING);
+			preparedStatement.setString(5, Util.LifeCycleEvents.PARTURATE);
+			preparedStatement.setString(6, Util.LifeCycleEvents.ABORTION);
+			preparedStatement.setString(7, Util.LifeCycleEvents.BIRTH);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		    	inseminationAttemptsCount = rs.getInt("INSEMINATION_ATTEMPTS_COUNT");
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			IMDLogger.log("Could not detemine insemination attempt for the animal [" + orgID + "] " + animalTag, Util.ERROR);
+		} finally {
+		    try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();	
+				}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return inseminationAttemptsCount;
+    }
+
+	public String performEventSpecificValidations(LifeCycleEventBean eventBean, AnimalBean animalBean) {
+		String validationMessage = "";
+		AnimalLoader animalLoader = new AnimalLoader();
+		if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.MATING)) {
+			try {
+				Animal animal = animalLoader.getAnimalRawInfo(animalBean).get(0);
+				AnimalBean mateBean = new AnimalBean();
+				mateBean.setAnimalTag(eventBean.getAuxField1Value());
+				mateBean.setOrgID(animal.getOrgID());
+				List<Animal> matchingMates = animalLoader.getAnimalRawInfo(mateBean);
+				if (matchingMates != null && !matchingMates.isEmpty()) {
+					if (matchingMates.get(0).getGender() == animal.getGender()) {
+						validationMessage = "Animal can not be of the same gender as the mate";
+					}
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				validationMessage = "An exception while trying to apply event validations. " + e.getMessage();
+			}
+		}
+		return validationMessage;
+	}
+	
+	
+	
 }
 
 

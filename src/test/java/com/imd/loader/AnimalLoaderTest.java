@@ -25,12 +25,15 @@ import com.imd.dto.Animal;
 import com.imd.dto.BankDetails;
 import com.imd.dto.Contact;
 import com.imd.dto.Dam;
+import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
+import com.imd.dto.Person;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.services.bean.AnimalBean;
 import com.imd.util.IMDException;
+import com.imd.util.IMDLogger;
 import com.imd.util.MessageManager;
 import com.imd.util.Util;
 
@@ -52,8 +55,8 @@ class AnimalLoaderTest {
 	void tearDown() throws Exception {
 	}
 
-	public Animal createTestAnimalTag000() throws Exception {
-		Dam c000 = new Dam(/*orgid*/"IMD",/*tag*/"000",/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"PKR");
+	public Animal createTestAnimal(String animalTag) throws Exception {
+		Dam c000 = new Dam(/*orgid*/"IMD",/*tag*/animalTag,/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"PKR");
 		c000.setAlias("Laal");
 		c000.setAnimalType("LACTATING");
 		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
@@ -136,7 +139,7 @@ class AnimalLoaderTest {
 	void testAnimalProcessing() {
 		try {
 			Animal animal;
-			animal = createTestAnimalTag000();
+			animal = createTestAnimal("000");
 			AnimalLoader loader = new AnimalLoader();
 			loader.deleteAnimal("IMD", animal.getAnimalTag());
 			DateTime now = DateTime.now();
@@ -159,6 +162,14 @@ class AnimalLoaderTest {
 			assertTrue(found, "Tag 000 should have been found");
 			assertEquals("Laal", animal.getAlias(), " Animal Alias should have been Laal");
 			assertEquals("/assets/img/cow-thumbnails/000/1.png", animal.getFrontSideImageURL(), " Animal Front Pose Image URL should have been /assets/img/cow-thumbnails/000/1.png");
+			String newStatus = Util.AnimalTypes.LCTPRGNT;
+			String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
+			animal.setAnimalTypeCD(newStatus);
+			animal.setUpdatedBy(new User(userID));
+			animal.setUpdatedDTTM(DateTime.now());
+			int result = loader.updateAnimalStatus(animal);
+			assertEquals(1,result);
+			
 			AnimalBean animalBean = new AnimalBean();
 			animalBean.setOrgID("IMD");
 			animalBean.setAnimalTag("000");
@@ -178,7 +189,7 @@ class AnimalLoaderTest {
 			assertTrue(found, "Tag 000 is a lactating cow so it should have been found by retrieveActiveLactatingAnimals API");
 
 			loader.deleteAnimal("IMD", animal.getAnimalTag());
-			animal = createTestAnimalTag000();
+			animal = createTestAnimal("000");
 			animal.setAnimalType("BULL");
 			transactionID = loader.insertAnimal(animal);
 			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
@@ -260,7 +271,7 @@ class AnimalLoaderTest {
 	void testPregnantRetrieval() {
 		try {
 			Animal animal;
-			animal = createTestAnimalTag000();
+			animal = createTestAnimal("000");
 			AnimalLoader loader = new AnimalLoader();
 			loader.deleteAnimal("IMD", animal.getAnimalTag());
 			animal.setAnimalType(Util.AnimalTypes.HFRPREGN);
@@ -304,10 +315,80 @@ class AnimalLoaderTest {
 	}		
 
 	@Test
+	void testAdultFemaleCowsRetrieval() {
+		try {
+			Animal animal1, animal2;
+			animal1 = createTestAnimal("000");
+			animal2 = createTestAnimal("-999");
+			AnimalLoader loader = new AnimalLoader();
+			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+
+			loader.deleteAnimal("IMD", animal1.getAnimalTag());
+			loader.deleteAnimal("IMD", animal2.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents("IMD", "000");
+			eventLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+
+			animal1.setAnimalType(Util.AnimalTypes.HFRPREGN);
+			animal2.setAnimalType(Util.AnimalTypes.HEIFER);
+			animal1.setDateOfBirth(DateTime.now().minusDays(2*365)); // 2 years of age
+			animal2.setDateOfBirth(DateTime.now().minusDays(240)); // 8 months old
+			assertTrue(loader.insertAnimal(animal1) > 0, animal1.getAnimalTag() + " should have been successfully inserted");
+			assertTrue(loader.insertAnimal(animal2) > 0, animal1.getAnimalTag() + " should have been successfully inserted");
+			
+			
+			LifecycleEvent event3 = new LifecycleEvent("IMD", 0, "000","PARTURATE");
+			event3.setEventTimeStamp(DateTime.now());
+			event3.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
+			event3.setCreatedBy(new User("KASHIF"));
+			event3.setCreatedDTTM(DateTime.now());
+			event3.setUpdatedBy(event3.getCreatedBy());
+			event3.setUpdatedDTTM(event3.getCreatedDTTM());
+			event3.setEventNote("Parturition");
+			eventLoader.insertLifeCycleEvent(event3);
+
+			LifecycleEvent event1 = new LifecycleEvent("IMD", 0, "000","ABORTION");
+			event1.setEventTimeStamp(DateTime.now());
+			event1.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
+			event1.setCreatedBy(new User("KASHIF"));
+			event1.setCreatedDTTM(DateTime.now());
+			event1.setUpdatedBy(event1.getCreatedBy());
+			event1.setUpdatedDTTM(event1.getCreatedDTTM());
+			event1.setEventNote("Parturition");
+			eventLoader.insertLifeCycleEvent(event1);
+			
+			List <Animal>  animals = loader.retrieveAdultFemaleCows("IMD",270);
+			Iterator<Animal> it = animals.iterator();
+			boolean shouldBeFound = false;
+			boolean shouldNotBeFound = false;
+			while (it.hasNext()) {
+				Animal animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+					shouldBeFound = true;
+					assertTrue(animal.getStatusIndicators() != null);
+					assertEquals(2,animal.getParturationCount());
+				}
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("-999")) {
+					shouldNotBeFound = true;
+				}
+			}
+			assertTrue(shouldBeFound, "Tag 000 should have been found as it is an adult female");
+			assertFalse(shouldNotBeFound, "Tag -999 should NOT have been found as it is NOT an adult female");
+			assertEquals(1,loader.deleteAnimal("IMD", "000"));
+			assertEquals(1,loader.deleteAnimal("IMD", "-999"));
+			assertEquals(2,eventLoader.deleteAnimalLifecycleEvents("IMD", "000"));
+			assertEquals(0,eventLoader.deleteAnimalLifecycleEvents("IMD", "-999"));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}
+	}		
+	
+	@Test
 	void testHeifersRetrieval() {
 		try {
 			Animal animal;
-			animal = createTestAnimalTag000();
+			animal = createTestAnimal("000");
 			AnimalLoader loader = new AnimalLoader();
 			loader.deleteAnimal("IMD", animal.getAnimalTag());
 			animal.setAnimalType(Util.AnimalTypes.HEIFER);
@@ -335,7 +416,7 @@ class AnimalLoaderTest {
 	void testFemaleCalvesRetrieval() {
 		try {
 			Animal animal;
-			animal = createTestAnimalTag000();
+			animal = createTestAnimal("000");
 			AnimalLoader loader = new AnimalLoader();
 			loader.deleteAnimal("IMD", animal.getAnimalTag());
 			animal.setAnimalType(Util.AnimalTypes.FEMALECALF);

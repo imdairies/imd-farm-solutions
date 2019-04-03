@@ -31,7 +31,7 @@ public class IMDLogger {
 					loggingMode = Util.INFO;
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				loggingMode = Util.INFO;;
+				loggingMode = Util.INFO;
 			}
 		}
 		if (messageSeverity >= loggingMode) {
@@ -39,9 +39,9 @@ public class IMDLogger {
 			if (loggingMode == Util.INFO)
 				messageColor = "[" + ANSI_INFO_BLUE + "INFO" +  ANSI_RESET + "]";
 			else if (loggingMode == Util.WARNING)
-				messageColor = "[" + ANSI_WARN_YELLOW + "INFO" +  ANSI_RESET + "]";
+				messageColor = "[" + ANSI_WARN_YELLOW + "WARNING" +  ANSI_RESET + "]";
 			else if (loggingMode == Util.ERROR)
-				messageColor = "[" + ANSI_ERROR_RED + "INFO" +  ANSI_RESET + "]";
+				messageColor = "[" + ANSI_ERROR_RED + "ERROR" +  ANSI_RESET + "]";
 			System.out.println(messageColor + currentDTTMStr + ": " + message);
 			
 		}		

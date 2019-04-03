@@ -2,9 +2,11 @@ package com.imd.dto;
 
 
 
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormatter;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.IMDException;
@@ -25,6 +27,13 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 	private String eventLongDescription;
 
 	private boolean isActive;
+	
+	private String field1Label;
+	private String field2Label;
+	private String field1DataType;
+	private String field2DataType;
+	private String field1DataUnit;
+	private String field2DataUnit;
 
 	public LifeCycleEventCode(String lifeCycleEventCode, String shortDescr, String longDescr) throws IMDException{
 		super();
@@ -80,30 +89,83 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 	}
 	
 	public String toString() {
-		return  "\nEVENT_CD=" + this.eventCode + 
-				"\nACTIVE_IND=" + this.isActive +
-				"\nSHORT_DESCR=" + this.eventShortDescription + 
-				"\nLONG_DESCR=" + this.eventLongDescription + 
-				"\nCREATED_BY" + (this.getCreatedBy() != null ? this.getCreatedBy().getUserId() : "null") + 
-				"\nCREATED_DTTM" + this.getCreatedDTTMSQLFormat() + ",\n" +
-				"\nUPDATED_BY" + (this.getUpdatedBy() != null ? this.getCreatedBy().getUserId() : "null")+
-				"\nUPDATED_DTTM" + this.getUpdatedDTTMSQLFormat();
+		return  stringify(" ");
 	}
 	
 	public String stringify(String prefix)  {
 		return  prefix + fieldToJson("eventCode", this.eventCode) + ",\n" +
 				prefix + fieldToJson("eventShortDescription", this.eventShortDescription) + ",\n" + 
 				prefix + fieldToJson("eventLongDescription", this.eventLongDescription) + ",\n" + 
+				prefix + fieldToJson("eventField1Label", this.field1Label) + ",\n" + 
+				prefix + fieldToJson("eventField1DataType", this.field1DataType) + ",\n" +
+				prefix + fieldToJson("eventField1DataUnit", this.field1DataUnit) + ",\n" + 
+				prefix + fieldToJson("eventField2Label", this.field2Label) + ",\n" + 
+				prefix + fieldToJson("eventField2DataType", this.field2DataType) + ",\n" +
+				prefix + fieldToJson("eventField2DataUnit", this.field2DataUnit) + ",\n" + 
 				prefix + fieldToJson("isActive", this.isActive) + ",\n";
 	}
 
-	public String dtoToJson(String prefix)  {		
-		return stringify(prefix) + super.dtoToJson(prefix);
+	public String dtoToJson(String prefix)  {
+		return dtoToJson(prefix,true);
 	}
 	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
-		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+		return dtoToJson(prefix,fmt,true);
 	}
+	public String dtoToJson(String prefix, boolean shouldIncludeAuditFields)  {		
+		return stringify(prefix) + (shouldIncludeAuditFields ? super.dtoToJson(prefix) : "");
+	}
+	
+	public String dtoToJson(String prefix, DateTimeFormatter fmt, boolean shouldIncludeAuditFields)   {
+		return stringify(prefix) + (shouldIncludeAuditFields ? super.dtoToJson(prefix, fmt) : "");
+	}
+
+	public String getField1Label() {
+		return field1Label;
+	}
+
+	public void setField1Label(String field1Label) {
+		this.field1Label = field1Label;
+	}
+
+	public String getField2Label() {
+		return field2Label;
+	}
+
+	public void setField2Label(String field2Label) {
+		this.field2Label = field2Label;
+	}
+
+	public String getField1DataType() {
+		return field1DataType;
+	}
+
+	public void setField1DataType(String field1DataType) {
+		this.field1DataType = field1DataType;
+	}
+
+	public String getField2DataType() {
+		return field2DataType;
+	}
+
+	public void setField2DataType(String field2DataType) {
+		this.field2DataType = field2DataType;
+	}
+	public void setField1DataUnit(String fieldUnit) {
+		this.field1DataUnit = fieldUnit;
+	}
+
+	public String getField1DataUnit() {
+		return field1DataUnit;
+	}
+	public void setField2DataUnit(String fieldUnit) {
+		this.field2DataUnit = fieldUnit;
+	}
+
+	public String getField2DataUnit() {
+		return field2DataUnit;
+	}
+
 }
 
 

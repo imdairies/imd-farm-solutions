@@ -16,9 +16,13 @@ import javax.ws.rs.core.Response;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
+import com.imd.dto.Animal;
 import com.imd.dto.LifeCycleEventCode;
+import com.imd.dto.Sire;
 import com.imd.dto.User;
+import com.imd.loader.AnimalLoader;
 import com.imd.loader.LVLifeCycleEventLoader;
+import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
@@ -205,7 +209,7 @@ public class LVLifecycleEventsSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lifecycle Event '" + eventCode+ "' could not be added. Please submit a bug report.\"}").build();
 		else 
 			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
-	}   
+	}
 	/**
 	 * This API adds a new life cycle event.
 	 * If an empty field is passed in request JSON it will be updated to empty value; therefore if you do not wish to update a field
@@ -231,12 +235,6 @@ public class LVLifecycleEventsSrvc {
 		if (eventCode == null || eventCode.trim().isEmpty()) {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
 		}
-//		if (shortDescription == null || shortDescription.trim().isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
-//		}
-//		if (longDescription == null || longDescription.trim().isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
-//		}
 		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
@@ -260,5 +258,107 @@ public class LVLifecycleEventsSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the syntax of the update string. This indicates a bug that we may have left in the code. Lifecycle Event '" + eventCode+ "' could not be edited. Please submit a bug report with IMDLabs.\"}").build();
 		else 
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred while editing the lifecycle event\"}").build();
-	}  	
+	}
+	
+	@POST
+	@Path("/sire")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveAISires(AnimalBean searchBean){
+		String sireValueResult = "";
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Sire> sireValues = loader.retrieveAISire();
+			if (sireValues == null || sireValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
+			}
+	    	Iterator<Sire> sireValueIt = sireValues.iterator();
+	    	while (sireValueIt.hasNext()) {
+	    		Sire sireValue = sireValueIt.next();
+	    		sireValueResult += "{\n" +  formJson(sireValue.getAnimalTag(), sireValue.getAlias(), "  ") + "\n},\n";
+	    	}
+	    	if (sireValueResult != null && !sireValueResult.trim().isEmpty() )
+	    		sireValueResult = "[" + sireValueResult.substring(0,sireValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		sireValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(sireValueResult, Util.INFO);
+		return Response.status(200).entity(sireValueResult).build();
+    }
+	
+	
+	@POST
+	@Path("/dam")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response getActiveFemale(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + formJson(animalValue.getAnimalTag(), animalValue.getAnimalTag(), "  ") + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }
+	
+	@POST
+	@Path("/retrievemates")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response getFemaleMates(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveActiveAnimals(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + formJson(animalValue.getAnimalTag(), animalValue.getAnimalTag(), "  ") + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }	
+	
+	
+	private String formJson(String field1, String field2, String prefix) {
+		return prefix + "\"code\":\"" + field1 + "\",\n" + prefix + 
+				"\"description\":\"" + field2 + "\"";
+	}
+	
+	
+	
+	
 }
