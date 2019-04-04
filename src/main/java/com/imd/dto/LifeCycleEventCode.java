@@ -2,11 +2,6 @@ package com.imd.dto;
 
 
 
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormatter;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.IMDException;
@@ -30,10 +25,18 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 	
 	private String field1Label;
 	private String field2Label;
+	private String field3Label;
+	private String field4Label;
 	private String field1DataType;
 	private String field2DataType;
+	private String field3DataType;
+	private String field4DataType;
 	private String field1DataUnit;
 	private String field2DataUnit;
+	private String field3DataUnit;
+	private String field4DataUnit;
+	
+	private String nextLifecycleStages;
 
 	public LifeCycleEventCode(String lifeCycleEventCode, String shortDescr, String longDescr) throws IMDException{
 		super();
@@ -102,6 +105,13 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 				prefix + fieldToJson("eventField2Label", this.field2Label) + ",\n" + 
 				prefix + fieldToJson("eventField2DataType", this.field2DataType) + ",\n" +
 				prefix + fieldToJson("eventField2DataUnit", this.field2DataUnit) + ",\n" + 
+				prefix + fieldToJson("eventField3Label", this.field2Label) + ",\n" + 
+				prefix + fieldToJson("eventField3DataType", this.field2DataType) + ",\n" +
+				prefix + fieldToJson("eventField3DataUnit", this.field2DataUnit) + ",\n" + 
+				prefix + fieldToJson("eventField4Label", this.field2Label) + ",\n" + 
+				prefix + fieldToJson("eventField4DataType", this.field2DataType) + ",\n" +
+				prefix + fieldToJson("eventField4DataUnit", this.field2DataUnit) + ",\n" + 
+				prefix + fieldToJson("nextLifecycleStage", this.getNextLifecycleStageList()) + ",\n" + 
 				prefix + fieldToJson("isActive", this.isActive) + ",\n";
 	}
 
@@ -166,6 +176,67 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 		return field2DataUnit;
 	}
 
+	public String getField3Label() {
+		return field3Label;
+	}
+
+	public void setField3Label(String field3Label) {
+		this.field3Label = field3Label;
+	}
+
+	public String getField4Label() {
+		return field4Label;
+	}
+
+	public void setField4Label(String field4Label) {
+		this.field4Label = field4Label;
+	}
+
+	public String getField3DataType() {
+		return field3DataType;
+	}
+
+	public void setField3DataType(String field3DataType) {
+		this.field3DataType = field3DataType;
+	}
+
+	public String getField4DataType() {
+		return field4DataType;
+	}
+
+	public void setField4DataType(String field4DataType) {
+		this.field4DataType = field4DataType;
+	}
+
+	public String getField3DataUnit() {
+		return field3DataUnit;
+	}
+
+	public void setField3DataUnit(String field3DataUnit) {
+		this.field3DataUnit = field3DataUnit;
+	}
+
+	public String getField4DataUnit() {
+		return field4DataUnit;
+	}
+
+	public void setField4DataUnit(String field4DataUnit) {
+		this.field4DataUnit = field4DataUnit;
+	}
+	
+	public void setNextLifecycleStage(String nextLifecycleStages) {
+		this.nextLifecycleStages = nextLifecycleStages;
+	}
+
+	public String getNextLifecycleStage() {
+		return this.nextLifecycleStages;
+	}
+	public String[] getNextLifecycleStageList() {
+		if (nextLifecycleStages == null || nextLifecycleStages.isEmpty())
+			return new String[0];
+		else
+			return nextLifecycleStages.split(",");
+	}
 }
 
 

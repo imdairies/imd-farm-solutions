@@ -15,10 +15,14 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.dto.Animal;
+import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
+import com.imd.loader.LVLifeCycleEventLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.LookupValuesLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDLogger;
@@ -183,8 +187,6 @@ public class LifecycleEventSrvc {
 	private String addEventForSingleAnimal(LifeCycleEventBean eventBean, AnimalBean animalBean, String userID) {
 		AnimalLoader animalLoader = new AnimalLoader();
 		LifecycleEvent event;
-		String eventComments = eventBean.getEventComments();
-		String eventCode = eventBean.getEventCode();
 
 		int result = -1;
 		String additionalMessage = "";
@@ -201,12 +203,7 @@ public class LifecycleEventSrvc {
 				event.setUpdatedBy(new User(userID));
 				event.setUpdatedDTTM(DateTime.now());
 				result = loader.insertLifeCycleEvent(event);
-				if (result > 0 && isAnimalMarkedPregnant(eventCode, eventComments)) {
-					// cow has been marked as pregnant
-					additionalMessage = "[SUCCESS] " + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag() + ". " + performPostPregnancyConfirmationSteps(animals.get(0));
-				} else {
-					additionalMessage = "[SUCCESS] " + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag();
-				}
+				additionalMessage = "[SUCCESS] " + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -259,16 +256,25 @@ public class LifecycleEventSrvc {
 					result = Util.ERROR_CODE.DOES_NOT_EXIST;
 					// exactly one animal should exist for the specified animal tag.
 				} else {
+					Animal animal = animals.get(0);
 					event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
 					event.setCreatedBy(new User(userID));
 					event.setCreatedDTTM(DateTime.now());
 					event.setUpdatedBy(new User(userID));
 					event.setUpdatedDTTM(DateTime.now());
 					result = eventsLoader.insertLifeCycleEvent(event);
-					if (result > 0 && isAnimalMarkedPregnant(eventCode, eventComments)) {
-						// cow has been marked as pregnant
-						IMDLogger.log("Attempting to set the status automatically", Util.INFO);
-						additionalMessage = ". " + performPostPregnancyConfirmationSteps(animals.get(0));
+					if (result > 0 && eventBean.getNextLifeCycleStage() != null && !eventBean.getNextLifeCycleStage().isEmpty()) {
+						LookupValuesLoader lookupLoader = new LookupValuesLoader();
+						LookupValues nextStageValue = lookupLoader.retrieveLookupValue(Util.LookupValues.LCYCL, eventBean.getNextLifeCycleStage());
+						if (nextStageValue == null) {
+							IMDLogger.log("The lookup value " + eventBean.getNextLifeCycleStage() + " does not exist. The animal's next lifecycle stage can't be set", Util.ERROR);
+							additionalMessage = ". The animal lifecycle stage could not be updated to " + eventBean.getNextLifeCycleStage() + ". You will have to manually update the stage";
+						} else {
+							animal.setAnimalTypeCD(nextStageValue.getLookupValueCode());
+							animal.setAnimalType(nextStageValue.getShortDescription());
+							IMDLogger.log("Attempting to set the Animal Lifecycle stage", Util.INFO);
+							additionalMessage = ". " + updateAnimalLifecycleStage(animal);							
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -288,47 +294,18 @@ public class LifecycleEventSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + validationResult + ". '" + eventCode+ "' could not be added.\"}").build();			
 		}
 	} 
-	
 
-
-
-	private boolean isAnimalMarkedPregnant(String eventCode, String eventComments) {
-		return (eventCode.equalsIgnoreCase(Util.LifeCycleEvents.PREGTEST) && eventComments.toUpperCase().indexOf("YES") >= 0);
-	}
-
-
-
-	private String performPostPregnancyConfirmationSteps(Animal animalDto) {
-		if (animalDto.getAnimalTypeCD().equalsIgnoreCase(Util.AnimalTypes.DRYPRENG) ||
-			animalDto.getAnimalTypeCD().equalsIgnoreCase(Util.AnimalTypes.HFRPREGN) ||
-			animalDto.getAnimalTypeCD().equalsIgnoreCase(Util.AnimalTypes.LCTPRGNT)) 
-		{
-			return "This animal was already marked " + animalDto.getAnimalTypeCD() + "; therefore we need not update the status";
-		}
-		String newStatus = determinePostPregnancyConfirmationStatus(animalDto);
-		if (newStatus == null || newStatus.isEmpty())
-			return "An appropriate new status could not be determined for this pregnant cow, probably because its existing status is incorrectly set to " + animalDto.getAnimalTypeCD() + ". Please manually set the animal status to indicate that its pregnant";
-		else {			
-			String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
-			AnimalLoader loader = new AnimalLoader();
-			animalDto.setAnimalTypeCD(newStatus);
-			animalDto.setUpdatedBy(new User(userID));
-			animalDto.setUpdatedDTTM(DateTime.now());
-			int result = loader.updateAnimalStatus(animalDto);
-			if (result == 1)
-				return "The animal status was automatically updated to " + newStatus;
-			else
-				return "The animal status could NOT be automatically updated to indicate its pregnancy. Please manually set the animal status to indicate that its pregnant";
-		}
-	}
-	private String determinePostPregnancyConfirmationStatus(Animal animalDto) {
-		if (animalDto.getAnimalTypeCD().equalsIgnoreCase(Util.AnimalTypes.HFRINSEMIN))
-			return Util.AnimalTypes.HFRPREGN;
-		else if (animalDto.getAnimalTypeCD().equalsIgnoreCase(Util.AnimalTypes.LCTINSEMIN))
-			return Util.AnimalTypes.LCTPRGNT;
+	private String updateAnimalLifecycleStage(Animal animalDto) {
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
+		AnimalLoader loader = new AnimalLoader();
+		animalDto.setUpdatedBy(new User(userID));
+		animalDto.setUpdatedDTTM(DateTime.now());
+		int result = loader.updateAnimalStatus(animalDto);
+		if (result == 1)
+			return "The animal lifecycle stage was automatically updated to " + animalDto.getAnimalType() + "(" + animalDto.getAnimalTypeCD() + ")";
 		else
-			return "";
-	}	
+			return "The animal status could NOT be automatically updated to " + animalDto.getAnimalType() + "(" + animalDto.getAnimalTypeCD() + ")" + ". Please manually set the animal status.";
+	}
 
 	@POST
 	@Path("/update")

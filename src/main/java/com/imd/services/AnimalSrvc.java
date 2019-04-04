@@ -38,6 +38,9 @@ import com.imd.util.Util;;
 @Path("/animals")
 public class AnimalSrvc {
 
+	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 270;
+
+
 	/**
 	 * Retrieves ALL the active animals in a farm
 	 * @return
@@ -259,7 +262,7 @@ public class AnimalSrvc {
 		    	String strInseminationTimeInfo = "";
 	    		if (isPregnant(animalValue) || isInseminated(animalValue)) {
 	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
-	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(270), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
+	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
 		    			int daysSinceInseminated = Util.getDaysBetween( DateTime.now(), inseminatedDate);
@@ -268,10 +271,17 @@ public class AnimalSrvc {
 	    					fmt = DateTimeFormat.forPattern("d MMM yyyy");
 	    				else
 	    					fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
+	    				String inseminationSireCode = animalEvents.get(0).getAuxField1Value();
+	    				String sexedIndicator = animalEvents.get(0).getAuxField2Value();
+	    				Sire sireInfo = null;
+	    				if (inseminationSireCode != null && !inseminationSireCode.isEmpty()) {
+	    					sireInfo = animalLoader.retrieveSire(inseminationSireCode);
+	    				}
 	    				int inseminationAttempts = eventLoader.determineInseminationAttemptCountInCurrentLactation(animalValue.getOrgID(),animalValue.getAnimalTag());
 	    				strInseminationTimeInfo = ",\n" + prefix + "\"lastInseminationTimeStamp\":\"" + fmt.print(animalEvents.get(0).getEventTimeStamp()) +"\"";
-	    				strInseminationTimeInfo += ",\n" + prefix + "\"inseminationSummary\":\"" + (isPregnant(animalValue) ? "✅ " : "❓ ") +  animalEvents.get(0).getAuxField1Value() + "\"";
-	    				strInseminationTimeInfo += ",\n" + prefix + "\"sexed\":\"" + animalEvents.get(0).getAuxField2Value() + "\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"eventTransactionID\":\"" + animalEvents.get(0).getEventTransactionID() + "\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"sireInformation\":\"" + (isPregnant(animalValue) ? "✅ " : "❓") + (sireInfo == null ? "ERROR Could not find the sire (" +  inseminationSireCode + ")" : sireInfo.getAlias() + " (" + sireInfo.getAnimalTag() + ")") + "\"";
+						strInseminationTimeInfo += ",\n" + prefix + "\"sexed\":\"" + sexedIndicator + "\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"inseminationAttempts\":\"" + inseminationAttempts +"\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"daysSinceInsemination\":\"" + daysSinceInseminated +"\"";
 			    		animalValueResult = "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + strInseminationTimeInfo + "\n},\n";
@@ -298,11 +308,11 @@ public class AnimalSrvc {
 								sortedJsonArray.add(0,animalValueResult);
 						}
 	    			} else {
-		    			additionalInfo = ",\n" + prefix + "\"sexed\":\"\",\n" + prefix + "\"inseminationSummary\":\"\"";
+		    			additionalInfo = ",\n" + prefix + "\"eventTransactionID\":\"\",\n" + prefix + "\"sexed\":\"\",\n" + prefix + "\"sireInformation\":\"\"";
 		    			noInseminationRecordJson += "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + additionalInfo + "\n},\n";
 	    			}
 	    		} else {
-	    			additionalInfo = ",\n" + prefix + "\"sexed\":\"\",\n" + prefix + "\"inseminationSummary\":\"\"";
+	    			additionalInfo = ",\n" + prefix + "\"eventTransactionID\":\"\",\n"+ prefix + "\"sexed\":\"\",\n" + prefix + "\"sireInformation\":\"\"";
 	    			noInseminationRecordJson += "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + additionalInfo + "\n},\n";
 	    		}
 	    	}

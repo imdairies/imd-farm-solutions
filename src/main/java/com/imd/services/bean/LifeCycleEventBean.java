@@ -1,8 +1,5 @@
 package com.imd.services.bean;
 
-import com.imd.util.IMDLogger;
-import com.imd.util.Util;
-
 public class LifeCycleEventBean {
 	private String eventTransactionID;
 	private String orgID;
@@ -14,6 +11,7 @@ public class LifeCycleEventBean {
 	private String auxField1Value;
 	private String auxField2Value;
 	private String auxField3Value;
+	private String nextLifeCycleStage;
 	
 	public LifeCycleEventBean() {
 		
@@ -83,13 +81,20 @@ public class LifeCycleEventBean {
 			"\nauxField3Value : " + auxField3Value + 
 			"\neventTimeStamp : " + eventTimeStamp + 
 			"\noperatorID : " + operatorID + 
-			"\neventComments : " + eventComments;
+			"\neventComments : " + eventComments +
+			"\nextLifeCycleStage : " + nextLifeCycleStage;
 	}
 	public String getEventTransactionID() {
 		return eventTransactionID;
 	}
 	public void setEventTransactionID(String eventTransactionID) {
 		this.eventTransactionID = eventTransactionID;
+	}
+	public String getNextLifeCycleStage() {
+		return nextLifeCycleStage;
+	}
+	public void setNextLifeCycleStage(String nextLifeCycleStage) {
+		this.nextLifeCycleStage = nextLifeCycleStage;
 	}
 	
 	

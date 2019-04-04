@@ -29,7 +29,10 @@ public class LVLifeCycleEventLoader {
 		String qryString = "insert into LV_LIFECYCLE_EVENT (EVENT_CD,ACTIVE_IND,SHORT_DESCR,LONG_DESCR,"
 				+ "FIELD1_LABEL,FIELD1_TYPE,FIELD1_UNIT,"
 				+ "FIELD2_LABEL,FIELD2_TYPE,FIELD2_UNIT,"
-				+ "CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+				+ "FIELD3_LABEL,FIELD3_TYPE,FIELD3_UNIT,"
+				+ "FIELD4_LABEL,FIELD4_TYPE,FIELD4_UNIT,"
+				+ "NEXT_LCYCL,"
+				+ "CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		int result = -1;
 		// using prepared statement automatically takes care of the special characters.
 		PreparedStatement preparedStatement = null;
@@ -46,10 +49,17 @@ public class LVLifeCycleEventLoader {
 			preparedStatement.setString(8, event.getField2Label());
 			preparedStatement.setString(9, event.getField2DataType());
 			preparedStatement.setString(10, event.getField2DataUnit());
-			preparedStatement.setString(11, event.getCreatedBy().getUserId());
-			preparedStatement.setString(12, event.getCreatedDTTMSQLFormat());
-			preparedStatement.setString(13, event.getUpdatedBy().getUserId());
-			preparedStatement.setString(14, event.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(11, event.getField3Label());
+			preparedStatement.setString(12, event.getField3DataType());
+			preparedStatement.setString(13, event.getField3DataUnit());
+			preparedStatement.setString(14, event.getField4Label());
+			preparedStatement.setString(15, event.getField4DataType());
+			preparedStatement.setString(16, event.getField4DataUnit());
+			preparedStatement.setString(17, event.getNextLifecycleStage());
+			preparedStatement.setString(18, event.getCreatedBy().getUserId());
+			preparedStatement.setString(19, event.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(20, event.getUpdatedBy().getUserId());
+			preparedStatement.setString(21, event.getUpdatedDTTMSQLFormat());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			result = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
@@ -165,13 +175,21 @@ public class LVLifeCycleEventLoader {
 			event.markInActive();
 		event.setField1Label(rs.getString("FIELD1_LABEL"));
 		event.setField1DataType(rs.getString("FIELD1_TYPE"));
+		event.setField1DataUnit(rs.getString("FIELD1_UNIT"));
 
 		event.setField2Label(rs.getString("FIELD2_LABEL"));
 		event.setField2DataType(rs.getString("FIELD2_TYPE"));
-
-		event.setField1DataUnit(rs.getString("FIELD1_UNIT"));
 		event.setField2DataUnit(rs.getString("FIELD2_UNIT"));
 
+		event.setField3Label(rs.getString("FIELD3_LABEL"));
+		event.setField3DataType(rs.getString("FIELD3_TYPE"));
+		event.setField3DataUnit(rs.getString("FIELD3_UNIT"));
+
+		event.setField4Label(rs.getString("FIELD4_LABEL"));
+		event.setField4DataType(rs.getString("FIELD4_TYPE"));
+		event.setField4DataUnit(rs.getString("FIELD4_UNIT"));
+
+		event.setNextLifecycleStage(rs.getString("NEXT_LCYCL"));
 		
 		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));

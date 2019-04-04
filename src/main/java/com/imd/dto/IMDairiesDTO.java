@@ -130,6 +130,22 @@ public class IMDairiesDTO {
 		return ("\"" + fieldName + "\":" + (valueTm == null ? "\"\"" : "\"" + valueTm.getHourOfDay() + ":" + valueTm.getMinuteOfHour() + "\""));
 	}
 
+	protected String fieldToJson(String fieldName, String[] nextLifecycleStageList) {
+		String values = "";
+		if (nextLifecycleStageList == null || nextLifecycleStageList.length == 0)
+			return ("\"" + fieldName + "\":[]");
+		else {
+			for (int i=0; i < nextLifecycleStageList.length; i++) {
+				if ((nextLifecycleStageList.length - i) == 1)
+					values +=  "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(nextLifecycleStageList[i])) + "\"";
+				else
+					values +=  "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(nextLifecycleStageList[i])) + "\",";
+			}
+			values = "\"" + fieldName + "\":[" + values + "]";
+		}
+		return values;
+	}
+
 	protected String fieldToJson(String fieldName, String strValue) {		
 		return ("\"" + fieldName + "\":" + (strValue == null ? "\"\"" : "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(strValue)) + "\""));
 	}

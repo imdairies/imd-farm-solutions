@@ -641,4 +641,47 @@ public class AnimalLoader {
 		values.add(Util.getDateInSQLFormart(dobThreshold));	
 		return retrieveAnimalTypes(values, qryString);
 	}
+
+	public Sire retrieveSire(String inseminationSireCode) {
+		String qryString = "Select * from LV_SIRE WHERE ID=? ORDER BY ALIAS";
+		Sire animalValue = null;
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		try {
+			Connection conn = DBManager.getDBConnection();		
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, inseminationSireCode);
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);		
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+				String id = rs.getString("ID");
+				String breed = rs.getString("BREED");
+				String alias = rs.getString("ALIAS");
+				String sireSpecification = rs.getString("RECORD_URL");
+				String controller = rs.getString("CONTROLLER");
+				String sirePhoto = rs.getString("PHOTO_URL");
+				animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
+				animalValue.setBreed(breed);
+				animalValue.setAlias(alias);
+				animalValue.setSireSpecification(sireSpecification);
+				animalValue.setController(controller);
+				animalValue.setSirePhoto(sirePhoto);
+				animalValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
+				animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+				animalValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
+				animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));			
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return animalValue;
+    }
 }

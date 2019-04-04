@@ -18,6 +18,13 @@ public class Util {
 	public static String COW_BACK_IMAGE_PHOTO_URL = "/assets/img/cow-photos/2.png";
 	public static String COW_RIGHT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/3.png";
 	public static String COW_LEFT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/4.png";
+
+	
+	 public static final class LookupValues {
+		public final static String LCYCL = "LCYCL";
+	}
+
+	
 	
 	 public static final class PROPERTIES {
 		public final static String JDBC_DRIVER = "JDBC_DRIVER";
@@ -42,6 +49,8 @@ public class Util {
 		public static final String FLOAT = "FLOAT";
 		public static final String TEXT = "TEXT";
 		public static final String DATETIME = "DATETIME";
+		public static final String YESNO = "YESNO";
+		public static final String LV_SIRE = "LV:/sire";
 	}
 
 	
@@ -119,6 +128,7 @@ public class Util {
 			public static final int DATA_LENGTH_ISSUE = -1002;
 			public static final int SQL_SYNTAX_ERROR = -1003;
 			public static final int DOES_NOT_EXIST = -1004;
+			public static final int PARTIAL_SUCCESS = -1005;
 	 }
 	 
 	 

@@ -103,16 +103,6 @@ public class LifecycleEvent extends IMDairiesDTO{
 
 
 
-	public int getEventID() {
-		return eventTransactionID;
-	}
-
-
-	public void setEventID(int eventID) {
-		this.eventTransactionID = eventID;
-	}
-
-
 	public String getAnimalTag() {
 		return animalTag;
 	}

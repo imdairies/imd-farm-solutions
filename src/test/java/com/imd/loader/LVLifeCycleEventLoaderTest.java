@@ -16,9 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.imd.dto.LifeCycleEventCode;
-import com.imd.dto.Person;
 import com.imd.dto.User;
-import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
@@ -66,20 +64,27 @@ class LVLifeCycleEventLoaderTest {
 			; 
 		}
 		try {
-			// 0: Search for the test record, if it exists then delete it so that we can start afresh.
-			List<LifeCycleEventCode> events = loader.retrieveLifeCycleEvent("TSTHEAT");
-			if (events != null && events.size() > 0) {
-				loader.deleteLifeCycleEvent("TSTHEAT");
-				IMDLogger.log("TSTHEAT record already exists, have deleted it now", Util.ERROR);
-			}
+			loader.deleteLifeCycleEvent("TSTHEAT");
 			// 1: Now insert the test record without having to worry about whether it already exists or not.
 			event = new LifeCycleEventCode("TSTHEAT", "01Test Heat", "Indicates when the cow is in heat. \nCow's heat % \"'\" testing - notice the special character in the description to test SQL escape functionality."); 			
 			event.setField1Label("Standing Heat Time");
 			event.setField1DataType(Util.DataTypes.DATETIME);
 			event.setField1DataUnit("hh:mm:ss");
+			
 			event.setField2Label("Comments");
 			event.setField2DataType(Util.DataTypes.TEXT);
 			event.setField2DataUnit("haha");
+
+			event.setField3Label("Test3");
+			event.setField3DataType(Util.DataTypes.YESNO);
+			event.setField3DataUnit(""); 
+			
+			event.setField4Label("Test4");
+			event.setField4DataType(Util.DataTypes.LV_SIRE);
+			event.setField4DataUnit("");
+			
+			event.setNextLifecycleStage(Util.AnimalTypes.LCTINSEMIN + "," + Util.AnimalTypes.LCTPRGNT);
+			
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
 			event.setUpdatedBy(event.getCreatedBy());
@@ -91,8 +96,27 @@ class LVLifeCycleEventLoaderTest {
 			// 2a: Search for the newly inserted event and verify it is retrieved properly
 			event = loader.retrieveLifeCycleEvent(event.getEventCode()).get(0);
 			assertEquals("TSTHEAT",event.getEventCode(),"Retrieved Record should have the correct Event Code");
-			IMDLogger.log("TSTHEAT record has been successfully retrieved through retrieveLifeCycleEvent ", Util.INFO);
+			
+			assertEquals("Standing Heat Time",event.getField1Label());
+			assertEquals(Util.DataTypes.DATETIME,event.getField1DataType());
+			assertEquals("hh:mm:ss",event.getField1DataUnit());
+			
+			assertEquals("Comments",event.getField2Label());
+			assertEquals(Util.DataTypes.TEXT,event.getField2DataType());
+			assertEquals("haha",event.getField2DataUnit());
 
+			assertEquals("Test3",event.getField3Label());
+			assertEquals(Util.DataTypes.YESNO,event.getField3DataType());
+			assertEquals("",event.getField3DataUnit());
+
+			assertEquals("Test4",event.getField4Label());
+			assertEquals(Util.DataTypes.LV_SIRE,event.getField4DataType());
+			assertEquals("",event.getField4DataUnit());
+
+			assertEquals(Util.AnimalTypes.LCTINSEMIN + "," + Util.AnimalTypes.LCTPRGNT,event.getNextLifecycleStage());
+			assertEquals(2,event.getNextLifecycleStageList().length);
+
+			
 			// 2b: Search for the newly inserted event and verify it is retrieved properly
 			List<LifeCycleEventCode> records = null;
 			LifeCycleEventCodeBean bean = new LifeCycleEventCodeBean();
@@ -131,7 +155,7 @@ class LVLifeCycleEventLoaderTest {
 			event = records.get(0);			
 			assertTrue(size <= records.size(), " Search with no where clause should NOT have brought less records than the search with a where clause");						
 			// 3: Retrieve All events and ensure one of them is the one that we inserted above.
-			events = loader.retrieveAllActiveLifeCycleEvents();
+			List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();
 			Iterator<LifeCycleEventCode> it = events.iterator();
 			boolean found = false;
 			while (it.hasNext()) {

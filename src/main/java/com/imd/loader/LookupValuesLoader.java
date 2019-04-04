@@ -68,6 +68,13 @@ public class LookupValuesLoader {
 	public List<LookupValues> retrieveLookupValues(LookupValuesBean searchBean) {
 		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.getActiveIndicator(), false);
 	}
+	public  LookupValues retrieveLookupValue(String categoryCode, String lookupValueCode) {
+		List<LookupValues> luValues = performSearch(categoryCode, lookupValueCode, "Y", false);
+		if (luValues != null && luValues.size() >= 1)
+			return luValues.get(0);
+		else 
+			return null;
+	}
 	public List<LookupValues> retrieveMatchingLookupValues(LookupValuesBean searchBean) {
 		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.getActiveIndicator(), true);
 	}
