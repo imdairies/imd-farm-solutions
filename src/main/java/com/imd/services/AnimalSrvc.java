@@ -280,7 +280,8 @@ public class AnimalSrvc {
 	    				int inseminationAttempts = eventLoader.determineInseminationAttemptCountInCurrentLactation(animalValue.getOrgID(),animalValue.getAnimalTag());
 	    				strInseminationTimeInfo = ",\n" + prefix + "\"lastInseminationTimeStamp\":\"" + fmt.print(animalEvents.get(0).getEventTimeStamp()) +"\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"eventTransactionID\":\"" + animalEvents.get(0).getEventTransactionID() + "\"";
-	    				strInseminationTimeInfo += ",\n" + prefix + "\"sireInformation\":\"" + (isPregnant(animalValue) ? "✅ " : "❓") + (sireInfo == null ? "ERROR Could not find the sire (" +  inseminationSireCode + ")" : sireInfo.getAlias() + " (" + sireInfo.getAnimalTag() + ")") + "\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"sireInformation\":\"" + (sireInfo == null ? "ERROR Could not find the sire (" +  inseminationSireCode + ")" : sireInfo.getAlias() + " (" + sireInfo.getAnimalTag() + ")") + "\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"isPregnant\":\"" + (isPregnant(animalValue) ? "YES" : "UNKNOWN") + "\"";
 						strInseminationTimeInfo += ",\n" + prefix + "\"sexed\":\"" + sexedIndicator + "\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"inseminationAttempts\":\"" + inseminationAttempts +"\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"daysSinceInsemination\":\"" + daysSinceInseminated +"\"";
@@ -308,11 +309,11 @@ public class AnimalSrvc {
 								sortedJsonArray.add(0,animalValueResult);
 						}
 	    			} else {
-		    			additionalInfo = ",\n" + prefix + "\"eventTransactionID\":\"\",\n" + prefix + "\"sexed\":\"\",\n" + prefix + "\"sireInformation\":\"\"";
+		    			additionalInfo = ",\n" + prefix + "\"isPregnant\":\"\",\n" + prefix + "\"eventTransactionID\":\"\",\n" + prefix + "\"sexed\":\"\",\n" + prefix + "\"sireInformation\":\"\"";
 		    			noInseminationRecordJson += "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + additionalInfo + "\n},\n";
 	    			}
 	    		} else {
-	    			additionalInfo = ",\n" + prefix + "\"eventTransactionID\":\"\",\n"+ prefix + "\"sexed\":\"\",\n" + prefix + "\"sireInformation\":\"\"";
+	    			additionalInfo = ",\n" + prefix + "\"isPregnant\":\"\",\n" + prefix + "\"eventTransactionID\":\"\",\n"+ prefix + "\"sexed\":\"\",\n" + prefix + "\"sireInformation\":\"\"";
 	    			noInseminationRecordJson += "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + additionalInfo + "\n},\n";
 	    		}
 	    	}
