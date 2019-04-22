@@ -30,6 +30,8 @@ import com.imd.util.Util;
  */
 public class FMDVaccinationAdvisement extends AdvisementRule {
 	
+	private static final String FOOTANDMOUTH = "FOOT&MOUTH";
+
 	public FMDVaccinationAdvisement(){
 		setAdvisementID(Util.AdvisementRules.VACCINEFMD);
 	}
@@ -59,24 +61,23 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								startDate,
 								endDate,
-								Util.LifeCycleEvents.FMDVACCINE, null);
+								Util.LifeCycleEvents.VACCINE, null,FOOTANDMOUTH,null);
 						String ruleNote = "";
 						String animalNote = ""; 						
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
-							// The cow has not been applied FMD vaccination in the last THRESHOLD3 days.
 							IMDLogger.log("Latest Vaccination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceVaccinated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
-							animalNote = "This animal was given vaccination " + daysSinceVaccinated + " days ago.";	
-							if (ruleDto.getThirdThreshold() > 0 && daysSinceVaccinated >= ruleDto.getThirdThreshold()) {
-								ruleNote = ruleDto.getThirdThresholdMessage();
-								animal.setThreshold3Violated(true);
-							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceVaccinated >= ruleDto.getSecondThreshold()) {
-								ruleNote = ruleDto.getSecondThresholdMessage();
-								animal.setThreshold2Violated(true);
-							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceVaccinated >= ruleDto.getFirstThreshold()) {
-								ruleNote = ruleDto.getFirstThresholdMessage();
-								animal.setThreshold1Violated(true);
-							}
+							animalNote = "This animal was given vaccination " + daysSinceVaccinated + " days ago.";
+								if (ruleDto.getThirdThreshold() > 0 && daysSinceVaccinated >= ruleDto.getThirdThreshold()) {
+									ruleNote = ruleDto.getThirdThresholdMessage();
+									animal.setThreshold3Violated(true);
+								} else if (ruleDto.getSecondThreshold() > 0 && daysSinceVaccinated >= ruleDto.getSecondThreshold()) {
+									ruleNote = ruleDto.getSecondThresholdMessage();
+									animal.setThreshold2Violated(true);
+								} else if (ruleDto.getFirstThreshold() > 0 && daysSinceVaccinated >= ruleDto.getFirstThreshold()) {
+									ruleNote = ruleDto.getFirstThresholdMessage();
+									animal.setThreshold1Violated(true);
+								}
 						} else {
 							// the cow was not vaccinated with in the last THRESHOLD3 days
 							ruleNote = ruleDto.getThirdThresholdMessage();

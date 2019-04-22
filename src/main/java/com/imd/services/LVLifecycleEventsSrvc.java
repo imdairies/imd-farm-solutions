@@ -100,6 +100,7 @@ public class LVLifecycleEventsSrvc {
 	@Path("{eventcode}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getLifecycleEvent(@PathParam("eventcode") String eventcode){
+		IMDLogger.log("Retrieving event code: " + eventcode, Util.INFO);
     	String lvEvents = "";
     	try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
@@ -352,6 +353,7 @@ public class LVLifecycleEventsSrvc {
 		return Response.status(200).entity(animalValueResult).build();
     }	
 	
+
 	
 	private String formJson(String field1, String field2, String prefix) {
 		return prefix + "\"code\":\"" + field1 + "\",\n" + prefix + 

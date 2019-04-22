@@ -59,7 +59,7 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								startDate,
 								endDate,
-								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
+								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null);
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceInseminated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());

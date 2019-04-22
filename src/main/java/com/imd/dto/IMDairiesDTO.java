@@ -117,9 +117,7 @@ public class IMDairiesDTO {
 		return ("\"" + fieldName + "\":\"" + (dateDifference == null ? "\"\"" : 
 				(dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") +
 				(dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") +
-				(dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "")) + "\"");
-
-	
+				(dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "")) + "\"");	
 	}
 
 	protected String fieldToJson(String fieldName, LocalDate valueDt) {

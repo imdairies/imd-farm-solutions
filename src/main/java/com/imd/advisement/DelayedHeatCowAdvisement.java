@@ -62,7 +62,7 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION);
+								Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION,null,null);
 						if (parturitionEvents == null || parturitionEvents.isEmpty()) {
 							IMDLogger.log("This animal (" + animal.getAnimalTag() + ") is lactating cow which is neither inseminated nor pregnant. "
 									+ "It must have had a parturition or abortion event in the past - we did not find any. "
@@ -72,7 +72,7 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 									orgId,animal.getAnimalTag(),
 									new LocalDate(parturitionEvents.get(0).getEventTimeStamp()),
 									LocalDate.now().plusDays(1),/*this ensures that we accommodate today's events*/
-									Util.LifeCycleEvents.HEAT, null);
+									Util.LifeCycleEvents.HEAT, null,null,null);
 							if (heatEvents == null || heatEvents.isEmpty()) {
 								// This animal never came into heat since its last parturition.
 								int daysSinceParturition = getDaysBetween(DateTime.now(), parturitionEvents.get(0).getEventTimeStamp());

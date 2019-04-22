@@ -3,8 +3,11 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -15,8 +18,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.imd.dto.Animal;
+import com.imd.dto.Dam;
 import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.Note;
 import com.imd.dto.Person;
 import com.imd.dto.User;
 import com.imd.util.DBManager;
@@ -41,6 +47,26 @@ class LifeCycleEventLoaderTest {
 	void tearDown() throws Exception {
 	}
 
+
+	public Animal createTestAnimal(String animalTag) throws Exception {
+		Dam c000 = new Dam(/*orgid*/"IMD",/*tag*/animalTag,/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"PKR");
+		c000.setAlias("Laal");
+		c000.setAnimalType("LACTATING");
+		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
+		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
+		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
+		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
+		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
+		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
+		c000.setCreatedBy(new User("KASHIF"));
+		c000.setCreatedDTTM(DateTime.now());
+		c000.setUpdatedBy(c000.getCreatedBy());
+		c000.setUpdatedDTTM(c000.getCreatedDTTM());
+		c000.setAnimalDam(null);
+		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
+		c000.addNote(newNote);
+		return c000;
+	}
 	@Test
 	void testDatabaseConnection() {
 		try {
@@ -52,6 +78,114 @@ class LifeCycleEventLoaderTest {
 			ex.printStackTrace();
 		}
 	}
+	
+	
+
+	@Test
+	void testEventRetrievalOfParticularType() {
+		// 1: Insert a new Lifecycle event and verify the correct insertion.
+		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+		AnimalLoader animalLoader = new AnimalLoader();
+		LifecycleEvent event;
+		try {
+			Animal animal999 = createTestAnimal("-999");
+			
+			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
+			
+			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE);			
+			event.setEventTimeStamp(DateTime.now().minusDays(10));
+			event.setAuxField1Value("BQ");
+			event.setAuxField2Value("BQGOVT");
+			event.setAuxField3Value(null);			
+			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
+			event.setCreatedBy(new User("KASHIF"));
+			event.setCreatedDTTM(DateTime.now());
+			event.setUpdatedBy(event.getCreatedBy());
+			event.setUpdatedDTTM(event.getCreatedDTTM());
+			event.setEventNote("Testing Black Quarter Vaccination");
+			int transactionID = animalLoader.insertAnimal(animal999);
+			assertTrue(transactionID == 1,"Exactly one animal should have been added successfully");
+			transactionID = eventLoader.insertLifeCycleEvent(event);
+			assertTrue(transactionID>0,"Exactly one event should have been added successfully");
+			
+			List<LifecycleEvent> retevents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal999.getOrgID(), animal999.getAnimalTag(),null);
+			assertEquals(1,retevents.size());
+			LifecycleEvent retevent = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal999.getOrgID(), animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE).get(0);
+			assertEquals(event.getAuxField1Value(),retevent.getAuxField1Value());
+			assertEquals(event.getAuxField2Value(),retevent.getAuxField2Value());
+			assertEquals(event.getAuxField3Value(),retevent.getAuxField3Value());
+			assertEquals(event.getEventType().getEventCode(),retevent.getEventType().getEventCode());
+			assertEquals("CATEGORY_CD",retevent.getEventType().getField1DataType());
+			assertEquals("DISEASE",retevent.getEventType().getField1DataUnit());
+			assertEquals("CATEGORY_CD",retevent.getEventType().getField2DataType());
+			assertEquals("VACCINE",retevent.getEventType().getField2DataUnit());
+			assertEquals(null,retevent.getEventType().getField3DataType());
+			assertEquals(null,retevent.getEventType().getField3DataUnit());
+			assertEquals(null,retevent.getEventType().getField4DataType());
+			assertEquals(null,retevent.getEventType().getField4DataUnit());
+			
+			
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("LifeCycleEvent Creation and/or insertion Failed.");
+		}
+		
+	}	
+	
+	@Test
+	void testLookupValuesAndTransactionValuesJson() {
+		// 1: Insert a new Lifecycle event and verify the correct insertion.
+		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+		AnimalLoader animalLoader = new AnimalLoader();
+		LifecycleEvent event;
+		try {
+			Animal animal999 = createTestAnimal("-999");
+			
+			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
+			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE);			
+			event.setEventTimeStamp(DateTime.now().minusDays(10));
+			event.setAuxField1Value("BQ");
+			event.setAuxField2Value("BQGOVT");
+			event.setAuxField3Value(null);			
+			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
+			event.setCreatedBy(new User("KASHIF"));
+			event.setCreatedDTTM(DateTime.now());
+			event.setUpdatedBy(event.getCreatedBy());
+			event.setUpdatedDTTM(event.getCreatedDTTM());
+			event.setEventNote("Testing Black Quarter Vaccination");
+			int transactionID = animalLoader.insertAnimal(animal999);
+			assertTrue(transactionID == 1,"Exactly one animal should have been added successfully");
+			transactionID = eventLoader.insertLifeCycleEvent(event);
+			assertTrue(transactionID>0,"Exactly one event should have been added successfully");
+			
+			LifecycleEvent retevent = eventLoader.retrieveLifeCycleEvent(animal999.getOrgID(), transactionID);
+			assertEquals(event.getAuxField1Value(),retevent.getAuxField1Value());
+			assertEquals(event.getAuxField2Value(),retevent.getAuxField2Value());
+			assertEquals(event.getAuxField3Value(),retevent.getAuxField3Value());
+			assertEquals("CATEGORY_CD",retevent.getEventType().getField1DataType());
+			assertEquals("DISEASE",retevent.getEventType().getField1DataUnit());
+			assertEquals("CATEGORY_CD",retevent.getEventType().getField2DataType());
+			assertEquals("VACCINE",retevent.getEventType().getField2DataUnit());
+			assertEquals(null,retevent.getEventType().getField3DataType());
+			assertEquals(null,retevent.getEventType().getField3DataUnit());
+			assertEquals(null,retevent.getEventType().getField4DataType());
+			assertEquals(null,retevent.getEventType().getField4DataUnit());
+			
+			
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("LifeCycleEvent Creation and/or insertion Failed.");
+		}
+		
+	}	
 	
 	
 	@Test

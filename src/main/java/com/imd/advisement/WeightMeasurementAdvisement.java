@@ -58,7 +58,7 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								startDate,
 								null,
-								Util.LifeCycleEvents.WEIGHT, null);
+								Util.LifeCycleEvents.WEIGHT, null,null,null);
 						int currentAgeInDays = Util.getDaysBetween(DateTime.now(), animal.getDateOfBirth());
 						String ruleNote = "";
 						String animalNote = "";

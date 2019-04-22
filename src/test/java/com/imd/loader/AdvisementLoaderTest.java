@@ -1220,11 +1220,13 @@ class AdvisementLoaderTest {
 			animalLoader.deleteAnimal("IMD", "-997");
 			animalLoader.deleteAnimal("IMD", "-996");
 			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
 			///////////////////
 			
 
@@ -1247,10 +1249,36 @@ class AdvisementLoaderTest {
 			Animal vaccineTh1 = createTestAnimal("-995");
 			vaccineTh1.setAnimalStatus("ACTIVE");
 			vaccineTh1.setAnimalType("DRYPREG");			
+
+			Animal vaccineButNotFMD = createTestAnimal("-994");
+			vaccineButNotFMD.setAnimalStatus("ACTIVE");
+			vaccineButNotFMD.setAnimalType("DRYPREG");
+
+			LifeCycleEventBean eventBeanNotFMD = new LifeCycleEventBean();
+			eventBeanNotFMD.setAnimalTag(vaccineOk.getAnimalTag());
+			eventBeanNotFMD.setEventCode(Util.LifeCycleEvents.VACCINE);
+			eventBeanNotFMD.setEventComments("Test FMD Vaccination Event - no violation");
+			eventBeanNotFMD.setOrgID("IMD");
+			eventBeanNotFMD.setAuxField1Value("BQ");
+			
+			eventBeanNotFMD.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(149)));
+			LifecycleEvent inseminationEventNoFMD = new LifecycleEvent(eventBeanNotFMD);
+			inseminationEventNoFMD.setCreatedBy(new User("KASHIF"));
+			inseminationEventNoFMD.setUpdatedBy(new User("KASHIF"));
+			inseminationEventNoFMD.setCreatedDTTM(DateTime.now());
+			inseminationEventNoFMD.setUpdatedDTTM(DateTime.now());
+			inseminationEventNoFMD.setEventNote("Test Vaccination Event. This animal should not violate any threshold.");
+			inseminationEventNoFMD.setAnimalTag(vaccineButNotFMD.getAnimalTag());
+
+			int transNotFMD = animalLoader.insertAnimal(vaccineButNotFMD);
+			eventsLoader.insertLifeCycleEvent(inseminationEventNoFMD);
+			
+			
+			
 			
 			LifeCycleEventBean eventBeanTh3 = new LifeCycleEventBean();
 			eventBeanTh3.setAnimalTag(vaccineTh3.getAnimalTag());
-			eventBeanTh3.setEventCode(Util.LifeCycleEvents.FMDVACCINE);
+			eventBeanTh3.setEventCode(Util.LifeCycleEvents.VACCINE);
 			eventBeanTh3.setEventComments("Test FMD Vaccination Event - violates Threshold 3");
 			eventBeanTh3.setOrgID("IMD");
 			eventBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(210)));
@@ -1262,9 +1290,10 @@ class AdvisementLoaderTest {
 			
 			LifeCycleEventBean eventBeanTh2 = new LifeCycleEventBean();
 			eventBeanTh2.setAnimalTag(vaccineTh2.getAnimalTag());
-			eventBeanTh2.setEventCode(Util.LifeCycleEvents.FMDVACCINE);
+			eventBeanTh2.setEventCode(Util.LifeCycleEvents.VACCINE);
 			eventBeanTh2.setEventComments("Test FMD Vaccination Event - violates Threshold 2");
 			eventBeanTh2.setOrgID("IMD");
+			eventBeanTh2.setAuxField1Value("FOOT&MOUTH");
 			eventBeanTh2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(175)));
 			LifecycleEvent inseminationEventTh2 = new LifecycleEvent(eventBeanTh2);
 			inseminationEventTh2.setCreatedBy(new User("KASHIF"));
@@ -1274,9 +1303,11 @@ class AdvisementLoaderTest {
 		
 			LifeCycleEventBean eventBeanTh1 = new LifeCycleEventBean();
 			eventBeanTh1.setAnimalTag(vaccineTh1.getAnimalTag());
-			eventBeanTh1.setEventCode(Util.LifeCycleEvents.FMDVACCINE);
+			eventBeanTh1.setEventCode(Util.LifeCycleEvents.VACCINE);
 			eventBeanTh1.setEventComments("Test FMD Vaccination Event - violates Threshold 1");
 			eventBeanTh1.setOrgID("IMD");
+			eventBeanTh1.setAuxField1Value("FOOT&MOUTH");
+
 			eventBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(151)));
 			LifecycleEvent inseminationEventTh1 = new LifecycleEvent(eventBeanTh1);
 			inseminationEventTh1.setCreatedBy(new User("KASHIF"));
@@ -1287,9 +1318,11 @@ class AdvisementLoaderTest {
 
 			LifeCycleEventBean eventBeanTh0 = new LifeCycleEventBean();
 			eventBeanTh0.setAnimalTag(vaccineOk.getAnimalTag());
-			eventBeanTh0.setEventCode(Util.LifeCycleEvents.FMDVACCINE);
+			eventBeanTh0.setEventCode(Util.LifeCycleEvents.VACCINE);
 			eventBeanTh0.setEventComments("Test FMD Vaccination Event - no violation");
 			eventBeanTh0.setOrgID("IMD");
+			eventBeanTh0.setAuxField1Value("FOOT&MOUTH");
+			
 			eventBeanTh0.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(149)));
 			LifecycleEvent inseminationEventTh0 = new LifecycleEvent(eventBeanTh0);
 			inseminationEventTh0.setCreatedBy(new User("KASHIF"));
@@ -1301,19 +1334,19 @@ class AdvisementLoaderTest {
 			int transNoVaccine = animalLoader.insertAnimal(noVaccine);
 
 			int transVaccineOk = animalLoader.insertAnimal(vaccineOk);
-			inseminationEventTh0.setEventNote("Test Insemination Event. This animal should not violate any threshold.");
+			inseminationEventTh0.setEventNote("Test Vaccination Event. This animal should not violate any threshold.");
 			inseminationEventTh0.setAnimalTag(vaccineOk.getAnimalTag());
 			eventsLoader.insertLifeCycleEvent(inseminationEventTh0);
 			
 			int transVaccineTh3 = animalLoader.insertAnimal(vaccineTh3);
 			inseminationEventTh3.setAnimalTag(vaccineTh3.getAnimalTag());
-			inseminationEventTh3.setEventNote("Test Insemination Event. This cow violated TH3.");
+			inseminationEventTh3.setEventNote("Test Vaccination Event. This cow violated TH3.");
 			eventsLoader.insertLifeCycleEvent(inseminationEventTh3);
 
 
 			int transVaccineTh2 = animalLoader.insertAnimal(vaccineTh2);
 			inseminationEventTh2.setAnimalTag(vaccineTh2.getAnimalTag());
-			inseminationEventTh2.setEventNote("Test Insemination Event. This cow violated TH2.");
+			inseminationEventTh2.setEventNote("Test Vaccination Event. This cow violated TH2.");
 			eventsLoader.insertLifeCycleEvent(inseminationEventTh2);
 
 			int transVaccineTh1 = animalLoader.insertAnimal(vaccineTh1);
@@ -1321,19 +1354,19 @@ class AdvisementLoaderTest {
 			inseminationEventTh1.setEventNote("Test Insemination Event. This cow violated TH1.");
 			eventsLoader.insertLifeCycleEvent(inseminationEventTh1);
 			
-			
-			
-			assertEquals(1,transNoVaccine, "Exactly one record -999 should have been inserted");
-			assertEquals(1,transVaccineOk, "Exactly one record -998 should have been inserted");			
+			assertEquals(1,transNoVaccine,  "Exactly one record -999 should have been inserted");
+			assertEquals(1,transVaccineOk,  "Exactly one record -998 should have been inserted");			
 			assertEquals(1,transVaccineTh3, "Exactly one record -997 should have been inserted");
-			assertEquals(1,transVaccineTh2, "Exactly one record -997 should have been inserted");
-			assertEquals(1,transVaccineTh1, "Exactly one record -997 should have been inserted");
+			assertEquals(1,transVaccineTh2, "Exactly one record -996 should have been inserted");
+			assertEquals(1,transVaccineTh1, "Exactly one record -995 should have been inserted");
+			assertEquals(1,transNotFMD,     "Exactly one record -994 should have been inserted");
 
 			List<Animal> animalPop = fmd.getAdvisementRuleAddressablePopulation("IMD");
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
 			boolean noVaccineFound = false;
+			boolean vaccineButNotFMDFound = false;
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -1347,6 +1380,11 @@ class AdvisementLoaderTest {
 						assertFalse(populationAnimal.isThreshold2Violated(),"This animal should have violated third threshold. It was never vaccinated");
 						assertTrue(populationAnimal.isThreshold3Violated(),"This animal should have violated third threshold. It was never vaccinated");
 						noVaccineFound = true;
+					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(vaccineButNotFMD.getAnimalTag())) {
+						assertFalse(populationAnimal.isThreshold1Violated(),"This animal should have violated third threshold. It was never vaccinated");
+						assertFalse(populationAnimal.isThreshold2Violated(),"This animal should have violated third threshold. It was never vaccinated");
+						assertTrue(populationAnimal.isThreshold3Violated(),"This animal should have violated third threshold. It was never vaccinated");
+						vaccineButNotFMDFound = true;
 					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(vaccineTh3.getAnimalTag())) {
 						assertFalse(populationAnimal.isThreshold1Violated(),"This animal should have violated third threshold");
 						assertFalse(populationAnimal.isThreshold2Violated(),"This animal should have violated third threshold");
@@ -1366,6 +1404,7 @@ class AdvisementLoaderTest {
 				}
 			}
 			assertTrue(noVaccineFound,noVaccine.getAnimalTag() +  "("+ noVaccine.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
+			assertTrue(vaccineButNotFMDFound,vaccineButNotFMD.getAnimalTag() +  "("+ vaccineButNotFMD.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
 			assertTrue(th1Found,vaccineTh1.getAnimalTag() +  "("+ vaccineTh1.getAnimalType() + ") should have been included in the Threshold1 Violation Advisement population");
 			assertTrue(th2Found,vaccineTh2.getAnimalTag() +  "("+ vaccineTh2.getAnimalType() + ") should have been included in the Threshold2 Violation Advisement population");
 			assertTrue(th3Found,vaccineTh3.getAnimalTag() +  "("+ vaccineTh3.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
@@ -1376,11 +1415,13 @@ class AdvisementLoaderTest {
 			animalLoader.deleteAnimal("IMD", "-997");
 			animalLoader.deleteAnimal("IMD", "-996");
 			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
 			///////////////////
 			
 		} catch (Exception ex) {

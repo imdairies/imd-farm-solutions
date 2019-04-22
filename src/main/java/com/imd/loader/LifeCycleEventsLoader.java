@@ -102,6 +102,8 @@ public class LifeCycleEventsLoader {
 		String qryString = "Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, "
 				+ "b.FIELD1_LABEL, b.FIELD1_TYPE, b.FIELD1_UNIT,"
 				+ "b.FIELD2_LABEL, b.FIELD2_TYPE, b.FIELD2_UNIT,"
+				+ "b.FIELD3_LABEL, b.FIELD3_TYPE, b.FIELD3_UNIT,"
+				+ "b.FIELD4_LABEL, b.FIELD4_TYPE, b.FIELD4_UNIT,"
 				+ "c.SHORT_DESCR as OPERATOR_SHORT_DESCR "
 				+ " from LIFECYCLE_EVENTS a  "
 				+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  "
@@ -164,21 +166,42 @@ public class LifeCycleEventsLoader {
 		String eventCd = setValueIfAvailable(rs, "EVENT_CD");
 		String eventShortDescription = setValueIfAvailable(rs, "EVENT_SHORT_DESCR");
 		String eventLongDescription = setValueIfAvailable(rs, "EVENT_LONG_DESCR");
+		
 		String field1Label = setValueIfAvailable(rs, "FIELD1_LABEL");
 		String field1DataType = setValueIfAvailable(rs, "FIELD1_TYPE");
 		String field1DataUnit = setValueIfAvailable(rs, "FIELD1_UNIT");
+		
 		String field2Label = setValueIfAvailable(rs, "FIELD2_LABEL");
 		String field2DataType = setValueIfAvailable(rs, "FIELD2_TYPE");
-		String field2DataUnit = setValueIfAvailable(rs, "FIELD1_UNIT");
+		String field2DataUnit = setValueIfAvailable(rs, "FIELD2_UNIT");
+		
+		String field3Label = setValueIfAvailable(rs, "FIELD3_LABEL");
+		String field3DataType = setValueIfAvailable(rs, "FIELD3_TYPE");
+		String field3DataUnit = setValueIfAvailable(rs, "FIELD3_UNIT");
+		
+		String field4Label = setValueIfAvailable(rs, "FIELD4_LABEL");
+		String field4DataType = setValueIfAvailable(rs, "FIELD4_TYPE");
+		String field4DataUnit = setValueIfAvailable(rs, "FIELD4_UNIT");
 		LifeCycleEventCode eventCode = null;
 		try {
 			eventCode = new LifeCycleEventCode(eventCd, eventShortDescription, eventLongDescription);
 			eventCode.setField1Label(field1Label);
 			eventCode.setField1DataType(field1DataType);
 			eventCode.setField1DataUnit(field1DataUnit);
+	
 			eventCode.setField2Label(field2Label);
 			eventCode.setField2DataType(field2DataType);
 			eventCode.setField2DataUnit(field2DataUnit);		
+
+			eventCode.setField3Label(field3Label);
+			eventCode.setField3DataType(field3DataType);
+			eventCode.setField3DataUnit(field3DataUnit);		
+
+			eventCode.setField4Label(field4Label);
+			eventCode.setField4DataType(field4DataType);
+			eventCode.setField4DataUnit(field4DataUnit);		
+			
+			
 		} catch (IMDException ex) {
 			ex.printStackTrace();
 		}
@@ -195,16 +218,25 @@ public class LifeCycleEventsLoader {
 		}
 		return valueOrEmpty;
 	}
+	
+	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String animalTag, String eventCD) {
+		return retrieveSpecificLifeCycleEventsForAnimal(orgId,animalTag,null,null,eventCD, null, null, null);
+	}
 
-	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2) {
+
+	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
-		String qryString = " Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
-		  " from LIFECYCLE_EVENTS a  " +
-		  "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " +
-		  "  ON	a.EVENT_CD = b.EVENT_CD  " +
-		  "  LEFT OUTER JOIN LOOKUP_VALUES c " +
-		  "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " +
-		  " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  ";
+		String qryString = " Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
+							+ " b.FIELD1_LABEL, b.FIELD1_TYPE, b.FIELD1_UNIT, "
+							+ " b.FIELD2_LABEL, b.FIELD2_TYPE, b.FIELD2_UNIT, "
+							+ " b.FIELD3_LABEL, b.FIELD3_TYPE, b.FIELD3_UNIT, "
+							+ " b.FIELD4_LABEL, b.FIELD4_TYPE, b.FIELD4_UNIT  " 
+							+ " from LIFECYCLE_EVENTS a  "
+							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " 
+							+ "  ON	a.EVENT_CD = b.EVENT_CD  " 
+							+ "  LEFT OUTER JOIN LOOKUP_VALUES c " 
+							+ "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " 
+							+ " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  ";
 		String event1Str = "";
 		String event2Str = "";
 		if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty()) {
@@ -213,12 +245,15 @@ public class LifeCycleEventsLoader {
 		if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty()) {
 			event2Str = " a.EVENT_CD=? ";
 		}
-		if (event1Str.isEmpty() || event2Str.isEmpty()) {
+	    
+		if (event1Str.isEmpty() && event2Str.isEmpty()) {
+			;
+		} else if (event1Str.isEmpty() || event2Str.isEmpty()) {
 			qryString += " AND " + event1Str + event2Str;
 		} else if (!event1Str.isEmpty() && !event2Str.isEmpty()) {
 			qryString += " AND (" + event1Str +  " OR " + event2Str + ") ";
 		}
-		qryString += (fromDate != null ? " AND a.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND a.EVENT_DTTM <=? " : "" ) +  " ORDER BY a.EVENT_DTTM DESC";		
+		qryString += (auxField1Value != null ? " AND AUX_FL1_VALUE=? " : "") + (auxField2Value != null ? " AND AUX_FL2_VALUE=? "  :  "") + (fromDate != null ? " AND a.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND a.EVENT_DTTM <=? " : "" ) +  " ORDER BY a.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
 		Statement st = null;
 		ResultSet rs = null;
@@ -233,6 +268,10 @@ public class LifeCycleEventsLoader {
 				preparedStatement.setString(index++, eventTypeCD1);
 			if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty())
 				preparedStatement.setString(index++, eventTypeCD2);
+			if (auxField1Value != null)
+				preparedStatement.setString(index++, auxField1Value);
+			if (auxField2Value != null)
+				preparedStatement.setString(index++, auxField2Value);
 			if (fromDate != null) 
 				preparedStatement.setString(index++, fromDate.toString());
 			if (toDate != null) 

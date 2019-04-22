@@ -11,16 +11,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.dto.Animal;
-import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
-import com.imd.loader.LVLifeCycleEventLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.LookupValuesLoader;
 import com.imd.services.bean.AnimalBean;
@@ -43,11 +42,26 @@ public class LifecycleEventSrvc {
 	@POST
 	@Path("/search")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getAnimalLifecycleEvent(AnimalBean animalBean){
-		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+	public Response getAnimalLifecycleEvent(LifeCycleEventBean animalEventBean){
+		LifeCycleEventsLoader animalEventsloader = new LifeCycleEventsLoader();
+		AnimalLoader animalLoader = new AnimalLoader();
+		animalEventBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
 		String animalEvents = "";
+		AnimalBean animalBean = new AnimalBean();
+		animalBean.setAnimalTag(animalEventBean.getAnimalTag());
+		animalBean.setOrgID(animalEventBean.getOrgID());
 		try {
-			List<LifecycleEvent> events = loader.retrieveAllLifeCycleEventsForAnimal((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID),animalBean.getAnimalTag());
+			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null);
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"The animal " + animalEventBean.getAnimalTag() + " does not exist\"}").build();
+			}
+			String eventTypeCD = animalEventBean.getEventCode();
+			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
+				eventTypeCD = null;
+			IMDLogger.log(">>>> " + animalEventBean.toString(), Util.INFO);
+			IMDLogger.log("<<<<<" + eventTypeCD, Util.INFO);
+			List<LifecycleEvent> events = animalEventsloader.retrieveSpecificLifeCycleEventsForAnimal(animalBean.getOrgID(),animalValues.get(0).getAnimalTag(),eventTypeCD);
 			if (events == null || events.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No life events found for specified animal\"}").build();
@@ -57,7 +71,7 @@ public class LifecycleEventSrvc {
 	    	while (eventIt.hasNext()) {
 	    		LifecycleEvent event = eventIt.next();
 	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
-	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt) + "\n},\n";	    		
+	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animalValues.get(0).getDateOfBirth()) + "\n},\n";	    		
 	    	}
 	    	animalEvents = "[" + animalEvents.substring(0,animalEvents.lastIndexOf(",\n")) + "]";
 	    	IMDLogger.log(animalEvents, Util.INFO);

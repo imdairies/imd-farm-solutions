@@ -69,8 +69,8 @@ public class AnimalLoader {
 			preparedStatement.setString(11, (animal.isBornThroughAI() ? "Y" : "N"));
 			preparedStatement.setString(12, (animal.getFrontSideImageURL() == null ? null : animal.getFrontSideImageURL().toString()));
 			preparedStatement.setString(13, (animal.getBackSideImageURL() == null ? null : animal.getBackSideImageURL().toString()));
-			preparedStatement.setString(14, (animal.getLeftSideImageURL() == null ? null : animal.getLeftSideImageURL().toString()));
-			preparedStatement.setString(15, (animal.getRightSideImageURL() == null ? null : animal.getRightSideImageURL().toString()));
+			preparedStatement.setString(14, (animal.getRightSideImageURL() == null ? null : animal.getRightSideImageURL().toString()));
+			preparedStatement.setString(15, (animal.getLeftSideImageURL() == null ? null : animal.getLeftSideImageURL().toString()));
 			preparedStatement.setString(16, (animal.getCreatedBy() == null ? null : animal.getCreatedBy().getUserId()));
 			preparedStatement.setString(17, (animal.getCreatedDTTM() == null ? null :animal.getCreatedDTTMSQLFormat()));
 			preparedStatement.setString(18,(animal.getUpdatedBy() == null ? null : animal.getUpdatedBy().getUserId()));

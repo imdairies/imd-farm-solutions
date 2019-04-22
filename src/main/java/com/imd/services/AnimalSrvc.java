@@ -262,7 +262,7 @@ public class AnimalSrvc {
 		    	String strInseminationTimeInfo = "";
 	    		if (isPregnant(animalValue) || isInseminated(animalValue)) {
 	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
-	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
+	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
 		    			int daysSinceInseminated = Util.getDaysBetween( DateTime.now(), inseminatedDate);

@@ -50,6 +50,14 @@ public class LifecycleEvent extends IMDairiesDTO{
 		
 	}
 	
+	public int getDaysFromToday() {
+		if (this.eventTimeStamp != null) 
+			return Util.getDaysBetween(DateTime.now(), this.eventTimeStamp);
+		else 
+			return -999;	
+	}
+	
+	
 	public String toString() {
 		return this.dtoToJson("   ");
 	}
@@ -122,10 +130,22 @@ public class LifecycleEvent extends IMDairiesDTO{
 		return (stringify(prefix, fmt) + super.dtoToJson(prefix, fmt));
 	}
 
+	public String dtoToJson(String prefix, DateTimeFormatter fmt, DateTime animalDob)  {
+		// This version of the method takes in animal age and adds "ageWhenOccurred" entry in the output JSON, which
+		// shows the animal age in years, months and days when this event occurred.
+		return (stringify(prefix, fmt, animalDob) + super.dtoToJson(prefix, fmt));
+	}
+	
 	public String dtoToJson(String prefix)  {		
 		return stringify(prefix, null) + super.dtoToJson(prefix);
 	}
 	
+	
+	public String stringify(String prefix, DateTimeFormatter fmt, DateTime animalDob)  {
+		return stringify(prefix, fmt) + 
+				prefix + fieldToJson("ageWhenOccurred", Util.getYearMonthDaysBetween(this.eventTimeStamp, animalDob)) + ",\n";
+
+	}
 	
 	public String stringify(String prefix, DateTimeFormatter fmt)  {
 		String json = prefix + fieldToJson("orgID", this.getOrgID()) + ",\n" +
@@ -141,7 +161,8 @@ public class LifecycleEvent extends IMDairiesDTO{
 				prefix + fieldToJson("eventOperator", (this.eventOperator == null ? "" : this.eventOperator.getDisplayName())) + ",\n" +
 				prefix + fieldToJson("auxField1Value", this.auxField1Value) + ",\n" +
 				prefix + fieldToJson("auxField2Value", this.auxField2Value) + ",\n" +
-				prefix + fieldToJson("auxField3Value", this.auxField3Value) + ",\n";
+				prefix + fieldToJson("auxField3Value", this.auxField3Value) + ",\n" +
+				prefix + fieldToJson("daysFromToday", this.getDaysFromToday()) + ",\n";
 		return json;
 	}
 

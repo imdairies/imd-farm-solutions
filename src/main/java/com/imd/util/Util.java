@@ -72,6 +72,7 @@ public class Util {
 		public static final String WEIGHT = "WEIGHT";
 		public static final String WEANEDOFF = "WEANEDOFF";
 		public static final String BIRTH = "BIRTH";
+		public static final String VACCINE = "VACCINE";
 	}
 
 	public static final class AdvisementRules {
@@ -185,8 +186,11 @@ public class Util {
 	public static int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
 	}
-
 	
+	public static String getYearMonthDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
+		Period dateDifference = new Period(startTimeStamp, endTimeStamp, PeriodType.yearMonthDay());
+		return (dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") + (dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") + (dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "");
+	}
 	
 }
 

@@ -61,7 +61,7 @@ public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.HEAT, Util.LifeCycleEvents.ABORTION);
+								Util.LifeCycleEvents.HEAT, Util.LifeCycleEvents.ABORTION,null,null);
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No heat event found - indicates that the animal has never come in heat since its birth.
 							int currentAgeInDays = getDaysBetween(DateTime.now(), animal.getDateOfBirth());

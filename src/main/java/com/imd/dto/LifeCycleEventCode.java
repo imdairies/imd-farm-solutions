@@ -27,10 +27,12 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 	private String field2Label;
 	private String field3Label;
 	private String field4Label;
+	
 	private String field1DataType;
 	private String field2DataType;
 	private String field3DataType;
 	private String field4DataType;
+	
 	private String field1DataUnit;
 	private String field2DataUnit;
 	private String field3DataUnit;
@@ -105,12 +107,12 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 				prefix + fieldToJson("eventField2Label", this.field2Label) + ",\n" + 
 				prefix + fieldToJson("eventField2DataType", this.field2DataType) + ",\n" +
 				prefix + fieldToJson("eventField2DataUnit", this.field2DataUnit) + ",\n" + 
-				prefix + fieldToJson("eventField3Label", this.field2Label) + ",\n" + 
-				prefix + fieldToJson("eventField3DataType", this.field2DataType) + ",\n" +
-				prefix + fieldToJson("eventField3DataUnit", this.field2DataUnit) + ",\n" + 
-				prefix + fieldToJson("eventField4Label", this.field2Label) + ",\n" + 
-				prefix + fieldToJson("eventField4DataType", this.field2DataType) + ",\n" +
-				prefix + fieldToJson("eventField4DataUnit", this.field2DataUnit) + ",\n" + 
+				prefix + fieldToJson("eventField3Label", this.field3Label) + ",\n" + 
+				prefix + fieldToJson("eventField3DataType", this.field3DataType) + ",\n" +
+				prefix + fieldToJson("eventField3DataUnit", this.field3DataUnit) + ",\n" + 
+				prefix + fieldToJson("eventField4Label", this.field4Label) + ",\n" + 
+				prefix + fieldToJson("eventField4DataType", this.field4DataType) + ",\n" +
+				prefix + fieldToJson("eventField4DataUnit", this.field4DataUnit) + ",\n" + 
 				prefix + fieldToJson("nextLifecycleStage", this.getNextLifecycleStageList()) + ",\n" + 
 				prefix + fieldToJson("isActive", this.isActive) + ",\n";
 	}
