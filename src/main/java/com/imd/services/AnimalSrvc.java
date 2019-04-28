@@ -31,6 +31,7 @@ import com.imd.loader.MilkingDetailLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.services.bean.MilkingDetailBean;
+import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;;
@@ -121,6 +122,7 @@ public class AnimalSrvc {
 		String alias  = animalBean.getAlias();
 		String typeCD = animalBean.getAnimalType();
 		String dob = animalBean.getDateOfBirthStr();
+		String breed = animalBean.getBreed();
 		String gender = "" + animalBean.getGender();
 		String damTag = animalBean.getDam();
 		String sireTag = animalBean.getSire();
@@ -166,6 +168,7 @@ public class AnimalSrvc {
 			if (alias != null && !alias.trim().isEmpty())
 				animal.setAlias(animalBean.getAlias());
 			animal.setAnimalType(animalBean.getAnimalType());
+			animal.setBreed(animalBean.getBreed());
 			animal.setDateOfBirth(animalBean.getDateOfBirth("MM/dd/yyyy, hh:mm:ss aa"));
 			animal.setDateOfBirthEstimated(!dobAccuracyInd.equalsIgnoreCase("Y"));
 			animal.setBornThroughAI(aiInd.equalsIgnoreCase("Y"));
@@ -200,6 +203,72 @@ public class AnimalSrvc {
 
 	}
 
+	
+	@POST
+	@Path("/addsire")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response addSire(SireBean sireBean){
+		String tag = sireBean.getAnimalTag();
+		String alias  = sireBean.getAlias();
+		String breed = sireBean.getBreed();
+		String semenInd = sireBean.getSemenInd();
+		String recordUrl = sireBean.getRecordURL();
+		String photoUrl = sireBean.getPhotoURL();
+		String controller = sireBean.getController();
+		String semenCompany = sireBean.getSemenCompany();
+		Float currentSexListPrice = sireBean.getCurrentSexListPrice();
+		Float discountSexPercentage = sireBean.getDiscountSexPercentage();
+		Float currentConventionalListPrice = sireBean.getCurrentConventionalListPrice();
+		Float discountConventionalPercentage = sireBean.getDiscountConventionalPercentage();
+
+
+		IMDLogger.log("Add Sire Called with following input values", Util.INFO);		
+		IMDLogger.log(sireBean.toString(), Util.INFO);
+		
+		if (tag == null || tag.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid Sire Tag/Code.\"}").build();
+		}
+		else if (alias == null || alias.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Sire Alias.\"}").build();
+		}
+		else if (breed == null || breed.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Sire Breed .\"}").build();
+		}
+		else if (semenInd == "" || semenInd.trim().isEmpty() || semenInd.trim().length() != 1) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must indicate whether this is a farm sire (semenInd=N) or a sire whose semens you are going to purchase (semenInd=Y).\"}").build();
+		}
+		else if (recordUrl == null || recordUrl.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify Sire Data Sheet URL.\"}").build();
+		}
+		else if (controller == null || controller.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify controller.\"}").build();
+		}
+		else if (semenCompany == null || semenCompany.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify sire/semen marketing company.\"}").build();
+		}
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
+		int result = -1;
+
+		try {
+			result = 1;
+			AnimalLoader loader = new AnimalLoader();
+			result = loader.insertSire(sireBean,userID,DateTime.now(),userID,DateTime.now());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (result == 1) {
+			return Response.status(200).entity("{ \"error\": false, \"message\":\"Sire has been added successfully.\"}").build();
+		}
+		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"Sire with the same tag/code already exists. Please use a different tag/code.\"}").build();
+		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Sire  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
+		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Sire '" + tag + "' could not be added. Please submit a bug report.\"}").build();
+		else
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred during Sire addition\"}").build();
+	}	
+	
 	private String performPostInsertionSteps(Animal animalDto) {
 		LifeCycleEventBean eventBean = new LifeCycleEventBean();
 		eventBean.setOrgID(animalDto.getOrgID());
@@ -753,8 +822,48 @@ public class AnimalSrvc {
 	    	}
 		return json;
 	}
+	
+	/**
+	 * This API returns the Sire which are included in Farm Herd as opposed to the AI Sire whose semens the farm purchases.
+	 * @param searchBean
+	 * @return
+	 */
+	@POST
+	@Path("/retrievefarmsire")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveFarmSire(AnimalBean searchBean){
+		String sireValueResult = "";
+    	searchBean.setGender(Util.GENDER.MALE);
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	searchBean.setActiveOnly(true);
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveMatchingAnimals(searchBean);
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"Farm doesn't have any Sire in its herd.\"}").build();
 
-
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		sireValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (sireValueResult != null && !sireValueResult.trim().isEmpty() )
+	    		sireValueResult = "[" + sireValueResult.substring(0,sireValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		sireValueResult = "[]";
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(sireValueResult, Util.INFO);
+		return Response.status(200).entity(sireValueResult).build();
+    }	
+	
+	
 	/**
 	 * This API can be used to retrieve DAM or SIRE. The retrieved information can be used to populate the dam and sire dropdown
 	 * on the add/update animal screens

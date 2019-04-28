@@ -32,6 +32,7 @@ import com.imd.dto.Person;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.services.bean.AnimalBean;
+import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.MessageManager;
@@ -58,6 +59,7 @@ class AnimalLoaderTest {
 	public Animal createTestAnimal(String animalTag) throws Exception {
 		Dam c000 = new Dam(/*orgid*/"IMD",/*tag*/animalTag,/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"PKR");
 		c000.setAlias("Laal");
+		c000.setBreed(Util.Breed.HFCROSS);
 		c000.setAnimalType("LACTATING");
 		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
 		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
@@ -242,6 +244,55 @@ class AnimalLoaderTest {
 			fail("Animal Creation and/or insertion Failed.");
 		}
 	}
+	
+	
+	
+	@Test
+	void testSireProcessing() {
+		try {
+			String tag = "-999";
+			String alias  = "Tester";
+			String breed = Util.Breed.BROWNSWISS;
+			String semenInd = "N";
+			String recordUrl = "https://www.google.com/";
+			String photoUrl = "https://www.google.com/photo.png";
+			String controller = "IMD";
+			String semenCompany = "IMD";
+			Float currentSexListPrice = 7500.0f;
+			Float discountSexPercentage = 0.35f;
+			Float currentConventionalListPrice = 1000.0f;
+			Float discountConventionalPercentage = 0.35f;
+
+			SireBean sireBean = new SireBean();
+			sireBean.setAnimalTag(tag);
+			sireBean.setAlias(alias);
+			sireBean.setBreed(breed);
+			sireBean.setSemenInd(semenInd);
+			sireBean.setRecordURL(recordUrl);
+			sireBean.setPhotoURL(photoUrl);
+			sireBean.setController(controller);
+			sireBean.setSemenCompany(semenCompany);
+			sireBean.setCurrentSexListPrice(currentSexListPrice);
+			sireBean.setDiscountSexPercentage(discountSexPercentage);
+			sireBean.setCurrentConventionalListPrice(currentConventionalListPrice);
+			sireBean.setDiscountConventionalPercentage(discountConventionalPercentage);
+
+			AnimalLoader loader = new AnimalLoader();
+			loader.deleteAnimal("IMD", sireBean.getAnimalTag());
+
+			DateTime now = DateTime.now();
+			String user = "KASHIF";
+
+			int result = loader.insertSire(sireBean, user, now, user, now);			
+			assertEquals(1,result);
+			
+			result  = loader.deleteSire(tag);
+			assertEquals(1,result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}
+	}	
 	
 	@Test
 	void testSireRetrieval() {

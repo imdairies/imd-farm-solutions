@@ -51,6 +51,7 @@ class LifeCycleEventLoaderTest {
 	public Animal createTestAnimal(String animalTag) throws Exception {
 		Dam c000 = new Dam(/*orgid*/"IMD",/*tag*/animalTag,/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/331000,/*price currency*/"PKR");
 		c000.setAlias("Laal");
+		c000.setBreed(Util.Breed.HFCROSS);
 		c000.setAnimalType("LACTATING");
 		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
 		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");

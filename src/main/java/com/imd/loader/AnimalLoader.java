@@ -17,6 +17,7 @@ import com.imd.dto.Dam;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.services.bean.AnimalBean;
+import com.imd.services.bean.SireBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
@@ -36,6 +37,7 @@ public class AnimalLoader {
 		String qryString = "insert into ANIMALS (ORG_ID,"
 				+ "ANIMAL_TAG,"
 				+ "ALIAS,"
+				+ "BREED,"
 				+ "STATUS,"
 				+ "TYPE_CD,"
 				+ "DOB,"
@@ -51,7 +53,7 @@ public class AnimalLoader {
 				+ "CREATED_BY,"
 				+ "CREATED_DTTM,"
 				+ "UPDATED_BY,"
-				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
@@ -59,22 +61,23 @@ public class AnimalLoader {
 			preparedStatement.setString(1, (animal.getOrgID() == null ? null : animal.getOrgID()));
 			preparedStatement.setString(2, (animal.getAnimalTag() == null ? null : animal.getAnimalTag()));
 			preparedStatement.setString(3, (animal.getAlias() == null ? null : animal.getAlias()));
-			preparedStatement.setString(4, (animal.getAnimalStatus() == null ? null : animal.getAnimalStatus()));
-			preparedStatement.setString(5, (animal.getAnimalType() == null ? null : animal.getAnimalType()));
-			preparedStatement.setString(6, (animal.getDateOfBirth() == null ? null : Util.getDateInSQLFormart(animal.getDateOfBirth())));
-			preparedStatement.setString(7, (animal.isDateOfBirthEstimated() ? "N" : "Y"));
-			preparedStatement.setString(8, (animal.getGender() == ' ' ? null : animal.getGender() + ""));
-			preparedStatement.setString(9, (animal.getAnimalDam() == null ? null : animal.getAnimalDam().getAnimalTag()));
-			preparedStatement.setString(10, (animal.getAnimalSire() == null ? null : animal.getAnimalSire().getAnimalTag()));
-			preparedStatement.setString(11, (animal.isBornThroughAI() ? "Y" : "N"));
-			preparedStatement.setString(12, (animal.getFrontSideImageURL() == null ? null : animal.getFrontSideImageURL().toString()));
-			preparedStatement.setString(13, (animal.getBackSideImageURL() == null ? null : animal.getBackSideImageURL().toString()));
-			preparedStatement.setString(14, (animal.getRightSideImageURL() == null ? null : animal.getRightSideImageURL().toString()));
-			preparedStatement.setString(15, (animal.getLeftSideImageURL() == null ? null : animal.getLeftSideImageURL().toString()));
-			preparedStatement.setString(16, (animal.getCreatedBy() == null ? null : animal.getCreatedBy().getUserId()));
-			preparedStatement.setString(17, (animal.getCreatedDTTM() == null ? null :animal.getCreatedDTTMSQLFormat()));
-			preparedStatement.setString(18,(animal.getUpdatedBy() == null ? null : animal.getUpdatedBy().getUserId()));
-			preparedStatement.setString(19,(animal.getUpdatedDTTM() == null ? null :animal.getUpdatedDTTMSQLFormat()));
+			preparedStatement.setString(4, (animal.getBreed() == null ? null : animal.getBreed()));
+			preparedStatement.setString(5, (animal.getAnimalStatus() == null ? null : animal.getAnimalStatus()));
+			preparedStatement.setString(6, (animal.getAnimalType() == null ? null : animal.getAnimalType()));
+			preparedStatement.setString(7, (animal.getDateOfBirth() == null ? null : Util.getDateInSQLFormart(animal.getDateOfBirth())));
+			preparedStatement.setString(8, (animal.isDateOfBirthEstimated() ? "N" : "Y"));
+			preparedStatement.setString(9, (animal.getGender() == ' ' ? null : animal.getGender() + ""));
+			preparedStatement.setString(10, (animal.getAnimalDam() == null ? null : animal.getAnimalDam().getAnimalTag()));
+			preparedStatement.setString(11, (animal.getAnimalSire() == null ? null : animal.getAnimalSire().getAnimalTag()));
+			preparedStatement.setString(12, (animal.isBornThroughAI() ? "Y" : "N"));
+			preparedStatement.setString(13, (animal.getFrontSideImageURL() == null ? null : animal.getFrontSideImageURL().toString()));
+			preparedStatement.setString(14, (animal.getBackSideImageURL() == null ? null : animal.getBackSideImageURL().toString()));
+			preparedStatement.setString(15, (animal.getRightSideImageURL() == null ? null : animal.getRightSideImageURL().toString()));
+			preparedStatement.setString(16, (animal.getLeftSideImageURL() == null ? null : animal.getLeftSideImageURL().toString()));
+			preparedStatement.setString(17, (animal.getCreatedBy() == null ? null : animal.getCreatedBy().getUserId()));
+			preparedStatement.setString(18, (animal.getCreatedDTTM() == null ? null :animal.getCreatedDTTMSQLFormat()));
+			preparedStatement.setString(19,(animal.getUpdatedBy() == null ? null : animal.getUpdatedBy().getUserId()));
+			preparedStatement.setString(20,(animal.getUpdatedDTTM() == null ? null :animal.getUpdatedDTTMSQLFormat()));
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
 			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
@@ -101,9 +104,94 @@ public class AnimalLoader {
 		}
 		return recordAdded;
 	}
-	
+	public int insertSire(SireBean sireBean, String createdByUser, DateTime createdDttm, String updatedByUser, DateTime updatedDttm) throws SQLException {
+		int recordAdded = -1;
+		String qryString = "insert into LV_SIRE ("
+				+ "ID,"
+				+ "BREED,"
+				+ "ALIAS,"
+				+ "SEMEN_IND,"
+				+ "RECORD_URL,"
+				+ "PHOTO_URL,"
+				+ "CONTROLLER,"
+				+ "SEMEN_COMPANY,"
+				+ "CURRENT_SEX_LIST_PRICE_PKR,"
+				+ "DISCOUNT_SEX_PERCENTAGE,"
+				+ "CURRENT_CONV_LIST_PRICE_PKR,"
+				+ "DISCOUNT_CONV_PERCENTAGE,"
+				+ "CREATED_BY,"
+				+ "CREATED_DTTM,"
+				+ "UPDATED_BY,"
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, sireBean.getAnimalTag());
+			preparedStatement.setString(2, (sireBean.getBreed() == null ? null : sireBean.getBreed()));
+			preparedStatement.setString(3, (sireBean.getAlias() == null ? null : sireBean.getAlias()));
+			preparedStatement.setString(4, (sireBean.getSemenInd() == null ? null : sireBean.getSemenInd()));
+			preparedStatement.setString(5, (sireBean.getRecordURL() == null ? null : sireBean.getRecordURL()));
+			preparedStatement.setString(6, (sireBean.getPhotoURL() == null ? null : sireBean.getPhotoURL()));
+			preparedStatement.setString(7, (sireBean.getController() == null ? null : sireBean.getController()));
+			preparedStatement.setString(8, (sireBean.getSemenCompany() == null ? null : sireBean.getSemenCompany()));
+			preparedStatement.setFloat(9, sireBean.getCurrentSexListPrice());
+			preparedStatement.setFloat(10, sireBean.getDiscountSexPercentage());
+			preparedStatement.setFloat(11, sireBean.getCurrentConventionalListPrice());
+			preparedStatement.setFloat(12, sireBean.getDiscountConventionalPercentage());
+			preparedStatement.setString(13, (createdByUser == null ? null : createdByUser));
+			preparedStatement.setString(14, (createdDttm == null ? null : Util.getDateInSQLFormart(createdDttm)));
+			preparedStatement.setString(15,(updatedByUser == null ? null : updatedByUser));
+			preparedStatement.setString(16,(updatedDttm == null ? null : Util.getDateInSQLFormart(updatedDttm)));
+			recordAdded = preparedStatement.executeUpdate();
+		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			ex.printStackTrace();
+		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
+			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
+			ex.printStackTrace();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordAdded;
+	}	
 	public int deleteAnimal(String orgID, String animalTag) {
 		String qryString = "DELETE FROM ANIMALS where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "'";
+		int result = -1;
+		Statement st = null;
+		Connection conn = DBManager.getDBConnection();
+		try {
+			st = conn.createStatement();
+			result = st.executeUpdate(qryString);			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (st != null && !st.isClosed()) {
+					st.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+	public int deleteSire(String animalTag) {
+		String qryString = "DELETE FROM LV_SIRE where ID = '" + animalTag + "'";
 		int result = -1;
 		Statement st = null;
 		Connection conn = DBManager.getDBConnection();
@@ -299,6 +387,7 @@ public class AnimalLoader {
 		String typeDescr = rs.getString("ANIMAL_TYPE");
 		String damTag = rs.getString("DAM_TAG");
 		String sireTag = rs.getString("SIRE_TAG");
+		String breed = rs.getString("BREED");
 		String orgId = rs.getString("ORG_ID");
 		String alias = rs.getString("ALIAS");
 		String frontPoseImage = rs.getString("FRONT_POSE");
@@ -337,6 +426,7 @@ public class AnimalLoader {
 		}
 		animal.setAlias(alias);
 		animal.setAnimalType(typeDescr);
+		animal.setBreed(breed);
 		animal.setAnimalTypeCD(typeCD);
 		animal.setStatusIndicators(statusIndicators);
 		animal.setParturationCount(lactationNbr);
@@ -355,7 +445,7 @@ public class AnimalLoader {
 
 	public List<Sire> retrieveAISire()  throws Exception {
 		ArrayList<Sire> allMatchingValues = new ArrayList<Sire>();
-		String qryString = "Select * from LV_SIRE ORDER BY ALIAS";
+		String qryString = "Select * from LV_SIRE ORDER BY CONTROLLER,ALIAS";
 		List<String> values = new ArrayList<String> ();
 		Sire animalValue = null;
 		ResultSet rs = null;

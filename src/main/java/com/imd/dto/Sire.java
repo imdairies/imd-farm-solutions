@@ -9,7 +9,6 @@ public class Sire extends Animal {
 	private Contact marketedByCompany;
 	private Contact ownerCompany;
 	private String controller;
-	private String breed;
 	private String sirePhoto;
 	private String sireDataSheet;
 	public Sire(String orgID, String tagNumber, DateTime dateOfBirth, boolean isDobEstimated, double purPrice,
@@ -20,7 +19,6 @@ public class Sire extends Animal {
 	
 	private String stringify(String prefix) {
 		return  prefix + fieldToJson("controller", this.controller) + ",\n" +
-				prefix + fieldToJson("breed", this.breed) + ",\n" +
 				prefix + fieldToJson("sirePhoto", this.sirePhoto) + ",\n" + 
 				prefix + fieldToJson("sireDataSheet", this.sireDataSheet) + ",\n";
 	}
@@ -64,13 +62,6 @@ public class Sire extends Animal {
 		this.controller = controller;
 	}
 
-	public String getBreed() {
-		return breed;
-	}
-
-	public void setBreed(String breed) {
-		this.breed = breed;
-	}
 
 	public String getSirePhoto() {
 		return sirePhoto;

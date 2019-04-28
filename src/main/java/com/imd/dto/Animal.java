@@ -44,6 +44,7 @@ public class Animal extends IMDairiesDTO{
 	private boolean isThreshold3Violated;
 	private String statusIndicators;
 	private int parturationCount;
+	private String breed;
 	
 	/**
 	 * M: Male
@@ -248,7 +249,7 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
 				prefix + fieldToJson("statusIndicators", this.statusIndicators == null ? "" : this.statusIndicators) + ",\n" + 
-				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
+				prefix + fieldToJson("breed", this.breed) + ",\n" +
 				prefix + fieldToJson("animalStatus", this.animalStatus) + ",\n" + 
 				prefix + fieldToJson("parturationCount", this.parturationCount) + ",\n" + 
 				prefix + fieldToJson("dateOfBirth", this.dateOfBirth) + ",\n" + 
@@ -368,6 +369,13 @@ public class Animal extends IMDairiesDTO{
 
 	public void setParturationCount(int parturationCount) {
 		this.parturationCount = parturationCount;
+	}
+	public String getBreed() {
+		return breed;
+	}
+
+	public void setBreed(String breed) {
+		this.breed = breed;
 	}
 	
 }
