@@ -310,6 +310,8 @@ class AnimalLoaderTest {
 				}
 			}
 			assertTrue(found, "JUNIOR Bull should have been found");
+			assertTrue(sire.getCurrentConventionalListPrice()!=null);
+			assertEquals("Y",sire.getSemenInd());
 			assertEquals("1HO10219", sire.getAnimalTag(), " Junior code should have been 1HO10219");
 		} catch (Exception e) {
 			e.printStackTrace();

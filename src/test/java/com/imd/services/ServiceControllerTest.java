@@ -64,10 +64,10 @@ class ServiceControllerTest {
         IMDLogger.log("" + response.getStatus(),Util.INFO);
         
 	}
-	@Test
-	void testAnimalSrvc() {
-        String responseMsg = target.path("/animals/allactive").request().get(String.class);
-        assertTrue(responseMsg.indexOf("\"animalTag\":") >= 0 || responseMsg.equalsIgnoreCase("No Record Found"),responseMsg);
-	}
+//	@Test
+//	void testAnimalSrvc() {
+//        String responseMsg = target.path("/animals/allactive").request().get(String.class);
+//        assertTrue(responseMsg.indexOf("\"animalTag\":") >= 0 || responseMsg.equalsIgnoreCase("No Record Found"),responseMsg);
+//	}
 
 }

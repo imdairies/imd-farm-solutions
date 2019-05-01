@@ -11,6 +11,11 @@ public class Sire extends Animal {
 	private String controller;
 	private String sirePhoto;
 	private String sireDataSheet;
+	private String semenInd;
+	private Float currentSexListPrice;
+	private Float discountSexPercentage;
+	private Float currentConventionalListPrice;
+	private Float discountConventionalPercentage;
 	public Sire(String orgID, String tagNumber, DateTime dateOfBirth, boolean isDobEstimated, double purPrice,
 			String priceCurr) throws IMDException {
 			super(orgID, tagNumber, dateOfBirth, isDobEstimated, purPrice, priceCurr);
@@ -20,6 +25,11 @@ public class Sire extends Animal {
 	private String stringify(String prefix) {
 		return  prefix + fieldToJson("controller", this.controller) + ",\n" +
 				prefix + fieldToJson("sirePhoto", this.sirePhoto) + ",\n" + 
+				prefix + fieldToJson("semenInd", this.semenInd) + ",\n" +
+				prefix + fieldToJson("currentConventionalListPrice", this.currentConventionalListPrice) + ",\n" +
+				prefix + fieldToJson("discountConventionalPercentage", this.discountConventionalPercentage) + ",\n" +
+				prefix + fieldToJson("currentSexListPrice", this.currentSexListPrice) + ",\n" +
+				prefix + fieldToJson("discountSexPercentage", this.discountSexPercentage) + ",\n" +
 				prefix + fieldToJson("sireDataSheet", this.sireDataSheet) + ",\n";
 	}
 
@@ -69,6 +79,46 @@ public class Sire extends Animal {
 
 	public void setSirePhoto(String sirePhoto) {
 		this.sirePhoto = sirePhoto;
+	}
+
+	public String getSemenInd() {
+		return semenInd;
+	}
+
+	public void setSemenInd(String semenInd) {
+		this.semenInd = semenInd;
+	}
+
+	public Float getCurrentSexListPrice() {
+		return currentSexListPrice;
+	}
+
+	public void setCurrentSexListPrice(Float currentSexListPrice) {
+		this.currentSexListPrice = currentSexListPrice;
+	}
+
+	public Float getCurrentConventionalListPrice() {
+		return currentConventionalListPrice;
+	}
+
+	public void setCurrentConventionalListPrice(Float currentConventionalListPrice) {
+		this.currentConventionalListPrice = currentConventionalListPrice;
+	}
+
+	public Float getDiscountSexPercentage() {
+		return discountSexPercentage;
+	}
+
+	public void setDiscountSexPercentage(Float discountSexPercentage) {
+		this.discountSexPercentage = discountSexPercentage;
+	}
+
+	public Float getDiscountConventionalPercentage() {
+		return discountConventionalPercentage;
+	}
+
+	public void setDiscountConventionalPercentage(Float discountConventionalPercentage) {
+		this.discountConventionalPercentage = discountConventionalPercentage;
 	}
 
 }

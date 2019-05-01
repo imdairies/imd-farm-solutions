@@ -13,6 +13,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import com.imd.dto.Animal;
+import com.imd.dto.Contact;
 import com.imd.dto.Dam;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
@@ -459,22 +460,7 @@ public class AnimalLoader {
 		IMDLogger.log(preparedStatement.toString(),Util.INFO);		
 	    rs = preparedStatement.executeQuery();
 	    while (rs.next()) {
-			String id = rs.getString("ID");
-			String breed = rs.getString("BREED");
-			String alias = rs.getString("ALIAS");
-			String sireSpecification = rs.getString("RECORD_URL");
-			String controller = rs.getString("CONTROLLER");
-			String sirePhoto = rs.getString("PHOTO_URL");
-			animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
-			animalValue.setBreed(breed);
-			animalValue.setAlias(alias);
-			animalValue.setSireSpecification(sireSpecification);
-			animalValue.setController(controller);
-			animalValue.setSirePhoto(sirePhoto);
-			animalValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
-			animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
-			animalValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-			animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));	    	
+			animalValue = getSireFromSQLRecord(rs);	    	
 	    	allMatchingValues.add(animalValue);
 	    }
 	    return allMatchingValues;
@@ -744,22 +730,7 @@ public class AnimalLoader {
 			IMDLogger.log(preparedStatement.toString(),Util.INFO);		
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
-				String id = rs.getString("ID");
-				String breed = rs.getString("BREED");
-				String alias = rs.getString("ALIAS");
-				String sireSpecification = rs.getString("RECORD_URL");
-				String controller = rs.getString("CONTROLLER");
-				String sirePhoto = rs.getString("PHOTO_URL");
-				animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
-				animalValue.setBreed(breed);
-				animalValue.setAlias(alias);
-				animalValue.setSireSpecification(sireSpecification);
-				animalValue.setController(controller);
-				animalValue.setSirePhoto(sirePhoto);
-				animalValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
-				animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
-				animalValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-				animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));			
+				animalValue = getSireFromSQLRecord(rs);		
 		    }
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -774,4 +745,38 @@ public class AnimalLoader {
 		}
 	    return animalValue;
     }
+	private Sire getSireFromSQLRecord(ResultSet rs) throws SQLException, IMDException {
+		Sire animalValue;
+		String id = rs.getString("ID");
+		String breed = rs.getString("BREED");
+		String alias = rs.getString("ALIAS");
+		String semenInd = rs.getString("SEMEN_IND");
+		String sireSpecification = rs.getString("RECORD_URL");
+		String sirePhoto = rs.getString("PHOTO_URL");
+		String controller = rs.getString("CONTROLLER");
+		String semenCompany = rs.getString("SEMEN_COMPANY");
+		Float currentSexListPrice = rs.getFloat("CURRENT_SEX_LIST_PRICE_PKR");
+		Float currentConventionalListPrice = rs.getFloat("CURRENT_CONV_LIST_PRICE_PKR");
+		Float discountSexPercentage = rs.getFloat("DISCOUNT_SEX_PERCENTAGE");
+		Float discountConventionalPercentage = rs.getFloat("DISCOUNT_CONV_PERCENTAGE");
+					
+		animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
+		animalValue.setBreed(breed);
+		animalValue.setAlias(alias);
+		animalValue.setSemenInd(semenInd);
+		animalValue.setSireSpecification(sireSpecification);
+		animalValue.setSirePhoto(sirePhoto);
+		animalValue.setController(controller);
+		animalValue.setMarketedByCompany(new Contact(semenCompany));
+		animalValue.setCurrentConventionalListPrice(currentConventionalListPrice);
+		animalValue.setCurrentSexListPrice(currentSexListPrice);
+		animalValue.setDiscountConventionalPercentage(discountConventionalPercentage);
+		animalValue.setDiscountSexPercentage(discountSexPercentage);
+		
+		animalValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
+		animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		animalValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
+		animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		return animalValue;
+	}
 }

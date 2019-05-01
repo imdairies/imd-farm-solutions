@@ -146,6 +146,9 @@ public class AnimalSrvc {
 		else if (dobAccuracyInd == null || dobAccuracyInd.trim().isEmpty()) {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
 		}
+		else if (breed == null || breed.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
+		}
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		String frontPose = animalBean.getFrontPoseImage() == null || animalBean.getFrontPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/1.png": animalBean.getFrontPoseImage();
@@ -864,13 +867,6 @@ public class AnimalSrvc {
     }	
 	
 	
-	/**
-	 * This API can be used to retrieve DAM or SIRE. The retrieved information can be used to populate the dam and sire dropdown
-	 * on the add/update animal screens
-	 * 
-	 * @param luValuesBean
-	 * @return
-	 */
 	@POST
 	@Path("/retrieveaisire")
 	@Consumes (MediaType.APPLICATION_JSON)
