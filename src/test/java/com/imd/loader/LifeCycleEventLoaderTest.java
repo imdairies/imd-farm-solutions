@@ -99,6 +99,7 @@ class LifeCycleEventLoaderTest {
 			event.setAuxField1Value("BQ");
 			event.setAuxField2Value("BQGOVT");
 			event.setAuxField3Value(null);			
+			event.setAuxField4Value("YES");			
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
@@ -116,6 +117,7 @@ class LifeCycleEventLoaderTest {
 			assertEquals(event.getAuxField1Value(),retevent.getAuxField1Value());
 			assertEquals(event.getAuxField2Value(),retevent.getAuxField2Value());
 			assertEquals(event.getAuxField3Value(),retevent.getAuxField3Value());
+			assertEquals(event.getAuxField4Value(),retevent.getAuxField4Value());
 			assertEquals(event.getEventType().getEventCode(),retevent.getEventType().getEventCode());
 			assertEquals("CATEGORY_CD",retevent.getEventType().getField1DataType());
 			assertEquals("DISEASE",retevent.getEventType().getField1DataUnit());
@@ -153,6 +155,7 @@ class LifeCycleEventLoaderTest {
 			event.setAuxField1Value("BQ");
 			event.setAuxField2Value("BQGOVT");
 			event.setAuxField3Value(null);			
+			event.setAuxField4Value("NO");			
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
 			event.setCreatedDTTM(DateTime.now());
@@ -168,6 +171,7 @@ class LifeCycleEventLoaderTest {
 			assertEquals(event.getAuxField1Value(),retevent.getAuxField1Value());
 			assertEquals(event.getAuxField2Value(),retevent.getAuxField2Value());
 			assertEquals(event.getAuxField3Value(),retevent.getAuxField3Value());
+			assertEquals(event.getAuxField4Value(),retevent.getAuxField4Value());
 			assertEquals("CATEGORY_CD",retevent.getEventType().getField1DataType());
 			assertEquals("DISEASE",retevent.getEventType().getField1DataUnit());
 			assertEquals("CATEGORY_CD",retevent.getEventType().getField2DataType());
@@ -282,6 +286,8 @@ class LifeCycleEventLoaderTest {
 			event.setUpdatedDTTM(updatedDTTM);
 			event.setAuxField1Value("UNIQUE 1HO10660\"'%\n\n");
 			event.setAuxField2Value("CONVENTIONAL");
+			event.setAuxField3Value("3VALUE");
+			event.setAuxField4Value(null);
 			int updatedRecCount = loader.updateLifeCycleEvent(event);
 			
 			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
@@ -294,6 +300,8 @@ class LifeCycleEventLoaderTest {
 			assertEquals("HEAT",evt.getEventType().getEventCode(),"Event Code should have been updated");
 			assertEquals("UNIQUE 1HO10660\"'%\n\n",evt.getAuxField1Value(),"Aux Field1 Value should have been updated");
 			assertEquals("CONVENTIONAL",evt.getAuxField2Value(),"Aux Field2 Value should have been updated");
+			assertEquals("3VALUE",evt.getAuxField3Value(),"Aux Field3 Value should have been updated");
+			assertEquals(null,evt.getAuxField4Value(),"Aux Field4 Value should have been null");
 			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
 					
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.

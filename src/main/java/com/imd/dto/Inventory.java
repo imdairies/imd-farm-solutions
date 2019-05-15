@@ -159,17 +159,17 @@ public class Inventory extends IMDairiesDTO {
 	}
 
 	public DateTime getOrderDttm() {
-		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 		return DateTime.parse(orderDttmStr, fmt);
 	}
 
 	public DateTime getReceivedDttm() {
-		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 		return DateTime.parse(receivedDttmStr, fmt);
 	}
 
 	public DateTime getInventoryAddDttm() {
-		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 		return DateTime.parse(inventoryAddDttmStr, fmt);
 	}
 
@@ -177,7 +177,7 @@ public class Inventory extends IMDairiesDTO {
 		if (dateTime == null)
 			this.orderDttmStr = null;
 		else {
-			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 			this.orderDttmStr = dateTime.toString(fmt);
 		}
 		
@@ -187,7 +187,7 @@ public class Inventory extends IMDairiesDTO {
 		if (dateTime == null)
 			this.receivedDttmStr = null;
 		else {
-			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 			this.receivedDttmStr = dateTime.toString(fmt);
 		}
 	}
@@ -196,7 +196,7 @@ public class Inventory extends IMDairiesDTO {
 		if (dateTime == null)
 			this.inventoryAddDttmStr = null;
 		else {
-			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 			this.inventoryAddDttmStr = dateTime.toString(fmt);
 		}
 	}

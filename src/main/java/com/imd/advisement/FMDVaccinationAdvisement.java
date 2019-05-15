@@ -61,7 +61,7 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								startDate,
 								endDate,
-								Util.LifeCycleEvents.VACCINE, null,FOOTANDMOUTH,null);
+								Util.LifeCycleEvents.VACCINE, null,FOOTANDMOUTH,null,null,null);
 						String ruleNote = "";
 						String animalNote = ""; 						
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {

@@ -60,7 +60,7 @@ public class HeiferWeightAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.HEAT, null,null,null);
+								Util.LifeCycleEvents.HEAT, null,null,null,null,null);
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No heat event found - indicates that the animal has never come in heat since its birth.
 							int currentAgeInDays = getDaysBetween(DateTime.now(), animal.getDateOfBirth());

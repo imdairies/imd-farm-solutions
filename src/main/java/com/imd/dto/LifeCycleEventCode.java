@@ -39,6 +39,8 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 	private String field4DataUnit;
 	
 	private String nextLifecycleStages;
+	
+	private String inventoryUpdateLabel;
 
 	public LifeCycleEventCode(String lifeCycleEventCode, String shortDescr, String longDescr) throws IMDException{
 		super();
@@ -112,7 +114,8 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 				prefix + fieldToJson("eventField3DataUnit", this.field3DataUnit) + ",\n" + 
 				prefix + fieldToJson("eventField4Label", this.field4Label) + ",\n" + 
 				prefix + fieldToJson("eventField4DataType", this.field4DataType) + ",\n" +
-				prefix + fieldToJson("eventField4DataUnit", this.field4DataUnit) + ",\n" + 
+				prefix + fieldToJson("eventField4DataUnit", this.field4DataUnit) + ",\n" + 				
+				prefix + fieldToJson("inventoryUpdateLabel", this.inventoryUpdateLabel) + ",\n" + 				
 				prefix + fieldToJson("nextLifecycleStage", this.getNextLifecycleStageList()) + ",\n" + 
 				prefix + fieldToJson("isActive", this.isActive) + ",\n";
 	}
@@ -238,6 +241,14 @@ public class LifeCycleEventCode extends IMDairiesDTO{
 			return new String[0];
 		else
 			return nextLifecycleStages.split(",");
+	}
+
+	public String getInventoryUpdateLabel() {
+		return inventoryUpdateLabel;
+	}
+
+	public void setInventoryUpdateLabel(String inventoryUpdateLabel) {
+		this.inventoryUpdateLabel = inventoryUpdateLabel;
 	}
 }
 

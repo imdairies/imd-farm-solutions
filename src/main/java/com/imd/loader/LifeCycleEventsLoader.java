@@ -40,10 +40,11 @@ public class LifeCycleEventsLoader {
 				+ "AUX_FL1_VALUE,"
 				+ "AUX_FL2_VALUE,"
 				+ "AUX_FL3_VALUE,"
+				+ "AUX_FL4_VALUE,"
 				+ "CREATED_BY,"
 				+ "CREATED_DTTM,"
 				+ "UPDATED_BY,"
-				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		ResultSet result = null;
 		int transactionID = -1;
 		PreparedStatement preparedStatement = null;
@@ -59,10 +60,11 @@ public class LifeCycleEventsLoader {
 			preparedStatement.setString(7, event.getAuxField1Value());
 			preparedStatement.setString(8, event.getAuxField2Value());
 			preparedStatement.setString(9, event.getAuxField3Value());
-			preparedStatement.setString(10, event.getCreatedBy().getUserId());
-			preparedStatement.setString(11, event.getCreatedDTTMSQLFormat());
-			preparedStatement.setString(12, event.getUpdatedBy().getUserId());
-			preparedStatement.setString(13, event.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(10, event.getAuxField4Value());
+			preparedStatement.setString(11, event.getCreatedBy().getUserId());
+			preparedStatement.setString(12, event.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(13, event.getUpdatedBy().getUserId());
+			preparedStatement.setString(14, event.getUpdatedDTTMSQLFormat());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			preparedStatement.executeUpdate();
 			result = preparedStatement.getGeneratedKeys();
@@ -153,6 +155,7 @@ public class LifeCycleEventsLoader {
 		event.setAuxField1Value(rs.getString("AUX_FL1_VALUE"));
 		event.setAuxField2Value(rs.getString("AUX_FL2_VALUE"));
 		event.setAuxField3Value(rs.getString("AUX_FL3_VALUE"));
+		event.setAuxField4Value(rs.getString("AUX_FL4_VALUE"));
 		event.setEventType(getLifeCycleEventCodeFromSQLRecord(rs));
 		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
@@ -220,11 +223,11 @@ public class LifeCycleEventsLoader {
 	}
 	
 	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String animalTag, String eventCD) {
-		return retrieveSpecificLifeCycleEventsForAnimal(orgId,animalTag,null,null,eventCD, null, null, null);
+		return retrieveSpecificLifeCycleEventsForAnimal(orgId,animalTag,null,null,eventCD, null, null, null, null, null);
 	}
 
 
-	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value) {
+	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
 		String qryString = " Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
 							+ " b.FIELD1_LABEL, b.FIELD1_TYPE, b.FIELD1_UNIT, "
@@ -253,7 +256,11 @@ public class LifeCycleEventsLoader {
 		} else if (!event1Str.isEmpty() && !event2Str.isEmpty()) {
 			qryString += " AND (" + event1Str +  " OR " + event2Str + ") ";
 		}
-		qryString += (auxField1Value != null ? " AND AUX_FL1_VALUE=? " : "") + (auxField2Value != null ? " AND AUX_FL2_VALUE=? "  :  "") + (fromDate != null ? " AND a.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND a.EVENT_DTTM <=? " : "" ) +  " ORDER BY a.EVENT_DTTM DESC";		
+		qryString += (auxField1Value != null ? " AND AUX_FL1_VALUE=? " : "") + 
+				(auxField2Value != null ? " AND AUX_FL2_VALUE=? "  :  "") + 
+				(auxField3Value != null ? " AND AUX_FL3_VALUE=? " : "") + 
+				(auxField4Value != null ? " AND AUX_FL4_VALUE=? " : "") + 
+				(fromDate != null ? " AND a.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND a.EVENT_DTTM <=? " : "" ) +  " ORDER BY a.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
 		Statement st = null;
 		ResultSet rs = null;
@@ -272,6 +279,10 @@ public class LifeCycleEventsLoader {
 				preparedStatement.setString(index++, auxField1Value);
 			if (auxField2Value != null)
 				preparedStatement.setString(index++, auxField2Value);
+			if (auxField3Value != null)
+				preparedStatement.setString(index++, auxField3Value);
+			if (auxField4Value != null)
+				preparedStatement.setString(index++, auxField4Value);
 			if (fromDate != null) 
 				preparedStatement.setString(index++, fromDate.toString());
 			if (toDate != null) 

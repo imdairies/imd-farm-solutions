@@ -45,6 +45,9 @@ public class Util {
 
 	public static final String COW_PHOTOS_URI_PREFIX = "/assets/img/cow-photos/";
 
+	public static final String YES = "Yes";
+	public static final String NO = "No";
+
 	public static final class Breed  {
 		public static final String HFCROSS = "HFCROSS";
 		public static final String BROWNSWISS = "BROWNSWISS";

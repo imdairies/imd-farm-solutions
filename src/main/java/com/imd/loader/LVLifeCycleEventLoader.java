@@ -31,8 +31,8 @@ public class LVLifeCycleEventLoader {
 				+ "FIELD2_LABEL,FIELD2_TYPE,FIELD2_UNIT,"
 				+ "FIELD3_LABEL,FIELD3_TYPE,FIELD3_UNIT,"
 				+ "FIELD4_LABEL,FIELD4_TYPE,FIELD4_UNIT,"
-				+ "NEXT_LCYCL,"
-				+ "CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+				+ "NEXT_LCYCL,INV_UPDATE_LABEL,"
+				+ "CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		int result = -1;
 		// using prepared statement automatically takes care of the special characters.
 		PreparedStatement preparedStatement = null;
@@ -56,10 +56,11 @@ public class LVLifeCycleEventLoader {
 			preparedStatement.setString(15, event.getField4DataType());
 			preparedStatement.setString(16, event.getField4DataUnit());
 			preparedStatement.setString(17, event.getNextLifecycleStage());
-			preparedStatement.setString(18, event.getCreatedBy().getUserId());
-			preparedStatement.setString(19, event.getCreatedDTTMSQLFormat());
-			preparedStatement.setString(20, event.getUpdatedBy().getUserId());
-			preparedStatement.setString(21, event.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(18, event.getInventoryUpdateLabel());
+			preparedStatement.setString(19, event.getCreatedBy().getUserId());
+			preparedStatement.setString(20, event.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(21, event.getUpdatedBy().getUserId());
+			preparedStatement.setString(22, event.getUpdatedDTTMSQLFormat());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			result = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
@@ -190,6 +191,7 @@ public class LVLifeCycleEventLoader {
 		event.setField4DataUnit(rs.getString("FIELD4_UNIT"));
 
 		event.setNextLifecycleStage(rs.getString("NEXT_LCYCL"));
+		event.setInventoryUpdateLabel(rs.getString("INV_UPDATE_LABEL"));
 		
 		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));

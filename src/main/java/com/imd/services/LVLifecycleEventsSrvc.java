@@ -21,6 +21,7 @@ import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
+import com.imd.loader.InventoryLoader;
 import com.imd.loader.LVLifeCycleEventLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventCodeBean;
@@ -292,6 +293,39 @@ public class LVLifecycleEventsSrvc {
 	
 	
 	@POST
+	@Path("/availablesires")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveAvailableSires(AnimalBean searchBean){
+		String sireValueResult = "";
+		String orgID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
+    	try {
+    		InventoryLoader loader = new InventoryLoader();
+			List<Sire> sireValues = loader.getSiresWithAvailableInventory(orgID);
+			if (sireValues == null || sireValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
+			}
+	    	Iterator<Sire> sireValueIt = sireValues.iterator();
+	    	while (sireValueIt.hasNext()) {
+	    		Sire sireValue = sireValueIt.next();
+	    		String rmngQty = sireValue.getNote(0).getNoteText();
+	    		String sexed = sireValue.getNote(1).getNoteText();
+	    		String description = sireValue.getAlias() + " [" + rmngQty + "] " + (sexed.equalsIgnoreCase("Y") ? " ♀":"");
+	    		sireValueResult += "{\n" +  formJson(sireValue.getAnimalTag(),description,"  ") + "\n},\n";
+	    	}
+	    	if (sireValueResult != null && !sireValueResult.trim().isEmpty() )
+	    		sireValueResult = "[" + sireValueResult.substring(0,sireValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		sireValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(sireValueResult, Util.INFO);
+		return Response.status(200).entity(sireValueResult).build();
+    }	
+	
+	@POST
 	@Path("/dam")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getActiveFemale(AnimalBean searchBean){
@@ -308,7 +342,7 @@ public class LVLifecycleEventsSrvc {
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
 	    		Animal animalValue = animalValueIt.next();
-	    		animalValueResult += "{\n" + formJson(animalValue.getAnimalTag(), animalValue.getAnimalTag(), "  ") + "\n},\n";	    		
+	    		animalValueResult += "{\n" + formJson(animalValue.getAnimalTag(), animalValue.getAlias() == null ? "" : animalValue.getAlias(), "  ") + "\n},\n";	    		
 	    	}
 	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
 	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
@@ -339,7 +373,7 @@ public class LVLifecycleEventsSrvc {
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
 	    		Animal animalValue = animalValueIt.next();
-	    		animalValueResult += "{\n" + formJson(animalValue.getAnimalTag(), animalValue.getAnimalTag(), "  ") + "\n},\n";	    		
+	    		animalValueResult += "{\n" + formJson(animalValue.getAnimalTag(), animalValue.getAnimalTag(),"  ") + "\n},\n";	    		
 	    	}
 	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
 	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
@@ -358,9 +392,5 @@ public class LVLifecycleEventsSrvc {
 	private String formJson(String field1, String field2, String prefix) {
 		return prefix + "\"code\":\"" + field1 + "\",\n" + prefix + 
 				"\"description\":\"" + field2 + "\"";
-	}
-	
-	
-	
-	
+	}	
 }

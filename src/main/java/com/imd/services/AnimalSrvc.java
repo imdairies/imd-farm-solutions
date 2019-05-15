@@ -69,6 +69,7 @@ public class AnimalSrvc {
 	    	IMDLogger.log(animalsJson, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.getAllActiveAnimals() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
 		return Response.status(200).entity(animalsJson).build(); 
@@ -101,6 +102,7 @@ public class AnimalSrvc {
 	    	IMDLogger.log(animalsJson, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.getAnimalPopulationDistribution() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
 		return Response.status(200).entity(animalsJson).build(); 
@@ -190,6 +192,7 @@ public class AnimalSrvc {
 			result = loader.insertAnimal(animal);
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.addAnimal() service method: " + e.getMessage(),  Util.ERROR);
 		}
 		if (result == 1) {
 			String message = performPostInsertionSteps(animal);
@@ -216,13 +219,8 @@ public class AnimalSrvc {
 		String breed = sireBean.getBreed();
 		String semenInd = sireBean.getSemenInd();
 		String recordUrl = sireBean.getRecordURL();
-		String photoUrl = sireBean.getPhotoURL();
 		String controller = sireBean.getController();
 		String semenCompany = sireBean.getSemenCompany();
-		Float currentSexListPrice = sireBean.getCurrentSexListPrice();
-		Float discountSexPercentage = sireBean.getDiscountSexPercentage();
-		Float currentConventionalListPrice = sireBean.getCurrentConventionalListPrice();
-		Float discountConventionalPercentage = sireBean.getDiscountConventionalPercentage();
 
 
 		IMDLogger.log("Add Sire Called with following input values", Util.INFO);		
@@ -258,6 +256,7 @@ public class AnimalSrvc {
 			result = loader.insertSire(sireBean,userID,DateTime.now(),userID,DateTime.now());
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.addSire() service method: " + e.getMessage(),  Util.ERROR);
 		}
 		if (result == 1) {
 			return Response.status(200).entity("{ \"error\": false, \"message\":\"Sire has been added successfully.\"}").build();
@@ -297,6 +296,7 @@ public class AnimalSrvc {
 			result = loader.insertLifeCycleEvent(event);
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.performPostInsertionSteps() service method: " + e.getMessage(),  Util.ERROR);
 		}
 		if (result > 0)
 			return "A birth event was automatically created for this animal";
@@ -334,7 +334,7 @@ public class AnimalSrvc {
 		    	String strInseminationTimeInfo = "";
 	    		if (isPregnant(animalValue) || isInseminated(animalValue)) {
 	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
-	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null);
+	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
 		    			int daysSinceInseminated = Util.getDaysBetween( DateTime.now(), inseminatedDate);
@@ -400,6 +400,7 @@ public class AnimalSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.getAdultFemaleCows() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -444,6 +445,7 @@ public class AnimalSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.searchAnimals() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -479,6 +481,7 @@ public class AnimalSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.getActiveFemale() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -511,6 +514,7 @@ public class AnimalSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveLactatingAnimals() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -542,6 +546,7 @@ public class AnimalSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveHeifers() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -573,6 +578,7 @@ public class AnimalSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveFemaleCalves() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -604,6 +610,7 @@ public class AnimalSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrievePregnantAnimals() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -650,6 +657,7 @@ public class AnimalSrvc {
 	    	IMDLogger.log(animalValueResult, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveLactatingAnimalsMilkRecord() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
@@ -723,6 +731,7 @@ public class AnimalSrvc {
     			return Response.status(200).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
     	} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.addCowMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
 		}
     }	
@@ -787,6 +796,7 @@ public class AnimalSrvc {
 	    		milkingInformation = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveMonthlyMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(milkingInformation, Util.INFO);
@@ -860,6 +870,7 @@ public class AnimalSrvc {
 		
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveFarmSire() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
@@ -891,6 +902,7 @@ public class AnimalSrvc {
 	    		sireValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveAISires() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);

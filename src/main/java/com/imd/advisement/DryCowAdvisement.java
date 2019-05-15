@@ -67,7 +67,7 @@ public class DryCowAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null);
+								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceInseminated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());

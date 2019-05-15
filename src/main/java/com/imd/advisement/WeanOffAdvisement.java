@@ -57,7 +57,7 @@ public class WeanOffAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.WEANEDOFF, null,null,null);
+								Util.LifeCycleEvents.WEANEDOFF, null,null,null,null,null);
 						int currentAgeInDays = Util.getDaysBetween(DateTime.now(), animal.getDateOfBirth());
 						String ruleNote = "";
 						String animalNote = "";

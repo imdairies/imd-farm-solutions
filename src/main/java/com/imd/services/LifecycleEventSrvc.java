@@ -16,10 +16,12 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.dto.Animal;
+import com.imd.dto.Inventory;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
+import com.imd.loader.InventoryLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.LookupValuesLoader;
 import com.imd.services.bean.AnimalBean;
@@ -272,24 +274,15 @@ public class LifecycleEventSrvc {
 				} else {
 					Animal animal = animals.get(0);
 					event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
-					event.setCreatedBy(new User(userID));
+					User user = new User(userID);
+					event.setCreatedBy(user);
 					event.setCreatedDTTM(DateTime.now());
-					event.setUpdatedBy(new User(userID));
+					event.setUpdatedBy(user);
 					event.setUpdatedDTTM(DateTime.now());
 					result = eventsLoader.insertLifeCycleEvent(event);
-					if (result > 0 && eventBean.getNextLifeCycleStage() != null && !eventBean.getNextLifeCycleStage().isEmpty()) {
-						LookupValuesLoader lookupLoader = new LookupValuesLoader();
-						LookupValues nextStageValue = lookupLoader.retrieveLookupValue(Util.LookupValues.LCYCL, eventBean.getNextLifeCycleStage());
-						if (nextStageValue == null) {
-							IMDLogger.log("The lookup value " + eventBean.getNextLifeCycleStage() + " does not exist. The animal's next lifecycle stage can't be set", Util.ERROR);
-							additionalMessage = ". The animal lifecycle stage could not be updated to " + eventBean.getNextLifeCycleStage() + ". You will have to manually update the stage";
-						} else {
-							animal.setAnimalTypeCD(nextStageValue.getLookupValueCode());
-							animal.setAnimalType(nextStageValue.getShortDescription());
-							IMDLogger.log("Attempting to set the Animal Lifecycle stage", Util.INFO);
-							additionalMessage = ". " + updateAnimalLifecycleStage(animal);							
-						}
-					}
+					eventBean.setEventTransactionID("" + result);
+					if (result > 0)
+						additionalMessage = performPostEventAdditionSteps(eventBean, animal, user);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -307,12 +300,73 @@ public class LifecycleEventSrvc {
 		} else {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + validationResult + ". '" + eventCode+ "' could not be added.\"}").build();			
 		}
-	} 
+	}
 
-	private String updateAnimalLifecycleStage(Animal animalDto) {
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
+
+
+	private String performPostEventAdditionSteps(LifeCycleEventBean eventBean,Animal animal, User user) {
+		String additionalMessage = performPostEventAdditionLifecycleStageUpdate(eventBean, animal, user);
+		additionalMessage += performPostEventAdditionInventoryUpdate(eventBean, animal, user);
+		
+		return additionalMessage;
+	}
+
+	private String performPostEventAdditionLifecycleStageUpdate(LifeCycleEventBean eventBean, Animal animal, User user) {
+		String additionalMessage = "";
+		if (eventBean.getNextLifeCycleStage() != null && !eventBean.getNextLifeCycleStage().isEmpty()) {
+			LookupValuesLoader lookupLoader = new LookupValuesLoader();
+			LookupValues nextStageValue = lookupLoader.retrieveLookupValue(Util.LookupValues.LCYCL, eventBean.getNextLifeCycleStage());
+			if (nextStageValue == null) {
+				IMDLogger.log("The lookup value " + eventBean.getNextLifeCycleStage() + " does not exist. The animal's next lifecycle stage can't be set", Util.ERROR);
+				additionalMessage = ". The animal lifecycle stage could not be updated to " + eventBean.getNextLifeCycleStage() + ". You will have to manually update the stage";
+			} else {
+				animal.setAnimalTypeCD(nextStageValue.getLookupValueCode());
+				animal.setAnimalType(nextStageValue.getShortDescription());
+				IMDLogger.log("Attempting to set the Animal Lifecycle stage", Util.INFO);
+				additionalMessage = ". " + updateAnimalLifecycleStage(animal, user);							
+			}
+		}
+		return additionalMessage;
+	}
+
+
+	private String performPostEventAdditionInventoryUpdate(LifeCycleEventBean eventBean, Animal animal, User user) {
+		String additionalMessage = "";
+		if (eventBean.getShouldUpdateInventory() != null && eventBean.getShouldUpdateInventory().equalsIgnoreCase(Util.YES)) {
+			Inventory inventory = new Inventory();
+			InventoryLoader loader = new InventoryLoader();
+			if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.INSEMINATE)) {
+				inventory.setOrgID(eventBean.getOrgID()); 
+				inventory.setItemSKU(eventBean.getAuxField1Value()); // bull code
+				inventory.setInventoryAddDttm(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern( "MM/dd/yyyy, hh:mm:ss aa"))); // when was this item consumed
+				inventory.setItemType(eventBean.getAuxField2Value() != null && eventBean.getAuxField2Value().trim().length() >= 1 ? eventBean.getAuxField2Value().charAt(0) + "" : eventBean.getAuxField2Value()); // sexed or not
+				inventory.setQuantity(1.0f); // single usage per insemination
+				inventory.setAuxValue1(eventBean.getEventTransactionID()); // FK to event table
+				inventory.setCreatedBy(user);
+				inventory.setCreatedDTTM(DateTime.now());
+				inventory.setUpdatedBy(user);
+				inventory.setUpdatedDTTM(DateTime.now());
+				int result = loader.addSemenInventoryUsage(inventory);
+				if (result == 1)
+					additionalMessage = ". Semen Inventory has been updated";
+				else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+					additionalMessage = ". Semen Inventory could not be updated since a similar entry already exists. Please review semen imnventory and update it manually";
+				else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+					additionalMessage = ". Semen Inventory could not be updated since one or more data fields are longer than allowed length. Please submit a bug report";
+				else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+					additionalMessage = ". Semen Inventory could not be updated because of an error in the application. Please submit a bug report";
+				else 
+					additionalMessage = ". An unknown error occurred during inventory update. Please update the semen inventory manually";
+			}
+		}
+		return additionalMessage;
+	}
+
+
+
+	private String updateAnimalLifecycleStage(Animal animalDto, User user) {
 		AnimalLoader loader = new AnimalLoader();
-		animalDto.setUpdatedBy(new User(userID));
+		animalDto.setUpdatedBy(user);
 		animalDto.setUpdatedDTTM(DateTime.now());
 		int result = loader.updateAnimalStatus(animalDto);
 		if (result == 1)

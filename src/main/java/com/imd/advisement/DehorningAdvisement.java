@@ -56,7 +56,7 @@ public class DehorningAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								null,
 								null,
-								Util.LifeCycleEvents.DEHORN, null,null,null);
+								Util.LifeCycleEvents.DEHORN, null,null,null,null,null);
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No dehorning event found - the calf was never dehorned.
 							IMDLogger.log("Birth Date: " + animal.getDateOfBirth(), Util.INFO);

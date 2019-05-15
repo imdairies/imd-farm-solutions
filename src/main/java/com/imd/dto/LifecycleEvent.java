@@ -19,6 +19,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 	private String auxField1Value;
 	private String auxField2Value;
 	private String auxField3Value;
+	private String auxField4Value;
 	
 
 	public LifecycleEvent(String orgID, int transactionID, String animalTag, String eventCode) throws IMDException {
@@ -42,6 +43,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 		this.auxField1Value = eventBean.getAuxField1Value();
 		this.auxField2Value = eventBean.getAuxField2Value();
 		this.auxField3Value = eventBean.getAuxField3Value();
+		this.auxField3Value = eventBean.getAuxField4Value();
 		this.eventComments = eventBean.getEventComments();
 		this.eventType = new LifeCycleEventCode(eventBean.getEventCode(),null,null);
 		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern(dateTimeFormat)));
@@ -162,6 +164,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 				prefix + fieldToJson("auxField1Value", this.auxField1Value) + ",\n" +
 				prefix + fieldToJson("auxField2Value", this.auxField2Value) + ",\n" +
 				prefix + fieldToJson("auxField3Value", this.auxField3Value) + ",\n" +
+				prefix + fieldToJson("auxField4Value", this.auxField4Value) + ",\n" +
 				prefix + fieldToJson("daysFromToday", this.getDaysFromToday()) + ",\n";
 		return json;
 	}
@@ -189,5 +192,15 @@ public class LifecycleEvent extends IMDairiesDTO{
 
 	public String getAuxField3Value() {
 		return this.auxField3Value;
+	}
+
+
+	public String getAuxField4Value() {
+		return auxField4Value;
+	}
+
+
+	public void setAuxField4Value(String auxField4Value) {
+		this.auxField4Value = auxField4Value;
 	}
 }

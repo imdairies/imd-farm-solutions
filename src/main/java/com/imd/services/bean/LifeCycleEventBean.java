@@ -11,6 +11,8 @@ public class LifeCycleEventBean {
 	private String auxField1Value;
 	private String auxField2Value;
 	private String auxField3Value;
+	private String auxField4Value;
+	private String shouldUpdateInventory;
 	private String nextLifeCycleStage;
 	
 	public LifeCycleEventBean() {
@@ -76,9 +78,11 @@ public class LifeCycleEventBean {
 			"\neventCode : " + eventCode + 
 			"\neventTransactionID : " + eventTransactionID + 
 			"\nanimalTag : " + animalTag + 
+			"\nshouldUpdateInventory : " + shouldUpdateInventory + 
 			"\nauxField1Value : " + auxField1Value + 
 			"\nauxField2Value : " + auxField2Value + 
 			"\nauxField3Value : " + auxField3Value + 
+			"\nauxField4Value : " + auxField4Value + 
 			"\neventTimeStamp : " + eventTimeStamp + 
 			"\noperatorID : " + operatorID + 
 			"\neventComments : " + eventComments +
@@ -95,6 +99,18 @@ public class LifeCycleEventBean {
 	}
 	public void setNextLifeCycleStage(String nextLifeCycleStage) {
 		this.nextLifeCycleStage = nextLifeCycleStage;
+	}
+	public String getAuxField4Value() {
+		return auxField4Value;
+	}
+	public void setAuxField4Value(String auxField4Value) {
+		this.auxField4Value = auxField4Value;
+	}
+	public String getShouldUpdateInventory() {
+		return shouldUpdateInventory;
+	}
+	public void setShouldUpdateInventory(String update) {
+		this.shouldUpdateInventory = update;
 	}
 	
 	

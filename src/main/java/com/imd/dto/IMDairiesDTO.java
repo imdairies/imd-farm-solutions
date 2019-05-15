@@ -171,8 +171,14 @@ public class IMDairiesDTO {
 	protected String fieldToJson(String fieldName, double dblValue) {
 		return ("\"" + fieldName + "\":" + Double.toString(dblValue));
 	}
+	protected String fieldToJson(String fieldName, Double dblValue) {
+		return ("\"" + fieldName + "\":" + (dblValue == null ? "\"\"" : dblValue.doubleValue()));
+	}
 	protected String fieldToJson(String fieldName, float flValue) {
 		return ("\"" + fieldName + "\":" + flValue);
+	}
+	protected String fieldToJson(String fieldName, Float flValue) {
+		return ("\"" + fieldName + "\":" + (flValue == null ? "\"\"" : flValue.floatValue()));
 	}
 	protected String fieldToJson(String fieldName, Person personValue) {
 		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(personValue.getPersonID() == null ? "" : personValue.getPersonID()))  + "\""));

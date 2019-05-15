@@ -142,7 +142,7 @@ public class InventoryBean {
 
 		if (errorMessage.isEmpty() && (orderDttmStr != null && !orderDttmStr.isEmpty())) {
 			try {
-				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 				DateTime.parse(orderDttmStr, fmt);
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -152,7 +152,7 @@ public class InventoryBean {
 		
 		if (errorMessage.isEmpty() && (receivedDttmStr != null && !receivedDttmStr.isEmpty())) {
 			try {
-				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 				DateTime.parse(receivedDttmStr, fmt);
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -162,7 +162,7 @@ public class InventoryBean {
 		
 		if (errorMessage.isEmpty() && (inventoryAddDttmStr != null && !inventoryAddDttmStr.isEmpty())) {
 			try {
-				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 				DateTime.parse(inventoryAddDttmStr, fmt);
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -175,7 +175,7 @@ public class InventoryBean {
 		if (dateTime == null)
 			this.orderDttmStr = null;
 		else {
-			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 			this.orderDttmStr = dateTime.toString(fmt);
 		}
 		
@@ -185,7 +185,7 @@ public class InventoryBean {
 		if (dateTime == null)
 			this.receivedDttmStr = null;
 		else {
-			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 			this.receivedDttmStr = dateTime.toString(fmt);
 		}
 	}

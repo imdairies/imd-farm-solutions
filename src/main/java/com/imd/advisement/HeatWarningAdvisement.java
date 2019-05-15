@@ -59,7 +59,7 @@ public class HeatWarningAdvisement extends AdvisementRule {
 								orgId,animal.getAnimalTag(),
 								startDate,
 								endDate,
-								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null);
+								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
 						if (ruleDto.getThirdThreshold() < 0) {
 							// this rule has been mis-configured. It should have Th3 value greater than 0, ideally this value should be around 21.
 							IMDLogger.log("The " + Util.AdvisementRules.HEATWARNING + " seems to be mis-configured. The THRESHOLD3 should have a value greater than 0, ideally this value should be around 21.", Util.ERROR);

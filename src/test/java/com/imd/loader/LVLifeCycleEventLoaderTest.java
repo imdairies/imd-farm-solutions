@@ -82,7 +82,7 @@ class LVLifeCycleEventLoaderTest {
 			event.setField4Label("Test4");
 			event.setField4DataType(Util.DataTypes.LV_SIRE);
 			event.setField4DataUnit("");
-			
+			event.setInventoryUpdateLabel("Update Inventory?");			
 			event.setNextLifecycleStage(Util.AnimalTypes.LCTINSEMIN + "," + Util.AnimalTypes.LCTPRGNT);
 			
 			event.setCreatedBy(new User("KASHIF"));
@@ -111,7 +111,8 @@ class LVLifeCycleEventLoaderTest {
 
 			assertEquals("Test4",event.getField4Label());
 			assertEquals(Util.DataTypes.LV_SIRE,event.getField4DataType());
-			assertEquals("",event.getField4DataUnit());
+			assertEquals("",event.getField4DataUnit());			
+			assertEquals("Update Inventory?", event.getInventoryUpdateLabel());			
 
 			assertEquals(Util.AnimalTypes.LCTINSEMIN + "," + Util.AnimalTypes.LCTPRGNT,event.getNextLifecycleStage());
 			assertEquals(2,event.getNextLifecycleStageList().length);
