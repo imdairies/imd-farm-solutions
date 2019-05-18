@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -23,19 +22,21 @@ public class DietLoader {
 	
 	
 	public int deleteDietRequirement(DietRequirement dietReq) {
-		String qryString = "DELETE FROM FEED_REQUIREMENT where ORG_ID='" + dietReq.getOrgID() + "' AND ANIMAL_TYPE = '" + dietReq.getApplicableAimalType().getEventCode() + "'";
+		String qryString = "DELETE FROM FEED_REQUIREMENT WHERE ORG_ID=? AND ANIMAL_TYPE=?";
 		int result = -1;
-		Statement st = null;
+		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
-			st = conn.createStatement();
-			result = st.executeUpdate(qryString);			
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, dietReq.getOrgID());
+			preparedStatement.setString(2, dietReq.getApplicableAimalType().getEventCode());
+			result = preparedStatement.executeUpdate();			
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
 		    try {
-				if (st != null && !st.isClosed()) {
-					st.close();	
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -105,10 +106,11 @@ public class DietLoader {
 		
 		String qryString = "SELECT * FROM imd.FEED_REQUIREMENT where ORG_ID=? " ;
 		if (animalType != null && !animalType.isEmpty()) {
-			inClause = "(";
+			inClause = " AND ANIMAL_TYPE IN (";
 			int run = 1;
 			Iterator<LifeCycleEventCode> it = animalType.iterator();
 			while (it.hasNext()) {
+				it.next();
 				if (run == animalType.size())
 					inClause += "?)";
 				else 
@@ -116,6 +118,7 @@ public class DietLoader {
 				run++;
 			}
 		}
+		qryString += inClause;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
 		try {

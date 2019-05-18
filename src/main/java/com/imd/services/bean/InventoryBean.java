@@ -146,7 +146,7 @@ public class InventoryBean {
 				DateTime.parse(orderDttmStr, fmt);
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				errorMessage = "You must specify the order date/time in the following format: yyyy-mm-DD H:mm";
+				errorMessage = "You must specify the order date/time in the following format: yyyy-MM-dd H:mm";
 			}
 		}
 		
@@ -156,7 +156,7 @@ public class InventoryBean {
 				DateTime.parse(receivedDttmStr, fmt);
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				errorMessage = "You must specify the order received date/time in the following format: yyyy-mm-DD H:mm";
+				errorMessage = "You must specify the order received date/time in the following format: yyyy-MM-dd H:mm";
 			}
 		}
 		
@@ -166,7 +166,7 @@ public class InventoryBean {
 				DateTime.parse(inventoryAddDttmStr, fmt);
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				errorMessage = "You must specify the inventory added date/time in the following format: yyyy-mm-DD H:mm";
+				errorMessage = "You must specify the inventory added date/time in the following format: yyyy-MM-dd H:mm";
 			}
 		} 
 		return errorMessage;
@@ -194,7 +194,7 @@ public class InventoryBean {
 		if (dateTime == null)
 			this.inventoryAddDttmStr = null;
 		else {
-			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-dd-MM H:mm");
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 			this.inventoryAddDttmStr = dateTime.toString(fmt);
 		}
 	}

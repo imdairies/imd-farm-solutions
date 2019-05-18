@@ -2,6 +2,7 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import com.imd.advisement.AdvisementRuleManager;
 import com.imd.advisement.DehorningAdvisement;
 import com.imd.advisement.DelayedHeatCowAdvisement;
 import com.imd.advisement.DelayedHeatHeiferAdvisement;
+import com.imd.advisement.DewormingAdvisement;
 import com.imd.advisement.DryCowAdvisement;
 import com.imd.advisement.FMDVaccinationAdvisement;
 import com.imd.advisement.HeatWarningAdvisement;
@@ -30,6 +32,7 @@ import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.User;
 import com.imd.services.bean.LifeCycleEventBean;
+import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
@@ -1562,8 +1565,93 @@ class AdvisementLoaderTest {
 	}
 
 	@Test
+	void testDeWormingAdvisementRule() {
+		//IMDLogger.loggingMode = Util.ERROR;
+
+		try {			
+			AnimalLoader animalLoader = new AnimalLoader();
+			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
+			
+			///// clean up /////
+			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
+			animalLoader.deleteAnimal("IMD", "-993");
+			animalLoader.deleteAnimal("IMD", "-992");
+			
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992");
+			///////////////////			
+						
+			Animal dewormOk = createTestAnimal("-992");
+			dewormOk.setAnimalStatus("ACTIVE");
+			dewormOk.setAnimalType(Util.AnimalTypes.FEMALECALF);
+			assertEquals(1,animalLoader.insertAnimal(dewormOk));
+			assertTrue(insertEvent(dewormOk.getAnimalTag(), "DOES NOT Violate ANY Threshold", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(10)) >= 0);
+			
+
+			Animal dewormTh1 = createTestAnimal("-993");
+			dewormTh1.setAnimalStatus("ACTIVE");
+			dewormTh1.setAnimalType(Util.AnimalTypes.FEMALECALF);
+			assertEquals(1,animalLoader.insertAnimal(dewormTh1));
+			assertTrue(insertEvent(dewormTh1.getAnimalTag(), "Violates Threshold 1", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(118)) >= 0);
+
+			Animal dewormTh2 = createTestAnimal("-994");
+			dewormTh2.setAnimalStatus("ACTIVE");
+			dewormTh2.setAnimalType(Util.AnimalTypes.FEMALECALF);
+			assertEquals(1,animalLoader.insertAnimal(dewormTh2));
+			assertTrue(insertEvent(dewormTh2.getAnimalTag(), "Violates Threshold 2", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(121)) >= 0);
+			
+			
+			Animal dewormTh3 = createTestAnimal("-995");
+			dewormTh3.setAnimalStatus("ACTIVE");
+			dewormTh3.setAnimalType(Util.AnimalTypes.DRYINSEMIN);
+			assertEquals(1,animalLoader.insertAnimal(dewormTh3));
+			assertTrue(insertEvent(dewormTh3.getAnimalTag(), "Violates Threshold 3", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(200)) >= 0);
+			
+			boolean th1Found = false;
+			boolean th2Found = false;
+			boolean th3Found = false;
+			DewormingAdvisement advisement = new DewormingAdvisement();
+			List<Animal> results = advisement.getAdvisementRuleAddressablePopulation("IMD");
+			Iterator<Animal> it = results.iterator();
+			while (it.hasNext()) {
+				Animal populationAnimal = it.next();
+				if (populationAnimal.getAnimalTag().equalsIgnoreCase(dewormOk.getAnimalTag())) {
+					fail(dewormOk.getAnimalTag() +  "("+ dewormOk.getAnimalType() + ") should not be in the " + advisement.getAdvisementID() + "  Advisement population");
+				} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(dewormTh3.getAnimalTag())) {
+					th3Found = true;
+				} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(dewormTh2.getAnimalTag())) {
+					th2Found = true;
+				} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(dewormTh1.getAnimalTag())) {
+					th1Found = true;
+				}
+			}
+			assertTrue(th3Found,dewormTh3.getAnimalTag() +  "("+ dewormTh3.getAnimalType() + ") cow should have been included in the Deworming Advisement population");
+			assertTrue(th2Found,dewormTh2.getAnimalTag() +  "("+ dewormTh2.getAnimalType() + ") cow should have been included in the Deworming Advisement population");
+			assertTrue(th1Found,dewormTh1.getAnimalTag() +  "("+ dewormTh1.getAnimalType() + ") cow should have been included in the Deworming Advisement population");
+			
+			///// clean up /////
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-995"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-994"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-993"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-992"),"Exactly one record should have been deleted");
+			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995"),"We added a Lifecycle event so one record should have been deleted");
+			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994"),"We added a Lifecycle event so one record should have been deleted");
+			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993"),"We added a Lifecycle event so one record should have been deleted");
+			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992"),"We added a Lifecycle event so one record should have been deleted");
+			///////////////////
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Exception occurred " + ex.getMessage());
+		}
+	}
+
+	@Test
 	void testAdvisementManager() {
-//		IMDLogger.loggingMode = Util.INFO;
+		IMDLogger.loggingMode = Util.ERROR;
 
 		try {			
 			AnimalLoader animalLoader = new AnimalLoader();
@@ -1577,6 +1665,8 @@ class AdvisementLoaderTest {
 			animalLoader.deleteAnimal("IMD", "-995");
 			animalLoader.deleteAnimal("IMD", "-994");
 			animalLoader.deleteAnimal("IMD", "-993");
+			animalLoader.deleteAnimal("IMD", "-992");
+			
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
@@ -1584,7 +1674,13 @@ class AdvisementLoaderTest {
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992");
 			///////////////////			
+						
+			Animal dewormTh1 = createTestAnimal("-992");
+			dewormTh1.setAnimalStatus("ACTIVE");
+			dewormTh1.setAnimalType("FEMALECALF");
+			
 
 			Animal lactatingNotPregnant = createTestAnimal("-999");
 			lactatingNotPregnant.setAnimalStatus("ACTIVE");
@@ -1637,7 +1733,7 @@ class AdvisementLoaderTest {
 			heatWarningEventTh1.setCreatedBy(new User("KASHIF"));
 			heatWarningEventTh1.setUpdatedBy(new User("KASHIF"));
 			heatWarningEventTh1.setCreatedDTTM(DateTime.now());
-			heatWarningEventTh1.setUpdatedDTTM(DateTime.now());			
+			heatWarningEventTh1.setUpdatedDTTM(DateTime.now());					
 			
 			
 			LifeCycleEventBean eventBean = new LifeCycleEventBean();
@@ -1677,6 +1773,8 @@ class AdvisementLoaderTest {
 			int transactionID7 = animalLoader.insertAnimal(heatWarningTh1);
 			eventsLoader.insertLifeCycleEvent(heatWarningEventTh1);
 			
+			int transactionID8 = animalLoader.insertAnimal(dewormTh1);
+
 			assertEquals(1,transactionID1, "Exactly one record -999 should have been inserted"); // OK
 			assertEquals(1,transactionID2, "Exactly one record -998 should have been inserted"); // Violates the DRYCOW rule
 			assertEquals(1,transactionID3, "Exactly one record -997 should have been inserted"); // OK
@@ -1684,6 +1782,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transactionID5, "Exactly one record -995 should have been inserted"); // violates the FMDVACCINE rule
 			assertEquals(1,transactionID6, "Exactly one record -994 should have been inserted"); // violates the PREGNANCYTEST rule
 			assertEquals(1,transactionID7, "Exactly one record -993 should have been inserted"); // violates the HEATWARNING rule
+			assertEquals(1,transactionID8, "Exactly one record -992 should have been inserted"); // violates the DEWORM rule
 			
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Advisement> activeRules = advLoader.getAllActiveRules("IMD");
@@ -1701,6 +1800,7 @@ class AdvisementLoaderTest {
 			boolean nonFMDFound = false;
 			boolean pregTestFound = false;
 			boolean heatWarning1Found = false;
+			boolean dewormFound = false;
 			Iterator<AnimalAdvisement> it = advResults.iterator();
 			while (it.hasNext()) {
 				AnimalAdvisement populationAnimal = it.next();
@@ -1720,6 +1820,8 @@ class AdvisementLoaderTest {
 					nonFMDFound = true;
 				} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(inseminationAnimalTh3.getAnimalTag()) && populationAnimal.getAppliedAdvisementRule().equalsIgnoreCase(Util.AdvisementRules.PREGNANCYTEST)) {
 					pregTestFound = true;
+				} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(dewormTh1.getAnimalTag()) && populationAnimal.getAppliedAdvisementRule().equalsIgnoreCase(Util.AdvisementRules.DEWORM)) {
+					dewormFound = true;
 				}
 			}
 			assertTrue(lactatingNonDryPregnantFound,lactatingNonDryPregnant.getAnimalTag() +  "("+ lactatingNonDryPregnant.getAnimalType() + ") cow should have been included in the Dry Cow Advisement population");
@@ -1727,6 +1829,7 @@ class AdvisementLoaderTest {
 			assertTrue(nonFMDFound,nonFmd.getAnimalTag() +  "("+ nonFmd.getAnimalType() + ") should have been included in the FMD Vaccination Advisement population");
 			assertTrue(pregTestFound,inseminationAnimalTh3.getAnimalTag() +  "("+ inseminationAnimalTh3.getAnimalType() + ") should have been included in the Pregnancy Test Advisement population");
 			assertTrue(heatWarning1Found,heatWarningTh1.getAnimalTag() +  "("+ heatWarningTh1.getAnimalType() + ") should have been included in the Heat Warning Test Advisement population");
+			assertTrue(dewormFound,dewormTh1.getAnimalTag() +  "("+ dewormTh1.getAnimalType() + ") should have been included in the Deworming Test Advisement population");
 			
 			///// clean up /////
 			assertEquals(1,animalLoader.deleteAnimal("IMD", "-999"),"Exactly one record should have been deleted");
@@ -1736,6 +1839,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,animalLoader.deleteAnimal("IMD", "-995"),"Exactly one record should have been deleted");
 			assertEquals(1,animalLoader.deleteAnimal("IMD", "-994"),"Exactly one record should have been deleted");
 			assertEquals(1,animalLoader.deleteAnimal("IMD", "-993"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-992"),"Exactly one record should have been deleted");
 			assertEquals(0,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999"),"We did not add any Lifecycle event so no record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998"),"Exactly one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997"),"Exactly one record should have been deleted");
@@ -1743,6 +1847,7 @@ class AdvisementLoaderTest {
 			assertEquals(0,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995"),"We did not add any Lifecycle event so no record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994"),"We added Lifecycle events so one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993"),"We added Lifecycle events so one record should have been deleted");
+			assertEquals(0,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992"),"We did not add any Lifecycle event so no record should have been deleted");
 			///////////////////
 			
 		} catch (Exception ex) {
@@ -1768,6 +1873,23 @@ class AdvisementLoaderTest {
 		c000.setAnimalSire(null);
 		c000.setAnimalDam(null);
 		return c000;
+	}	
+	private int insertEvent(String animalTag, String comments, String eventCode, DateTime eventDTTM) throws IMDException, SQLException {
+		LifeCycleEventBean eventBean = new LifeCycleEventBean();
+		eventBean.setAnimalTag(animalTag);
+		eventBean.setEventCode(eventCode);
+		eventBean.setEventComments(comments);
+		eventBean.setOrgID("IMD");
+		eventBean.setEventTimeStamp(Util.getDateInSQLFormart(eventDTTM));
+		LifecycleEvent lifecycleEvent = new LifecycleEvent(eventBean);
+		lifecycleEvent.setCreatedBy(new User("KASHIF"));
+		lifecycleEvent.setUpdatedBy(new User("KASHIF"));
+		lifecycleEvent.setCreatedDTTM(DateTime.now());
+		lifecycleEvent.setUpdatedDTTM(DateTime.now());
+		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+		
+		return (loader.insertLifeCycleEvent(lifecycleEvent));
+		
 	}	
 	
 }

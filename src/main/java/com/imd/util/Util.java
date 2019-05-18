@@ -81,6 +81,7 @@ public class Util {
 		public static final String WEANEDOFF = "WEANEDOFF";
 		public static final String BIRTH = "BIRTH";
 		public static final String VACCINE = "VACCINE";
+		public static final String DEWORM = "DEWORM";
 	}
 
 	public static final class AdvisementRules {
@@ -94,6 +95,7 @@ public class Util {
 		public static final String WEIGHTMEASUREMENT = "WEIGHTMEASUREMENT";
 		public static final String HEIFERWEIGHT = "HEIFERWEIGHT";
 		public static final String WEANOFF = "WEANOFF";
+		public static final String DEWORM = "DEWORM";
 	}
 	
 	public static final class AnimalTypes {
