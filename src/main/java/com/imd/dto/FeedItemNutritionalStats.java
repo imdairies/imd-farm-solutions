@@ -1,30 +1,16 @@
 package com.imd.dto;
 
-
-public class DietRequirement extends IMDairiesDTO {
-	private LifeCycleEventCode applicableAimalType;
-	private int start;
-	private int end;
+public class FeedItemNutritionalStats extends IMDairiesDTO {
+	private String feedItemCD;
 	private Float dryMatter;
 	private Float crudeProtein;
 	private Float metabolizableEnergy;
-	public LifeCycleEventCode getApplicableAimalType() {
-		return applicableAimalType;
+	private Float costPerUnit;
+	public String getFeedItemCD() {
+		return feedItemCD;
 	}
-	public void setApplicableAimalTypes(LifeCycleEventCode applicableAimalType) {
-		this.applicableAimalType = applicableAimalType;
-	}
-	public int getStart() {
-		return start;
-	}
-	public void setStart(int start) {
-		this.start = start;
-	}
-	public int getEnd() {
-		return end;
-	}
-	public void setEnd(int end) {
-		this.end = end;
+	public void setFeedItemCD(String feedItemCD) {
+		this.feedItemCD = feedItemCD;
 	}
 	public Float getDryMatter() {
 		return dryMatter;
@@ -43,6 +29,12 @@ public class DietRequirement extends IMDairiesDTO {
 	}
 	public void setMetabolizableEnergy(Float metabolizableEnergy) {
 		this.metabolizableEnergy = metabolizableEnergy;
+	}
+	public Float getCostPerUnit() {
+		return costPerUnit;
+	}
+	public void setCostPerUnit(Float costPerUnit) {
+		this.costPerUnit = costPerUnit;
 	}
 
 }

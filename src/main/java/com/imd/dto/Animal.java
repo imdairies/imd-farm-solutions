@@ -11,6 +11,7 @@ import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.imd.loader.AnimalLoader;
 import com.imd.util.IMDException;
 import com.imd.util.Util;
 
@@ -31,7 +32,7 @@ public class Animal extends IMDairiesDTO{
 	private Sire animalSire;
 	private Dam animalDam;
 	private ArrayList<byte[]> photos;
-	private ArrayList<LifecycleEvent> lifeCycleEvents;
+	private List<LifecycleEvent> lifeCycleEvents;
 	private String animalType;
 	private String animalTypeCD;
 	private String frontSideImageURL;
@@ -45,6 +46,8 @@ public class Animal extends IMDairiesDTO{
 	private String statusIndicators;
 	private int parturationCount;
 	private String breed;
+	private DateTime herdJoiningDate;
+	private DateTime herdLeavingDate;
 	
 	/**
 	 * M: Male
@@ -137,6 +140,12 @@ public class Animal extends IMDairiesDTO{
 		LocalDate birthdate =  new LocalDate(dateOfBirth.getYear(), dateOfBirth.getMonthOfYear(), dateOfBirth.getDayOfMonth());
 		return new Period(birthdate, now, PeriodType.yearMonthDay());
 	}
+	public Period getCurrentAgeInDays() {
+		LocalDate now = new LocalDate();
+		if (this.dateOfBirth == null ) return new Period(now, now, PeriodType.yearMonthDay());
+		LocalDate birthdate =  new LocalDate(dateOfBirth.getYear(), dateOfBirth.getMonthOfYear(), dateOfBirth.getDayOfMonth());
+		return new Period(birthdate, now, PeriodType.days());
+	}
 	public double getPurchasePrice() {
 		return purchasePrice;
 	}
@@ -206,11 +215,11 @@ public class Animal extends IMDairiesDTO{
 	}
 
 
-	public ArrayList<LifecycleEvent> getLifeCycleEvents() {
+	public List<LifecycleEvent> getLifeCycleEvents() {
 		return lifeCycleEvents;
 	}
 
-	public void setLifeCycleEvents(ArrayList<LifecycleEvent> lifeCycleEvents) {
+	public void setLifeCycleEvents(List<LifecycleEvent> lifeCycleEvents) {
 		this.lifeCycleEvents = lifeCycleEvents;
 	}
 	public void addLifecycleEvent(LifecycleEvent event) throws IMDException {
@@ -221,13 +230,21 @@ public class Animal extends IMDairiesDTO{
 	}
 
 	public String getAnimalStatus() {
-		return this.animalStatus;
-	}	
-	
-	public void setAnimalStatus(String animalStatus) {
-		this.animalStatus = animalStatus;
-	}	
+		if (herdJoiningDate != null && herdLeavingDate == null) 
+			// active
+			return "ACTIVE";
+		else 
+			// in active
+			return "INACTIVE";
+	}
+	public boolean isInseminated() {
+		return (getStatusIndicators() == null ? false : getStatusIndicators().indexOf(AnimalLoader.INSEMINATED_INDICATOR)>=0);
+	}
 
+	public boolean isPregnant() {
+		return (getStatusIndicators() == null ? false : getStatusIndicators().indexOf(AnimalLoader.PREGNANT_INDICATOR)>=0);
+	}
+	
 	public String toString() {
 		String value =  stringify(" ");
 		int eventCount = 0;
@@ -253,6 +270,8 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("animalStatus", this.animalStatus) + ",\n" + 
 				prefix + fieldToJson("parturationCount", this.parturationCount) + ",\n" + 
 				prefix + fieldToJson("dateOfBirth", this.dateOfBirth) + ",\n" + 
+				prefix + fieldToJson("herdJoiningDate", this.herdJoiningDate) + ",\n" + 
+				prefix + fieldToJson("herdLeavingDate", this.herdLeavingDate) + ",\n" + 
 				prefix + fieldToJson("isDateOfBirthEstimated", this.isDateOfBirthEstimated) + ",\n" + 
 				prefix + fieldToJson("currentAge", this.getCurrentAge()) + ",\n" + 
 				prefix + fieldToJson("gender", this.gender) + ",\n" + 
@@ -376,6 +395,22 @@ public class Animal extends IMDairiesDTO{
 
 	public void setBreed(String breed) {
 		this.breed = breed;
+	}
+
+	public DateTime getHerdJoiningDate() {
+		return herdJoiningDate;
+	}
+
+	public void setHerdJoiningDate(DateTime herdJoiningDate) {
+		this.herdJoiningDate = herdJoiningDate;
+	}
+
+	public DateTime getHerdLeavingDate() {
+		return herdLeavingDate;
+	}
+
+	public void setHerdLeavingDate(DateTime herdLeavingDate) {
+		this.herdLeavingDate = herdLeavingDate;
 	}
 	
 }

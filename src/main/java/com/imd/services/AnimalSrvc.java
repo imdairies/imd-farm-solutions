@@ -129,6 +129,7 @@ public class AnimalSrvc {
 		String damTag = animalBean.getDam();
 		String sireTag = animalBean.getSire();
 		String dobAccuracyInd = animalBean.getDobAccuracyInd();
+		String herdJoiningDate = animalBean.getHerdJoiningDttmStr();
 		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
 		IMDLogger.log("Add Animal Called with following input values", Util.INFO);
 		IMDLogger.log(animalBean.toString(), Util.INFO);
@@ -151,6 +152,13 @@ public class AnimalSrvc {
 		else if (breed == null || breed.trim().isEmpty()) {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
 		}
+		else if (herdJoiningDate == null || herdJoiningDate.isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
+		}
+		else if (typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status at the time of animal addition. Please choose another status to add this animla and then add an event that results in an inactive status.\"}").build();			
+		}
+		
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		String frontPose = animalBean.getFrontPoseImage() == null || animalBean.getFrontPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/1.png": animalBean.getFrontPoseImage();
@@ -168,13 +176,13 @@ public class AnimalSrvc {
 			animal.setBackSideImageURL(backPose);
 			animal.setRightSideImageURL(rightPose);
 			animal.setLeftSideImageURL(leftPose);
-			animal.setAnimalStatus(typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")? typeCD : Util.ANIMAL_STATUS.ACTIVE);
 			animal.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
 			if (alias != null && !alias.trim().isEmpty())
 				animal.setAlias(animalBean.getAlias());
 			animal.setAnimalType(animalBean.getAnimalType());
 			animal.setBreed(animalBean.getBreed());
 			animal.setDateOfBirth(animalBean.getDateOfBirth("MM/dd/yyyy, hh:mm:ss aa"));
+			animal.setHerdJoiningDate(animalBean.getHerdJoiningDate("MM/dd/yyyy, hh:mm:ss aa"));
 			animal.setDateOfBirthEstimated(!dobAccuracyInd.equalsIgnoreCase("Y"));
 			animal.setBornThroughAI(aiInd.equalsIgnoreCase("Y"));
 			if (damTag != null && !damTag.trim().isEmpty())
@@ -331,8 +339,8 @@ public class AnimalSrvc {
 	    	while (animalValueIt.hasNext()) {
 	    		additionalInfo = "";
 	    		Animal animalValue = animalValueIt.next();
-		    	String strInseminationTimeInfo = "";
-	    		if (isPregnant(animalValue) || isInseminated(animalValue)) {
+		    	String strInseminationTimeInfo = ""; 
+	    		if (animalValue.isPregnant() || animalValue.isInseminated()) {
 	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
 	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
@@ -353,7 +361,7 @@ public class AnimalSrvc {
 	    				strInseminationTimeInfo = ",\n" + prefix + "\"lastInseminationTimeStamp\":\"" + fmt.print(animalEvents.get(0).getEventTimeStamp()) +"\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"eventTransactionID\":\"" + animalEvents.get(0).getEventTransactionID() + "\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"sireInformation\":\"" + (sireInfo == null ? "ERROR Could not find the sire (" +  inseminationSireCode + ")" : sireInfo.getAlias() + " (" + sireInfo.getAnimalTag() + ")") + "\"";
-	    				strInseminationTimeInfo += ",\n" + prefix + "\"isPregnant\":\"" + (isPregnant(animalValue) ? "YES" : "UNKNOWN") + "\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"isPregnant\":\"" + (animalValue.isPregnant() ? "YES" : "UNKNOWN") + "\"";
 						strInseminationTimeInfo += ",\n" + prefix + "\"sexed\":\"" + sexedIndicator + "\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"inseminationAttempts\":\"" + inseminationAttempts +"\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"daysSinceInsemination\":\"" + daysSinceInseminated +"\"";
@@ -406,13 +414,6 @@ public class AnimalSrvc {
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(200).entity(animalValueResult).build();
     }
-	private boolean isInseminated(Animal animalValue) {
-		return (animalValue.getStatusIndicators() == null ? false : animalValue.getStatusIndicators().indexOf(AnimalLoader.INSEMINATED_INDICATOR)>=0);
-	}
-
-	private boolean isPregnant(Animal animalValue) {
-		return (animalValue.getStatusIndicators() == null ? false : animalValue.getStatusIndicators().indexOf(AnimalLoader.PREGNANT_INDICATOR)>=0);
-	}
 
 	/**
 	 * 

@@ -5,11 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
 
+import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.services.bean.LookupValuesBean;
@@ -18,6 +20,7 @@ import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
 public class LookupValuesLoader {
+	private static HashMap<String, LookupValues> loaderCache = new HashMap<String, LookupValues>();
 	
 	public LookupValuesLoader() {
 	}
@@ -69,11 +72,18 @@ public class LookupValuesLoader {
 		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.getActiveIndicator(), false);
 	}
 	public  LookupValues retrieveLookupValue(String categoryCode, String lookupValueCode) {
-		List<LookupValues> luValues = performSearch(categoryCode, lookupValueCode, "Y", false);
-		if (luValues != null && luValues.size() >= 1)
-			return luValues.get(0);
-		else 
-			return null;
+		LookupValues luValue = loaderCache.get(categoryCode + "-" + lookupValueCode);
+		if (luValue != null) {
+			return luValue;
+		} else {
+			List<LookupValues> luValues = performSearch(categoryCode, lookupValueCode, "Y", false);
+			if (luValues != null && luValues.size() >= 1) {
+				loaderCache.put(luValues.get(0).getCategoryCode() + "-" + luValues.get(0).getLookupValueCode(), luValues.get(0));
+				return luValues.get(0);
+			}
+			else 
+				return null;
+		}
 	}
 	public List<LookupValues> retrieveMatchingLookupValues(LookupValuesBean searchBean) {
 		return performSearch(searchBean.getCategoryCode(), searchBean.getLookupValueCode(), searchBean.getActiveIndicator(), true);
@@ -126,6 +136,7 @@ public class LookupValuesLoader {
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
 		    	luValue = getDTOFromSQLRecord(rs);
+		    	loaderCache.put(luValue.getCategoryCode() + "-" + luValue.getLookupValueCode(), luValue);
 		    	allMatchingValues.add(luValue);
 		    }
 		} catch (Exception ex) {
@@ -179,7 +190,8 @@ public class LookupValuesLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, categoryCD);
 			preparedStatement.setString(2, valueCD);
-			result = preparedStatement.executeUpdate();			
+			result = preparedStatement.executeUpdate();
+			loaderCache.remove(categoryCD + "-" + valueCD);
 		} catch (java.sql.SQLSyntaxErrorException ex) {
 			result = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
 			ex.printStackTrace();
@@ -256,6 +268,7 @@ public class LookupValuesLoader {
 				preparedStatement.setString(i++,luValue.getCategoryCode());
 				preparedStatement.setString(i,luValue.getLookupValueCode());
 				updatedRecordCount = preparedStatement.executeUpdate();
+				loaderCache.remove(luValue.getCategoryCode() + "-" + luValue.getLookupValueCode());
 			} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 				updatedRecordCount = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
 				ex.printStackTrace();				

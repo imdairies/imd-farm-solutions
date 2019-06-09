@@ -237,14 +237,14 @@ public class LifeCycleEventsLoader {
 							+ " from LIFECYCLE_EVENTS a  "
 							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " 
 							+ "  ON	a.EVENT_CD = b.EVENT_CD  " 
-							+ "  LEFT OUTER JOIN LOOKUP_VALUES c " 
-							+ "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " 
+							+ "  LEFT OUTER JOIN LOOKUP_VALUES c "
+							+ "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' "
 							+ " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  ";
 		String event1Str = "";
 		String event2Str = "";
 		if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty()) {
 			event1Str = " a.EVENT_CD=? ";
-		} 
+		}
 		if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty()) {
 			event2Str = " a.EVENT_CD=? ";
 		}
@@ -390,7 +390,7 @@ public class LifeCycleEventsLoader {
 		if (event.getEventTimeStamp() != null) {
 			valuestoBeUpdated += ", EVENT_DTTM=?";
 			updateString.add(event.getEventTimeStampSQLFormat());
-		}		
+		}
 		if (event.getEventNote() != null && !event.getEventNote().isEmpty()) {
 			valuestoBeUpdated += ", COMMENTS=? ";
 			updateString.add(event.getEventNote());
@@ -411,14 +411,19 @@ public class LifeCycleEventsLoader {
 			valuestoBeUpdated += ", AUX_FL3_VALUE=? ";
 			updateString.add(event.getAuxField3Value());
 		}
+		if (event.getAuxField4Value() != null) {
+			valuestoBeUpdated += ", AUX_FL4_VALUE=? ";
+			updateString.add(event.getAuxField4Value());
+		}
 		if (event.getUpdatedBy() != null && !event.getUpdatedBy().getUserId().isEmpty()) {
 			valuestoBeUpdated += ", UPDATED_BY=?";
 			updateString.add(event.getUpdatedBy().getUserId());
 		}
-		if (event.getUpdatedDTTM() != null) {
-			valuestoBeUpdated += ", UPDATED_DTTM=?";
-			updateString.add(event.getUpdatedDTTMSQLFormat());
+		if (event.getUpdatedDTTM() == null) {
+			event.setUpdatedDTTM(DateTime.now());
 		}
+		valuestoBeUpdated += ", UPDATED_DTTM=?";
+		updateString.add(event.getUpdatedDTTMSQLFormat());
 
 		IMDLogger.log(valuestoBeUpdated, Util.INFO);
 		
@@ -559,6 +564,49 @@ public class LifeCycleEventsLoader {
 		}
 		return validationMessage;
 	}
+	public String performPostEventAdditionEventUpdate(LifeCycleEventBean eventBean, Animal animal, User user) {
+		String additionalMessage = "";
+		IMDLogger.log("Checking if a related event needs to be updated..." + eventBean, Util.INFO);
+		if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PREGTEST) && 
+				eventBean.getAuxField2Value() != null && 
+				eventBean.getAuxField2Value().equalsIgnoreCase(Util.YES)) {
+			IMDLogger.log("Updating the last insemination results", Util.INFO);
+			List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(eventBean.getOrgID(), eventBean.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
+			additionalMessage = ". No past Insemination or Mating event found. This indicates data entry problem. Please make sure you have added an insemination or mating event for this animal against which you are recording the pregnancy test";
+			if (inseminationEvents != null && !inseminationEvents.isEmpty()) {
+				Iterator<LifecycleEvent> it = inseminationEvents.iterator();
+				String pregnancyTestResult = eventBean.getAuxField1Value();
+				while (it.hasNext()) {
+					LifecycleEvent evt = it.next();
+					if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) || evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING)) {
+						evt.setUpdatedBy(user);
+						if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING))
+							evt.setAuxField2Value(pregnancyTestResult);
+						else 
+							evt.setAuxField3Value(pregnancyTestResult);
+						updateLifeCycleEvent(evt);
+						additionalMessage = ". The latest insemination/mating event (" + evt.getEventTransactionID() + ") was marked as successful";
+						break;									
+					}
+				}
+	
+			}
+		} else if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.CULLED) || 
+				eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.DEATH)) {
+			AnimalLoader loader = new AnimalLoader();
+//		 	Set HERD_LEAVING_DTTM to eventDTTM & Set STATUS=INACTIVE.
+			int recordAdded = loader.updateAnimalHerdLeavingDTTM(animal.getOrgID(), animal.getAnimalTag(), new DateTime(eventBean.getEventTimeStamp()), user);
+			if (recordAdded == 1) {
+				return "The animal's herd leaving date has been set and the animal has also been marked as inactive";
+			}
+				
+			
+		} else {
+			IMDLogger.log("No related event needs to be updated.", Util.INFO);			
+		}
+		return additionalMessage;
+	}
+
 	
 	
 	

@@ -3,11 +3,10 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -25,7 +24,9 @@ import com.imd.dto.LifecycleEvent;
 import com.imd.dto.Note;
 import com.imd.dto.Person;
 import com.imd.dto.User;
+import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.DBManager;
+import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
@@ -53,11 +54,11 @@ class LifeCycleEventLoaderTest {
 		c000.setAlias("Laal");
 		c000.setBreed(Util.Breed.HFCROSS);
 		c000.setAnimalType("LACTATING");
-		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
 		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
 		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
 		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
 		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
+		c000.setHerdJoiningDate(DateTime.now().minusMonths(12));
 		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
 		c000.setCreatedBy(new User("KASHIF"));
 		c000.setCreatedDTTM(DateTime.now());
@@ -80,7 +81,107 @@ class LifeCycleEventLoaderTest {
 		}
 	}
 	
+	@Test
+	void testRelatedEventUpdates() {
+
+		// add insemination event, then a pregnancy test event that showed negative result ==> the insemination successful field should be automatically set to NO
+		// then another insemination event followed by a successful pregtest ==> the insemination successful field should be automatically set to YES
+		
+		
+		String orgID = "IMD";
+		String animalTag = "TST-EVENT";
+		String sire = "1HO10219";
+		String isSexed = "NO";
+		String isInseminationSuccessful = "TBD";
+		
+		
+		try {
+
+			LifeCycleEventCode inseminateEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.INSEMINATE,"","");
+			LifeCycleEventCode matingEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.MATING,"","");
+			LifeCycleEventCode pregTestCD = new LifeCycleEventCode(Util.LifeCycleEvents.PREGTEST,"","");
+			
+			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+			User user = new User("TEST");
+			Animal animal = new Animal(animalTag);
+			animal.setOrgID(orgID);
+			
+			
+			LifecycleEvent matingEvent = new LifecycleEvent(orgID,0,animalTag,matingEventCD.getEventCode());
+			matingEvent.setAuxField1Value(sire);
+			matingEvent.setAuxField2Value(isSexed);
+			matingEvent.setAuxField3Value(isInseminationSuccessful);
+			matingEvent.setAuxField4Value(null);
+			matingEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
+			matingEvent.setEventTimeStamp(DateTime.now().minusMonths(3));
+			matingEvent.setCreatedBy(user);
+			matingEvent.setUpdatedBy(user);
+			matingEvent.setCreatedDTTM(DateTime.now());
+			matingEvent.setUpdatedDTTM(DateTime.now());
+			
+			
+			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,animalTag,inseminateEventCD.getEventCode());
+			inseminationEvent.setAuxField1Value(sire);
+			inseminationEvent.setAuxField2Value(isSexed);
+			inseminationEvent.setAuxField3Value(isInseminationSuccessful);
+			inseminationEvent.setAuxField4Value(null);
+			inseminationEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
+			inseminationEvent.setEventTimeStamp(DateTime.now().minusMonths(6));
+			inseminationEvent.setCreatedBy(user);
+			inseminationEvent.setUpdatedBy(user);
+			inseminationEvent.setCreatedDTTM(DateTime.now());
+			inseminationEvent.setUpdatedDTTM(DateTime.now());			
+			
+			
 	
+			LifeCycleEventBean pregTestEventBean = new LifeCycleEventBean();
+			pregTestEventBean.setOrgID(orgID);
+			pregTestEventBean.setAnimalTag(animalTag);
+			pregTestEventBean.setAuxField1Value(Util.NO.toUpperCase()); //  Pregnant = NO
+			pregTestEventBean.setAuxField2Value(Util.YES.toUpperCase()); // Update last insemination outcome = YES
+			pregTestEventBean.setAuxField3Value(null);
+			pregTestEventBean.setAuxField4Value(null);
+			pregTestEventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusMonths(4)));
+			pregTestEventBean.setEventComments("test");
+			pregTestEventBean.setEventCode(pregTestCD.getEventCode());
+			pregTestEventBean.setOperatorID(user.getUserId());
+	
+			LifecycleEvent pregTestEvent = new LifecycleEvent(pregTestEventBean);
+			pregTestEvent.setCreatedBy(user);
+			pregTestEvent.setUpdatedBy(user);
+			pregTestEvent.setCreatedDTTM(DateTime.now());
+			pregTestEvent.setUpdatedDTTM(DateTime.now());
+			
+			loader.deleteAnimalLifecycleEvents(orgID, animalTag);
+			int inseminationEventID = loader.insertLifeCycleEvent(inseminationEvent);
+			loader.insertLifeCycleEvent(pregTestEvent);
+			assertTrue(loader.performPostEventAdditionEventUpdate(pregTestEventBean, animal, user).contains("" + inseminationEventID));
+			
+			LifecycleEvent updatedEvent = loader.retrieveLifeCycleEvent(orgID, inseminationEventID);
+			assertEquals(Util.NO.toUpperCase(), updatedEvent.getAuxField3Value());
+
+			
+			int matingEventID = loader.insertLifeCycleEvent(matingEvent);
+			pregTestEvent.setEventTimeStamp(DateTime.now());
+			pregTestEvent.setAuxField1Value(Util.YES.toUpperCase()); // pregnant = YES
+			loader.insertLifeCycleEvent(pregTestEvent);
+	
+			pregTestEventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now()));
+			pregTestEventBean.setAuxField1Value(Util.YES.toUpperCase()); // pregnant = YES			
+			assertTrue(loader.performPostEventAdditionEventUpdate(pregTestEventBean, animal, user).contains("" + matingEventID));
+			
+			updatedEvent = loader.retrieveLifeCycleEvent(orgID, matingEventID);
+			assertEquals(Util.YES.toUpperCase(), updatedEvent.getAuxField3Value());
+			
+			loader.deleteAnimalLifecycleEvents(orgID, animalTag);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+
+	
+	}
 
 	@Test
 	void testEventRetrievalOfParticularType() {

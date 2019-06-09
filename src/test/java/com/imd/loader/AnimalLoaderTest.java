@@ -61,7 +61,6 @@ class AnimalLoaderTest {
 		c000.setAlias("Laal");
 		c000.setBreed(Util.Breed.HFCROSS);
 		c000.setAnimalType("LACTATING");
-		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
 		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
 		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
 		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
@@ -71,6 +70,8 @@ class AnimalLoaderTest {
 		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
 		c000.setCreatedBy(new User("KASHIF"));
 		c000.setCreatedDTTM(DateTime.now());
+		c000.setHerdJoiningDate(DateTime.now().minusDays(10));
+		c000.setHerdLeavingDate(null);
 		c000.setUpdatedBy(c000.getCreatedBy());
 		c000.setUpdatedDTTM(c000.getCreatedDTTM());
 		setPurchaseFromContact(c000);
@@ -140,10 +141,11 @@ class AnimalLoaderTest {
 	@Test
 	void testAnimalProcessing() {
 		try {
+			String animalTag = "000";
 			Animal animal;
-			animal = createTestAnimal("000");
+			animal = createTestAnimal(animalTag);
 			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			loader.deleteAnimal("IMD", animalTag);
 			DateTime now = DateTime.now();
 			animal.setDateOfBirth(now.minusDays(1));
 			assertEquals(0,animal.getCurrentAge().getYears(), " The current age should be less than a year");
@@ -156,7 +158,7 @@ class AnimalLoaderTest {
 			boolean found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 					break;
 				}
@@ -164,6 +166,7 @@ class AnimalLoaderTest {
 			assertTrue(found, "Tag 000 should have been found");
 			assertEquals("Laal", animal.getAlias(), " Animal Alias should have been Laal");
 			assertEquals("/assets/img/cow-thumbnails/000/1.png", animal.getFrontSideImageURL(), " Animal Front Pose Image URL should have been /assets/img/cow-thumbnails/000/1.png");
+			animal.setAnimalTag(animalTag);
 			String newStatus = Util.AnimalTypes.LCTPRGNT;
 			String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 			animal.setAnimalTypeCD(newStatus);
@@ -174,37 +177,60 @@ class AnimalLoaderTest {
 			
 			AnimalBean animalBean = new AnimalBean();
 			animalBean.setOrgID("IMD");
-			animalBean.setAnimalTag("000");
+			animalBean.setAnimalTag(animalTag);
 			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
-			assertEquals("000",animal.getAnimalTag());
+			assertEquals(animalTag,animal.getAnimalTag());
 
 			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 					break;
 				}
 			}
-			assertTrue(found, "Tag 000 is a lactating cow so it should have been found by retrieveActiveLactatingAnimals API");
+			assertTrue(found, "Tag " + animalTag + " is a lactating cow so it should have been found by retrieveActiveLactatingAnimals API");
+			assertTrue(animal.isPregnant(), "Tag " + animalTag + " has the status " + animal.getStatusIndicators() + " and should be considered pregnant");
+			
+			loader.deleteAnimal("IMD", animalTag);
 
-			loader.deleteAnimal("IMD", animal.getAnimalTag());
-			animal = createTestAnimal("000");
+			animal.setHerdLeavingDate(now); // mark inactive
+			transactionID = loader.insertAnimal(animal);
+			assertEquals(1,transactionID);
+
+			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
+			assertEquals(animalTag,animal.getAnimalTag());
+
+			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
+			it = animals.iterator();
+			found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
+					found = true;
+					break;
+				}
+			}
+			assertFalse(found, "Tag " + animalTag + " was marked inactive it should NOT have been found by retrieveActiveLactatingAnimals API");			
+			assertEquals(1,loader.deleteAnimal("IMD", animalTag));
+			
+			animal = createTestAnimal(animalTag);
 			animal.setAnimalType("BULL");
 			transactionID = loader.insertAnimal(animal);
+			assertEquals(1,transactionID);
 			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 					break;
 				}
 			}
-			assertFalse(found, "Tag 000 is NOT a lactating cow so it should NOT have been found by retrieveActiveLactatingAnimals API");
+			assertFalse(found, "Tag " + animalTag + " is NOT a lactating cow so it should NOT have been found by retrieveActiveLactatingAnimals API");
 			
 			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
 			assertEquals("000",animal.getAnimalTag());
@@ -223,7 +249,7 @@ class AnimalLoaderTest {
 					break;
 				}
 			}
-			assertTrue(found, "Tag 000 should have been found as a Dam");
+			assertTrue(found, "Tag " + animalTag + " should have been found as a Dam");
 			searchBean.setOrgID("IMD");
 			searchBean.setGender('M');
 			animals = loader.retrieveDamOrSire(searchBean);
@@ -231,13 +257,13 @@ class AnimalLoaderTest {
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 				}
 			}
-			assertFalse(found, "Tag 000 should NOT have been found as a Sire");
+			assertFalse(found, "Tag " + animalTag + " should NOT have been found as a Sire");
 			
-			int transactionId  = loader.deleteAnimal("IMD", "000");
+			int transactionId  = loader.deleteAnimal("IMD", animalTag);
 			assertEquals(1,transactionId);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -341,6 +367,7 @@ class AnimalLoaderTest {
 				}
 			}
 			assertTrue(found, "Tag 000 should have been found");
+			assertTrue(animal.isPregnant(), "Tag 000 should have been considered inseminated");
 			int transactionId  = loader.deleteAnimal("IMD", "000");
 			assertEquals(1,transactionId);
 			

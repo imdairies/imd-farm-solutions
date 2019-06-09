@@ -43,7 +43,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 		this.auxField1Value = eventBean.getAuxField1Value();
 		this.auxField2Value = eventBean.getAuxField2Value();
 		this.auxField3Value = eventBean.getAuxField3Value();
-		this.auxField3Value = eventBean.getAuxField4Value();
+		this.auxField4Value = eventBean.getAuxField4Value();
 		this.eventComments = eventBean.getEventComments();
 		this.eventType = new LifeCycleEventCode(eventBean.getEventCode(),null,null);
 		this.setEventTimeStamp(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern(dateTimeFormat)));
@@ -165,7 +165,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 				prefix + fieldToJson("auxField2Value", this.auxField2Value) + ",\n" +
 				prefix + fieldToJson("auxField3Value", this.auxField3Value) + ",\n" +
 				prefix + fieldToJson("auxField4Value", this.auxField4Value) + ",\n" +
-				prefix + fieldToJson("daysFromToday", this.getDaysFromToday()) + ",\n";
+				prefix + fieldToJson("daysFromToday", this.getDaysFromToday()) + ",\n";		
 		return json;
 	}
 

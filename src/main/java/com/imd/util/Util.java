@@ -48,6 +48,12 @@ public class Util {
 	public static final String YES = "Yes";
 	public static final String NO = "No";
 
+	public static final class FulfillmentType {
+		public static final String ABSOLUTE = "ABSOLUTE";
+		public static final String BODYWEIGHT = "BODYWEIGHT";
+		public static final String FREEFLOW = "FREEFLOW";
+	}
+
 	public static final class Breed  {
 		public static final String HFCROSS = "HFCROSS";
 		public static final String BROWNSWISS = "BROWNSWISS";
@@ -59,6 +65,7 @@ public class Util {
 		public static final String DATETIME = "DATETIME";
 		public static final String YESNO = "YESNO";
 		public static final String LV_SIRE = "LV:/sire";
+		public static final String CATEGORY_CD = "CATEGORY_CD";
 	}
 
 	
@@ -82,6 +89,8 @@ public class Util {
 		public static final String BIRTH = "BIRTH";
 		public static final String VACCINE = "VACCINE";
 		public static final String DEWORM = "DEWORM";
+		public static final String CULLED = "CULLED";
+		public static final String DEATH = "DEATH";
 	}
 
 	public static final class AdvisementRules {
@@ -109,8 +118,25 @@ public class Util {
 		public static final String HFRINSEMIN = "HFRINSEMIN";
 		public static final String DRYINSEMIN = "DRYINSEMIN";
 		public static final String DRYPRENG = "DRYPRENG";
+		public static final String BULL = "BULL";
 	}
 	
+	public static final class FeedCohortType {
+		public static final String BULL = "BULL";
+		public static final String MALECALF = "MALECALF";
+//		public static final String HEIFER = "HEIFER";
+//		public static final String FEMALECALF = "FEMALECALF";
+//		public static final String HFRPREGN = "HFRPREGN";
+//		public static final String LACTATING = "LACTATING";
+//		public static final String LCTINSEMIN = "LCTINSEMIN";
+//		public static final String LCTPRGNT = "LCTPRGNT";
+//		public static final String HFRINSEMIN = "HFRINSEMIN";
+//		public static final String DRYINSEMIN = "DRYINSEMIN";
+//		public static final String DRYPRENG = "DRYPRENG";
+		public static final String FEMALEWEANEDOFF = "FEMALEWEANEDOFF";
+		public static final String FEMALECALF = "FEMALECALF";
+		
+	}
 
 	 public static final class GENDER {
 		public static final char MALE = 'M';
@@ -147,6 +173,7 @@ public class Util {
 		public static final String ACTIVE = "ACTIVE";
 		public static final String DEAD = "DEAD";
 		public static final String CULLED = "CULLED";
+		public static final String INACTIVE = "INACTIVE";
 	 }
 	
 	public static void throwExceptionIfNullOrEmpty(String stringToCheck, String parameterName) throws IMDException {
@@ -195,6 +222,9 @@ public class Util {
 	
 	public static int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
+	}
+	public static int getDaysBetween(LocalDate endDate, LocalDate startDate) {
+		return (new Period(startDate, endDate, PeriodType.days()).getDays());
 	}
 	
 	public static String getYearMonthDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {

@@ -77,14 +77,16 @@ class AdvisementLoaderTest {
 			///////////////////
 
 			Animal oldAnimal = createTestAnimal("-999");
-			oldAnimal.setAnimalStatus("ACTIVE");
+			oldAnimal.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			oldAnimal.setHerdLeavingDate(null);
 			oldAnimal.setDateOfBirth(DateTime.now().minusDays(210));
 			oldAnimal.setAnimalType(Util.AnimalTypes.HEIFER);
 			int transOldAnimal = animalLoader.insertAnimal(oldAnimal);
 			assertEquals(1,transOldAnimal, "Exactly one record -999 should have been inserted");
 			
 			Animal noViolation = createTestAnimal("-998");
-			noViolation.setAnimalStatus("ACTIVE");
+			noViolation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			noViolation.setHerdLeavingDate(null);
 			noViolation.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			noViolation.setDateOfBirth(DateTime.now().minusDays(92));
 			LifeCycleEventBean noViolationBean = new LifeCycleEventBean();
@@ -103,14 +105,16 @@ class AdvisementLoaderTest {
 			assertTrue(eventsLoader.insertLifeCycleEvent(noViolationEvent)>0);	
 						
 			Animal th1Violation = createTestAnimal("-997");
-			th1Violation.setAnimalStatus("ACTIVE");
+			th1Violation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			th1Violation.setHerdLeavingDate(null);
 			th1Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			th1Violation.setDateOfBirth(DateTime.now().minusDays(86));
 			int transTh1Violation = animalLoader.insertAnimal(th1Violation);
 			assertEquals(1,transTh1Violation, "Exactly one record -997 should have been inserted");				
 						
 			Animal th2Violation = createTestAnimal("-996");
-			th2Violation.setAnimalStatus("ACTIVE");
+			th2Violation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			th2Violation.setHerdLeavingDate(null);
 			th2Violation.setAnimalType(Util.AnimalTypes.MALECALF);
 			th2Violation.setDateOfBirth(DateTime.now().minusDays(91));
 			int transTh2Violation = animalLoader.insertAnimal(th2Violation);
@@ -118,7 +122,8 @@ class AdvisementLoaderTest {
 
 			
 			Animal th3Violation = createTestAnimal("-995");
-			th3Violation.setAnimalStatus("ACTIVE");
+			th3Violation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			th3Violation.setHerdLeavingDate(null);
 			th3Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			th3Violation.setDateOfBirth(DateTime.now().minusDays(96));
 			int transTh3Violation = animalLoader.insertAnimal(th3Violation);
@@ -202,14 +207,14 @@ class AdvisementLoaderTest {
 			///////////////////
 
 			Animal oldAnimal = createTestAnimal("-999");
-			oldAnimal.setAnimalStatus("ACTIVE");
+			oldAnimal.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			oldAnimal.setHerdLeavingDate(null);
 			oldAnimal.setDateOfBirth(DateTime.now().minusDays(210));
 			oldAnimal.setAnimalType(Util.AnimalTypes.HEIFER);
 			int transOldAnimal = animalLoader.insertAnimal(oldAnimal);
 			assertEquals(1,transOldAnimal, "Exactly one record -999 should have been inserted");
 			
 			Animal noViolation = createTestAnimal("-998");
-			noViolation.setAnimalStatus("ACTIVE");
 			noViolation.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			noViolation.setDateOfBirth(DateTime.now().minusDays(170));
 			LifeCycleEventBean noViolationBean = new LifeCycleEventBean();
@@ -228,7 +233,6 @@ class AdvisementLoaderTest {
 			assertTrue(eventsLoader.insertLifeCycleEvent(noViolationEvent)>0);	
 						
 			Animal th1Violation = createTestAnimal("-997");
-			th1Violation.setAnimalStatus("ACTIVE");
 			th1Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			th1Violation.setDateOfBirth(DateTime.now().minusDays(170));
 			LifeCycleEventBean th1ViolationBean = new LifeCycleEventBean();
@@ -247,7 +251,6 @@ class AdvisementLoaderTest {
 			assertTrue(eventsLoader.insertLifeCycleEvent(th1ViolationEvent)>0);	
 						
 			Animal th2Violation = createTestAnimal("-996");
-			th2Violation.setAnimalStatus("ACTIVE");
 			th2Violation.setAnimalType(Util.AnimalTypes.MALECALF);
 			th2Violation.setDateOfBirth(DateTime.now().minusDays(170));
 			LifeCycleEventBean th2ViolationBean = new LifeCycleEventBean();
@@ -267,7 +270,6 @@ class AdvisementLoaderTest {
 
 			
 			Animal th3Violation = createTestAnimal("-995");
-			th3Violation.setAnimalStatus("ACTIVE");
 			th3Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			th3Violation.setDateOfBirth(DateTime.now().minusDays(170));
 			LifeCycleEventBean th3ViolationBean = new LifeCycleEventBean();
@@ -367,7 +369,6 @@ class AdvisementLoaderTest {
 
 			
 			Animal th1_1Violated = createTestAnimal("-994");
-			th1_1Violated.setAnimalStatus("ACTIVE");
 			th1_1Violated.setAnimalType("DRYAWTHEAT");
 
 			int transTh1_1Violated = animalLoader.insertAnimal(th1_1Violated);
@@ -403,7 +404,6 @@ class AdvisementLoaderTest {
 			
 			
 			Animal recentlyParturated = createTestAnimal("-999");
-			recentlyParturated.setAnimalStatus("ACTIVE");
 			recentlyParturated.setAnimalType("LACTATING");
 			LifeCycleEventBean recentlyParturatedBean = new LifeCycleEventBean();
 			recentlyParturatedBean.setAnimalTag(recentlyParturated.getAnimalTag());
@@ -422,7 +422,6 @@ class AdvisementLoaderTest {
 			
 			
 			Animal th0Violated = createTestAnimal("-995");
-			th0Violated.setAnimalStatus("ACTIVE");
 			th0Violated.setAnimalType("LACTATING");
 			LifeCycleEventBean th00ViolatedBean = new LifeCycleEventBean();
 			th00ViolatedBean.setAnimalTag(th0Violated.getAnimalTag());
@@ -453,7 +452,6 @@ class AdvisementLoaderTest {
 			eventsLoader.insertLifeCycleEvent(th0ViolatedEvent);
 			
 			Animal th3Violated = createTestAnimal("-996");
-			th3Violated.setAnimalStatus("ACTIVE");
 			th3Violated.setAnimalType("LACTATING");
 			LifeCycleEventBean th3ViolatedBean = new LifeCycleEventBean();
 			th3ViolatedBean.setAnimalTag(th3Violated.getAnimalTag());
@@ -471,7 +469,6 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh3Violated, "Exactly one record -996 should have been inserted");			
 			
 			Animal th2Violated = createTestAnimal("-997");
-			th2Violated.setAnimalStatus("ACTIVE");
 			th2Violated.setAnimalType("LACTATING");
 			LifeCycleEventBean th2ViolatedBean = new LifeCycleEventBean();
 			th2ViolatedBean.setAnimalTag(th2Violated.getAnimalTag());
@@ -489,7 +486,6 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh2Violated, "Exactly one record -997 should have been inserted");
 
 			Animal th1Violated = createTestAnimal("-998");
-			th1Violated.setAnimalStatus("ACTIVE");
 			th1Violated.setAnimalType("LACTATING");
 			LifeCycleEventBean th1ViolatedBean = new LifeCycleEventBean();
 			th1ViolatedBean.setAnimalTag(th1Violated.getAnimalTag());
@@ -505,10 +501,6 @@ class AdvisementLoaderTest {
 			int transTh1Violated = animalLoader.insertAnimal(th1Violated);
 			eventsLoader.insertLifeCycleEvent(th1ViolatedEvent);
 			assertEquals(1,transTh1Violated, "Exactly one record -998 should have been inserted");
-			
-			
-			
-			
 
 			List<Animal> animalPop = delayedHeatCowAdvisement.getAdvisementRuleAddressablePopulation("IMD");
 			boolean th3Found = false;
@@ -602,27 +594,22 @@ class AdvisementLoaderTest {
 
 			Animal youngHeifer = createTestAnimal("-999");
 			youngHeifer.setDateOfBirth(DateTime.now().minusMonths(11));
-			youngHeifer.setAnimalStatus("ACTIVE");
 			youngHeifer.setAnimalType("HEIFER");
 
 			Animal th1Heifer =createTestAnimal("-998");
 			th1Heifer.setDateOfBirth(DateTime.now().minusDays(366));
-			th1Heifer.setAnimalStatus("ACTIVE");
 			th1Heifer.setAnimalType("HEIFER");
 			
 			Animal th2Heifer =createTestAnimal("-997");
 			th2Heifer.setDateOfBirth(DateTime.now().minusDays(550));
-			th2Heifer.setAnimalStatus("ACTIVE");
 			th2Heifer.setAnimalType("HEIFER");
 
 			Animal th3Heifer =createTestAnimal("-996");
 			th3Heifer.setDateOfBirth(DateTime.now().minusDays(730));
-			th3Heifer.setAnimalStatus("ACTIVE");
 			th3Heifer.setAnimalType("HEIFER");
 
 			Animal th3WithHeatHeifer =createTestAnimal("-995");
 			th3WithHeatHeifer.setDateOfBirth(DateTime.now().minusDays(730));
-			th3WithHeatHeifer.setAnimalStatus("ACTIVE");
 			th3WithHeatHeifer.setAnimalType("HFRAWTHEAT");
 			
 			LifeCycleEventBean eventBean = new LifeCycleEventBean();
@@ -639,7 +626,6 @@ class AdvisementLoaderTest {
 			
 			Animal th0WithHeatHeifer =createTestAnimal("-994");
 			th0WithHeatHeifer.setDateOfBirth(DateTime.now().minusDays(730));
-			th0WithHeatHeifer.setAnimalStatus("ACTIVE");
 			th0WithHeatHeifer.setAnimalType("HFRAWTHEAT");
 			
 			LifeCycleEventBean eventTh0Bean = new LifeCycleEventBean();
@@ -654,8 +640,6 @@ class AdvisementLoaderTest {
 			heiferTh0HeatEvent.setCreatedDTTM(DateTime.now());
 			heiferTh0HeatEvent.setUpdatedDTTM(DateTime.now());
 
-			
-			
 			int transYoungHeifer = animalLoader.insertAnimal(youngHeifer);
 			int transTh1Heifer = animalLoader.insertAnimal(th1Heifer);
 			int transTh2Heifer = animalLoader.insertAnimal(th2Heifer);
@@ -759,7 +743,6 @@ class AdvisementLoaderTest {
 			///////////////////
 			
 			Animal heatWarningTh1 = createTestAnimal("-999");
-			heatWarningTh1.setAnimalStatus("ACTIVE");
 			heatWarningTh1.setAnimalType("LCTINSEMIN");
 			LifeCycleEventBean heatBeanTh1 = new LifeCycleEventBean();
 			heatBeanTh1.setAnimalTag(heatWarningTh1.getAnimalTag());
@@ -774,7 +757,6 @@ class AdvisementLoaderTest {
 			heatInseminationEventTh1.setUpdatedDTTM(DateTime.now());
 			
 			Animal heatWarningTh2 = createTestAnimal("-998");
-			heatWarningTh2.setAnimalStatus("ACTIVE");
 			heatWarningTh2.setAnimalType("LCTINSEMIN");
 			LifeCycleEventBean heatBeanTh2 = new LifeCycleEventBean();
 			heatBeanTh2.setAnimalTag(heatWarningTh2.getAnimalTag());
@@ -789,7 +771,6 @@ class AdvisementLoaderTest {
 			heatInseminationEventTh2.setUpdatedDTTM(DateTime.now());	
 			
 			Animal heatWarningTh3 = createTestAnimal("-997");
-			heatWarningTh3.setAnimalStatus("ACTIVE");
 			heatWarningTh3.setAnimalType("LCTINSEMIN");
 			LifeCycleEventBean heatBeanTh3 = new LifeCycleEventBean();
 			heatBeanTh3.setAnimalTag(heatWarningTh3.getAnimalTag());
@@ -804,7 +785,6 @@ class AdvisementLoaderTest {
 			heatInseminationEventTh3.setUpdatedDTTM(DateTime.now());				
 
 			Animal heatWarningTh0 = createTestAnimal("-996");
-			heatWarningTh0.setAnimalStatus("ACTIVE");
 			heatWarningTh0.setAnimalType("LCTINSEMIN");
 			LifeCycleEventBean heatBeanTh0 = new LifeCycleEventBean();
 			heatBeanTh0.setAnimalTag(heatWarningTh0.getAnimalTag());
@@ -857,6 +837,7 @@ class AdvisementLoaderTest {
 					Animal populationAnimal = it.next();
 					IMDLogger.log(populationAnimal.getNote(0).getNoteText(), Util.WARNING);
 					if (populationAnimal.getAnimalTag().equalsIgnoreCase(heatWarningTh1.getAnimalTag())) {
+						assertTrue(populationAnimal.isInseminated(), " This animal should have been considered inseminated.");
 						assertTrue(populationAnimal.isThreshold1Violated(),"This animal "+ heatWarningTh1.getAnimalTag() +  "("+ heatWarningTh0.getAnimalType() + ") should have violated first threshold");
 						assertFalse(populationAnimal.isThreshold2Violated(),"This animal "+ heatWarningTh1.getAnimalTag() +  "("+ heatWarningTh0.getAnimalType() + ") should have violated first threshold");
 						assertFalse(populationAnimal.isThreshold3Violated(),"This animal "+ heatWarningTh1.getAnimalTag() +  "("+ heatWarningTh0.getAnimalType() + ") should have violated first threshold");
@@ -921,22 +902,18 @@ class AdvisementLoaderTest {
 
 			Animal femaleCalf = createTestAnimal("-999");
 			femaleCalf.setDateOfBirth(DateTime.now().minusDays(90));
-			femaleCalf.setAnimalStatus("ACTIVE");
 			femaleCalf.setAnimalType("FEMALECALF");
 
 			Animal maleCalf = createTestAnimal("-998");
 			maleCalf.setDateOfBirth(DateTime.now().minusDays(90));
-			maleCalf.setAnimalStatus("ACTIVE");
 			maleCalf.setAnimalType("MALECALF");
 			
 			Animal dryPregnant = createTestAnimal("-997");
 			dryPregnant.setDateOfBirth(DateTime.now().minusDays(600));
-			dryPregnant.setAnimalStatus("ACTIVE");
 			dryPregnant.setAnimalType("DRYPREG");
 
 			Animal dehornedCalf = createTestAnimal("-996");
 			dehornedCalf.setDateOfBirth(DateTime.now().minusDays(90));
-			dehornedCalf.setAnimalStatus("ACTIVE");
 			dehornedCalf.setAnimalType("FEMALECALF");
 			
 			
@@ -1054,23 +1031,18 @@ class AdvisementLoaderTest {
 			///////////////////
 
 			Animal notInseminated = createTestAnimal("-999");
-			notInseminated.setAnimalStatus("ACTIVE");
 			notInseminated.setAnimalType("LACTATING");
 
 			Animal inseminationTh0 = createTestAnimal("-998");
-			inseminationTh0.setAnimalStatus("ACTIVE");
 			inseminationTh0.setAnimalType("LCTINSEMIN");
 			
 			Animal inseminationTh3 = createTestAnimal("-997");
-			inseminationTh3.setAnimalStatus("ACTIVE");
 			inseminationTh3.setAnimalType("LCTINSEMIN");
 
 			Animal inseminationTh2 = createTestAnimal("-996");
-			inseminationTh2.setAnimalStatus("ACTIVE");
 			inseminationTh2.setAnimalType("LCTINSEMIN");
 
 			Animal inseminationTh1 = createTestAnimal("-995");
-			inseminationTh1.setAnimalStatus("ACTIVE");
 			inseminationTh1.setAnimalType("LCTINSEMIN");			
 			
 			LifeCycleEventBean eventBeanTh3 = new LifeCycleEventBean();
@@ -1234,27 +1206,21 @@ class AdvisementLoaderTest {
 			
 
 			Animal noVaccine = createTestAnimal("-999");
-			noVaccine.setAnimalStatus("ACTIVE");
 			noVaccine.setAnimalType("LACTATING");
 
 			Animal vaccineOk = createTestAnimal("-998");
-			vaccineOk.setAnimalStatus("ACTIVE");
 			vaccineOk.setAnimalType("LCTPRGNT");
 			
 			Animal vaccineTh3 = createTestAnimal("-997");
-			vaccineTh3.setAnimalStatus("ACTIVE");
 			vaccineTh3.setAnimalType("DRYPREG");
 
 			Animal vaccineTh2 = createTestAnimal("-996");
-			vaccineTh2.setAnimalStatus("ACTIVE");
 			vaccineTh2.setAnimalType("DRYPREG");
 
 			Animal vaccineTh1 = createTestAnimal("-995");
-			vaccineTh1.setAnimalStatus("ACTIVE");
 			vaccineTh1.setAnimalType("DRYPREG");			
 
 			Animal vaccineButNotFMD = createTestAnimal("-994");
-			vaccineButNotFMD.setAnimalStatus("ACTIVE");
 			vaccineButNotFMD.setAnimalType("DRYPREG");
 
 			LifeCycleEventBean eventBeanNotFMD = new LifeCycleEventBean();
@@ -1454,23 +1420,17 @@ class AdvisementLoaderTest {
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			///////////////////
 			
-
 			Animal lactatingNotPregnant = createTestAnimal("-999");
-			lactatingNotPregnant.setAnimalStatus("ACTIVE");
 			lactatingNotPregnant.setAnimalType("LACTATING");
 
 			Animal lactatingNonDryPregnantThreshold3 = createTestAnimal("-998");
-			lactatingNonDryPregnantThreshold3.setAnimalStatus("ACTIVE");
 			lactatingNonDryPregnantThreshold3.setAnimalType("LCTPRGNT");
 			
 			Animal dryPregnant = createTestAnimal("-997");
-			dryPregnant.setAnimalStatus("ACTIVE");
 			dryPregnant.setAnimalType("DRYPREG");
 
 			Animal lactatingNonDryPregnantThreshold1 = createTestAnimal("-996");
-			lactatingNonDryPregnantThreshold1.setAnimalStatus("ACTIVE");
-			lactatingNonDryPregnantThreshold1.setAnimalType("LCTPRGNT");
-			
+			lactatingNonDryPregnantThreshold1.setAnimalType("LCTPRGNT");			
 			
 			LifeCycleEventBean eventBean1 = new LifeCycleEventBean();
 			eventBean1.setAnimalTag(lactatingNonDryPregnantThreshold3.getAnimalTag());
@@ -1512,7 +1472,6 @@ class AdvisementLoaderTest {
 			inseminationEvent2.setEventNote("Test Insemination Event. This cow has NOT yet been dried so DryCow advisement THRESHOLD1 SHOULD be triggered for this cow.");
 			inseminationEvent2.setAnimalTag(lactatingNonDryPregnantThreshold1.getAnimalTag());
 			eventsLoader.insertLifeCycleEvent(inseminationEvent2);
-			
 			
 			assertEquals(1,transactionID1, "Exactly one record -999 should have been inserted");
 			assertEquals(1,transactionID2, "Exactly one record -998 should have been inserted");			
@@ -1585,27 +1544,23 @@ class AdvisementLoaderTest {
 			///////////////////			
 						
 			Animal dewormOk = createTestAnimal("-992");
-			dewormOk.setAnimalStatus("ACTIVE");
 			dewormOk.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			assertEquals(1,animalLoader.insertAnimal(dewormOk));
 			assertTrue(insertEvent(dewormOk.getAnimalTag(), "DOES NOT Violate ANY Threshold", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(10)) >= 0);
 			
 
 			Animal dewormTh1 = createTestAnimal("-993");
-			dewormTh1.setAnimalStatus("ACTIVE");
 			dewormTh1.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			assertEquals(1,animalLoader.insertAnimal(dewormTh1));
 			assertTrue(insertEvent(dewormTh1.getAnimalTag(), "Violates Threshold 1", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(118)) >= 0);
 
 			Animal dewormTh2 = createTestAnimal("-994");
-			dewormTh2.setAnimalStatus("ACTIVE");
 			dewormTh2.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			assertEquals(1,animalLoader.insertAnimal(dewormTh2));
 			assertTrue(insertEvent(dewormTh2.getAnimalTag(), "Violates Threshold 2", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(121)) >= 0);
 			
 			
 			Animal dewormTh3 = createTestAnimal("-995");
-			dewormTh3.setAnimalStatus("ACTIVE");
 			dewormTh3.setAnimalType(Util.AnimalTypes.DRYINSEMIN);
 			assertEquals(1,animalLoader.insertAnimal(dewormTh3));
 			assertTrue(insertEvent(dewormTh3.getAnimalTag(), "Violates Threshold 3", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(200)) >= 0);
@@ -1678,34 +1633,27 @@ class AdvisementLoaderTest {
 			///////////////////			
 						
 			Animal dewormTh1 = createTestAnimal("-992");
-			dewormTh1.setAnimalStatus("ACTIVE");
 			dewormTh1.setAnimalType("FEMALECALF");
 			
 
 			Animal lactatingNotPregnant = createTestAnimal("-999");
-			lactatingNotPregnant.setAnimalStatus("ACTIVE");
 			lactatingNotPregnant.setAnimalType("LACTATING");
 
 			Animal lactatingNonDryPregnant = createTestAnimal("-998");
-			lactatingNonDryPregnant.setAnimalStatus("ACTIVE");
 			lactatingNonDryPregnant.setAnimalType("LCTPRGNT");
 			
 			Animal dryPregnant = createTestAnimal("-997");
-			dryPregnant.setAnimalStatus("ACTIVE");
 			dryPregnant.setAnimalType("DRYPREG");
 			
 			Animal nonDehornedCalf = createTestAnimal("-996");
 			nonDehornedCalf.setDateOfBirth(DateTime.now().minusDays(90));
-			nonDehornedCalf.setAnimalStatus("ACTIVE");
 			nonDehornedCalf.setAnimalType("FEMALECALF");
 
 			Animal nonFmd = createTestAnimal("-995");
 			nonFmd.setDateOfBirth(DateTime.now().minusDays(90));
-			nonFmd.setAnimalStatus("ACTIVE");
 			nonFmd.setAnimalType("FEMALECALF");
 
 			Animal inseminationAnimalTh3 = createTestAnimal("-994");
-			inseminationAnimalTh3.setAnimalStatus("ACTIVE");
 			inseminationAnimalTh3.setAnimalType("LCTINSEMIN");
 			LifeCycleEventBean inseminationBeanTh3 = new LifeCycleEventBean();
 			inseminationBeanTh3.setAnimalTag(inseminationAnimalTh3.getAnimalTag());
@@ -1721,7 +1669,6 @@ class AdvisementLoaderTest {
 
 			
 			Animal heatWarningTh1 = createTestAnimal("-993");
-			heatWarningTh1.setAnimalStatus("ACTIVE");
 			heatWarningTh1.setAnimalType("LCTINSEMIN");
 			LifeCycleEventBean heatWarningBeanTh1 = new LifeCycleEventBean();
 			heatWarningBeanTh1.setAnimalTag(heatWarningTh1.getAnimalTag());
@@ -1860,7 +1807,7 @@ class AdvisementLoaderTest {
 		c000.setAlias("Laal");
 		c000.setBreed(Util.Breed.HFCROSS);
 		c000.setAnimalType("LACTATING");
-		c000.setAnimalStatus(Util.ANIMAL_STATUS.ACTIVE);
+		c000.setHerdJoiningDate(DateTime.now().minusMonths(12));
 		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
 		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
 		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");

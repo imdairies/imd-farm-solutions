@@ -11,12 +11,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.dto.Animal;
 import com.imd.dto.Inventory;
+import com.imd.dto.LifeCycleEventCode;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
@@ -61,8 +61,6 @@ public class LifecycleEventSrvc {
 			String eventTypeCD = animalEventBean.getEventCode();
 			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
 				eventTypeCD = null;
-			IMDLogger.log(">>>> " + animalEventBean.toString(), Util.INFO);
-			IMDLogger.log("<<<<<" + eventTypeCD, Util.INFO);
 			List<LifecycleEvent> events = animalEventsloader.retrieveSpecificLifeCycleEventsForAnimal(animalBean.getOrgID(),animalValues.get(0).getAnimalTag(),eventTypeCD);
 			if (events == null || events.size() == 0)
 			{
@@ -73,7 +71,8 @@ public class LifecycleEventSrvc {
 	    	while (eventIt.hasNext()) {
 	    		LifecycleEvent event = eventIt.next();
 	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
-	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animalValues.get(0).getDateOfBirth()) + "\n},\n";	    		
+	    		String extendedComment = formatComent(event);
+	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animalValues.get(0).getDateOfBirth()) + ",\n  \"formattedComments\":\"" + extendedComment + "\"\n},\n";	    		
 	    	}
 	    	animalEvents = "[" + animalEvents.substring(0,animalEvents.lastIndexOf(",\n")) + "]";
 	    	IMDLogger.log(animalEvents, Util.INFO);
@@ -86,6 +85,54 @@ public class LifecycleEventSrvc {
     
 	
 	
+	private String formatComent(LifecycleEvent event) {
+		String comments = "";
+		LifeCycleEventCode code = event.getEventType();
+		String field1 = composeAuxFieldValue(code.getEventCode(),
+				code.getField1Label(),
+				code.getField1DataType(),
+				code.getField1DataUnit(),
+				event.getAuxField1Value());
+		String field2 = composeAuxFieldValue(code.getEventCode(),
+				code.getField2Label(),
+				code.getField2DataType(),
+				code.getField2DataUnit(),
+				event.getAuxField2Value());
+		String field3 = composeAuxFieldValue(code.getEventCode(),
+				code.getField3Label(),
+				code.getField3DataType(),
+				code.getField3DataUnit(),
+				event.getAuxField3Value());
+		String field4 = composeAuxFieldValue(code.getEventCode(),
+				code.getField4Label(),
+				code.getField4DataType(),
+				code.getField4DataUnit(),
+				event.getAuxField4Value());
+
+		comments = (field1.isEmpty() ? "" : field1 + "\\n") +
+		 (field2.isEmpty() ? "" : field2 + "\\n") +
+		 (field3.isEmpty() ? "" : field3 + "\\n") +
+		 (field4.isEmpty() ? "" : field4 + "\\n");
+		return (comments.isEmpty() ? "" : comments.substring(0,comments.lastIndexOf("\\n")));
+	}
+
+	private String composeAuxFieldValue(String eventCode, String fieldLabel, String fieldDataType, String fieldUnit, String fieldValue) {
+		String comments = "";
+		String value;
+		LookupValuesLoader loader = new LookupValuesLoader();
+		if (fieldLabel != null && !fieldLabel.isEmpty() && fieldValue != null && !fieldValue.isEmpty()) {
+			if (fieldDataType.equals(Util.DataTypes.CATEGORY_CD) && fieldUnit != null && !fieldUnit.isEmpty()) {
+				LookupValues lu = loader.retrieveLookupValue(fieldUnit, fieldValue);
+				value = (lu == null ? "" : lu.getShortDescription());
+			} else 
+				value = fieldValue;
+			comments = fieldLabel + ":" + value;
+		}
+		return comments;
+		
+	}
+
+
 	@POST
 	@Path("/retrieveoneevent")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -135,7 +182,7 @@ public class LifecycleEventSrvc {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(200).entity("{ \"error\": false, \"message\":\"" + deleteCount + " life event(s) was deleted.\"}").build();
+		return Response.status(200).entity("{ \"error\": false, \"message\":\"" + deleteCount + " life event was deleted. Please note that if at the time of creation of this event some related event was updated, then those updates were NOT reversed by the deletion. If you wish to reverse those updates, please do so manually.\"}").build();
 	}
 	
 	@POST
@@ -307,6 +354,7 @@ public class LifecycleEventSrvc {
 	private String performPostEventAdditionSteps(LifeCycleEventBean eventBean,Animal animal, User user) {
 		String additionalMessage = performPostEventAdditionLifecycleStageUpdate(eventBean, animal, user);
 		additionalMessage += performPostEventAdditionInventoryUpdate(eventBean, animal, user);
+		additionalMessage += (new LifeCycleEventsLoader()).performPostEventAdditionEventUpdate(eventBean, animal, user);
 		
 		return additionalMessage;
 	}
@@ -329,13 +377,14 @@ public class LifecycleEventSrvc {
 		return additionalMessage;
 	}
 
-
 	private String performPostEventAdditionInventoryUpdate(LifeCycleEventBean eventBean, Animal animal, User user) {
 		String additionalMessage = "";
 		if (eventBean.getShouldUpdateInventory() != null && eventBean.getShouldUpdateInventory().equalsIgnoreCase(Util.YES)) {
 			Inventory inventory = new Inventory();
 			InventoryLoader loader = new InventoryLoader();
+			IMDLogger.log("Updating the inventory", Util.INFO);
 			if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.INSEMINATE)) {
+				IMDLogger.log("Updating the Semen inventory", Util.INFO);
 				inventory.setOrgID(eventBean.getOrgID()); 
 				inventory.setItemSKU(eventBean.getAuxField1Value()); // bull code
 				inventory.setInventoryAddDttm(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern( "MM/dd/yyyy, hh:mm:ss aa"))); // when was this item consumed
@@ -396,14 +445,14 @@ public class LifecycleEventSrvc {
 		if (eventComments == null || eventComments.trim().isEmpty()) {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
 		}
-		LifecycleEvent event;
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
-			event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
+			LifecycleEvent event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			event.setUpdatedBy(new User(userID));
 			event.setUpdatedDTTM(DateTime.now());
+			
 			result = loader.updateLifeCycleEvent(event);
 		} catch (Exception e) {
 			e.printStackTrace();

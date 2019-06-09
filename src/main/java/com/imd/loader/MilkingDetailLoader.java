@@ -396,7 +396,7 @@ public class MilkingDetailLoader {
 		preparedStatement.setString(2,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
 		IMDLogger.log(preparedStatement.toString(),Util.INFO);
 	    rs = preparedStatement.executeQuery();
-	    int dayOfMonth = 1;
+	    LocalDate dateInProcess = startDate;
 	    while (rs.next()) {
 			MilkingDetail milkDetail = new MilkingDetail();
 			DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");			
@@ -407,34 +407,100 @@ public class MilkingDetailLoader {
 			milkDetail.setTemperatureInCentigrade(rs.getFloat("AVG_TEMPERATURE"));
 			milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, new Float(milkDetail.getMilkVolume()/rs.getInt("MILKED_ANIMALS")));
 			if (shouldIncludeMissingDays) {
-				while (dayOfMonth < milkDetail.getRecordDate().getDayOfMonth()) {
+				while (dateInProcess.isBefore(milkDetail.getRecordDate())) {
 					MilkingDetail noRecord = new MilkingDetail();
-					noRecord.setRecordDate(new LocalDate(milkDetail.getRecordDate().getYear(), milkDetail.getRecordDate().getMonthOfYear(), dayOfMonth));
+					noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
 					noRecord.setMilkVolume(0);
 					noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
 					allMatchingValues.add(noRecord);
-					dayOfMonth++;
+					dateInProcess = dateInProcess.plusDays(1);
 					IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
 				}
 			}
 			allMatchingValues.add(milkDetail);
 			IMDLogger.log(milkDetail.getRecordDate().toString() + ": " + milkDetail.getMilkVolume(), Util.INFO);
-			dayOfMonth++;
+			dateInProcess = dateInProcess.plusDays(1);
 	    }
 	    
 		if (shouldIncludeMissingDays) {
-		    int lastDateofMonth = endDate.getDayOfMonth();
-		    while (dayOfMonth <= lastDateofMonth) {
+			while (!dateInProcess.isAfter(endDate)) {
 				MilkingDetail noRecord = new MilkingDetail();
-				noRecord.setRecordDate(new LocalDate(startDate.getYear(), startDate.getMonthOfYear(), dayOfMonth));
+				noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
 				noRecord.setMilkVolume(0);
 				allMatchingValues.add(noRecord);
 				IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
-				dayOfMonth++;
+				dateInProcess = dateInProcess.plusDays(1);
 		    }
 		}
 	    return allMatchingValues;
 	}
+	
+	
+	/**
+	 * Retrieves data from the startDate till endDate both dates inclusive. The data is grouped by day i.e. each record represents the consolidated milk volume for a given day.
+	 * If a day does not have any milking information recorded in the DB then a 0 milking volume is reported for that day.
+	 * @param orgID
+	 * @param animalTag
+	 * @param startDate
+	 * @param endDate
+	 * @param shouldIncludeMissingDays If set to true then even if there is no record for a day, the output will have a zero volume for that day. If set to false then the days with no record will not be included in the return array.
+	 * @return
+	 * @throws SQLException 
+	 */
+	public List<MilkingDetail> retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(String orgID, String animalTag, LocalDate startDate, LocalDate endDate, boolean shouldIncludeMissingDays) throws SQLException{
+		
+		String qryString = "SELECT sum(vol) AS VOLUME, MILK_DATE " +
+				" FROM imd.MILK_LOG where ORG_ID=? AND animal_tag=? AND " + 
+				" MILK_DATE >= CAST(? AS DATE) AND MILK_DATE <= CAST(? AS  DATE) group by milk_date order by milk_date asc";
+		ArrayList<MilkingDetail> allMatchingValues = new ArrayList<MilkingDetail>();
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		preparedStatement = conn.prepareStatement(qryString);
+		preparedStatement.setString(1,orgID);
+		preparedStatement.setString(2,animalTag);
+		preparedStatement.setString(3,Util.getDateInSpecifiedFormart(startDate, "yyyy-MM-dd"));
+		preparedStatement.setString(4,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
+	    rs = preparedStatement.executeQuery();
+	    LocalDate dateInProcess = startDate;
+	    while (rs.next()) {
+			MilkingDetail milkDetail = new MilkingDetail();
+			DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
+			milkDetail.setAnimalTag(animalTag);
+			milkDetail.setOrgID(orgID);
+			milkDetail.setRecordDate(new LocalDate(dtf.parseLocalDate(rs.getString("MILK_DATE"))));
+			milkDetail.setMilkVolume(rs.getFloat("VOLUME"));
+			if (shouldIncludeMissingDays) {
+				while (dateInProcess.isBefore(milkDetail.getRecordDate())) {
+					MilkingDetail noRecord = new MilkingDetail();
+					noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
+					noRecord.setMilkVolume(0);
+					allMatchingValues.add(noRecord);
+					dateInProcess = dateInProcess.plusDays(1);
+					IMDLogger.log("Adding empty record" + noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
+				}
+			}
+			allMatchingValues.add(milkDetail);
+			IMDLogger.log(milkDetail.getRecordDate().toString() + ": " + milkDetail.getMilkVolume(), Util.INFO);
+			dateInProcess = dateInProcess.plusDays(1);
+	    }
+	    
+	    //dateInProcess = endDate;
+
+		if (shouldIncludeMissingDays) {
+			while (!dateInProcess.isAfter(endDate)) {
+				MilkingDetail noRecord = new MilkingDetail();
+				noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
+				noRecord.setMilkVolume(0);
+				allMatchingValues.add(noRecord);
+				IMDLogger.log("Adding trailing empty records" + noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
+				dateInProcess = dateInProcess.plusDays(1);
+		    }
+		}
+	    return allMatchingValues;
+	}	
+	
 	private MilkingDetail getMilkingDetailFromSQLRecord(ResultSet rs) throws Exception {
 		MilkingDetail milkDetail = new MilkingDetail();
 		milkDetail.setOrgID(rs.getString("ORG_ID"));

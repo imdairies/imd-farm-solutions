@@ -213,6 +213,22 @@ class MilkingDetailLoaderTest {
 			milkingRecord3_3.setMilkingEventNumber((short) 3);
 			milkingRecord3_3.setMilkVolume(18.0f);
 			
+
+			
+			MilkingDetail milkingRecord4_1 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(5,0,0));
+			milkingRecord4_1.setComments("Morning Milking");
+			milkingRecord4_1.setMilkingEventNumber((short) 1);
+			milkingRecord4_1.setMilkVolume(16.0f);
+			MilkingDetail milkingRecord4_2 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(13,0,0));
+			milkingRecord4_2.setComments("Afternoon Milking");
+			milkingRecord4_2.setMilkingEventNumber((short) 2);
+			milkingRecord4_2.setMilkVolume(17.0f);
+			MilkingDetail milkingRecord4_3 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(21,0,0));
+			milkingRecord4_3.setComments("Night Milking");
+			milkingRecord4_3.setMilkingEventNumber((short) 3);
+			milkingRecord4_3.setMilkVolume(18.0f);
+			
+			
 			
 			
 			MilkingDetailLoader loader = new MilkingDetailLoader();
@@ -307,7 +323,27 @@ class MilkingDetailLoaderTest {
 			assertEquals(70.0,volumes[0], " first volume should be 70");
 			assertEquals(42.0,volumes[1], " second volume should be 42");
 			assertEquals(51.0,volumes[2], " third volume should be 33");
-
+			
+			LocalDate startDate = new LocalDate(milkingRecord1_1.getRecordDate().getYear(),milkingRecord1_1.getRecordDate().getMonthOfYear(), 1);
+			LocalDate endDate = startDate.plusMonths(2).minusDays(1);
+			
+			milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(milkingRecord1_1.getOrgID(), 
+					milkingRecord1_1.getAnimalTag(), startDate, endDate,true);
+			it = milkRecords.iterator();
+			IMDLogger.log(startDate + " " + endDate, Util.INFO);
+			assertEquals(Util.getDaysBetween(endDate, startDate)+1, milkRecords.size());
+			milkRec = null;
+			noRecordDays = 0;
+			recordDays = 0;
+			totalMonthVolume = 0;
+			volumes = new float[3];
+			while (it.hasNext()) {
+				milkRec = it.next();
+				float dailyVol = milkingRecord1_1.getMilkVolume() + milkingRecord1_2.getMilkVolume() + milkingRecord1_3.getMilkVolume();
+				assertEquals(dailyVol, (float)milkRec.getMilkVolume());
+				IMDLogger.log(milkRec.getAnimalTag() + " " + milkRec.getRecordDate() + " " + milkRec.getMilkVolume(), Util.INFO);
+				break;
+			}			
 			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
 			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
 			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
@@ -315,7 +351,7 @@ class MilkingDetailLoaderTest {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			fail("Animal Creation and/or insertion Failed.");
+			fail("Milk Information testing failed.");
 		}
 	}
 	

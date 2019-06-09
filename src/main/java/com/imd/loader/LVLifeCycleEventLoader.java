@@ -6,13 +6,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
 
 import com.imd.dto.LifeCycleEventCode;
-import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.DBManager;
@@ -21,7 +21,7 @@ import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
 public class LVLifeCycleEventLoader {
-	
+	private static HashMap<String, LifeCycleEventCode> loaderCache = new HashMap<String, LifeCycleEventCode>();
 	public LVLifeCycleEventLoader() {
 	}
 	
@@ -89,31 +89,39 @@ public class LVLifeCycleEventLoader {
 	public List<LifeCycleEventCode> retrieveLifeCycleEvent(String eventCode) {
 		ArrayList<LifeCycleEventCode> allMatchingEvents = new ArrayList<LifeCycleEventCode>();
 		String qryString = "Select * from LV_LIFECYCLE_EVENT where EVENT_CD = ? ORDER BY SHORT_DESCR";
-		LifeCycleEventCode event = null;
-		ResultSet rs = null;
-		PreparedStatement preparedStatement = null;
-		try {
-			Connection conn = DBManager.getDBConnection();
-			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, eventCode);
-			IMDLogger.log(preparedStatement.toString(),Util.INFO);
-		    rs = preparedStatement.executeQuery();
-		    while (rs.next()) {
-		        event = getLifeCycleEventFromSQLRecord(rs);
-		        allMatchingEvents.add(event);
-		    }
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		} finally {
-		    try {
-				if (rs != null && !rs.isClosed()) {
-					rs.close();	
+		LifeCycleEventCode lvEvent = loaderCache.get(eventCode);
+		if (lvEvent != null) {
+			IMDLogger.log("Event Code " + eventCode + " cache hit", Util.INFO);
+			allMatchingEvents.add(lvEvent);
+		} else {
+			IMDLogger.log("Event Code " + eventCode + " cache miss", Util.INFO);
+			LifeCycleEventCode event = null;
+			ResultSet rs = null;
+			PreparedStatement preparedStatement = null;
+			try {
+				Connection conn = DBManager.getDBConnection();
+				preparedStatement = conn.prepareStatement(qryString);
+				preparedStatement.setString(1, eventCode);
+				IMDLogger.log(preparedStatement.toString(),Util.INFO);
+			    rs = preparedStatement.executeQuery();
+			    while (rs.next()) {
+			        event = getLifeCycleEventFromSQLRecord(rs);
+			        loaderCache.put(eventCode, event);
+			        allMatchingEvents.add(event);
+			    }
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+			    try {
+					if (rs != null && !rs.isClosed()) {
+						rs.close();	
+					}
+					if (preparedStatement != null && !preparedStatement.isClosed()) {
+						preparedStatement.close();	
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
-				if (preparedStatement != null && !preparedStatement.isClosed()) {
-					preparedStatement.close();	
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
 			}
 		}
 	    return allMatchingEvents;
@@ -256,7 +264,8 @@ public class LVLifeCycleEventLoader {
 		Connection conn = DBManager.getDBConnection();
 		try {
 			st = conn.createStatement();
-			result = st.executeUpdate(qryString);			
+			result = st.executeUpdate(qryString);
+			loaderCache.remove(eventCd);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -320,6 +329,7 @@ public class LVLifeCycleEventLoader {
 				}
 				preparedStatement.setString(i,event.getEventCode());
 				updatedRecordCount = preparedStatement.executeUpdate();
+				loaderCache.remove(event.getEventCode());
 			} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 				updatedRecordCount = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
 				ex.printStackTrace();				

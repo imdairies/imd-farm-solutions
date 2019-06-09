@@ -60,11 +60,11 @@ public class LifeCycleEventBean {
 	public void setAuxField2Value(String auxField2Value) {
 		this.auxField2Value = auxField2Value;
 	}
-	public String getAuxField3Value() {
-		return auxField3Value;
-	}
 	public void setAuxField3Value(String auxField3Value) {
 		this.auxField3Value = auxField3Value;
+	}
+	public String getAuxField3Value() {
+		return auxField3Value;
 	}
 	public String getOrgID() {
 		return this.orgID;

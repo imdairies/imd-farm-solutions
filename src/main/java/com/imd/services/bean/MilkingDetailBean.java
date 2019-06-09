@@ -37,7 +37,6 @@ public class MilkingDetailBean {
 		this.temperatureInCentigrade = temperatureInCentigrade2;
 		this.humidity = humidity2;
 		this.comments = comments2;
-		
 	}
 	public MilkingDetailBean(MilkingDetailBean searchBean) {
 		this.animalTag = searchBean.getAnimalTag();

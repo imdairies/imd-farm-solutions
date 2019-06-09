@@ -155,6 +155,47 @@ public class MilkingInformationSrvc {
     	IMDLogger.log(milkingRecordInformation, Util.INFO);
 		return Response.status(200).entity(milkingRecordInformation).build();
     }		
+
+	
+	@POST
+	@Path("/milkingrecordofananimalforspecifiedmonthpair")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveMilkingRecordOfSpecifiedAnimal(MilkingDetailBean searchBean){
+		String milkDayList = "";
+		String dailyVolList = "";
+		String milkingRecordInformation = "";
+		String prefix = "   ";
+    	IMDLogger.log("retrieveMilkingRecordOfSpecifiedAnimal called", Util.INFO);
+
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+			List <MilkingDetail>  milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(searchBean.getOrgID(),
+					searchBean.getAnimalTag(),searchBean.getRecordDate(),searchBean.getRecordDate().plusMonths(2).minusDays(1),true);
+			Iterator<MilkingDetail> it = milkRecords.iterator();
+			MilkingDetail milkRec = null;
+			while (it.hasNext()) {
+				milkRec = it.next();
+				milkDayList += milkRec.getRecordDate().getDayOfMonth() + ",";
+				dailyVolList += milkRec.getMilkVolume() + ",";
+			}
+			if (milkDayList != null) {
+				int commatoremove = milkDayList.lastIndexOf(",");
+				milkDayList = milkDayList.substring(0,commatoremove);
+			}
+			if (dailyVolList != null) {
+				int commatoremove = dailyVolList.lastIndexOf(",");
+				dailyVolList = dailyVolList.substring(0,commatoremove);
+			}
+			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix +  "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(milkingRecordInformation, Util.INFO);
+		return Response.status(200).entity(milkingRecordInformation).build();
+    }			
 	
 	@POST
 	@Path("/milkingrecordofeachdayofyear")

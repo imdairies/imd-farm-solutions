@@ -26,6 +26,7 @@ public class AnimalBean {
 	private String backPoseImage;
 	private String rightPoseImage;
 	private String leftPoseImage;
+	private String herdJoiningDttmStr;
 
 	public String getAnimalTag() {
 		return animalTag;
@@ -62,6 +63,7 @@ public class AnimalBean {
 				"\n gender:" + gender + 
 				"\n dateOfBirthStr:" + dateOfBirthStr + 
 				"\n dobAccuracyInd:" + dobAccuracyInd + 
+				"\n herdJoiningDttmStr:" + herdJoiningDttmStr + 				
 				"\n dam:" + dam + 
 				"\n sire:" + sire + 
 				"\n aiInd:" + aiInd +
@@ -82,12 +84,6 @@ public class AnimalBean {
 	}
 	public void setGender(char gender) {
 		this.gender = gender;
-	}
-	public String getDateOfBirthStr() {
-		return dateOfBirthStr;
-	}
-	public void setDateOfBirthStr(String dobStr) {
-		dateOfBirthStr = dobStr;
 	}
 	public String getDobAccuracyInd() {
 		return dobAccuracyInd;
@@ -145,6 +141,11 @@ public class AnimalBean {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern(string);
 		return (DateTime.parse(dateOfBirthStr, fmt));
 	}
+	public DateTime getHerdJoiningDate(String string) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern(string);
+		return (DateTime.parse(herdJoiningDttmStr, fmt));
+	}
+
 	public String getAiIndicator() {
 		return aiIndicator;
 	}
@@ -156,5 +157,17 @@ public class AnimalBean {
 	}
 	public void setBreed (String animalBreed) {
 		this.breed = animalBreed;
+	}
+	public String getHerdJoiningDttmStr() {
+		return herdJoiningDttmStr;
+	}
+	public void setHerdJoiningDttmStr(String herJoiningDttmStr) {
+		this.herdJoiningDttmStr = herJoiningDttmStr;
+	}
+	public String getDateOfBirthStr() {
+		return dateOfBirthStr;
+	}
+	public void setDateOfBirthStr(String dobStr) {
+		dateOfBirthStr = dobStr;
 	}
 }
