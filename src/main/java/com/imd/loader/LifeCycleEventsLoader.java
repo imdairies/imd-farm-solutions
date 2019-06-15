@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
 
 import com.imd.dto.Animal;
 import com.imd.dto.LifeCycleEventCode;
@@ -425,13 +426,11 @@ public class LifeCycleEventsLoader {
 		valuestoBeUpdated += ", UPDATED_DTTM=?";
 		updateString.add(event.getUpdatedDTTMSQLFormat());
 
-		IMDLogger.log(valuestoBeUpdated, Util.INFO);
 		
 		if (valuestoBeUpdated.isEmpty()) {
 			updatedRecordCount = 0;
 		} else {
 			qryString = qryString + "SET " + valuestoBeUpdated + " where ORG_ID =? AND ID=?";
-			IMDLogger.log(qryString, Util.INFO);
 			Connection conn = DBManager.getDBConnection();
 			try {
 				preparedStatement = conn.prepareStatement(qryString);
@@ -559,61 +558,102 @@ public class LifeCycleEventsLoader {
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				validationMessage = "An exception while trying to apply event validations. " + e.getMessage();
+				validationMessage = "An exception occurred while trying to apply event validations. " + e.getMessage();
 			}
 		}
 		return validationMessage;
 	}
-	public String performPostEventAdditionEventUpdate(LifeCycleEventBean eventBean, Animal animal, User user) {
+	public String performPostEventAdditionEventUpdate(LifecycleEvent event, Animal animal, User user) {
 		String additionalMessage = "";
-		IMDLogger.log("Checking if a related event needs to be updated..." + eventBean, Util.INFO);
-		if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PREGTEST) && 
-				eventBean.getAuxField2Value() != null && 
-				eventBean.getAuxField2Value().equalsIgnoreCase(Util.YES)) {
-			IMDLogger.log("Updating the last insemination results", Util.INFO);
-			List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(eventBean.getOrgID(), eventBean.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
-			additionalMessage = ". No past Insemination or Mating event found. This indicates data entry problem. Please make sure you have added an insemination or mating event for this animal against which you are recording the pregnancy test";
-			if (inseminationEvents != null && !inseminationEvents.isEmpty()) {
-				Iterator<LifecycleEvent> it = inseminationEvents.iterator();
-				String pregnancyTestResult = eventBean.getAuxField1Value();
-				while (it.hasNext()) {
-					LifecycleEvent evt = it.next();
-					if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) || evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING)) {
-						evt.setUpdatedBy(user);
-						if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING))
-							evt.setAuxField2Value(pregnancyTestResult);
-						else 
-							evt.setAuxField3Value(pregnancyTestResult);
-						updateLifeCycleEvent(evt);
-						additionalMessage = ". The latest insemination/mating event (" + evt.getEventTransactionID() + ") was marked as successful";
-						break;									
-					}
-				}
-	
-			}
-		} else if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.CULLED) || 
-				eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.DEATH)) {
-			AnimalLoader loader = new AnimalLoader();
-//		 	Set HERD_LEAVING_DTTM to eventDTTM & Set STATUS=INACTIVE.
-			int recordAdded = loader.updateAnimalHerdLeavingDTTM(animal.getOrgID(), animal.getAnimalTag(), new DateTime(eventBean.getEventTimeStamp()), user);
-			if (recordAdded == 1) {
-				return "The animal's herd leaving date has been set and the animal has also been marked as inactive";
-			}
-				
-			
-		} else {
-			IMDLogger.log("No related event needs to be updated.", Util.INFO);			
-		}
+		IMDLogger.log("Checking if a related event needs to be updated..." + event, Util.INFO);
+		
+		additionalMessage = updateLastInseminationOutcome(event, user, additionalMessage);
+		additionalMessage += updateHerdLeavingDttm(event, animal, user);
+		IMDLogger.log(additionalMessage, Util.INFO);			
+
+		if (additionalMessage == null || additionalMessage.isEmpty())
+				IMDLogger.log("No related event needs to be updated.", Util.INFO);
 		return additionalMessage;
 	}
 
-	
-	
-	
+	private String updateHerdLeavingDttm(LifecycleEvent event, Animal animal, User user) {
+		String outcome = "";
+		try {
+			if (event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.CULLED) || 
+					event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.DEATH)) {
+				AnimalLoader loader = new AnimalLoader();
+				int recordUpdated = loader.updateAnimalHerdLeavingDTTM(animal.getOrgID(), animal.getAnimalTag(), event.getEventTimeStampSQLFormat(), user);
+				if (recordUpdated == 1)
+					outcome = ". The animal's herd leaving date has been set to : " + event.getEventTimeStampSQLFormat();
+				else
+					outcome = ". " + Util.ERROR_POSTFIX + "The animal's herd leaving date could NOT be set to : " + event.getEventTimeStamp() + ". Please set the date manually else this animal will continue to be considered as active.";
+			} 
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			outcome = ". " + Util.ERROR_POSTFIX + "The animal's herd leaving date could NOT be set to : " + event.getEventTimeStamp() + ". Please set the date manually else this animal will continue to be considered as active (" + ex.getMessage() + ").";
+		}
+		return outcome;
+	}
+
+	private String updateLastInseminationOutcome(LifecycleEvent event, User user, String additionalMessage) {
+		String outcome = "";
+		try {
+			if (shouldUpdateInseminationResults(event)) {
+				IMDLogger.log("Updating the last insemination results", Util.INFO);
+				List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(event.getOrgID(), event.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
+				outcome = ". No past Insemination or Mating event found. This indicates data entry problem. Please make sure you have added an insemination or mating event for this animal against which you are recording the pregnancy test";
+				if (inseminationEvents != null && !inseminationEvents.isEmpty()) {
+					Iterator<LifecycleEvent> it = inseminationEvents.iterator();
+					String pregnancyTestResult = determineInseminationOutcomeValue(event);
+					while (it.hasNext()) {
+						LifecycleEvent evt = it.next();
+						if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) || evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING)) {
+							evt.setUpdatedBy(user);
+							if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING))
+								evt.setAuxField2Value(pregnancyTestResult);
+							else 
+								evt.setAuxField3Value(pregnancyTestResult);
+							int updateCount = updateLifeCycleEvent(evt);
+							if (updateCount > 0)
+								outcome = ". The outcome of the latest insemination/mating event (" + evt.getEventTransactionID() + ") was updated successfully";
+							else 
+								outcome = ". " + Util.ERROR_POSTFIX + "The outcome of the latest insemination/mating event (" + evt.getEventTransactionID() + ") could NOT be updated successfully. Please update this event manually.";
+							break;									
+						}
+					}
+		
+				}
+			}
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			outcome = ". " + Util.ERROR_POSTFIX + "The outcome of the latest insemination/mating event could NOT be updated successfully. Please update this event manually (" + ex.getMessage() + ").";			
+		}
+		return outcome;
+	}
+
+	private String determineInseminationOutcomeValue(LifecycleEvent event) {
+		String retValue = "";
+		if (event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.HEAT))
+			// if a cow comes in heat then this is a sign that previous insemination was unsuccessful.
+			retValue = Util.NO.toUpperCase();
+		else if (event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PREGTEST))
+			retValue = event.getAuxField1Value();
+		return retValue;
+	}
+
+	private boolean shouldUpdateInseminationResults(LifecycleEvent event) {
+		return 	(
+					(event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PREGTEST) && 
+					event.getAuxField2Value() != null && 
+					event.getAuxField2Value().equalsIgnoreCase(Util.YES)) 
+					|| 
+					(event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.HEAT) && 
+					event.getAuxField1Value() != null && 
+					event.getAuxField1Value().equalsIgnoreCase(Util.YES))
+				);
+	}
 }
-
-
-
-
 
 

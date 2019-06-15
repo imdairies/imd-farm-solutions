@@ -276,10 +276,11 @@ class AnimalLoaderTest {
 	@Test
 	void testSireProcessing() {
 		try {
-			String tag = "-999";
+			String sireTag = "-999";
+			String damTag = "-998";
 			String alias  = "Tester";
 			String breed = Util.Breed.BROWNSWISS;
-			String semenInd = "N";
+			String semenInd = "Y";
 			String recordUrl = "https://www.google.com/";
 			String photoUrl = "https://www.google.com/photo.png";
 			String controller = "IMD";
@@ -288,9 +289,11 @@ class AnimalLoaderTest {
 			Float discountSexPercentage = 0.35f;
 			Float currentConventionalListPrice = 1000.0f;
 			Float discountConventionalPercentage = 0.35f;
+			User user = new User("TEST");
+
 
 			SireBean sireBean = new SireBean();
-			sireBean.setAnimalTag(tag);
+			sireBean.setAnimalTag(sireTag);
 			sireBean.setAlias(alias);
 			sireBean.setBreed(breed);
 			sireBean.setSemenInd(semenInd);
@@ -303,17 +306,85 @@ class AnimalLoaderTest {
 			sireBean.setCurrentConventionalListPrice(currentConventionalListPrice);
 			sireBean.setDiscountConventionalPercentage(discountConventionalPercentage);
 
-			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal("IMD", sireBean.getAnimalTag());
+			AnimalLoader animalLoader = new AnimalLoader();
+			LifeCycleEventsLoader evtLoader = new LifeCycleEventsLoader();
+
+
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents("IMD", sireTag)>=0);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents("IMD", damTag)>=0);
+			
+			
+			
+			animalLoader.deleteAnimal("IMD", sireBean.getAnimalTag());
 
 			DateTime now = DateTime.now();
-			String user = "KASHIF";
 
-			int result = loader.insertSire(sireBean, user, now, user, now);			
+			assertTrue(animalLoader.deleteSire(sireTag)>=0);
+			int result = animalLoader.insertSire(sireBean, user.getUserId(), now, user.getUserId(), now);
 			assertEquals(1,result);
 			
-			result  = loader.deleteSire(tag);
-			assertEquals(1,result);
+			List <Sire>  sires = animalLoader.retrieveAISire();
+			Iterator<Sire> it = sires.iterator();
+			Sire sire = null;
+			boolean found = false;
+			while (it.hasNext()) {
+				sire = it.next();
+				if (sire.getAnimalTag().equalsIgnoreCase(sireTag)) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, sireTag + " should have been found");
+			assertTrue(sire.getCurrentConventionalListPrice()!=null);
+			assertEquals("Y",sire.getSemenInd());
+			assertEquals(sireTag, sire.getAnimalTag());
+			assertEquals(0, sire.getSemenUsageCount().intValue());			
+			assertEquals(0, sire.getSemenSuccessCount().intValue());			
+			assertEquals(0, sire.getSemenFailureCount().intValue());			
+			assertEquals(0, sire.getSemenTbdCount().intValue());
+			
+
+			LifecycleEvent inseminationEvent = new LifecycleEvent(controller,0,damTag,Util.LifeCycleEvents.INSEMINATE);
+			inseminationEvent.setAuxField1Value(sireTag);
+			inseminationEvent.setAuxField2Value(Util.NO.toUpperCase());
+			inseminationEvent.setAuxField3Value(Util.TBD);
+			inseminationEvent.setAuxField4Value(null);
+			inseminationEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
+			inseminationEvent.setEventTimeStamp(DateTime.now().minusMonths(6));
+			inseminationEvent.setCreatedBy(user);
+			inseminationEvent.setUpdatedBy(user);
+			inseminationEvent.setCreatedDTTM(DateTime.now());
+			inseminationEvent.setUpdatedDTTM(DateTime.now());
+			
+			evtLoader.deleteAnimalLifecycleEvents("IMD", sireTag);
+			evtLoader.deleteAnimalLifecycleEvents("IMD", damTag);
+			
+			
+			assertTrue(evtLoader.insertLifeCycleEvent(inseminationEvent) > 0);
+			
+			sires = animalLoader.retrieveAISire();
+			it = sires.iterator();
+			sire = null;
+			found = false;
+			while (it.hasNext()) {
+				sire = it.next();
+				if (sire.getAnimalTag().equalsIgnoreCase(sireTag)) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, sireTag + " should have been found");			
+
+			assertEquals(1, sire.getSemenUsageCount().intValue());
+			assertEquals(0, sire.getSemenSuccessCount().intValue());	
+			assertEquals(0, sire.getSemenFailureCount().intValue());
+			assertEquals(1, sire.getSemenTbdCount().intValue());
+
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents("IMD", sireTag)>=0);
+			assertEquals(1,evtLoader.deleteAnimalLifecycleEvents("IMD", damTag));
+			assertEquals(1,animalLoader.deleteSire(sireTag));
+			assertTrue(animalLoader.deleteAnimal("IMD", sireTag)>=0);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");

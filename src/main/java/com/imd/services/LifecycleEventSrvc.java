@@ -34,7 +34,6 @@ import com.imd.util.Util;
  */
 @Path("animalevent")
 public class LifecycleEventSrvc {
-
     
 	/**
 	 * Retrieves ALL the events for a given Animal 
@@ -56,7 +55,7 @@ public class LifecycleEventSrvc {
 			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null);
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"The animal " + animalEventBean.getAnimalTag() + " does not exist\"}").build();
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"The animal " + Util.encodeJson(animalEventBean.getAnimalTag()) + " does not exist\"}").build();
 			}
 			String eventTypeCD = animalEventBean.getEventCode();
 			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
@@ -72,7 +71,7 @@ public class LifecycleEventSrvc {
 	    		LifecycleEvent event = eventIt.next();
 	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
 	    		String extendedComment = formatComent(event);
-	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animalValues.get(0).getDateOfBirth()) + ",\n  \"formattedComments\":\"" + extendedComment + "\"\n},\n";	    		
+	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animalValues.get(0).getDateOfBirth()) + ",\n  \"formattedComments\":\"" + Util.encodeJson(extendedComment) + "\"\n},\n";	    		
 	    	}
 	    	animalEvents = "[" + animalEvents.substring(0,animalEvents.lastIndexOf(",\n")) + "]";
 	    	IMDLogger.log(animalEvents, Util.INFO);
@@ -109,11 +108,11 @@ public class LifecycleEventSrvc {
 				code.getField4DataUnit(),
 				event.getAuxField4Value());
 
-		comments = (field1.isEmpty() ? "" : field1 + "\\n") +
-		 (field2.isEmpty() ? "" : field2 + "\\n") +
-		 (field3.isEmpty() ? "" : field3 + "\\n") +
-		 (field4.isEmpty() ? "" : field4 + "\\n");
-		return (comments.isEmpty() ? "" : comments.substring(0,comments.lastIndexOf("\\n")));
+		comments = (field1.isEmpty() ? "" : field1 + " ") +
+		 (field2.isEmpty() ? "" : field2 + " ") +
+		 (field3.isEmpty() ? "" : field3 + " ") +
+		 (field4.isEmpty() ? "" : field4 + " ");
+		return (comments.isEmpty() ? "" : comments.trim());
 	}
 
 	private String composeAuxFieldValue(String eventCode, String fieldLabel, String fieldDataType, String fieldUnit, String fieldValue) {
@@ -126,7 +125,7 @@ public class LifecycleEventSrvc {
 				value = (lu == null ? "" : lu.getShortDescription());
 			} else 
 				value = fieldValue;
-			comments = fieldLabel + ":" + value;
+			comments = "[" + fieldLabel + ":" + value + "]";
 		}
 		return comments;
 		
@@ -158,7 +157,7 @@ public class LifecycleEventSrvc {
 	    	IMDLogger.log(animalEvent, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  Util.encodeJson(e.getMessage()) + "\"}").build();
 		}
 		return Response.status(400).entity(animalEvent).build();
 	}  
@@ -180,9 +179,9 @@ public class LifecycleEventSrvc {
 			deleteCount = loader.deleteLifeCycleEvent(eventBean.getOrgID(),eventTransactionID);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  Util.encodeJson(e.getMessage()) + "\"}").build();
 		}
-		return Response.status(200).entity("{ \"error\": false, \"message\":\"" + deleteCount + " life event was deleted. Please note that if at the time of creation of this event some related event was updated, then those updates were NOT reversed by the deletion. If you wish to reverse those updates, please do so manually.\"}").build();
+		return Response.status(200).entity("{ \"error\": false, \"message\":\"" + Util.encodeJson(deleteCount) + " life event was deleted. Please note that if at the time of creation of this event some related event was updated, then those updates were NOT reversed by the deletion. If you wish to reverse those updates, please do so manually.\"}").build();
 	}
 	
 	@POST
@@ -225,7 +224,7 @@ public class LifecycleEventSrvc {
 			animalBean.setAnimalTag(animalTags[i]);
 			eventBean.setAnimalTag(animalBean.getAnimalTag());
 			individualMessage = addEventForSingleAnimal(eventBean, animalBean, userID);
-			if (individualMessage.indexOf("[ERROR]") == 0) {
+			if (individualMessage.indexOf(Util.ERROR_POSTFIX) == 0) {
 				if (unsuccessfulAnimals.isEmpty())
 					unsuccessfulAnimals +=  animalTags[i];
 				else					
@@ -240,11 +239,11 @@ public class LifecycleEventSrvc {
 		IMDLogger.log("Successful Additions: " + successfulAnimals, Util.INFO);
 		IMDLogger.log("Unsuccessful Additions: " + unsuccessfulAnimals, Util.INFO);
 		if (unsuccessfulAnimals.isEmpty())
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"The event was applied to the following animals successfully: " + successfulAnimals + "\"}").build();
+			return Response.status(200).entity("{ \"error\": false, \"message\":\"The event was applied to the following animals successfully: " + Util.encodeJson(successfulAnimals) + "\"}").build();
 		else if (successfulAnimals.isEmpty())
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"The event could NOT be applied to the following animals: " +  unsuccessfulAnimals + "\"}").build();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"The event could NOT be applied to the following animals: " +  Util.encodeJson(unsuccessfulAnimals) + "\"}").build();
 		else
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"The event was applied to the to the following animals: " +  successfulAnimals + ". But the event could NOT be applied to the following animals: " + unsuccessfulAnimals + "\"}").build();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + Util.ERROR_POSTFIX + " The event was applied to the to the following animals: " +  Util.encodeJson(successfulAnimals) + ". But the event could NOT be applied to the following animals: " + Util.encodeJson(unsuccessfulAnimals) + "\"}").build();
 	} 	
 	
 	private String addEventForSingleAnimal(LifeCycleEventBean eventBean, AnimalBean animalBean, String userID) {
@@ -256,8 +255,7 @@ public class LifecycleEventSrvc {
 		try {
 			List<Animal> animals = animalLoader.retrieveMatchingAnimals(animalBean, false, null);
 			if (animals == null || animals.isEmpty()) { 
-				result = Util.ERROR_CODE.DOES_NOT_EXIST;
-				additionalMessage = "[ERROR]" + animalBean.getAnimalTag() + " does not exist";
+				additionalMessage = Util.ERROR_POSTFIX + animalBean.getAnimalTag() + " does not exist";
 			} else {
 				event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
 				LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
@@ -266,11 +264,14 @@ public class LifecycleEventSrvc {
 				event.setUpdatedBy(new User(userID));
 				event.setUpdatedDTTM(DateTime.now());
 				result = loader.insertLifeCycleEvent(event);
-				additionalMessage = "[SUCCESS] " + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag();
+				if (result == 1)
+					additionalMessage = Util.SUCCESS_POSTFIX + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag();
+				else
+					additionalMessage = Util.ERROR_POSTFIX + eventBean.getEventCode() + " could NOT be added successfully for " + animalBean.getAnimalTag();					
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			additionalMessage = "[ERROR]";
+			additionalMessage = Util.ERROR_POSTFIX + " Unknown error occurred while adding event for a single animal." + Util.encodeJson(e.getMessage());
 		}
 		IMDLogger.log(additionalMessage, Util.INFO);
 		return additionalMessage;
@@ -327,34 +328,35 @@ public class LifecycleEventSrvc {
 					event.setUpdatedBy(user);
 					event.setUpdatedDTTM(DateTime.now());
 					result = eventsLoader.insertLifeCycleEvent(event);
+					event.setEventTransactionID(result);
 					eventBean.setEventTransactionID("" + result);
 					if (result > 0)
-						additionalMessage = performPostEventAdditionSteps(eventBean, animal, user);
+						additionalMessage = performPostEventAdditionSteps(eventBean, event, animal, user) ;
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			if (result > 0)
-				return Response.status(200).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully. The Transaction Id is: " + result + additionalMessage + "\"}").build();
+				return Response.status(200).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully. The Transaction Id is: " + Util.encodeJson(result + additionalMessage) + "\"}").build();
 			else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode + "' already exists\"}").build();
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + Util.encodeJson(eventCode)  + "' already exists\"}").build();
 			else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + eventCode+ "' could not be added. Please reduce the field length and try again.\"}").build();
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
 			else if (result == Util.ERROR_CODE.DOES_NOT_EXIST)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified animal does not exit. Event  '" + eventCode+ "' could not be added. Please specify a correct Animal Tag.\"}").build();
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified animal does not exit. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please specify a correct Animal Tag.\"}").build();
 			else 
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
 		} else {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + validationResult + ". '" + eventCode+ "' could not be added.\"}").build();			
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + Util.encodeJson(validationResult) + ". '" + Util.encodeJson(eventCode) + "' could not be added.\"}").build();			
 		}
 	}
 
 
 
-	private String performPostEventAdditionSteps(LifeCycleEventBean eventBean,Animal animal, User user) {
+	private String performPostEventAdditionSteps(LifeCycleEventBean eventBean, LifecycleEvent event, Animal animal, User user) {
 		String additionalMessage = performPostEventAdditionLifecycleStageUpdate(eventBean, animal, user);
 		additionalMessage += performPostEventAdditionInventoryUpdate(eventBean, animal, user);
-		additionalMessage += (new LifeCycleEventsLoader()).performPostEventAdditionEventUpdate(eventBean, animal, user);
+		additionalMessage += (new LifeCycleEventsLoader()).performPostEventAdditionEventUpdate(event, animal, user);
 		
 		return additionalMessage;
 	}
@@ -399,13 +401,13 @@ public class LifecycleEventSrvc {
 				if (result == 1)
 					additionalMessage = ". Semen Inventory has been updated";
 				else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-					additionalMessage = ". Semen Inventory could not be updated since a similar entry already exists. Please review semen imnventory and update it manually";
+					additionalMessage = ". " + Util.ERROR_POSTFIX + " Semen Inventory could not be updated since a similar entry already exists. Please review semen imnventory and update it manually";
 				else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-					additionalMessage = ". Semen Inventory could not be updated since one or more data fields are longer than allowed length. Please submit a bug report";
+					additionalMessage = ". " + Util.ERROR_POSTFIX + " Semen Inventory could not be updated since one or more data fields are longer than allowed length. Please submit a bug report";
 				else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-					additionalMessage = ". Semen Inventory could not be updated because of an error in the application. Please submit a bug report";
+					additionalMessage = ". " + Util.ERROR_POSTFIX + " Semen Inventory could not be updated because of an error in the application. Please submit a bug report";
 				else 
-					additionalMessage = ". An unknown error occurred during inventory update. Please update the semen inventory manually";
+					additionalMessage = ". " + Util.ERROR_POSTFIX + " An unknown error occurred during inventory update. Please update the semen inventory manually";
 			}
 		}
 		return additionalMessage;
@@ -421,7 +423,7 @@ public class LifecycleEventSrvc {
 		if (result == 1)
 			return "The animal lifecycle stage was automatically updated to " + animalDto.getAnimalType() + "(" + animalDto.getAnimalTypeCD() + ")";
 		else
-			return "The animal status could NOT be automatically updated to " + animalDto.getAnimalType() + "(" + animalDto.getAnimalTypeCD() + ")" + ". Please manually set the animal status.";
+			return Util.ERROR_POSTFIX + "The animal status could NOT be automatically updated to " + animalDto.getAnimalType() + "(" + animalDto.getAnimalTypeCD() + ")" + ". Please manually set the animal status.";
 	}
 
 	@POST
@@ -460,9 +462,9 @@ public class LifecycleEventSrvc {
 		if (result > 0)
 			return Response.status(200).entity("{ \"error\": false, \"message\":\"Lifecycle event has been updated successfully.\"}").build();
 		else if (result == 0)
-			return Response.status(200).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventTransactionID + "' does not exist.\"}").build();
+			return Response.status(200).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + Util.encodeJson(eventTransactionID) + "' does not exist.\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + eventCode+ "' could not be added. Please reduce the field length and try again.\"}").build();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
 		else 
 			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
 	} 	

@@ -94,7 +94,7 @@ class MilkingDetailLoaderTest {
 			}
 			assertTrue(found, "Tag TST milking record should have been found");
 			assertEquals(4, milkRecords.size(), "Three milking records should have been found");
-			assertEquals(13.0,milkRec.getMilkVolume(), " Milking volume should have been 13.0");
+			assertEquals(13.0f,milkRec.getMilkVolume().floatValue(), " Milking volume should have been 13.0");
 			assertEquals(Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.VOL_UNIT),milkRec.getVolUnit(), " Milking volume unit should be LTR");
 			assertEquals(28f, milkRec.getLrValue().floatValue(), "LR should be 28");
 			assertEquals(3.8f, milkRec.getFatValue().floatValue(), "Fat should be 3.8");
@@ -133,7 +133,7 @@ class MilkingDetailLoaderTest {
 			milkRecords = loader.retrieveSingleMilkingRecordsOfCow(searchBean, true);
 			assertEquals(1, milkRecords.size(), "Exactly one milking record should have been returned");
 			milkRec = milkRecords.get(0);
-			assertEquals(13.0,milkRec.getMilkVolume(), " Milking volume should have been 13.0");
+			assertEquals(13.0,milkRec.getMilkVolume().floatValue(), " Milking volume should have been 13.0");
 			assertEquals(Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.VOL_UNIT),milkRec.getVolUnit(), " Milking volume unit should be LTR");
 			assertEquals(28f, milkRec.getLrValue().floatValue(), "LR should be 28");
 			assertEquals(3.8f, milkRec.getFatValue().floatValue(), "Fat should be 3.8");
@@ -269,7 +269,7 @@ class MilkingDetailLoaderTest {
 				milkRec = it.next();
 				if (milkRec.getMilkVolume() > 0) {
 					volumes[recordDays++] = milkRec.getMilkVolume();
-					assertEquals(milkRec.getMilkVolume(), (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");
+					assertEquals(milkRec.getMilkVolume().floatValue(), (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");
 					totalMonthVolume += milkRec.getMilkVolume();
 				}
 				else 
@@ -309,7 +309,7 @@ class MilkingDetailLoaderTest {
 					if (recordDays == 0) {
 						assertEquals(35.0f, (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Daily average should have been 35");						
 					} else {
-						assertEquals(milkRec.getMilkVolume(), (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");	
+						assertEquals(milkRec.getMilkVolume().floatValue(), (float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE), "Only one animal milked on this day so the average should be the same as the milk volume of that animal");	
 					}					
 					volumes[recordDays++] = milkRec.getMilkVolume();
 					totalMonthVolume += milkRec.getMilkVolume();
@@ -488,7 +488,7 @@ class MilkingDetailLoaderTest {
 					totalMonthVolume += milkRec.getMilkVolume();
 					months[recordMonths-1] = milkRec.getRecordDate().getMonthOfYear();
 					if (milkRec.getRecordDate().getMonthOfYear() == 1) {
-						assertEquals(75f, milkRec.getMilkVolume(), "Month of Jan milk volume should be 75 liters");
+						assertEquals(75f, milkRec.getMilkVolume().floatValue(), "Month of Jan milk volume should be 75 liters");
 						assertEquals(28.25f, (float)milkRec.getLrValue(), "Average LR of Jan should be 28 liters");
 						assertEquals("3.916", milkRec.getFatValue().toString().substring(0, 5), "Average Fat of Jan should be 3.9 liters");
 						//assertEquals(11.375f,(float) milkRec.getTemperatureInCentigrade(), "Average Temp of Jan should be 3.9 liters");

@@ -11,7 +11,7 @@ public class MilkingDetailBean {
 	private String milkingDateStr;
 	private String milkingTimeStr;
 	private short milkingEventNumber;
-	private float milkVolume;
+	private Float milkVolume;
 	private Float fatValue;
 	private Float lrValue;
 	private Float toxinValue;
@@ -104,10 +104,10 @@ public class MilkingDetailBean {
 		this.milkingTimeStr = recordTime.toString();
 		
 	}
-	public float getMilkVolume() {
+	public Float getMilkVolume() {
 		return milkVolume;
 	}
-	public void setMilkVolume(float milkVolume) {
+	public void setMilkVolume(Float milkVolume) {
 		this.milkVolume = milkVolume;
 	}
 	public Float getLrValue() {

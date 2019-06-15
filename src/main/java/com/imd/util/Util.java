@@ -10,6 +10,8 @@ import org.joda.time.PeriodType;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.core.util.BufferRecyclers;
+
 public class Util {
 	
 	private static ConfigurationManager imdConfigurations;
@@ -45,8 +47,12 @@ public class Util {
 
 	public static final String COW_PHOTOS_URI_PREFIX = "/assets/img/cow-photos/";
 
-	public static final String YES = "Yes";
-	public static final String NO = "No";
+	public static final String YES = "YES";
+	public static final String NO = "NO";
+	public static final String TBD = "TBD";
+
+	public static final String ERROR_POSTFIX = "ERROR: ";
+	public static final String SUCCESS_POSTFIX = "SUCCESS: ";
 
 	public static final class FulfillmentType {
 		public static final String ABSOLUTE = "ABSOLUTE";
@@ -230,6 +236,15 @@ public class Util {
 	public static String getYearMonthDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		Period dateDifference = new Period(startTimeStamp, endTimeStamp, PeriodType.yearMonthDay());
 		return (dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") + (dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") + (dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "");
+	}
+	public static String encodeJson(String rawString) {
+		return new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(rawString));
+	}
+	public static String encodeJson(int intValue) {
+		return encodeJson(intValue + "");
+	}
+	public static String encodeJson(float floatValue) {
+		return encodeJson(floatValue + "");
 	}
 	
 }

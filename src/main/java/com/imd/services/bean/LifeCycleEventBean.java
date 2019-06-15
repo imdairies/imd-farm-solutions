@@ -66,6 +66,13 @@ public class LifeCycleEventBean {
 	public String getAuxField3Value() {
 		return auxField3Value;
 	}
+	public String getAuxField4Value() {
+		return auxField4Value;
+	}
+	public void setAuxField4Value(String auxField4Value) {
+		this.auxField4Value = auxField4Value;
+	}
+
 	public String getOrgID() {
 		return this.orgID;
 	}
@@ -99,12 +106,6 @@ public class LifeCycleEventBean {
 	}
 	public void setNextLifeCycleStage(String nextLifeCycleStage) {
 		this.nextLifeCycleStage = nextLifeCycleStage;
-	}
-	public String getAuxField4Value() {
-		return auxField4Value;
-	}
-	public void setAuxField4Value(String auxField4Value) {
-		this.auxField4Value = auxField4Value;
 	}
 	public String getShouldUpdateInventory() {
 		return shouldUpdateInventory;

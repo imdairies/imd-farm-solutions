@@ -45,6 +45,10 @@ public class FarmSrvc {
     		if (duration.getEnd() == null || duration.getEnd().isEmpty()) {
     			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify Herd Size trend end duration\"}").build();
     		}
+    		if (duration.getSteps() == 0) {
+    			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify step size. Step size indicates the number of months between two herd counts.\"}").build();
+    		}
+    		
     		LocalDate startDate = new LocalDate(duration.getStart());
     		LocalDate endDate = new LocalDate(duration.getEnd());
     		if (startDate.isAfter(endDate))
@@ -52,17 +56,23 @@ public class FarmSrvc {
     		LocalDate processingDate = startDate;
     		int count;
     		String comma = ",";
-    		while (!processingDate.isAfter(endDate)) {
+    		while (processingDate.compareTo(endDate)<=0) {
     			if (processingDate.getMonthOfYear() == endDate.getMonthOfYear() && 
     					processingDate.getYear() == endDate.getYear()) {
     				processingDate = endDate;
     				comma = "";
     			}
     			count = loader.getActiveHerdCountForDate(processingDate);
-    			months += "\"" +  Util.getDateInSpecifiedFormart(processingDate,"MMM") + " " + Util.getDateInSpecifiedFormart(processingDate,"yy")  + "\"" + comma;
+    			months += "\"" +  Util.getDateInSpecifiedFormart(processingDate,"dd MMM yy") + "\"" + comma;
     			herdCounts +=  count + comma;
-    			processingDate = processingDate.plusMonths(1);
+    			processingDate = processingDate.plusMonths(duration.getSteps());
     		}
+    		if (processingDate.isAfter(endDate)) {
+    			count = loader.getActiveHerdCountForDate(endDate);
+    			months += "\"" +  Util.getDateInSpecifiedFormart(endDate,"dd MMM yy") + "\"";
+    			herdCounts +=  count;    			
+    		}
+    			
     		outputJson += "{" + "\n" + prefix + prefix + "\"months\":[" + months + "],\n" + prefix + prefix + "\"herdCounts\":[" + herdCounts + "]\n" + prefix + "}";
     		IMDLogger.log(outputJson, Util.INFO);    		
     	} catch (java.lang.IllegalArgumentException ex) {

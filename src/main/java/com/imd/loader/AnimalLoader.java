@@ -465,7 +465,9 @@ public class AnimalLoader {
 
 	public List<Sire> retrieveAISire()  throws Exception {
 		ArrayList<Sire> allMatchingValues = new ArrayList<Sire>();
-		String qryString = "Select * from LV_SIRE ORDER BY CONTROLLER,ALIAS";
+		String qryString = "Select * from LV_SIRE A " + 
+				"left outer join SIRE_USAGE_STATS_VW B on a.id=b.code " + 
+				"ORDER BY a.CONTROLLER,a.ALIAS";
 		List<String> values = new ArrayList<String> ();
 		Sire animalValue = null;
 		ResultSet rs = null;
@@ -738,7 +740,9 @@ public class AnimalLoader {
 	}
 
 	public Sire retrieveSire(String inseminationSireCode) {
-		String qryString = "Select * from LV_SIRE WHERE ID=? ORDER BY ALIAS";
+		String qryString = "Select * from LV_SIRE A " + 
+				"left outer join SIRE_USAGE_STATS_VW B on a.id=b.code " + 
+				" WHERE a.ID=? ORDER BY a.ALIAS ";
 		Sire animalValue = null;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
@@ -806,7 +810,7 @@ public class AnimalLoader {
 		String id = rs.getString("ID");
 		String breed = rs.getString("BREED");
 		String alias = rs.getString("ALIAS");
-		String semenInd = rs.getString("SEMEN_IND");
+		String semenInd = rs.getString("SEMEN_IND"); 
 		String sireSpecification = rs.getString("RECORD_URL");
 		String sirePhoto = rs.getString("PHOTO_URL");
 		String controller = rs.getString("CONTROLLER");
@@ -815,7 +819,35 @@ public class AnimalLoader {
 		Float currentConventionalListPrice = rs.getFloat("CURRENT_CONV_LIST_PRICE_PKR");
 		Float discountSexPercentage = rs.getFloat("DISCOUNT_SEX_PERCENTAGE");
 		Float discountConventionalPercentage = rs.getFloat("DISCOUNT_CONV_PERCENTAGE");
+		Integer semenUsageCount = null;
+		Integer semenSuccessCount = null;
+		Integer semenFailureCount = null;
+		Integer semenTbdCount = null;
+		
+		try {
+			semenUsageCount = rs.getInt("USE_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("USE_COUNT column not found in the query", Util.WARNING);
+		}
 					
+		try {
+			semenSuccessCount = rs.getInt("SUCCESS_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("SUCCESS_COUNT column not found in the query", Util.WARNING);
+		}
+
+		try {
+			semenFailureCount = rs.getInt("FAILURE_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("FAILURE_COUNT column not found in the query", Util.WARNING);
+		}
+
+		try {
+			semenTbdCount = rs.getInt("TBD_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("TBD_COUNT column not found in the query", Util.WARNING);
+		}
+							
 		animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
 		animalValue.setBreed(breed);
 		animalValue.setAlias(alias);
@@ -828,6 +860,10 @@ public class AnimalLoader {
 		animalValue.setCurrentSexListPrice(currentSexListPrice);
 		animalValue.setDiscountConventionalPercentage(discountConventionalPercentage);
 		animalValue.setDiscountSexPercentage(discountSexPercentage);
+		animalValue.setSemenUsageCount(semenUsageCount);
+		animalValue.setSemenSuccessCount(semenSuccessCount);
+		animalValue.setSemenFailureCount(semenFailureCount);
+		animalValue.setSemenTbdCount(semenTbdCount);
 		
 		animalValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
@@ -835,19 +871,20 @@ public class AnimalLoader {
 		animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
 		return animalValue;
 	}
-	public int updateAnimalHerdLeavingDTTM(String orgID, String animalTag, DateTime dateTime, User user) {
+	public int updateAnimalHerdLeavingDTTM(String orgID, String animalTag, String timeStamp, User user) {
 		int recordAdded = -1;
 		String qryString = "UPDATE ANIMALS SET HERD_LEAVING_DTTM=?, UPDATED_BY=?, UPDATED_DTTM=? WHERE ORG_ID=? AND ANIMAL_TAG=?";
 
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
+		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1,Util.getDateInSQLFormart(dateTime));
-			preparedStatement.setString(2, user.getUserId());
-			preparedStatement.setString(3, Util.getDateInSQLFormart(DateTime.now()));
-			preparedStatement.setString(4, orgID);
-			preparedStatement.setString(5, animalTag);
+			preparedStatement.setString(index++, timeStamp);
+			preparedStatement.setString(index++, user.getUserId());
+			preparedStatement.setString(index++, Util.getDateInSQLFormart(DateTime.now()));
+			preparedStatement.setString(index++, orgID);
+			preparedStatement.setString(index++, animalTag);
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {

@@ -3,7 +3,6 @@ package com.imd.dto;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
@@ -20,7 +19,7 @@ public class MilkingDetail extends IMDairiesDTO{
 	private boolean isMilkedOnMachine;
 	private LocalDate recordDate;
 	private LocalTime recordTime;
-	private float milkVolume;
+	private Float milkVolume;
 	private String volUnit;
 	private Float lrValue;
 	private Float fatValue;
@@ -71,7 +70,7 @@ public class MilkingDetail extends IMDairiesDTO{
 	}
  
 	
-	public MilkingDetail(String orgID, String tagNbr, short frequency, boolean machineMilked, LocalDate recDate, LocalTime recTime, float milkVol, short milkSeqNbr)  throws IMDException {
+	public MilkingDetail(String orgID, String tagNbr, short frequency, boolean machineMilked, LocalDate recDate, LocalTime recTime, Float milkVol, short milkSeqNbr)  throws IMDException {
 		this.dailyMilkingFrequency = frequency;
 		this.isMilkedOnMachine = machineMilked;
 		this.recordDate = recDate;
@@ -81,6 +80,8 @@ public class MilkingDetail extends IMDairiesDTO{
 		this.orgID = orgID;
 		this.animalTag = tagNbr;
 	}
+	
+	
 	public MilkingDetail() {
 	}
 	
@@ -114,10 +115,10 @@ public class MilkingDetail extends IMDairiesDTO{
 	public void setRecordTime(LocalTime recordTime) {
 		this.recordTime = recordTime;
 	}
-	public float getMilkVolume() {
+	public Float getMilkVolume() {
 		return milkVolume;
 	}
-	public void setMilkVolume(float milkVolume) {
+	public void setMilkVolume(Float milkVolume) {
 		this.milkVolume = milkVolume;
 	}
 	public Float getLrValue() {
@@ -179,7 +180,7 @@ public class MilkingDetail extends IMDairiesDTO{
 	public Float getToxinValue() {
 		return toxinValue;
 	}
-	public void setToxinValue(float toxinValue) {
+	public void setToxinValue(Float toxinValue) {
 		this.toxinValue = toxinValue;
 	}
 	public String getAnimalTag() {

@@ -16,6 +16,10 @@ public class Sire extends Animal {
 	private Float discountSexPercentage;
 	private Float currentConventionalListPrice;
 	private Float discountConventionalPercentage;
+	private Integer semenUsageCount;
+	private Integer semenSuccessCount;
+	private Integer semenFailureCount;
+	private Integer semenTbdCount;
 	public Sire(String orgID, String tagNumber, DateTime dateOfBirth, boolean isDobEstimated, double purPrice,
 			String priceCurr) throws IMDException {
 			super(orgID, tagNumber, dateOfBirth, isDobEstimated, purPrice, priceCurr);
@@ -26,6 +30,10 @@ public class Sire extends Animal {
 		return  prefix + fieldToJson("controller", this.controller) + ",\n" +
 				prefix + fieldToJson("sirePhoto", this.sirePhoto) + ",\n" + 
 				prefix + fieldToJson("semenInd", this.semenInd) + ",\n" +
+				prefix + fieldToJson("semenUsageCount", this.semenUsageCount) + ",\n" +
+				prefix + fieldToJson("semenSuccessCount", this.semenSuccessCount) + ",\n" +
+				prefix + fieldToJson("semenFailureCount", this.semenFailureCount) + ",\n" +
+				prefix + fieldToJson("semenTbdCount", this.semenTbdCount) + ",\n" +
 				prefix + fieldToJson("currentConventionalListPrice", this.currentConventionalListPrice) + ",\n" +
 				prefix + fieldToJson("discountConventionalPercentage", this.discountConventionalPercentage) + ",\n" +
 				prefix + fieldToJson("currentSexListPrice", this.currentSexListPrice) + ",\n" +
@@ -39,7 +47,9 @@ public class Sire extends Animal {
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
 		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
 	}
-	
+	public String toString() {
+		return stringify("   ") + super.dtoToJson("   ");		
+	}
 	
 	public Sire(String tagNumber) throws IMDException  {
 		super(tagNumber);
@@ -119,6 +129,38 @@ public class Sire extends Animal {
 
 	public void setDiscountConventionalPercentage(Float discountConventionalPercentage) {
 		this.discountConventionalPercentage = discountConventionalPercentage;
+	}
+
+	public Integer getSemenUsageCount() {
+		return semenUsageCount;
+	}
+
+	public void setSemenUsageCount(Integer semenUsageCount) {
+		this.semenUsageCount = semenUsageCount;
+	}
+
+	public Integer getSemenSuccessCount() {
+		return semenSuccessCount;
+	}
+
+	public void setSemenSuccessCount(Integer semenSuccessCount) {
+		this.semenSuccessCount = semenSuccessCount;
+	}
+
+	public Integer getSemenFailureCount() {
+		return semenFailureCount;
+	}
+
+	public void setSemenFailureCount(Integer semenFailureCount) {
+		this.semenFailureCount = semenFailureCount;
+	}
+
+	public Integer getSemenTbdCount() {
+		return semenTbdCount;
+	}
+
+	public void setSemenTbdCount(Integer semenTbdCount) {
+		this.semenTbdCount = semenTbdCount;
 	}
 
 }

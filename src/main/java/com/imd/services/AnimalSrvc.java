@@ -669,7 +669,7 @@ public class AnimalSrvc {
 		String prefix = "  ";
 		if (selectedDaysMilkingRecords == null || selectedDaysMilkingRecords.size() == 0) {
 	    	MilkingDetail recordDetail = new MilkingDetail(searchBean.getOrgID(), searchBean.getAnimalTag(), 
-	    			(short) 0, true, null, null, (short) 0, (short) 0);
+	    			(short) 0, true, null, null, null, (short) 0);
 	    	recordDetail.setAdditionalStatistics(getPreviousDaysVolumeForAnimal(searchBean.getAnimalTag(),previousDaysMilkingRecords));
 	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
 		} else {
@@ -800,42 +800,57 @@ public class AnimalSrvc {
 			IMDLogger.log("Exception in AnimalSrvc.retrieveMonthlyMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-    	IMDLogger.log(milkingInformation, Util.INFO);
+    	IMDLogger.log(milkingInformation, Util.ERROR);
 		return Response.status(200).entity(milkingInformation).build();
     }	
 	
 	private String consolidateDailyMilkingRecord(List<MilkingDetail> dailyRecords) {
 		String json = "";
 		String prefix = "   ";
+		MilkingDetail recValue1 = null;
+		MilkingDetail recValue2 = null;
+		MilkingDetail recValue3 = null;
+		LocalDate recDate = null;
+		
 		if (dailyRecords != null && !dailyRecords.isEmpty()) {
-	    		MilkingDetail recValue = dailyRecords.get(0);
-    			json = "{\n" + prefix + "\"milkingDate\":\""+ recValue.getRecordDate() + "\",\n";
-	    		json += prefix + "\"milkVol1\":" + recValue.getMilkVolume() + ",\n";
-	    		json += prefix + "\"event1Time\":\"" + (recValue == null || recValue.getRecordTime() == null ? "" : Util.getTimeInSQLFormart(recValue.getRecordTime())) + "\",\n";
-	    		json += prefix + "\"event1Temperature\":" + recValue.getTemperatureInCentigrade() + ",\n";
-	    		json += prefix + "\"event1Humidity\":" + recValue.getHumidity() + ",\n";
-	    		json += prefix + "\"event1Comments\":\"" + (recValue.getComments()== null ? "" : recValue.getComments()) + "\",\n";
-	    		if (dailyRecords.size() >= 2)
-	    			recValue = dailyRecords.get(1);
-	    		else 
-	    			recValue = null;
-	    		json += prefix + "\"milkVol2\":" + (recValue == null ? "\"\"" : recValue.getMilkVolume()) + ",\n";
-	    		json += prefix + "\"event2Time\":\"" + (recValue == null || recValue.getRecordTime() == null ? "" : Util.getTimeInSQLFormart(recValue.getRecordTime())) + "\",\n";
-	    		json += prefix + "\"event2Temperature\":" + (recValue == null ? "\"\"" : recValue.getTemperatureInCentigrade()) + ",\n";
-	    		json += prefix + "\"event2Humidity\":" + (recValue == null ? "\"\"" : recValue.getHumidity()) + ",\n";
-	    		json += prefix + "\"event2Comments\":\"" + (recValue == null || recValue.getComments()== null ? "" : recValue.getComments()) + "\",\n";
-	    		if (dailyRecords.size() >= 3)
-	    			recValue = dailyRecords.get(2);
-	    		else 
-	    			recValue = null;
-	    		json += prefix + "\"milkVol3\":" + (recValue == null ? "\"\"" : recValue.getMilkVolume()) + ",\n";
-	    		json += prefix + "\"event3Time\":\"" + (recValue == null || recValue.getRecordTime() == null ? "" : Util.getTimeInSQLFormart(recValue.getRecordTime())) + "\",\n";
-	    		json += prefix + "\"event3Temperature\":" + (recValue == null ? "\"\"" : recValue.getTemperatureInCentigrade()) + ",\n";
-	    		json += prefix + "\"event3Humidity\":" + (recValue == null ? "\"\"" : recValue.getHumidity()) + ",\n";
-	    		json += prefix + "\"event3Comments\":\"" + (recValue == null || recValue.getComments()== null ? "" : recValue.getComments()) + "\"\n}";
+			
+				for (int i=0; i < dailyRecords.size(); i++) {
+					recDate = dailyRecords.get(i).getRecordDate();
+					if (dailyRecords.get(i).getMilkingEventNumber() == 1) {
+						recValue1 = dailyRecords.get(i);
+					}
+					else if (dailyRecords.get(i).getMilkingEventNumber() == 2) {
+						recValue2 = dailyRecords.get(i);
+					}
+					else if (dailyRecords.get(i).getMilkingEventNumber() == 3) {
+						recValue3 = dailyRecords.get(i);
+					}
+				}
+	    		json = "{\n" + prefix + "\"milkingDate\":\""+ recDate + "\",\n";
+	    		
+	    		json += formatMilkingEventJson(recDate, prefix, recValue1,1,",");
+	    		json += formatMilkingEventJson(recDate, prefix, recValue2,2,",");
+	    		json += formatMilkingEventJson(recDate, prefix, recValue3,3,"}");
 	    	}
 		return json;
 	}
+
+	private String formatMilkingEventJson(LocalDate recDate, String prefix, MilkingDetail recValue, int postFix, String commaOrBracket) {
+		String json = "";
+		IMDLogger.log("[" + recDate + "] milkVol" + postFix + " = " + (recValue == null ? "" : recValue.getMilkVolume()), Util.ERROR);
+
+		json += prefix + "\"milkVol"+ postFix + "\":" + 
+						(recValue == null || recValue.getMilkVolume() == null ? "\"\"" : recValue.getMilkVolume()) + ",\n";
+		json += prefix + "\"event"+ postFix + "Time\":\"" + 
+						(recValue == null || recValue.getRecordTime() == null ? "" : Util.getTimeInSQLFormart(recValue.getRecordTime())) + "\",\n";
+		json += prefix + "\"event"+ postFix + "Temperature\":" +
+						(recValue == null ? "\"\"" : recValue.getTemperatureInCentigrade())  + ",\n";
+		json += prefix + "\"event"+ postFix + "Humidity\":" + 
+						(recValue == null ? "\"\"" : recValue.getHumidity()) + ",\n";
+		json += prefix + "\"event"+ postFix + "Comments\":\"" + 
+						(recValue == null || recValue.getComments()== null ? "" : recValue.getComments()) + "\"" + commaOrBracket+ "\n";
+		return json;
+	}	
 	
 	/**
 	 * This API returns the Sire which are included in Farm Herd as opposed to the AI Sire whose semens the farm purchases.

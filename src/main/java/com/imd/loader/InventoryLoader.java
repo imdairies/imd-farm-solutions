@@ -191,9 +191,12 @@ public class InventoryLoader {
 	public List<Sire> getSiresWithAvailableInventory(String orgID) {
 		List<Sire> sireList = new ArrayList<Sire>();
 		ResultSet rs;
-		String qryString = "SELECT a.remaining_qty as REMAINING_QTY, a.sexed, b.* FROM imd.semen_rmng_qty a, LV_SIRE b where a.item_id = b.id and a.org_id=? and remaining_qty > 0 "
+		String qryString = "SELECT c.USE_COUNT, c.success_count, c.failure_count, c.tbd_count, a.remaining_qty as REMAINING_QTY, a.sexed, b.* " 
+				+ " FROM imd.SEMEN_RMNG_QTY_VW a " 
+				+ " LEFT OUTER JOIN  LV_SIRE b ON b.id=a.item_id " 
+				+ " LEFT OUTER JOIN SIRE_USAGE_STATS_VW c ON a.item_id=C.CODE  WHERE a.item_id = b.id and a.org_id=? and remaining_qty > 0 "				
 				+ " union "
-				+ " select \"∞\" as REMAINING_QTY,'N' as SEXED, a.* from LV_SIRE a where semen_ind='N'";
+				+ " select 0 as USE_COUNT,0 as success_count,0 as failure_count,0 as tbd_count, \"∞\" as REMAINING_QTY,'N' as SEXED, a.* from LV_SIRE a where semen_ind='N'";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
@@ -222,7 +225,7 @@ public class InventoryLoader {
 	public Inventory getRemainingSemenInventory(String orgID, String itemSKU, String sexedInd) {
 		Inventory inv = null;
 		ResultSet rs;
-		String qryString = "SELECT * FROM imd.semen_rmng_qty where ORG_ID=? AND ITEM_ID=? AND SEXED=?";
+		String qryString = "SELECT * FROM imd.SEMEN_RMNG_QTY_VW where ORG_ID=? AND ITEM_ID=? AND SEXED=?";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
@@ -271,7 +274,36 @@ public class InventoryLoader {
 		Float discountConventionalPercentage = rs.getFloat("DISCOUNT_CONV_PERCENTAGE");
 		String remainingQuantity = rs.getString("REMAINING_QTY");
 		String sexedInd = rs.getString("SEXED");
+		Integer semenUsageCount = null;
+		Integer semenSuccessCount = null;
+		Integer semenFailureCount = null;
+		Integer semenTbdCount = null;
+		
+		try {
+			semenUsageCount = rs.getInt("USE_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("USE_COUNT column not found in the query", Util.WARNING);
+		}
 					
+		try {
+			semenSuccessCount = rs.getInt("SUCCESS_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("SUCCESS_COUNT column not found in the query", Util.WARNING);
+		}
+
+		try {
+			semenFailureCount = rs.getInt("FAILURE_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("FAILURE_COUNT column not found in the query", Util.WARNING);
+		}
+
+		try {
+			semenTbdCount = rs.getInt("TBD_COUNT");
+		} catch (Exception ex) {
+			IMDLogger.log("TBD_COUNT column not found in the query", Util.WARNING);
+		}
+		
+		
 		animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
 		animalValue.setBreed(breed);
 		animalValue.setAlias(alias);
@@ -284,6 +316,10 @@ public class InventoryLoader {
 		animalValue.setCurrentSexListPrice(currentSexListPrice);
 		animalValue.setDiscountConventionalPercentage(discountConventionalPercentage);
 		animalValue.setDiscountSexPercentage(discountSexPercentage);
+		animalValue.setSemenUsageCount(semenUsageCount);
+		animalValue.setSemenSuccessCount(semenSuccessCount);
+		animalValue.setSemenFailureCount(semenFailureCount);
+		animalValue.setSemenTbdCount(semenTbdCount);
 		ArrayList<Note> rmngQty = new ArrayList<Note>();
 		rmngQty.add(new Note(0,remainingQuantity));
 		rmngQty.add(new Note(1,sexedInd));
