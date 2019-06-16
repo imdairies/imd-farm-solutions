@@ -11,18 +11,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
 import com.imd.controller.feed.FeedManager;
+import com.imd.dto.Animal;
 import com.imd.dto.FeedCohort;
-import com.imd.dto.Inventory;
-import com.imd.dto.Sire;
-import com.imd.dto.User;
-import com.imd.loader.AnimalLoader;
-import com.imd.loader.InventoryLoader;
 import com.imd.services.bean.AnimalBean;
-import com.imd.services.bean.InventoryBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
@@ -69,49 +63,39 @@ public class FeedSrvc {
 	}
 	
 	@POST
-	@Path("/retrievallsiresinventory")
+	@Path("/farmactiveanimalfeedlisting")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response retrieveAllSiresInventory(AnimalBean searchBean){
-		String sireValueResult = "";
-		String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
-    	IMDLogger.log(" /retrievallsiresinventory API called", Util.INFO);
+	public Response retrieveActiveAnimalFeedListing(AnimalBean animalBean){
+    	IMDLogger.log(animalBean.toString(), Util.INFO);
+		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
+		String responseJson = "";
 
     	try {
-    		AnimalLoader loader = new AnimalLoader();
-    		InventoryLoader invLoader = new InventoryLoader();
-			List<Sire> sireValues = loader.retrieveAISire();
-			if (sireValues == null || sireValues.size() == 0)
+			FeedManager manager = new FeedManager();
+			List<Animal> herd = manager.getFeedCohortInformationForFarmActiveAnimals(orgID);
+			if (herd == null || herd.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found in the herd for the farm "+ orgID + "\"}").build();
 			}
-			Inventory invOutput = null;
-			Iterator<Sire> sireValueIt = sireValues.iterator();
-	    	while (sireValueIt.hasNext()) {
-	    		String invConv = ",\n   \"conventionalStock\":\"0\"";
-	    		String invSexed = ",\n   \"sexedStock\":\"0\"";
-	    		Sire sireValue = sireValueIt.next();
-				invOutput = invLoader.getRemainingSemenInventory(orgId,sireValue.getAnimalTag(),"Y");
-				if (invOutput != null) {
-					invSexed = ",\n   \"sexedStock\":\"" + invOutput.getAuxValue2() + "\"";
-				}
-				invOutput = invLoader.getRemainingSemenInventory(orgId, sireValue.getAnimalTag(), "N");
-				if (invOutput != null) {
-					invConv = ",\n   \"conventionalStock\":\"" + invOutput.getAuxValue2() + "\"";
-				}
-	    		sireValueResult += "{\n" + sireValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + invConv + invSexed + "\n},\n";
-	    	}
-	    	if (!sireValueResult.isEmpty() )
-	    		sireValueResult = "[" + sireValueResult.substring(0,sireValueResult.lastIndexOf(",\n")) + "]";
+			Iterator<Animal> it = herd.iterator();
+			while (it.hasNext()) {
+				Animal animalValue = it.next();
+				responseJson += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+			}
+	    	if (responseJson != null && !responseJson.trim().isEmpty() )
+	    		responseJson = "[" + responseJson.substring(0,responseJson.lastIndexOf(",\n")) + "]";
 	    	else
-	    		sireValueResult = "[]";
+	    		responseJson = "[]";
+			
 		} catch (Exception e) {
 			e.printStackTrace();
-			IMDLogger.log("Exception in InventorySrvc.retrievallsiresinventory() service method: " + e.getMessage(),  Util.ERROR);
+			IMDLogger.log("Exception in FeedSrvc.retrieveActiveAnimalFeedListing() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-    	IMDLogger.log(sireValueResult, Util.INFO);
-		return Response.status(200).entity(sireValueResult).build();
-    }		
+    	IMDLogger.log(responseJson, Util.INFO);
+		return Response.status(200).entity(responseJson).build();
+	}
 	
 
 }

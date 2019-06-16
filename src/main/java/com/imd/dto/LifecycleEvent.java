@@ -22,11 +22,15 @@ public class LifecycleEvent extends IMDairiesDTO{
 	private String auxField4Value;
 	
 
-	public LifecycleEvent(String orgID, int transactionID, String animalTag, String eventCode) throws IMDException {
+	public LifecycleEvent(String orgID, int transactionID, String animalTag, String eventCode, User user, DateTime createdTS, User updateUser, DateTime updatedTS) throws IMDException {
 		this.setOrgID(orgID);
 		this.eventTransactionID = transactionID;
 		this.animalTag = animalTag;
 		this.eventType = new LifeCycleEventCode(eventCode, "", "");
+		this.setCreatedBy(user);
+		this.setCreatedDTTM(createdTS);
+		this.setUpdatedBy(updateUser);
+		this.setUpdatedDTTM(updatedTS);
 	}
 
 
@@ -203,4 +207,20 @@ public class LifecycleEvent extends IMDairiesDTO{
 	public void setAuxField4Value(String auxField4Value) {
 		this.auxField4Value = auxField4Value;
 	}
+	public boolean isEventOfSpecifiedType(String targetEventType) {
+		return (eventType == null || eventType.getEventCode() == null || eventType.getEventCode().isEmpty() ? 
+				false : eventType.getEventCode().equalsIgnoreCase(targetEventType == null ? "" : targetEventType));
+	}
+
+
+	public boolean isInseminatedEvent() {
+		return isEventOfSpecifiedType(Util.LifeCycleEvents.INSEMINATE);
+	}
+	
+	public boolean isMatingEvent() {
+		return isEventOfSpecifiedType(Util.LifeCycleEvents.MATING);
+	}
+	
+	
+	
 }

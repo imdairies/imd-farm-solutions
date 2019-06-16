@@ -5,13 +5,12 @@ import org.joda.time.format.DateTimeFormatter;
 public class FeedCohort extends IMDairiesDTO{
 	private String feedCohortTypeCD;
 	private String feedCohortTypeShortDescription;
-	private String feedCohortDeterminatationCriteria;
+	private String feedCohortDeterminationCriteria;
 	private String animalFeedCohortDeterminatationMessage;
 	public FeedCohort(String orgID, String cohortCD, String cohortShortDescr) {
 		this.setOrgID(orgID);
 		this.feedCohortTypeCD = cohortCD;		
 		this.feedCohortTypeShortDescription = cohortShortDescr;
-		
 	}
 	public String getFeedCohortTypeCD() {
 		return feedCohortTypeCD;
@@ -25,11 +24,11 @@ public class FeedCohort extends IMDairiesDTO{
 	public void setFeedCohortTypeShortDescription(String feedCohortTypeShortDescription) {
 		this.feedCohortTypeShortDescription = feedCohortTypeShortDescription;
 	}
-	public String getFeedCohortDeterminatationCriteria() {
-		return feedCohortDeterminatationCriteria;
+	public String getFeedCohortDeterminationCriteria() {
+		return feedCohortDeterminationCriteria;
 	}
-	public void setFeedCohortDeterminatationCriteria(String feedCohortDeterminatationCriteria) {
-		this.feedCohortDeterminatationCriteria = feedCohortDeterminatationCriteria;
+	public void setFeedCohortDeterminationCriteria(String feedCohortDeterminatationCriteria) {
+		this.feedCohortDeterminationCriteria = feedCohortDeterminatationCriteria;
 	}
 	public String getAnimalFeedCohortDeterminatationMessage() {
 		return animalFeedCohortDeterminatationMessage;
@@ -41,13 +40,27 @@ public class FeedCohort extends IMDairiesDTO{
 	private String stringify(String prefix) {
 		return  prefix + fieldToJson("feedCohortTypeCD", feedCohortTypeCD) + ",\n" + 
 				prefix + fieldToJson("feedCohortTypeShortDescription", feedCohortTypeShortDescription == null ? "" : this.feedCohortTypeShortDescription) + ",\n" +
-				prefix + fieldToJson("feedCohortDeterminatationCriteria", this.feedCohortDeterminatationCriteria == null ? "" : this.feedCohortDeterminatationCriteria) + ",\n" +
+				prefix + fieldToJson("feedCohortDeterminatationCriteria", this.feedCohortDeterminationCriteria == null ? "" : this.feedCohortDeterminationCriteria) + ",\n" +
 				prefix + fieldToJson("animalFeedCohortDeterminatationMessage", this.animalFeedCohortDeterminatationMessage == null ? "" : this.animalFeedCohortDeterminatationMessage) + ",\n";
 	}
-	
 
 	public String dtoToJson(String prefix)  {		
 		return stringify(prefix) + super.dtoToJson(prefix);
+	}
+
+	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
+		if (appendSuperJson)
+			return dtoToJson(prefix);
+		else
+			return stringify(prefix);
+	}
+	
+
+	public String dtoToJson(String prefix, boolean appendSuperJson, DateTimeFormatter fmt)  {		
+		if (appendSuperJson)
+			return dtoToJson(prefix,fmt);
+		else
+			return stringify(prefix);
 	}
 	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {

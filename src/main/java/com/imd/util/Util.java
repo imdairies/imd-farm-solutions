@@ -125,14 +125,15 @@ public class Util {
 		public static final String DRYINSEMIN = "DRYINSEMIN";
 		public static final String DRYPRENG = "DRYPRENG";
 		public static final String BULL = "BULL";
+		public static final String HFRAWTHEAT = "HFRAWTHEAT";
 	}
 	
 	public static final class FeedCohortType {
 		public static final String BULL = "BULL";
 		public static final String MALECALF = "MALECALF";
-//		public static final String HEIFER = "HEIFER";
-//		public static final String FEMALECALF = "FEMALECALF";
-//		public static final String HFRPREGN = "HFRPREGN";
+		public static final String HEIFER = "HEIFER";
+		public static final String HEIFERCLOSEUP = "HEIFERCLOSEUP";
+		public static final String LACTATINGEARLY = "LACTATINGEARLY";
 //		public static final String LACTATING = "LACTATING";
 //		public static final String LCTINSEMIN = "LCTINSEMIN";
 //		public static final String LCTPRGNT = "LCTPRGNT";
@@ -141,6 +142,7 @@ public class Util {
 //		public static final String DRYPRENG = "DRYPRENG";
 		public static final String FEMALEWEANEDOFF = "FEMALEWEANEDOFF";
 		public static final String FEMALECALF = "FEMALECALF";
+		public static final Object UNDETERMINED = "UNDETERMINED";
 		
 	}
 

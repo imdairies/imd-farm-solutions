@@ -32,7 +32,10 @@ public class Animal extends IMDairiesDTO{
 	private Sire animalSire;
 	private Dam animalDam;
 	private ArrayList<byte[]> photos;
-	private List<LifecycleEvent> lifeCycleEvents;
+	
+	// events must ALWAYS be kept sorted by date with latest on top and oldest at bottom. All the code assumes this !
+	private List<LifecycleEvent> lifeCycleEvents; 
+	
 	private String animalType;
 	private String animalTypeCD;
 	private String frontSideImageURL;
@@ -48,6 +51,7 @@ public class Animal extends IMDairiesDTO{
 	private String breed;
 	private DateTime herdJoiningDate;
 	private DateTime herdLeavingDate;
+	private FeedCohort feedCohortInformation;
 	
 	/**
 	 * M: Male
@@ -60,7 +64,6 @@ public class Animal extends IMDairiesDTO{
 	 * Holds any user entered text against this Animal.
 	 */
 	private ArrayList<Note> notes;
-	private String animalStatus;
 
 	public Animal(String orgID, String tagNumber, DateTime birthDate, boolean isDobEstimated, double purPrice, String priceCurr) throws IMDException{
 
@@ -245,6 +248,16 @@ public class Animal extends IMDairiesDTO{
 		return (getStatusIndicators() == null ? false : getStatusIndicators().indexOf(AnimalLoader.PREGNANT_INDICATOR)>=0);
 	}
 	
+	public boolean isHeifer() {
+		return (getStatusIndicators() == null ? false : getStatusIndicators().indexOf(AnimalLoader.HEIFER_INDICATOR)>=0);
+	}
+	public boolean isLactating() {
+		return (getStatusIndicators() == null ? false : getStatusIndicators().indexOf(AnimalLoader.LACTATING_INDICATOR)>=0);
+	}
+	public boolean isDry() {
+		return (getStatusIndicators() == null ? false : getStatusIndicators().indexOf(AnimalLoader.DRY_INDICATOR)>=0);
+	}
+	
 	public String toString() {
 		String value =  stringify(" ");
 		int eventCount = 0;
@@ -267,7 +280,7 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
 				prefix + fieldToJson("statusIndicators", this.statusIndicators == null ? "" : this.statusIndicators) + ",\n" + 
 				prefix + fieldToJson("breed", this.breed) + ",\n" +
-				prefix + fieldToJson("animalStatus", this.animalStatus) + ",\n" + 
+				prefix + fieldToJson("animalStatus", this.getAnimalStatus()) + ",\n" + 
 				prefix + fieldToJson("parturationCount", this.parturationCount) + ",\n" + 
 				prefix + fieldToJson("dateOfBirth", this.dateOfBirth) + ",\n" + 
 				prefix + fieldToJson("herdJoiningDate", this.herdJoiningDate) + ",\n" + 
@@ -284,7 +297,8 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("frontSideImageURL", this.frontSideImageURL) + ",\n" +
 				prefix + fieldToJson("backSideImageURL", this.backSideImageURL) + ",\n" + 
 				prefix + fieldToJson("rightSideImageURL", this.rightSideImageURL) + ",\n" +
-				prefix + fieldToJson("leftSideImageURL", this.leftSideImageURL) + ",\n";
+				prefix + fieldToJson("leftSideImageURL", this.leftSideImageURL) + ",\n" + 
+				(this.feedCohortInformation == null ? "" : this.feedCohortInformation.dtoToJson(prefix,false));
 	}
 	
 
@@ -411,6 +425,14 @@ public class Animal extends IMDairiesDTO{
 
 	public void setHerdLeavingDate(DateTime herdLeavingDate) {
 		this.herdLeavingDate = herdLeavingDate;
+	}
+
+	public FeedCohort getFeedCohortInformation() {
+		return feedCohortInformation;
+	}
+
+	public void setFeedCohortInformation(FeedCohort feedCohortInformation) {
+		this.feedCohortInformation = feedCohortInformation;
 	}
 	
 }

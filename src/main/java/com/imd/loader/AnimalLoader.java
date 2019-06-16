@@ -234,24 +234,31 @@ public class AnimalLoader {
 	public List<Animal> getAnimalRawInfo(AnimalBean animalBean) throws Exception {
 		boolean isWildCardSearch = false;
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
-		String qryString = "Select a.*, \" \" as RECORD_URL, \" \"  SIRE_ALIAS, \" \" as ID, a.TYPE_CD as ANIMAL_TYPE from ANIMALS a WHERE ( a.ORG_ID=? ";		
+		String qryString =  "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
+				"from ANIMALS a " + 
+				"	LEFT OUTER JOIN LV_SIRE b " + 
+				"	ON a.SIRE_TAG=b.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	ON a.TYPE_CD=c.LOOKUP_CD " +
+				" WHERE ( a.ORG_ID=? ";		
+		
 		List<String> values = new ArrayList<String> ();
 		values.add(animalBean.getOrgID());		
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
-			qryString +=  " AND ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
+			qryString +=  " AND a.ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
 			values.add(animalBean.getAnimalTag());
 			if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
-				qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
+				qryString +=  " AND a.TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 				values.add(animalBean.getAnimalType());
 			}
 		} else if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
-			qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
+			qryString +=  " AND a.TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 			values.add(animalBean.getAnimalType());
 		}
 		if (animalBean.getActiveOnly()) {
-			qryString +=  " AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL))  ORDER BY ANIMAL_TAG";
+			qryString +=  " AND (a.HERD_JOINING_DTTM IS NOT NULL AND a.HERD_LEAVING_DTTM IS NULL))  ORDER BY a.ANIMAL_TAG";
 		} else {
-			qryString += ") ORDER BY ANIMAL_TAG";
+			qryString += ") ORDER BY a.ANIMAL_TAG";
 		}
 		IMDLogger.log(qryString,Util.INFO);
 		Animal animalValue = null;

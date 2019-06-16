@@ -344,7 +344,7 @@ class AnimalLoaderTest {
 			assertEquals(0, sire.getSemenTbdCount().intValue());
 			
 
-			LifecycleEvent inseminationEvent = new LifecycleEvent(controller,0,damTag,Util.LifeCycleEvents.INSEMINATE);
+			LifecycleEvent inseminationEvent = new LifecycleEvent(controller,0,damTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(),user,DateTime.now());
 			inseminationEvent.setAuxField1Value(sireTag);
 			inseminationEvent.setAuxField2Value(Util.NO.toUpperCase());
 			inseminationEvent.setAuxField3Value(Util.TBD);
@@ -473,6 +473,7 @@ class AnimalLoaderTest {
 			animal2 = createTestAnimal("-999");
 			AnimalLoader loader = new AnimalLoader();
 			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+			User user = new User("KASHIF");
 
 			loader.deleteAnimal("IMD", animal1.getAnimalTag());
 			loader.deleteAnimal("IMD", animal2.getAnimalTag());
@@ -487,7 +488,7 @@ class AnimalLoaderTest {
 			assertTrue(loader.insertAnimal(animal2) > 0, animal1.getAnimalTag() + " should have been successfully inserted");
 			
 			
-			LifecycleEvent event3 = new LifecycleEvent("IMD", 0, "000","PARTURATE");
+			LifecycleEvent event3 = new LifecycleEvent("IMD", 0, "000","PARTURATE",user,DateTime.now(),user,DateTime.now());
 			event3.setEventTimeStamp(DateTime.now());
 			event3.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event3.setCreatedBy(new User("KASHIF"));
@@ -497,7 +498,7 @@ class AnimalLoaderTest {
 			event3.setEventNote("Parturition");
 			eventLoader.insertLifeCycleEvent(event3);
 
-			LifecycleEvent event1 = new LifecycleEvent("IMD", 0, "000","ABORTION");
+			LifecycleEvent event1 = new LifecycleEvent("IMD", 0, "000","ABORTION",user,DateTime.now(),user,DateTime.now());
 			event1.setEventTimeStamp(DateTime.now());
 			event1.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event1.setCreatedBy(new User("KASHIF"));

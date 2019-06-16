@@ -56,7 +56,7 @@ public class LifeCycleEventsLoader {
 			preparedStatement.setString(2, event.getAnimalTag());
 			preparedStatement.setString(3, event.getEventType().getEventCode());
 			preparedStatement.setString(4, event.getEventTimeStampSQLFormat());
-			preparedStatement.setString(5, event.getEventOperator().getPersonID());
+			preparedStatement.setString(5, (event.getEventOperator() == null ? null : event.getEventOperator().getPersonID()));
 			preparedStatement.setString(6, event.getEventNote());
 			preparedStatement.setString(7, event.getAuxField1Value());
 			preparedStatement.setString(8, event.getAuxField2Value());
@@ -148,7 +148,10 @@ public class LifeCycleEventsLoader {
 
 	private LifecycleEvent getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
 		LifecycleEvent event;
-		event = new LifecycleEvent(rs.getString("ORG_ID"),rs.getInt("ID"),rs.getString("ANIMAL_TAG"), rs.getString("EVENT_CD"));
+		event = new LifecycleEvent(rs.getString("ORG_ID"),rs.getInt("ID"),rs.getString("ANIMAL_TAG"), rs.getString("EVENT_CD"),
+				new User(rs.getString("CREATED_BY")),new DateTime(rs.getTimestamp("CREATED_DTTM")),
+				new User(rs.getString("UPDATED_BY")),new DateTime(rs.getTimestamp("UPDATED_DTTM"))
+				);
 		event.getEventType().setEventShortDescription(rs.getString("EVENT_SHORT_DESCR"));
 		event.setEventTimeStamp(new DateTime(rs.getTimestamp("EVENT_DTTM")));
 		event.setEventNote(rs.getString("COMMENTS"));
@@ -158,10 +161,6 @@ public class LifeCycleEventsLoader {
 		event.setAuxField3Value(rs.getString("AUX_FL3_VALUE"));
 		event.setAuxField4Value(rs.getString("AUX_FL4_VALUE"));
 		event.setEventType(getLifeCycleEventCodeFromSQLRecord(rs));
-		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
-		event.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		event.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
 		return event;
 	}
 	

@@ -3,7 +3,9 @@ package com.imd.controller.feed;
 import java.util.Iterator;
 import java.util.List;
 
+import org.joda.time.DateTime;
 
+import com.imd.advisement.DryCowAdvisement;
 import com.imd.dto.Animal;
 import com.imd.dto.CohortNutritionalNeeds;
 import com.imd.dto.FeedCohort;
@@ -20,9 +22,26 @@ import com.imd.util.Util;
 
 public class FeedManager {
 	
-	private static final int MATURITY_AGE_IN_DAYS = 270;
-//	private static final int WEANED_OFF_AGE_LIMIT_IN_DAYS = 90;
+	public static final int MATURITY_AGE_IN_DAYS = 270;
+	public static final int HEIFER_MIN_AGE_IN_DAYS = 180;
+	public static final int DRYOFF_BY_DAYS = 210;
+	public static final int PREGNANCY_DAYS = 270;
+	public static final int RECENT_PARTURATION_DAYS_LIMIT = 90;
 
+	public List<Animal> getFeedCohortInformationForFarmActiveAnimals(String orgID) throws Exception{
+		AnimalLoader aLoader = new AnimalLoader();
+		List<Animal> farmActiveHerd = aLoader.retrieveActiveAnimals(orgID);
+		if (farmActiveHerd == null || farmActiveHerd.isEmpty())
+			throw new IMDException("The farm does not seem to have any active animal");
+		Iterator<Animal> it = farmActiveHerd.iterator();
+		while (it.hasNext()) {
+			Animal animal = it.next();
+			animal.setFeedCohortInformation(getAnimalFeedCohortType(animal.getOrgID(), animal.getAnimalTag()));
+//			IMDLogger.log(animal.getFeedCohortInformation().toString(), Util.INFO);
+		}		
+		return farmActiveHerd;
+	}
+	
 	public FeedCohort getAnimalFeedCohortType(String orgID, String animalTag) throws Exception {
 		AnimalLoader animalLoader = new AnimalLoader();
 		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
@@ -82,27 +101,93 @@ public class FeedManager {
 	private FeedCohort findAnimalFeedCohort(Animal animal) throws IMDException{
 		String animalFeedCohortCD = null;
 		String animalFeedCohortDeterminatationMessage = null;
+		String animalFeedCohortDeterminationCriteria = null;
 		boolean isMale = animal.getClass().getSimpleName().equals(Sire.class.getSimpleName());
-		if (isMale && animal.getCurrentAgeInDays().getDays() >= MATURITY_AGE_IN_DAYS) {
+		DateTime now = DateTime.now();
+		DateTime latestInseminationOrMatingEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
+		DateTime latestParturationEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.PARTURATE);
+		int ageInDays = animal.getCurrentAgeInDays().getDays();
+		if (isMale && ageInDays >= MATURITY_AGE_IN_DAYS) {
 			animalFeedCohortCD = Util.FeedCohortType.BULL;
 			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is MALE and older than " + MATURITY_AGE_IN_DAYS + " days hence its feed cohort is " + animalFeedCohortCD;
-		} else if (isMale && animal.getCurrentAgeInDays().getDays() < MATURITY_AGE_IN_DAYS) {
+			animalFeedCohortDeterminationCriteria = "Male Animal whose age is >= " + MATURITY_AGE_IN_DAYS;
+		} else if (isMale && ageInDays < MATURITY_AGE_IN_DAYS) {
 			animalFeedCohortCD = Util.FeedCohortType.MALECALF;
 			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is MALE and younger than " + MATURITY_AGE_IN_DAYS + " days hence its feed cohort is " + animalFeedCohortCD;
-		} else if (animal.getAnimalTypeCD().equals(Util.AnimalTypes.FEMALECALF) && isWeanedOff(animal)) {
+			animalFeedCohortDeterminationCriteria = "Male Animal whose age is < " + MATURITY_AGE_IN_DAYS;
+		} else if (animal.getAnimalTypeCD().equals(Util.AnimalTypes.FEMALECALF) && isWeanedOff(animal) && ageInDays < HEIFER_MIN_AGE_IN_DAYS) {
 			animalFeedCohortCD = Util.FeedCohortType.FEMALEWEANEDOFF;
 			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is FEMALECALF and has been weaned off. Its feed cohort is " + animalFeedCohortCD;
-		} else if (animal.getAnimalTypeCD().equals(Util.AnimalTypes.FEMALECALF) && !isWeanedOff(animal)) {
+			animalFeedCohortDeterminationCriteria = Util.AnimalTypes.FEMALECALF + " whose age is < " + HEIFER_MIN_AGE_IN_DAYS + " and has a weaned off event in its lifecycle events history";
+		} else if (animal.getAnimalTypeCD().equals(Util.AnimalTypes.FEMALECALF) && isWeanedOff(animal) && ageInDays >= HEIFER_MIN_AGE_IN_DAYS) {
+			animalFeedCohortCD = Util.FeedCohortType.HEIFER;
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is FEMALECALF and has been weaned off. Its feed cohort is " + animalFeedCohortCD + ". You MUST change its animal type to " + Util.AnimalTypes.HEIFER;
+			animalFeedCohortDeterminationCriteria = Util.AnimalTypes.FEMALECALF + " whose age is >= " + HEIFER_MIN_AGE_IN_DAYS + " and has a weaned off event in its lifecycle events history. You MUST change its animal type to " + Util.AnimalTypes.HEIFER;
+		} else if (animal.getAnimalTypeCD().equals(Util.AnimalTypes.FEMALECALF) && !isWeanedOff(animal) && ageInDays < HEIFER_MIN_AGE_IN_DAYS) {
 			animalFeedCohortCD = Util.FeedCohortType.FEMALECALF;
 			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is FEMALECALF and has NOT been weaned off. Its feed cohort is " + animalFeedCohortCD;
+			animalFeedCohortDeterminationCriteria = Util.AnimalTypes.FEMALECALF + " whose age is < " + HEIFER_MIN_AGE_IN_DAYS + " and does NOT have a weaned off event in its lifecycle events history";
+		} else if (animal.isHeifer() && (ageInDays >= HEIFER_MIN_AGE_IN_DAYS && 
+					(!animal.isPregnant() || 
+					  (animal.isPregnant() && 
+						(latestInseminationOrMatingEventTS == null || now.isBefore(latestInseminationOrMatingEventTS.plusDays(DRYOFF_BY_DAYS)))
+					  )
+					 )
+					)) {
+			animalFeedCohortCD = Util.FeedCohortType.HEIFER;
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is HEIFER that is not going to calve with-in next " + (PREGNANCY_DAYS - DRYOFF_BY_DAYS) + " days";
+			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is a HEIFER whose age is >= " 
+			+ HEIFER_MIN_AGE_IN_DAYS + " is either NOT pregnant or its insemination event is less than " +
+			DRYOFF_BY_DAYS + " days ago";
+		} else if (animal.isHeifer() && (ageInDays >= HEIFER_MIN_AGE_IN_DAYS && animal.isPregnant()  && 
+				   latestInseminationOrMatingEventTS != null && now.isAfter(latestInseminationOrMatingEventTS.plusDays(DRYOFF_BY_DAYS)))){
+			animalFeedCohortCD = Util.FeedCohortType.HEIFERCLOSEUP;
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is HEIFERCLOSEUP that is going to calve with-in next " + (PREGNANCY_DAYS - DRYOFF_BY_DAYS) + " days";
+			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is a HEIFER whose age is >= " 
+			+ HEIFER_MIN_AGE_IN_DAYS + " is pregnant has an insemination event that is older than " +
+			DRYOFF_BY_DAYS + " days";
+		} else if (animal.isLactating()  && 
+				   latestParturationEventTS != null && now.isBefore(latestParturationEventTS.plusDays(RECENT_PARTURATION_DAYS_LIMIT))){
+			animalFeedCohortCD = Util.FeedCohortType.LACTATINGEARLY;
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is LACTATINGEARLY. It calved with-in last " + RECENT_PARTURATION_DAYS_LIMIT + " days";
+			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is LACTATING and it parturated with-in the last " 
+			+ RECENT_PARTURATION_DAYS_LIMIT + " days";
 		}
+		
+		// remaining cohorts: lactating mid, lactation far, lactating dry
+		// high yielder lactating early, high yielder lactating mid, high yielder lactation far, lactating dry
+		FeedCohort cohort = null;
+		
 		if (animalFeedCohortCD == null) {
-			throw new IMDException("The animal " + animal.getAnimalTag() + " could not be mapped to any Feed Cohort.");
-		} 
-		FeedCohort cohort = new FeedCohort(animal.getOrgID(),animalFeedCohortCD, "");
-		cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage);
+			cohort = new FeedCohort(animal.getOrgID(),"UNDETERMINED", "");
+			cohort.setAnimalFeedCohortDeterminatationMessage("The animal " + animal.getAnimalTag() + " could not be mapped to any Feed Cohort.");
+			cohort.setFeedCohortDeterminationCriteria("None of the determination criteria matches the profle of this animal");
+		} else {
+			cohort = new FeedCohort(animal.getOrgID(),animalFeedCohortCD, "");
+			cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage);
+			cohort.setFeedCohortDeterminationCriteria(animalFeedCohortDeterminationCriteria);
+		}
 		//IMDLogger.log("\n" + cohort.dtoToJson(""), Util.INFO);
 		return cohort;
+	}
+
+	private DateTime getLatestEventTimeStamp(Animal animal, String targetEventType1, String targetEventType2) {
+		List<LifecycleEvent> sortedEvents = animal.getLifeCycleEvents();
+		// events are assumed to be sorted by date with latest on top and oldest at bottom.
+		if (sortedEvents == null || sortedEvents.isEmpty())
+			return null;
+		else {
+			Iterator<LifecycleEvent> it = sortedEvents.iterator();
+			while (it.hasNext()) {
+				LifecycleEvent event = it.next();
+				if (event.isEventOfSpecifiedType(targetEventType1) || event.isEventOfSpecifiedType(targetEventType2))
+					return event.getEventTimeStamp();
+			}
+		}			
+		return null;
+	}
+	private DateTime getLatestEventTimeStamp(Animal animal, String targetEventType) {
+		return getLatestEventTimeStamp(animal,targetEventType,null);
 	}
 
 	private boolean isWeanedOff(Animal animal) throws IMDException{

@@ -109,7 +109,7 @@ class LifeCycleEventLoaderTest {
 			User user = new User("TEST");
 			Animal animal = createTestAnimal(animalTag);			
 			
-			LifecycleEvent cullingEvent = new LifecycleEvent(orgID,0,animalTag,culledCD.getEventCode());
+			LifecycleEvent cullingEvent = new LifecycleEvent(orgID,0,animalTag,culledCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
 			cullingEvent.setEventNote("test");
 			cullingEvent.setAuxField1Value("0");
 			cullingEvent.setAuxField2Value(cullingReason);
@@ -118,7 +118,7 @@ class LifeCycleEventLoaderTest {
 			cullingEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
 			cullingEvent.setEventTimeStamp(cullingTS);
 			
-			LifecycleEvent deathEvent = new LifecycleEvent(orgID,0,animalTag,deathCD.getEventCode());
+			LifecycleEvent deathEvent = new LifecycleEvent(orgID,0,animalTag,deathCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
 			deathEvent.setOrgID(orgID);
 			deathEvent.setAnimalTag(animalTag);
 			deathEvent.setEventNote("test");
@@ -129,7 +129,7 @@ class LifeCycleEventLoaderTest {
 			deathEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
 			deathEvent.setEventTimeStamp(deathTS);
 						
-			LifecycleEvent matingEvent = new LifecycleEvent(orgID,0,animalTag,matingEventCD.getEventCode());
+			LifecycleEvent matingEvent = new LifecycleEvent(orgID,0,animalTag,matingEventCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
 			matingEvent.setAuxField1Value(sire);
 			matingEvent.setAuxField2Value(isInseminationSuccessful);
 			matingEvent.setAuxField3Value(null);
@@ -141,7 +141,7 @@ class LifeCycleEventLoaderTest {
 			matingEvent.setCreatedDTTM(DateTime.now());
 			matingEvent.setUpdatedDTTM(DateTime.now());			
 			
-			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,animalTag,inseminateEventCD.getEventCode());
+			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,animalTag,inseminateEventCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
 			inseminationEvent.setAuxField1Value(sire);
 			inseminationEvent.setAuxField2Value(isSexed);
 			inseminationEvent.setAuxField3Value(isInseminationSuccessful);
@@ -253,13 +253,14 @@ class LifeCycleEventLoaderTest {
 		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
 		AnimalLoader animalLoader = new AnimalLoader();
 		LifecycleEvent event;
+		User user = new User("KASHIF");
 		try {
 			Animal animal999 = createTestAnimal("-999");
 			
 			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
 			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
 			
-			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE);			
+			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE,user,DateTime.now(),user,DateTime.now());			
 			event.setEventTimeStamp(DateTime.now().minusDays(10));
 			event.setAuxField1Value("BQ");
 			event.setAuxField2Value("BQGOVT");
@@ -308,12 +309,13 @@ class LifeCycleEventLoaderTest {
 		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
 		AnimalLoader animalLoader = new AnimalLoader();
 		LifecycleEvent event;
+		User user = new User("KASHIF");
 		try {
 			Animal animal999 = createTestAnimal("-999");
 			
 			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
 			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
-			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE);			
+			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE,user,DateTime.now(),user,DateTime.now());			
 			event.setEventTimeStamp(DateTime.now().minusDays(10));
 			event.setAuxField1Value("BQ");
 			event.setAuxField2Value("BQGOVT");
@@ -359,9 +361,10 @@ class LifeCycleEventLoaderTest {
 		// 1: Insert a new Lifecycle event and verify the correct insertion.
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		LifecycleEvent event;
+		User user = new User("KASHIF");
 		try {			
 			loader.deleteAnimalLifecycleEvents("IMD","-999");			
-			event = new LifecycleEvent("IMD", 0, "-999",Util.LifeCycleEvents.PARTURATE);
+			event = new LifecycleEvent("IMD", 0, "-999",Util.LifeCycleEvents.PARTURATE,user,DateTime.now(),user,DateTime.now());
 			event.setEventTimeStamp(DateTime.now().minusDays(180));
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
@@ -403,10 +406,11 @@ class LifeCycleEventLoaderTest {
 		// 1: Insert a new Lifecycle event and verify the correct insertion.
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		LifecycleEvent event;
+		User user = new User("KASHIF");
 		try {
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
 			loader.deleteAnimalLifecycleEvents("IMD","-999");
-			event = new LifecycleEvent("IMD", 0, "-999","PREGTEST");
+			event = new LifecycleEvent("IMD", 0, "-999","PREGTEST",user,DateTime.now(),user,DateTime.now());
 			event.setEventTimeStamp(DateTime.now());
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
