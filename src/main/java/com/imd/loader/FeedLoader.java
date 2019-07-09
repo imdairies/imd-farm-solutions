@@ -308,7 +308,7 @@ public class FeedLoader {
 		List<CohortNutritionalNeeds> dietReq = new ArrayList<CohortNutritionalNeeds>();
 		String qryString = "SELECT * FROM imd.FEED_COHORT_NUTRITIONAL_NEEDS where ORG_ID = ? AND FEED_COHORT = ?  " + 
 				(start == null ? "" : " AND START >= ? ") + 
-				(end == null ? "" : " AND END <= ? ");
+				(end == null ? "" : " AND END <= ? ") + " ORDER BY FEED_COHORT, START, END ASC";
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
 		try {
@@ -391,7 +391,7 @@ public class FeedLoader {
 	    return feedPlanItem;
 	}
 
-	public FeedPlan retrieveFeedPlan(String orgID, String animalCohortCD) throws IMDException {
+	public FeedPlan retrieveFeedPlan(String orgID, String feedCohortCD) throws IMDException {
 
 		String qryString = "SELECT * FROM imd.FEED_PLAN where ORG_ID=? AND FEED_COHORT= ?";
 		FeedPlan feedPlan = null;
@@ -401,7 +401,7 @@ public class FeedLoader {
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1,orgID);
-			preparedStatement.setString(2,animalCohortCD);
+			preparedStatement.setString(2,feedCohortCD);
 			IMDLogger.log(preparedStatement.toString(),Util.INFO);
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {

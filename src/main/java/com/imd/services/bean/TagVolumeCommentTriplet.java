@@ -10,6 +10,11 @@ public class TagVolumeCommentTriplet{
 	private String comments;
 	private String outcome;
 	
+	public TagVolumeCommentTriplet(String tag2, Float volume2, String comment) {
+		this.tag = tag2;
+		this.volume = (volume2 == null ? null : volume2.toString());
+		this.comments = comment;
+	}
 	public String getTag() {
 		return tag;
 	}

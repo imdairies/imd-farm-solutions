@@ -1,10 +1,6 @@
 package com.imd.services;
 
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -13,7 +9,6 @@ import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
 
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
@@ -56,18 +51,24 @@ public class FarmSrvc {
     		LocalDate processingDate = startDate;
     		int count;
     		String comma = ",";
+    		boolean endDateProcessed = false;
     		while (processingDate.compareTo(endDate)<=0) {
     			if (processingDate.getMonthOfYear() == endDate.getMonthOfYear() && 
     					processingDate.getYear() == endDate.getYear()) {
     				processingDate = endDate;
     				comma = "";
+    				endDateProcessed = true;
     			}
     			count = loader.getActiveHerdCountForDate(processingDate);
     			months += "\"" +  Util.getDateInSpecifiedFormart(processingDate,"dd MMM yy") + "\"" + comma;
     			herdCounts +=  count + comma;
-    			processingDate = processingDate.plusMonths(duration.getSteps());
+    			if (processingDate.isEqual(startDate)) {
+    				processingDate = deduceNextProcessingDateAfterStartDate(duration.getSteps(), startDate);     				
+    			} else {
+    				processingDate = processingDate.plusMonths(duration.getSteps());
+    			}
     		}
-    		if (processingDate.isAfter(endDate)) {
+    		if (!endDateProcessed /*processingDate.isAfter(endDate)*/) {
     			count = loader.getActiveHerdCountForDate(endDate);
     			months += "\"" +  Util.getDateInSpecifiedFormart(endDate,"dd MMM yy") + "\"";
     			herdCounts +=  count;    			
@@ -83,7 +84,24 @@ public class FarmSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
 		return Response.status(200).entity(outputJson).build();
-    }	
+    }
+
+	/**
+	 * Its more intuitive to have the herd counted first of every month. The very first herd count will be on the startDate and the very
+	 * last count will be on the end date; but between these two dates the counts will be done on the first of the step month(s).
+	 * @param duration
+	 * @param startDate
+	 * @return
+	 */
+	private LocalDate deduceNextProcessingDateAfterStartDate(int numberOfMonthsBetweenEachCount, LocalDate startDate) {
+		LocalDate processingDate;
+		processingDate = startDate.plusMonths(numberOfMonthsBetweenEachCount);
+		int year = processingDate.getYear();
+		int month = processingDate.getMonthOfYear();
+		int dayofmonth = 1;
+		processingDate = new LocalDate(year,month,dayofmonth);
+		return processingDate;
+	}	
 
 	/**
 	 * This API adds a new Lookup Value.

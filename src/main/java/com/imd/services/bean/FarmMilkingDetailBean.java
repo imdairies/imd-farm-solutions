@@ -8,9 +8,6 @@ import org.joda.time.LocalTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javassist.bytecode.Descriptor.Iterator;
-
-
 public class FarmMilkingDetailBean {
 //	private String animalTag;
 	private String orgID;

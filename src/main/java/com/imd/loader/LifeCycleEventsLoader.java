@@ -473,7 +473,7 @@ public class LifeCycleEventsLoader {
 		}
 	}
 
-	public int deleteAnimalLifecycleEvents(String orgId, String animalTag) {
+	public int deleteAnimalLifecycleEvents(String orgID, String animalTag) {
 		
 		String qryString = "DELETE FROM LIFECYCLE_EVENTS WHERE ORG_ID=? AND ANIMAL_TAG=?";
 		int result = -1;
@@ -481,8 +481,9 @@ public class LifeCycleEventsLoader {
 		Connection conn = DBManager.getDBConnection();
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, orgId);
+			preparedStatement.setString(1, orgID);
 			preparedStatement.setString(2, animalTag);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			
 			result = preparedStatement.executeUpdate();			
 		} catch (Exception ex) {

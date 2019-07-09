@@ -1,6 +1,9 @@
 package com.imd.dto;
 
+import java.util.Iterator;
 import java.util.List;
+
+import org.joda.time.format.DateTimeFormatter;
 
 public class FeedPlan extends IMDairiesDTO {
 
@@ -33,4 +36,40 @@ public class FeedPlan extends IMDairiesDTO {
 	public void setPlanAnalysisComments(String planAnalysisComments) {
 		this.planAnalysisComments = planAnalysisComments;
 	}
+	
+	private String stringify(String prefix) {
+		String feedItemAnalysisMessages = "";
+		if (feedPlan != null && !feedPlan.isEmpty()) {
+			Iterator<FeedItem> it = feedPlan.iterator();
+			while (it.hasNext()) {
+				feedItemAnalysisMessages += "\n " + it.next().getPersonalizedFeedMessage();
+			}
+		}
+		return  prefix + fieldToJson("planAnalysisComments", (planAnalysisComments == null ? "": planAnalysisComments) + feedItemAnalysisMessages ) + ",\n";
+	}
+
+	public String dtoToJson(String prefix)  {		
+		return stringify(prefix) + super.dtoToJson(prefix);
+	}
+
+	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
+		if (appendSuperJson)
+			return dtoToJson(prefix);
+		else
+			return stringify(prefix);
+	}
+	
+
+	public String dtoToJson(String prefix, boolean appendSuperJson, DateTimeFormatter fmt)  {		
+		if (appendSuperJson)
+			return dtoToJson(prefix,fmt);
+		else
+			return stringify(prefix);
+	}
+	
+	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
+		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+	}	
+	
+	
 }

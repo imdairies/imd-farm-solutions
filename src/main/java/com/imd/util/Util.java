@@ -1,6 +1,10 @@
 package com.imd.util;
 
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -11,6 +15,9 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.util.BufferRecyclers;
+import com.imd.services.bean.FarmMilkingDetailBean;
+import com.imd.services.bean.InputDelimitedFileBean;
+import com.imd.services.bean.TagVolumeCommentTriplet;
 
 public class Util {
 	
@@ -50,14 +57,21 @@ public class Util {
 	public static final String YES = "YES";
 	public static final String NO = "NO";
 	public static final String TBD = "TBD";
+	
+	public static final String FILE_NEW_LINE_SEPARATOR = "\n";
+	public static final String FILE_RECORD_SEPARATOR = "\t";
+	private static final String FILE_FIELD_ESCAPE_SEQUENCE = "\\";
+
 
 	public static final String ERROR_POSTFIX = "ERROR: ";
 	public static final String SUCCESS_POSTFIX = "SUCCESS: ";
+
 
 	public static final class FulfillmentType {
 		public static final String ABSOLUTE = "ABSOLUTE";
 		public static final String BODYWEIGHT = "BODYWEIGHT";
 		public static final String FREEFLOW = "FREEFLOW";
+		public static final String MILKPROD = "MILKPROD";
 	}
 
 	public static final class Breed  {
@@ -79,6 +93,7 @@ public class Util {
 		public static final String DAILY_AVERAGE = "DAILY_AVERAGE";
 		public static final String SEQ_NBR_MONTHLY_AVERAGE = "SEQ_NBR_MONTHLY_AVERAGE";
 		public static final String YESTERDAY_SEQ_NBR_VOL = "YESTERDAY_SEQ_NBR_VOL";
+		public static final String DAYS_IN_MILKING = "DAYS_IN_MILKING";
 	}
 
 	public static final class LifeCycleEvents {
@@ -123,7 +138,7 @@ public class Util {
 		public static final String LCTPRGNT = "LCTPRGNT";
 		public static final String HFRINSEMIN = "HFRINSEMIN";
 		public static final String DRYINSEMIN = "DRYINSEMIN";
-		public static final String DRYPRENG = "DRYPRENG";
+		public static final String DRYPREG = "DRYPREG";
 		public static final String BULL = "BULL";
 		public static final String HFRAWTHEAT = "HFRAWTHEAT";
 	}
@@ -132,17 +147,22 @@ public class Util {
 		public static final String BULL = "BULL";
 		public static final String MALECALF = "MALECALF";
 		public static final String HEIFER = "HEIFER";
-		public static final String HEIFERCLOSEUP = "HEIFERCLOSEUP";
-		public static final String LACTATINGEARLY = "LACTATINGEARLY";
+		public static final String HFRCLOSEUP = "HFRCLOSEUP";
+		public static final String LCTEARLY = "LCTEARLY";
 //		public static final String LACTATING = "LACTATING";
 //		public static final String LCTINSEMIN = "LCTINSEMIN";
 //		public static final String LCTPRGNT = "LCTPRGNT";
 //		public static final String HFRINSEMIN = "HFRINSEMIN";
 //		public static final String DRYINSEMIN = "DRYINSEMIN";
 //		public static final String DRYPRENG = "DRYPRENG";
-		public static final String FEMALEWEANEDOFF = "FEMALEWEANEDOFF";
+		public static final String FMLWNDOFF = "FMLWNDOFF";
 		public static final String FEMALECALF = "FEMALECALF";
-		public static final Object UNDETERMINED = "UNDETERMINED";
+		public static final String UNDETERMINED = "UNDETERMINED";
+		public static final String LCTMID = "LCTMID";
+		public static final String LCTOLD = "LCTOLD";
+		public static final String NEARPRTRT = "NEARPRTRT";
+		public static final String FARPRTRT = "FARPRTRT";
+		public static final String PREGHFR = "PREGHFR";
 		
 	}
 
@@ -213,6 +233,19 @@ public class Util {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
 		return fmt.print(dttm);
 	}
+
+	
+	public static LocalTime parseLocalTime(String time, String format) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+		return fmt.parseLocalTime(time);
+	}
+
+	public static LocalTime parseLocalTimeHHmm(String time) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
+		return fmt.parseLocalTime(time);
+	}
+	
+	
 	
 	public static String getTimeInSQLFormart(LocalTime tm) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
@@ -248,6 +281,210 @@ public class Util {
 	public static String encodeJson(float floatValue) {
 		return encodeJson(floatValue + "");
 	}
+	public static String formatTwoDecimalPlaces(float floatValue) {
+		return formatToSpecifiedDecimalPlaces(floatValue,2);
+	}
+	public static String formatToSpecifiedDecimalPlaces(float floatValue, int decimalPlaces) {
+		String pattern = "#.";
+		for (int i=0;i<decimalPlaces; i++) {
+			pattern += "#";
+		}
+		DecimalFormat decimalFormat = new DecimalFormat(pattern);
+		return decimalFormat.format(floatValue);
+	}
+	
+	public static FarmMilkingDetailBean parseFarmMilkingDetailBean(InputDelimitedFileBean commaSeparatedRecords) throws IMDException {
+		FarmMilkingDetailBean bean = new FarmMilkingDetailBean();
+		String[] lines = commaSeparatedRecords.getInputDelimitedFileContents().split(FILE_NEW_LINE_SEPARATOR);
+		String regex = "(?<!" + Pattern.quote(FILE_FIELD_ESCAPE_SEQUENCE) + ")" + Pattern.quote(FILE_RECORD_SEPARATOR);
+		for (int i=0; i< lines.length; i++) {
+			String line = lines[i];
+			String[] records = line.split(regex);
+			for (int k=0; k<records.length; k++) {
+				String newValue = records[k];
+				records[k] = newValue.replaceAll(FILE_FIELD_ESCAPE_SEQUENCE + FILE_FIELD_ESCAPE_SEQUENCE, "");
+			}
+			
+			if (i == 0) {
+				// Date, Time and Event numbers expected
+				bean = parseTimeStampEventNum(bean, 1, line, records);
+			} else if (i == 1) {
+				// Temp, Humidity
+				bean = parseTempHumidity(bean, 2, line, records);
+			} else if (i == 2) {
+				bean = parseFatLRToxin(bean,3,line,records);
+			} else {
+				// tag, milk_volume
+				TagVolumeCommentTriplet milkRecordOfACow = parseCowMilkingEvent(bean,(i+1),line,records);
+				if (bean.getFarmMilkingEventRecords() == null) {
+					bean.setFarmMilkingEventRecords(new ArrayList<TagVolumeCommentTriplet>());					
+				}
+				bean.getFarmMilkingEventRecords().add(milkRecordOfACow);
+			}	
+		}
+		return bean;
+	}
+	
+	
+	private static TagVolumeCommentTriplet parseCowMilkingEvent(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
+			throws IMDException {
+		String exceptionMessage;
+		String tag = "";
+		Float volume = null;
+		String comment = null;
+		if (records == null || records.length < 2) {
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Cow Tag, Milk Volume, Comment (AAA" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "AAA) but found (" + line + ") which does not comply with the expected format.";
+			throw new IMDException(exceptionMessage);
+		}
+		if (records[0].trim().isEmpty()) {
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Cow Tag (AAA" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "AAA) but found (" + line + ") which does not comply with the expected format. Cow Tag is missing";
+			throw new IMDException(exceptionMessage);				
+		} else {
+			tag = records[0].trim();
+		}
+		if (records[1].trim().isEmpty()) {
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Milk Volume (AAA" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "AAA) but found (" + line + ") which does not comply with the expected format. Milking Volume is missing";
+			throw new IMDException(exceptionMessage);				
+		} else {
+			try {
+				volume = new Float(records[1].trim());
+			} catch (Exception ex) {
+				exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Milk Volume (AAA" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "AAA) but found (" + line + ") which does not comply with the expected format. Milking Volume is not properly formatted";
+				throw new IMDException(exceptionMessage);								
+			}
+		}
+		if (records.length >= 3) {
+			comment = records[2].trim();
+		}				
+		return new TagVolumeCommentTriplet(tag,volume,comment);
+	}		
+	
+	
+	private static FarmMilkingDetailBean parseTimeStampEventNum(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
+			throws IMDException {
+		String exceptionMessage;
+		if (records.length != 3) {
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see milking date, milking time and event number (yyyy-mm-dd" + FILE_RECORD_SEPARATOR + "hh:mm" + FILE_RECORD_SEPARATOR + "n) but found (" + line + ") which does not comply with the expected format";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			LocalDate milkingDate = new LocalDate(records[0].trim());
+			bean.setMilkingDateStr(Util.getDateInSQLFormart(milkingDate));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see milking date, milking time and event number (yyyy-mm-dd" + FILE_RECORD_SEPARATOR + "hh:mm" + FILE_RECORD_SEPARATOR + "n) but found (" + line + ") which does not comply with the expected format. Milking Date does not seem to be in correct format";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			LocalTime milkingTime = parseLocalTimeHHmm(records[1].trim());
+			bean.setMilkingTimeStr(Util.getTimeInSQLFormart(milkingTime));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see milking date, milking time and event number (yyyy-mm-dd" + FILE_RECORD_SEPARATOR + "HH:mm" + FILE_RECORD_SEPARATOR + "n) but found (" + line + ") which does not comply with the expected format. Milking Time does not seem to be in correct format";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			short milkingEventNumber = new Short(records[2].trim());
+			bean.setMilkingEventNumber(milkingEventNumber);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see milking date, milking time and event number (yyyy-mm-dd" + FILE_RECORD_SEPARATOR + "hh:mm" + FILE_RECORD_SEPARATOR + "n) but found (" + line + ") which does not comply with the expected format. Milking Event does not seem to be in correct format";
+			throw new IMDException(exceptionMessage);
+		}
+		return bean;
+	}
+	
+	private static FarmMilkingDetailBean parseTempHumidity(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
+			throws IMDException {
+		String exceptionMessage;
+		if (records.length < 1 || records.length > 2) {
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Temperature In Centigrade and humidity (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format.";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			if (records[0].trim().isEmpty()) {
+				exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Temperature In Centigrade and humidity (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format. Temperature CAN NOT be null";
+				throw new IMDException(exceptionMessage);				
+			} else {
+				Float tempInC = new Float(records[0].trim());
+				bean.setTemperatureInCentigrade(tempInC);
+				
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Temperature In Centigrade and humidity (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format. Invalid Temperature found";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			if (records.length < 2 || records[1].trim().isEmpty()) {
+				bean.setHumidity(null);
+			} else {
+				Float humidity = new Float(records[1].trim());
+				bean.setHumidity(humidity);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Temperature In Centigrade and humidity (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format. Invalid Humidity found. Humidity is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		return bean;
+	}	
+	
+	
+	
+	
+	
+	
+	private static FarmMilkingDetailBean parseFatLRToxin(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
+			throws IMDException {
+		String exceptionMessage;
+		if (records.length > 3) {
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Fat, LR, Toxin (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			if (records == null || records.length < 1 || records[0].trim().isEmpty()) {
+				bean.setFatValue(null);
+			} else {
+				Float fat = new Float(records[0].trim());
+				bean.setFatValue(fat);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse Fat% from the line (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format. Invalid Fat% found. Fat% is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			if (records == null || records.length < 2 || records[1].trim().isEmpty()) {
+				bean.setLrValue(null);
+			} else {
+				Float lr = new Float(records[1].trim());
+				bean.setLrValue(lr);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse LR from the line (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format. Invalid LR found. LR is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			if (records == null || records.length < 3 || records[2].trim().isEmpty()) {
+				bean.setToxinValue(null);
+			} else {
+				Float toxin = new Float(records[2].trim());
+				bean.setToxinValue(toxin);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse Toxin from the line (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format. Invalid Aflatoxin found. Aflatoxin is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+
+		return bean;
+	}
+	public static String substituteEmptyForNull(Object val) {
+		return val == null ? "" : val.toString();
+	}
+	
 	
 }
 

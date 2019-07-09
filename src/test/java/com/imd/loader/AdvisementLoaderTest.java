@@ -1449,7 +1449,7 @@ class AdvisementLoaderTest {
 			eventBean2.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBean2.setEventComments("Test Insemination Event");
 			eventBean2.setOrgID("IMD");
-			eventBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(176)));
+			eventBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(180)));
 			LifecycleEvent inseminationEvent2 = new LifecycleEvent(eventBean2);
 			inseminationEvent2.setCreatedBy(new User("KASHIF"));
 			inseminationEvent2.setUpdatedBy(new User("KASHIF"));

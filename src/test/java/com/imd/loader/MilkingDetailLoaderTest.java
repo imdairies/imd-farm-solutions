@@ -2,6 +2,7 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,7 +15,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.imd.dto.Dam;
+import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
+import com.imd.dto.Note;
 import com.imd.dto.User;
 import com.imd.services.bean.MilkingDetailBean;
 import com.imd.util.IMDException;
@@ -39,6 +43,30 @@ class MilkingDetailLoaderTest {
 	void tearDown() throws Exception {
 	}
 
+	
+	private Dam createDam(String orgID, String damTag, DateTime dob, String animalType) throws IMDException {
+		Dam dam = new Dam(orgID,damTag,dob,/*dob estimated*/true,/*price*/331000,/*price currency*/"PKR");
+		dam.setAlias(damTag + "alias");
+		dam.setBreed(Util.Breed.HFCROSS);
+		dam.setAnimalType(animalType);
+		dam.setFrontSideImageURL("/assets/img/cow-thumbnails/" + damTag + "/1.png");
+		dam.setBackSideImageURL("/assets/img/cow-thumbnails/" + damTag + "/2.png");
+		dam.setRightSideImageURL("/assets/img/cow-thumbnails/" + damTag + "/3.png");
+		dam.setLeftSideImageURL("/assets/img/cow-thumbnails/" + damTag + "/4.png");
+
+		dam.setPurchaseDate(DateTime.parse("2017-02-08"));
+		dam.setCreatedBy(new User("KASHIF"));
+		dam.setCreatedDTTM(DateTime.now());
+		dam.setHerdJoiningDate(dob);
+		dam.setHerdLeavingDate(null);
+		dam.setUpdatedBy(dam.getCreatedBy());
+		dam.setUpdatedDTTM(dam.getCreatedDTTM());
+		dam.setAnimalDam(null);
+		Note newNote = new Note (1,"test note", LocalDateTime.now());		
+		dam.addNote(newNote);
+		return dam;		
+	}	
+	
 	private MilkingDetail createMilkingRecord(String tagNbr, LocalDate milkingDate, LocalTime milkingTime) throws IMDException {
 		short milkFreq = 3;
 		float milkingVol = 13.0f;
@@ -55,6 +83,78 @@ class MilkingDetailLoaderTest {
 		milkingRecord.setUpdatedDTTM(DateTime.now());
 		return milkingRecord;
 	}
+	
+	
+	@Test
+	void testMiMCalculation() {
+		try {
+			String animalTag = "-999";
+			String orgID = "IMD";
+			User user = new User("KASHIF");
+			DateTime createdTS = DateTime.now();
+			int tenDaysInPast = 10;
+			LocalDate recordDate1 = new LocalDate(createdTS.getYear(),createdTS.getMonthOfYear(),createdTS.getDayOfMonth());
+			LocalDate recordDateBeforeParturation = new LocalDate(createdTS.getYear(),createdTS.getMonthOfYear()-1,createdTS.getDayOfMonth());
+			Dam dam = createDam(orgID, animalTag, DateTime.now().minusYears(4), Util.AnimalTypes.DRYPREG);
+			LifecycleEvent parturationEvent = new LifecycleEvent(orgID, 0, animalTag, Util.LifeCycleEvents.PARTURATE, user, createdTS, user, createdTS);
+			parturationEvent.setEventTimeStamp(createdTS.minusDays(tenDaysInPast));
+			
+			MilkingDetail milkingRecord1 = createMilkingRecord(animalTag, recordDate1, new LocalTime(5,0,0));
+			milkingRecord1.setComments("Morning Milking");
+			milkingRecord1.setMilkingEventNumber((short) 1);
+
+			MilkingDetail milkingRecordBeforeParturation = createMilkingRecord(animalTag, recordDateBeforeParturation, new LocalTime(5,0,0));
+			milkingRecordBeforeParturation.setComments("Morning Milking");
+			milkingRecordBeforeParturation.setMilkingEventNumber((short) 1);
+			
+			AnimalLoader animalLoader = new AnimalLoader();
+			MilkingDetailLoader milkDetailloader = new MilkingDetailLoader();
+			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
+
+			milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDate1);
+			milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDateBeforeParturation);
+			eventsLoader.deleteAnimalLifecycleEvents(orgID, animalTag);
+			animalLoader.deleteAnimal(orgID, animalTag);
+			
+			assertEquals(1,animalLoader.insertAnimal(dam));
+
+			assertEquals(MilkingDetailLoader.ANIMAL_IS_NOT_LACTATING,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false));
+			assertEquals(MilkingDetailLoader.ANIMAL_IS_NOT_LACTATING,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true));
+			
+			assertEquals(1,animalLoader.deleteAnimal(orgID, animalTag));
+			dam.setAnimalType(Util.AnimalTypes.LACTATING);
+			assertEquals(1,animalLoader.insertAnimal(dam));
+			
+			assertEquals(MilkingDetailLoader.NO_PARTURATION_OR_ABORTION_EVENT_FOUND,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false));
+			assertEquals(MilkingDetailLoader.NO_PARTURATION_OR_ABORTION_EVENT_FOUND,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true));
+			
+			assertTrue(eventsLoader.insertLifeCycleEvent(parturationEvent)>0);
+
+			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
+			assertEquals(MilkingDetailLoader.NO_MILK_RECORD_FOUND_AFTER_PARTURATION,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false));
+			
+			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
+
+			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
+			assertEquals(Util.getDaysBetween(LocalDate.now(), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
+			
+			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecordBeforeParturation.getMilkingDetailBean()));
+
+			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
+			assertEquals(Util.getDaysBetween(LocalDate.now(), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
+			
+			assertEquals(1,milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDate1));
+			assertEquals(1,milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDateBeforeParturation));
+			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents(orgID, animalTag));
+			assertEquals(1,animalLoader.deleteAnimal(orgID, animalTag));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}		
+	}
+	
+	
 	@Test
 	void testAnimalProcessing() {
 		try {

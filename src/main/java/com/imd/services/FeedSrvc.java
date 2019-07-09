@@ -16,6 +16,7 @@ import org.joda.time.format.DateTimeFormat;
 import com.imd.controller.feed.FeedManager;
 import com.imd.dto.Animal;
 import com.imd.dto.FeedCohort;
+import com.imd.dto.FeedPlan;
 import com.imd.services.bean.AnimalBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
@@ -38,7 +39,8 @@ public class FeedSrvc {
     	try {
 			FeedManager mgr = new FeedManager();
 			FeedCohort feedCohortType = mgr.getAnimalFeedCohortType(orgID, animalBean.getAnimalTag());
-	    	responseJson = "[\n" + "{\n" + feedCohortType.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n}\n" + "]";
+			FeedPlan plan = mgr.getPersonalizedFeedPlan(feedCohortType, animalBean.getAnimalTag());
+	    	responseJson = "[\n" + "{\n" + feedCohortType.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + (plan != null ? ",\n" + plan.dtoToJson("  ") : "")+  "\n}\n" + "]";
 	    	IMDLogger.log(responseJson, Util.INFO);
 			return Response.status(200).entity(responseJson).build(); 
 		} catch (IMDException e) {

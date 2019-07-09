@@ -31,6 +31,7 @@ public class Animal extends IMDairiesDTO{
 	private String alias;
 	private Sire animalSire;
 	private Dam animalDam;
+	private Float weight;
 	private ArrayList<byte[]> photos;
 	
 	// events must ALWAYS be kept sorted by date with latest on top and oldest at bottom. All the code assumes this !
@@ -52,6 +53,7 @@ public class Animal extends IMDairiesDTO{
 	private DateTime herdJoiningDate;
 	private DateTime herdLeavingDate;
 	private FeedCohort feedCohortInformation;
+	private CohortNutritionalNeeds animalNutritionalNeeds;
 	
 	/**
 	 * M: Male
@@ -278,6 +280,7 @@ public class Animal extends IMDairiesDTO{
 		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
+				prefix + fieldToJson("weight", this.weight == null ? "" : this.weight.toString()) + ",\n" +
 				prefix + fieldToJson("statusIndicators", this.statusIndicators == null ? "" : this.statusIndicators) + ",\n" + 
 				prefix + fieldToJson("breed", this.breed) + ",\n" +
 				prefix + fieldToJson("animalStatus", this.getAnimalStatus()) + ",\n" + 
@@ -298,7 +301,8 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("backSideImageURL", this.backSideImageURL) + ",\n" + 
 				prefix + fieldToJson("rightSideImageURL", this.rightSideImageURL) + ",\n" +
 				prefix + fieldToJson("leftSideImageURL", this.leftSideImageURL) + ",\n" + 
-				(this.feedCohortInformation == null ? "" : this.feedCohortInformation.dtoToJson(prefix,false));
+				(this.feedCohortInformation == null ? "" : this.feedCohortInformation.dtoToJson(prefix,false)) +
+				(this.animalNutritionalNeeds == null ? "" : this.animalNutritionalNeeds.dtoToJson(prefix,false));
 	}
 	
 
@@ -435,4 +439,33 @@ public class Animal extends IMDairiesDTO{
 		this.feedCohortInformation = feedCohortInformation;
 	}
 	
+	public void setAnimalNutritionalNeeds(CohortNutritionalNeeds needs, Float weightInKg) {
+		if (weightInKg != null && needs != null) {
+			this.animalNutritionalNeeds = needs;
+			this.animalNutritionalNeeds.setDryMatter(needs.getDryMatter() * weightInKg);
+			this.animalNutritionalNeeds.setCrudeProtein(needs.getCrudeProtein() * this.animalNutritionalNeeds.getDryMatter());
+			this.animalNutritionalNeeds.setMetabloizableEnergy(needs.getMetabloizableEnergy());
+		}
+	}
+	
+	public CohortNutritionalNeeds getAnimalNutritionalNeeds() {
+		return this.animalNutritionalNeeds;
+	}
+
+	public void setWeight(Float latestEventWeight) {
+		this.weight = latestEventWeight;
+	}
+	public Float getWeight() {
+		return this.weight;
+	}
+
+//	public void setAnimalNutritionalNeeds(CohortNutritionalNeeds needs) {
+//		this.animalNutritionalNeeds = needs;		
+//	}
+	
+	
 }
+
+
+
+

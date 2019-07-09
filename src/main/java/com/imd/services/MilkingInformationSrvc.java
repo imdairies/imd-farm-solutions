@@ -14,12 +14,14 @@ import javax.ws.rs.core.Response;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 
+import com.fasterxml.jackson.core.util.BufferRecyclers;
 import com.imd.dto.Animal;
 import com.imd.dto.MilkingDetail;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.MilkingDetailLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.FarmMilkingDetailBean;
+import com.imd.services.bean.InputDelimitedFileBean;
 import com.imd.services.bean.MilkingDetailBean;
 import com.imd.services.bean.TagVolumeCommentTriplet;
 import com.imd.util.IMDException;
@@ -313,7 +315,103 @@ public class MilkingInformationSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
 		}
     }	
+	@POST
+	@Path("/uploadfarmmilkingevent")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response uploadFarmMilkingEventRecord(InputDelimitedFileBean commaSeparatedRecords) {
+		String prefix = "   ";
+    	String orgID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
+    	String userID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.USER_ID);
+    	IMDLogger.log(commaSeparatedRecords.toString(), Util.INFO);
+    	try {
+        	FarmMilkingDetailBean milkingEventRecord = Util.parseFarmMilkingDetailBean(commaSeparatedRecords);
+        	milkingEventRecord.setOrgID(orgID);
+        	if (milkingEventRecord.getTemperatureInCentigrade() == null) {
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid Temperature \"}").build();
+			} else if (milkingEventRecord.getMilkingDateStr() == null) {
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid milking date \"}").build();
+			} else if (milkingEventRecord.getMilkingTimeStr() == null) {
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid milking time \"}").build();
+			} else if (milkingEventRecord.getMilkingEventNumber() <1) {
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
+			} else if (milkingEventRecord.getFarmMilkingEventRecords() == null || milkingEventRecord.getFarmMilkingEventRecords().isEmpty()) {
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify at least one milking record\"}").build();
+			}
+        	if (!commaSeparatedRecords.getShouldAdd() ) {
+				// only parse and show the results
+				String parseResult = "";
+				float totalVolume = 0;
+				parseResult = "{\n\"date\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getMilkingDateStr()) + "\",\n" + 
+						"\"time\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getMilkingTimeStr()) + "\",\n" +
+						"\"event\":\"" + milkingEventRecord.getMilkingEventNumber() + "\",\n" +
+						"\"temperature\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getTemperatureInCentigrade()) + "\",\n" +
+						"\"humidity\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getHumidity()) + "\",\n" +
+						"\"fat\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getFatValue()) + "\",\n" +
+						"\"lr\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getLrValue()) + "\",\n" +
+						"\"toxin\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getToxinValue()) + "\",\n" +
+						"\"message\":\"All recrods have been successfully parsed\",\n" +
+						"\"totalMilkRecords\":\"" + milkingEventRecord.getFarmMilkingEventRecords().size() + "\",\n";
+				Iterator<TagVolumeCommentTriplet> it = milkingEventRecord.getFarmMilkingEventRecords().iterator();
+				String milkRecords = "";
+				int count = 1;
+				String comma = ",";
+				while (it.hasNext()) {
+					TagVolumeCommentTriplet record = it.next();
+					if (count == milkingEventRecord.getFarmMilkingEventRecords().size())
+						comma ="";
+					count++;
+					milkRecords += "\n  {\n   \"tag\":\"" + record.getTag() + "\",\n" + 
+							"   \"volume\":\"" + record.getVolume() + "\",\n" + 
+							"   \"comments\":\"" + Util.substituteEmptyForNull(record.getComments()) + "\"\n  }" + comma;
+					totalVolume += Float.parseFloat(record.getVolume());
+				}
+				parseResult += "\"totalVolume\":\"" + totalVolume + "\",\n"  +
+						"\"milkingRecords\":[";
+				
+				parseResult += milkRecords + "]\n}"; 
+				IMDLogger.log(parseResult, Util.INFO);
+				return Response.status(200).entity(parseResult).build();
+			} else {
+	    		MilkingDetailLoader loader = new MilkingDetailLoader();
+	    		List<TagVolumeCommentTriplet> outcomeInfo = loader.addOrEditFarmMilkingEventRecord(milkingEventRecord);
+	    		
+	    		String outcomeString = "";
+	    		int count=0;
+	    		
+	    		Iterator<TagVolumeCommentTriplet> it = outcomeInfo.iterator();
+	    		while (it.hasNext()) {
+	    			count++;
+	    			if (count == outcomeInfo.size())
+	        			outcomeString += "{\n" + it.next().dtoToJson(prefix) + "\n}";
+	    			else
+	        			outcomeString += "{\n" + it.next().dtoToJson(prefix) + "\n},\n";
+	    		}
+	    		if (outcomeInfo == null || outcomeInfo.isEmpty())
+	        		outcomeString = "[]";
+	    		else
+	        		outcomeString = "["+ outcomeString + "]";
+	    			
+	        	IMDLogger.log(outcomeString, Util.INFO);
+	    		return Response.status(200).entity(outcomeString).build();
+			}
 
+//    		responseCode = loader.insertMilkRecord(milkingRecord);
+//    		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
+//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
+//    		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
+//    		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
+//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
+//    		else
+//    			return Response.status(200).entity("{ \"error\": false, \"message\":\"" + responseCode + " milking records added" + "\"}").build();
+    	} catch (IMDException e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(e.getMessage())) + "\"}").build();
+    	} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
+		}
+    }	
 	
 	@POST
 	@Path("/addmilkingevent")

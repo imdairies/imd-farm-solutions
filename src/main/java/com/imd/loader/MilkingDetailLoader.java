@@ -16,6 +16,8 @@ import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.imd.dto.Animal;
+import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.User;
 import com.imd.services.bean.FarmMilkingDetailBean;
@@ -27,7 +29,13 @@ import com.imd.util.Util;
 
 public class MilkingDetailLoader {
 	
-	
+	public static final Integer UNKNOWN_ERROR = -999;
+	public static final Integer NO_MILK_RECORD_FOUND_AFTER_PARTURATION = -998;
+	public static final Integer NO_PARTURATION_OR_ABORTION_EVENT_FOUND = -997;
+	public static final Integer ANIMAL_DOES_NOT_EXIST = -996;
+	public static final Integer ANIMAL_IS_NOT_LACTATING = -995;
+
+
 	public int insertMilkRecord(MilkingDetailBean milkingRecord)  {
 		int recordAdded = -1;
 		String qryString = "insert into MILK_LOG (ORG_ID,"
@@ -595,8 +603,61 @@ public class MilkingDetailLoader {
 		return responseList;		
 	}
 
+	public Integer getDaysInMilkingOfCow(String orgID, String animalTag, boolean shouldDeduceFromParturationTimestampOnly) {
+		return getDaysInMilkingOfCow(orgID, animalTag, shouldDeduceFromParturationTimestampOnly, null);
+	}
 
-
+	public Integer getDaysInMilkingOfCow(String orgID, String animalTag, boolean shouldDeduceFromParturationTimestampOnly, LocalDate toDateOfDaysInMilking) {
+		/**
+		 * TODO: CAUTION This method only calculates the Days in Milking for the latest parturation. If one goes back to the animal's milking record
+		 * for a past lactation then the method will return a negative value. This ought to be fixed when I get time.
+		 */
+		Integer dim = null;
+		DateTime dimWindowStart = null;
+		AnimalLoader animalLoader = new AnimalLoader();
+		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+		DateTime targetDateTime = toDateOfDaysInMilking == null ? DateTime.now() : new DateTime(toDateOfDaysInMilking.getYear(),toDateOfDaysInMilking.getMonthOfYear(),toDateOfDaysInMilking.getDayOfMonth(),0,0);
+		try {
+			List<Animal> animals = animalLoader.getAnimalRawInfo(orgID, animalTag);
+			if (animals == null || animals.isEmpty()) {
+				IMDLogger.log("The animal " + animalTag + " does not exist. Can't calculate its Days in Milking", Util.ERROR);
+				dim = ANIMAL_DOES_NOT_EXIST;
+			} else if (!animals.get(0).isLactating()) {
+				dim = ANIMAL_IS_NOT_LACTATING;
+				IMDLogger.log("The animal's type indicates that " + animalTag + " is not lactating. Days in Milking can only be calculated for lactating animals", Util.ERROR);
+			} else {
+				List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(orgID, animalTag, null, null, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,  null,  null, null);
+				if (events == null || events.isEmpty()) {
+					IMDLogger.log("Did not find any parturation or abortion event for the animal " + animalTag + "; Days in Milking won't be calculated for this animal", Util.ERROR);
+					dim = NO_PARTURATION_OR_ABORTION_EVENT_FOUND;
+				} else {
+					dimWindowStart = events.get(0).getEventTimeStamp();
+					if (shouldDeduceFromParturationTimestampOnly) {
+						dim = Util.getDaysBetween(targetDateTime, dimWindowStart);
+						
+					} else {
+						String qryString = "SELECT A.*, 0 AS AVERAGE_VOL FROM imd.MILK_LOG A " + 
+								"where A.org_id=? " + 
+								"and A.animal_tag=? and A.MILK_DATE >= ? order by MILK_DATE asc";
+						
+						List<String> values = new ArrayList<String> ();
+						values.add(orgID);
+						values.add(animalTag);
+						values.add(Util.getDateInSQLFormart(dimWindowStart));
+						ArrayList <MilkingDetail> milkRecords = readRecords(qryString, values);
+						if (milkRecords == null || milkRecords.isEmpty())
+							dim = NO_MILK_RECORD_FOUND_AFTER_PARTURATION;
+						else
+							dim = Util.getDaysBetween(toDateOfDaysInMilking == null ? LocalDate.now() : toDateOfDaysInMilking, milkRecords.get(0).getRecordDate());
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			dim = UNKNOWN_ERROR;
+		}
+		return dim;
+	}
 }
 
 

@@ -39,7 +39,7 @@ import com.imd.util.Util;;
 @Path("/animals")
 public class AnimalSrvc {
 
-	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 270;
+	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 285;
 
 
 	/**
@@ -620,17 +620,17 @@ public class AnimalSrvc {
 	@POST
 	@Path("/lactatingcowsmilkrecord")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response retrieveLactatingAnimalsMilkRecord(MilkingDetailBean searchBean){
+	public Response retrieveLactatingAnimalsMilkRecord(MilkingDetailBean selectedDateSearchBean) {
 		//TODO: Improve the implementation of this service. It is inefficient and counter intuitive. 
 		// TODO: The monthly average averages across the month in all of the lifetime of the cow instead of only for one month i.e.
-		// Feb average will be for Febs of all the years, instead of only the Feb for a given year.
-    	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
+		// Feb average will be for Febs of all the years, instead of only the Feb for a given year. This is not the right way to deduce monthly average.
+		String animalValueResult = "";
+    	selectedDateSearchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(selectedDateSearchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
     		MilkingDetailLoader milkingLoader = new MilkingDetailLoader();
-			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(selectedDateSearchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -639,17 +639,17 @@ public class AnimalSrvc {
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
 	    		Animal animalValue = animalValueIt.next();
-	    		searchBean.setAnimalTag(animalValue.getAnimalTag());
-	    		MilkingDetailBean yesterdaySearchBean = new MilkingDetailBean(searchBean);
-	    		yesterdaySearchBean.setRecordDate(searchBean.getRecordDate().minusDays(1));
-	    		List <MilkingDetail> specifiedMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(searchBean, true);
+	    		selectedDateSearchBean.setAnimalTag(animalValue.getAnimalTag());
+	    		MilkingDetailBean previousDateSearchBean = new MilkingDetailBean(selectedDateSearchBean);
+	    		previousDateSearchBean.setRecordDate(selectedDateSearchBean.getRecordDate().minusDays(1));
+	    		List <MilkingDetail> selectedDateMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(selectedDateSearchBean, true);
 	    		List <MilkingDetail> prevDayMilkingInfo = null;
-	    		if (specifiedMilkingInfo == null || specifiedMilkingInfo.size() ==0)
-	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(yesterdaySearchBean, true);
+	    		if (selectedDateMilkingInfo == null || selectedDateMilkingInfo.size() == 0)
+	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(previousDateSearchBean, true);
 	    		else
-	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(yesterdaySearchBean, false);
+	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(previousDateSearchBean, false);
 	    		
-	    		animalValueResult += appendMilkingDetails(specifiedMilkingInfo,prevDayMilkingInfo,searchBean);
+	    		animalValueResult += appendMilkingDetails(selectedDateMilkingInfo,prevDayMilkingInfo,selectedDateSearchBean);
 	    	}
 	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
 	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
@@ -671,20 +671,26 @@ public class AnimalSrvc {
 	    	MilkingDetail recordDetail = new MilkingDetail(searchBean.getOrgID(), searchBean.getAnimalTag(), 
 	    			(short) 0, true, null, null, null, (short) 0);
 	    	recordDetail.setAdditionalStatistics(getPreviousDaysVolumeForAnimal(searchBean.getAnimalTag(),previousDaysMilkingRecords));
+			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.DAYS_IN_MILKING, getDaysInMilking(searchBean.getOrgID(), searchBean.getAnimalTag(),searchBean.getRecordDate()));
 	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
 		} else {
 	    	Iterator<MilkingDetail> recordsIt = selectedDaysMilkingRecords.iterator();
 	    	while (recordsIt.hasNext()) {
 	    		MilkingDetail recordDetail = recordsIt.next();
-	    		
 	    		HashMap<String, Float> prevDayValues = getPreviousDaysVolumeForAnimal(recordDetail.getAnimalTag(),previousDaysMilkingRecords);
-	    		if (prevDayValues != null)
+				recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.DAYS_IN_MILKING, getDaysInMilking(searchBean.getOrgID(), searchBean.getAnimalTag(),searchBean.getRecordDate()));
+	    		if (prevDayValues != null) {
 	    			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL, prevDayValues.get(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL));
+	    		}
 	    		milkingDetail += "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
-	    		IMDLogger.log(milkingDetail, Util.WARNING);
+	    		IMDLogger.log(milkingDetail, Util.INFO);
 	    	}
 		}
 		return milkingDetail;
+	}
+	private Float getDaysInMilking(String orgID, String animalTag, LocalDate toDateForDaysInMilking) {
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+		return new Float(loader.getDaysInMilkingOfCow(orgID, animalTag, true, toDateForDaysInMilking));
 	}
 	private HashMap <String, Float> getPreviousDaysVolumeForAnimal(String animalTag, List<MilkingDetail> previousDaysMilkingRecords) {
 		HashMap <String, Float> values = null;

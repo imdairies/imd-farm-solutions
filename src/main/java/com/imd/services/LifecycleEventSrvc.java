@@ -264,8 +264,8 @@ public class LifecycleEventSrvc {
 				event.setUpdatedBy(new User(userID));
 				event.setUpdatedDTTM(DateTime.now());
 				result = loader.insertLifeCycleEvent(event);
-				if (result == 1)
-					additionalMessage = Util.SUCCESS_POSTFIX + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag();
+				if (result > 0)
+					additionalMessage = Util.SUCCESS_POSTFIX + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag() + " [TRANS_ID:" + result + "]";
 				else
 					additionalMessage = Util.ERROR_POSTFIX + eventBean.getEventCode() + " could NOT be added successfully for " + animalBean.getAnimalTag();					
 			}

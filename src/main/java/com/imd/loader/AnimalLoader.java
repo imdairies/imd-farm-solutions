@@ -260,7 +260,6 @@ public class AnimalLoader {
 		} else {
 			qryString += ") ORDER BY a.ANIMAL_TAG";
 		}
-		IMDLogger.log(qryString,Util.INFO);
 		Animal animalValue = null;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
