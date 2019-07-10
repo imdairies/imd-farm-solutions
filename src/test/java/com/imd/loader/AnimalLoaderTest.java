@@ -265,6 +265,16 @@ class AnimalLoaderTest {
 			
 			int transactionId  = loader.deleteAnimal("IMD", animalTag);
 			assertEquals(1,transactionId);
+			
+			animals = loader.retrieveAllAnimals("IMD");
+			String animalTags = "";
+			it = animals.iterator();
+			found = false;
+			while (it.hasNext()) {
+				animal = it.next();
+				assertTrue(animalTags.indexOf("[" + animal.getAnimalTag() + "]") < 0, "Duplicate records Found for " + animal.getAnimalTag());
+				animalTags += "[" + animal.getAnimalTag() + "]";
+			}			
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
