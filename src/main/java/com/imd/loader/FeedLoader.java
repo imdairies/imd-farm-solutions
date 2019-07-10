@@ -14,6 +14,7 @@ import com.imd.dto.CohortNutritionalNeeds;
 import com.imd.dto.FeedCohort;
 import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
+import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
@@ -31,8 +32,8 @@ public class FeedLoader {
 			int i= 1;
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(i++, feedItem.getOrgID());
-			preparedStatement.setString(i++, feedItem.getFeedItemCD());
-			preparedStatement.setString(i++, feedItem.getFeedCohortCD());
+			preparedStatement.setString(i++, feedItem.getFeedItemLookupValue().getLookupValueCode());
+			preparedStatement.setString(i++, feedItem.getFeedCohortCD().getLookupValueCode());
 			if (start != null)
 				preparedStatement.setFloat(i++, start);
 			if (end != null)
@@ -54,7 +55,7 @@ public class FeedLoader {
 	}	
 	public int deleteFeedPlanItem(FeedItem feedItem) {
 		return deleteFeedPlanItem(feedItem, null, null, null);
-	}	
+	}
 	public int deleteCohortNutritionalNeeds(CohortNutritionalNeeds dietReq) {
 		String qryString = "DELETE FROM imd.FEED_COHORT_NUTRITIONAL_NEEDS WHERE ORG_ID=? AND FEED_COHORT=?";
 		int result = -1;
@@ -161,8 +162,8 @@ public class FeedLoader {
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(i++,  feedItem.getOrgID());
-			preparedStatement.setString(i++,  feedItem.getFeedItemCD());
-			preparedStatement.setString(i++,  feedItem.getFeedCohortCD());
+			preparedStatement.setString(i++,  feedItem.getFeedItemLookupValue().getLookupValueCode());
+			preparedStatement.setString(i++,  feedItem.getFeedCohortCD().getLookupValueCode());
 			preparedStatement.setFloat(i++,  feedItem.getStart());
 			preparedStatement.setFloat(i++,  feedItem.getEnd());
 			preparedStatement.setString(i++, formatFieldValue(feedItem.getMinimumFulfillment()));
@@ -234,7 +235,7 @@ public class FeedLoader {
 			preparedStatement.setString(index++,orgId);
 			Iterator<FeedCohort> it = animalCohort.iterator();
 			while (it.hasNext()) {
-				preparedStatement.setString(index++,it.next().getFeedCohortTypeCD());			
+				preparedStatement.setString(index++,it.next().getFeedCohortLookupValue().getLookupValueCode());			
 			}
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 		    rs = preparedStatement.executeQuery();
@@ -285,8 +286,12 @@ public class FeedLoader {
 	private FeedItem getFeedPlanItemFromSQLRecord(ResultSet rs) throws Exception {
 		FeedItem feedItem = new FeedItem();
 		feedItem.setOrgID(rs.getString("ORG_ID"));
-		feedItem.setFeedCohortCD(rs.getString("FEED_COHORT"));
-		feedItem.setFeedItemCD(rs.getString("FEED_ITEM"));
+		
+		LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,rs.getString("FEED_COHORT"), rs.getString("FEED_COHORT_SHORT_DESCR"),rs.getString("FEED_COHORT_LONG_DESCR"));
+		feedItem.setFeedCohortCD(feedCohortLV);		
+		
+		LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), rs.getString("ITEM_SHORT_DESCR"),rs.getString("ITEM_LONG_DESCR"));
+		feedItem.setFeedItemLookupValue(feedItemLV);		
 		feedItem.setStart(rs.getFloat("START"));
 		feedItem.setEnd(rs.getFloat("END"));
 		feedItem.setMinimumFulfillment(rs.getFloat("MIN_FULFILLMENT"));
@@ -294,7 +299,6 @@ public class FeedLoader {
 		feedItem.setFulfillmentPct(rs.getFloat("FULFILLMENT_PCT"));
 		feedItem.setFulFillmentTypeCD(rs.getString("FULFILLMENT_TYPE"));
 		feedItem.setUnits(rs.getString("UNITS"));
-		feedItem.setFeedItemCD(rs.getString("FEED_ITEM"));
 		feedItem.setDailyFrequency(rs.getString("DAILY_FREQUENCY"));
 		feedItem.setComments(rs.getString("COMMENTS"));
 		feedItem.setCreatedBy(new User(rs.getString("CREATED_BY")));
@@ -316,7 +320,7 @@ public class FeedLoader {
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(index++,cohort.getOrgID());
-			preparedStatement.setString(index++,cohort.getFeedCohortTypeCD());
+			preparedStatement.setString(index++,cohort.getFeedCohortLookupValue().getLookupValueCode());
 			if (start != null)
 				preparedStatement.setFloat(index++,start);
 			if (end != null)
@@ -352,9 +356,15 @@ public class FeedLoader {
 		return retrieveFeedPlanItem(feedItem, betweenStartAndEnd, betweenStartAndEnd);
 	}
 	public FeedItem retrieveFeedPlanItem(FeedItem feedItem, Float gteStart, Float lteEnd) throws IMDException {
-
-		String qryString = "SELECT * FROM imd.FEED_PLAN where ORG_ID=? "
-				+ " AND FEED_ITEM = ? AND FEED_COHORT= ? AND START <= ? AND END >= ?";
+		String qryString = " SELECT a.*, " +
+				" IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR,b.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
+				" IFNULL(c.short_descr,a.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, c.long_descr AS FEED_COHORT_LONG_DESCR,c.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
+				" from  " +
+				" FEED_PLAN A " +
+				" left  outer join LOOKUP_VALUES B on (b.lookup_cd=a.feed_item AND b.category_cd=? )  " +
+				" left  outer join LOOKUP_VALUES C on (c.lookup_cd=a.FEED_COHORT AND c.category_cd=? ) " +
+				" where A.ORG_ID=? "
+				+ " AND A.FEED_ITEM = ? AND A.FEED_COHORT= ? AND A.START <= ? AND A.END >= ? ";
 		
 		FeedItem feedPlanItem = null;
 		ResultSet rs = null;
@@ -364,9 +374,11 @@ public class FeedLoader {
 		try {
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(i++,Util.LookupValues.FEED);
+			preparedStatement.setString(i++,Util.LookupValues.FEEDCOHORT);
 			preparedStatement.setString(i++,feedItem.getOrgID());
-			preparedStatement.setString(i++,feedItem.getFeedItemCD());
-			preparedStatement.setString(i++,feedItem.getFeedCohortCD());
+			preparedStatement.setString(i++,feedItem.getFeedItemLookupValue().getLookupValueCode());
+			preparedStatement.setString(i++,feedItem.getFeedCohortCD().getLookupValueCode());
 			preparedStatement.setFloat(i++,gteStart);
 			preparedStatement.setFloat(i++,lteEnd);
 			IMDLogger.log(preparedStatement.toString(),Util.INFO);
@@ -392,16 +404,28 @@ public class FeedLoader {
 	}
 
 	public FeedPlan retrieveFeedPlan(String orgID, String feedCohortCD) throws IMDException {
+		
+		String qryString = " SELECT a.*, " +
+				" IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR,b.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
+				" IFNULL(c.short_descr,a.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, c.long_descr AS FEED_COHORT_LONG_DESCR,c.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
+				" from  " +
+				" FEED_PLAN A " +
+				" left  outer join LOOKUP_VALUES B on (b.lookup_cd=a.feed_item AND b.category_cd=?   )  " +
+				" left  outer join LOOKUP_VALUES C on (c.lookup_cd=a.FEED_COHORT and c.category_cd=? ) " +
+				"  where "  + 
+				" ORG_ID=? AND FEED_COHORT= ? ";
 
-		String qryString = "SELECT * FROM imd.FEED_PLAN where ORG_ID=? AND FEED_COHORT= ?";
+		
 		FeedPlan feedPlan = null;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
 		try {
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1,orgID);
-			preparedStatement.setString(2,feedCohortCD);
+			preparedStatement.setString(1,Util.LookupValues.FEED);
+			preparedStatement.setString(2,Util.LookupValues.FEEDCOHORT);
+			preparedStatement.setString(3,orgID);
+			preparedStatement.setString(4,feedCohortCD);
 			IMDLogger.log(preparedStatement.toString(),Util.INFO);
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {

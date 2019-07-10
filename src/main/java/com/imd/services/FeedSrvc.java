@@ -52,16 +52,6 @@ public class FeedSrvc {
 			IMDLogger.log("Exception in FeedSrvc.determineAnimalFeed() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"Following error was encountered in processing animal feed analysis: " + e.getMessage() + "\"}").build();
 		}
-//		if (result == 1)
-//			return Response.status(200).entity("{ \"error\": false, \"message\":\"Semen inventory has been added\"}").build();
-//		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified semen record already exists\"}").build();
-//		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Inventory could not be added. Please reduce the field length and try again.\"}").build();
-//		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Inventory could not be updated. Please submit a bug report.\"}").build();
-//		else 
-//			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during inventory update\"}").build();
 	}
 	
 	@POST

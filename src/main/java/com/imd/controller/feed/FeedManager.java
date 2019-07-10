@@ -1,6 +1,5 @@
 package com.imd.controller.feed;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -8,20 +7,20 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
-import com.imd.advisement.DryCowAdvisement;
 import com.imd.dto.Animal;
 import com.imd.dto.CohortNutritionalNeeds;
 import com.imd.dto.FeedCohort;
 import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.LookupValues;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.Sire;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.FeedLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.LookupValuesLoader;
 import com.imd.loader.MilkingDetailLoader;
-import com.imd.services.MilkingInformationSrvc;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
@@ -58,10 +57,10 @@ public class FeedManager {
 		List<CohortNutritionalNeeds> needs = feedLoader.retrieveCohortNutritionalNeeds(animal.getFeedCohortInformation(), 0f, 9999f);
 		CohortNutritionalNeeds need = null;
 		if (needs == null || needs.isEmpty()) {
-			IMDLogger.log("Nutritional Needs for the animal " + animal.getAnimalTag() + " could not be found. This indicates that nutritioanl needs for the cohort " + animal.getFeedCohortInformation().getFeedCohortTypeCD() + " has not been configured", Util.ERROR);
+			IMDLogger.log("Nutritional Needs for the animal " + animal.getAnimalTag() + " could not be found. This indicates that nutritioanl needs for the cohort " + animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode() + " has not been configured", Util.ERROR);
 			return null;
 		} else if (needs.size() >1) {
-			IMDLogger.log(needs.size() + " nutritional needs records were found for the animal " + animal.getAnimalTag() + " belonging to the cohort " + animal.getFeedCohortInformation().getFeedCohortTypeCD() + ". We will use the record with the smallest start and end values.", Util.ERROR);
+			IMDLogger.log(needs.size() + " nutritional needs records were found for the animal " + animal.getAnimalTag() + " belonging to the cohort " + animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode() + ". We will use the record with the smallest start and end values.", Util.ERROR);
 		} 
 		return needs.get(0);
 	}
@@ -74,7 +73,7 @@ public class FeedManager {
 			throw new IMDException("Animal not found [" + orgID + "-" + animalTag + "]");
 		}
 		if (animals.size() > 1) {
-			throw new IMDException("Multiple animals found for the ORG-TAG [" + orgID + "-" + animalTag + "]. This indicates that the data has been corrupted. Please remove the dubplicate record.");			
+			throw new IMDException("Multiple animals found for the ORG-TAG [" + orgID + "-" + animalTag + "]. This indicates that the data has been corrupted. Please remove the duplicate record.");			
 		}
 		Animal animal = animals.get(0);
 		animal.setLifeCycleEvents(eventLoader.retrieveAllLifeCycleEventsForAnimal(orgID, animalTag));
@@ -85,7 +84,7 @@ public class FeedManager {
 	public FeedPlan getPersonalizedFeedPlan(FeedCohort cohort, String animalTag) throws IMDException {
 		FeedLoader loader = new FeedLoader();
 //		if (cohort.getFeedCohortTypeCD().equals(Util.FeedCohortType.FEMALECALF)) {
-			return getFeedCohortPersonalizedPlan(cohort,loader.retrieveFeedPlan(cohort.getOrgID(), cohort.getFeedCohortTypeCD()), animalTag);
+			return getFeedCohortPersonalizedPlan(cohort,loader.retrieveFeedPlan(cohort.getOrgID(), cohort.getFeedCohortLookupValue().getLookupValueCode()), animalTag);
 //		} else 	if (cohort.getFeedCohortTypeCD().equals(Util.FeedCohortType.BULL)) {
 //			return getFeedCohortPersonalizedPlan(loader.retrieveFeedPlan(cohort.getOrgID(), cohort.getFeedCohortTypeCD()), animal);
 //		} else 
@@ -97,36 +96,36 @@ public class FeedManager {
 		if (plan == null || plan.getFeedPlan() == null) {
 			plan = new FeedPlan();
 			plan.setFeedPlan(new ArrayList<FeedItem>());
-			plan.setPlanAnalysisComments("The cohort " + cohort.getFeedCohortTypeCD() + " does not have any feed plan specified. Therefore, we can not determine a personalized feed for " + animalTag);
+			plan.setPlanAnalysisComments("The cohort " + cohort.getFeedCohortLookupValue().getLookupValueCode() + " does not have any feed plan specified. Therefore, we can not determine a personalized feed for " + animalTag);
 			return plan;
 		} else {
 			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
 			while (it.hasNext()) {
 				FeedItem item = it.next();
 				if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.ABSOLUTE)) {
-					item.setPersonalizedFeedMessage("Give the animal " + item.getFulfillmentPct() + " " + item.getUnits() + " of " + item.getFeedItemCD());
+					item.setPersonalizedFeedMessage("Give the animal " + item.getFulfillmentPct() + " " + item.getUnits() + " of " + item.getFeedItemLookupValue().getShortDescription());
 				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.FREEFLOW)) {
-					item.setPersonalizedFeedMessage("Put " + item.getFeedItemCD() + " infront of the animal and let is consume "  + item.getFeedItemCD() + " freely.");
+					item.setPersonalizedFeedMessage("Put " + item.getFeedItemLookupValue().getShortDescription() + " infront of the animal and let is consume "  + item.getFeedItemLookupValue().getShortDescription() + " freely.");
 				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.BODYWEIGHT)) {
 					Float animalWeight = getLatestEventWeight(cohort.getOrgID(), animalTag);
 					if (animalWeight == null) {
 						item.setPersonalizedFeedMessage("In order to determine the personalized feed value for the animal, we need its weight. We could not find a valid weight event in the animal's record. Please weigh the animal and add the weight event to the animal record and try again");
 					}
 					else {
-						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemCD() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
+						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
 					}
 				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.MILKPROD)) {
 					LocalDate startAverageCalculationFrom = LocalDate.now().minusDays(1);
 					int numOfAdditionalDaysToAverage = 2;
 					Float milkAverage = getMilkAverage(cohort.getOrgID(), animalTag,startAverageCalculationFrom, numOfAdditionalDaysToAverage);
 					if (milkAverage == null) {
-						item.setPersonalizedFeedMessage("In order to determine the " + item.getFeedItemCD() + " requirements of the animal, we need its daily milk record. We could not find the milk record. Please add the animal's milk record and try again");
+						item.setPersonalizedFeedMessage("In order to determine the " + item.getFeedItemLookupValue().getShortDescription() + " requirements of the animal, we need its daily milk record. We could not find the milk record. Please add the animal's milk record and try again");
 					}
 					else {
-						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/item.getFulfillmentPct()),1) + " " + item.getUnits() + " " + item.getFeedItemCD() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
+						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/item.getFulfillmentPct()),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
 					}
 				} else {
-					item.setPersonalizedFeedMessage("Unable to determine the usage of " + item.getFeedItemCD());
+					item.setPersonalizedFeedMessage("Unable to determine the usage of " + item.getFeedItemLookupValue());
 				}
 			}
 		}
@@ -309,19 +308,24 @@ public class FeedManager {
 		
 		// remaining cohorts: high yielder lactating early, high yielder lactating mid, high yielder lactation far, lactating dry
 		FeedCohort cohort = null;
+		LookupValues cohortLV = null;
 		
 		if (animalFeedCohortCD == null) {
-			cohort = new FeedCohort(animal.getOrgID(),"UNDETERMINED", "");
+			cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, "UNDETERMINED", "UNDETERMINED", "");
+			cohort = new FeedCohort(animal.getOrgID(),cohortLV, "");
 			cohort.setAnimalFeedCohortDeterminatationMessage("The animal " + animal.getAnimalTag() + " could not be mapped to any Feed Cohort.");
 			cohort.setFeedCohortDeterminationCriteria("None of the determination criteria matches the profle of this animal");
 		} else {
+			LookupValuesLoader lvLoader = new LookupValuesLoader();
+			cohortLV = lvLoader.retrieveLookupValue(Util.LookupValues.FEEDCOHORT, animalFeedCohortCD);
+			if (cohortLV == null)
+				cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, animalFeedCohortCD, animalFeedCohortCD, "");
+			cohort = new FeedCohort(animal.getOrgID(),cohortLV, "");
 			if (duplicateCheck.trim().equals(animalFeedCohortCD)) {
-				cohort = new FeedCohort(animal.getOrgID(),animalFeedCohortCD, "");
 				cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage);
 				cohort.setFeedCohortDeterminationCriteria(animalFeedCohortDeterminationCriteria);
 			} else {
 				// multiple rules were fired by this animal.
-				cohort = new FeedCohort(animal.getOrgID(),animalFeedCohortCD, "");
 				cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage + ". ⛔️Please note that this animal was found to belong to multiple feed cohorts [" + duplicateCheck.trim() +  "]. This is an ERROR; caused either because of data issues or a programming issue. Please submit a bug report");
 				cohort.setFeedCohortDeterminationCriteria(animalFeedCohortDeterminationCriteria);
 			}

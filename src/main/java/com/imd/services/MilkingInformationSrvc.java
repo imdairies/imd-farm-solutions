@@ -318,13 +318,16 @@ public class MilkingInformationSrvc {
 	@POST
 	@Path("/uploadfarmmilkingevent")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response uploadFarmMilkingEventRecord(InputDelimitedFileBean commaSeparatedRecords) {
+	public Response uploadFarmMilkingEventRecord(InputDelimitedFileBean inputInformation) {
 		String prefix = "   ";
     	String orgID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
     	String userID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.USER_ID);
-    	IMDLogger.log(commaSeparatedRecords.toString(), Util.INFO);
+    	IMDLogger.log(inputInformation.toString(), Util.INFO);
     	try {
-        	FarmMilkingDetailBean milkingEventRecord = Util.parseFarmMilkingDetailBean(commaSeparatedRecords);
+    		if (inputInformation == null || inputInformation.getInputDelimitedFileContents() == null) {
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"Unable to parse the information. The service seemed to have been called with invalid or missing parameter (inputDelimitedFileContents)\"}").build();    			
+    		}
+        	FarmMilkingDetailBean milkingEventRecord = Util.parseFarmMilkingDetailBean(inputInformation);
         	milkingEventRecord.setOrgID(orgID);
         	if (milkingEventRecord.getTemperatureInCentigrade() == null) {
 				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid Temperature \"}").build();
@@ -337,7 +340,7 @@ public class MilkingInformationSrvc {
 			} else if (milkingEventRecord.getFarmMilkingEventRecords() == null || milkingEventRecord.getFarmMilkingEventRecords().isEmpty()) {
 				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify at least one milking record\"}").build();
 			}
-        	if (!commaSeparatedRecords.getShouldAdd() ) {
+        	if (!inputInformation.getShouldAdd() ) {
 				// only parse and show the results
 				String parseResult = "";
 				float totalVolume = 0;

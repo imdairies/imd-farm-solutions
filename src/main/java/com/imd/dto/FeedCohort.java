@@ -3,20 +3,20 @@ package com.imd.dto;
 import org.joda.time.format.DateTimeFormatter;
 
 public class FeedCohort extends IMDairiesDTO{
-	private String feedCohortTypeCD;
+	private LookupValues feedCohortLookupValue;
 	private String feedCohortTypeShortDescription;
 	private String feedCohortDeterminationCriteria;
 	private String animalFeedCohortDeterminatationMessage;
-	public FeedCohort(String orgID, String cohortCD, String cohortShortDescr) {
+	public FeedCohort(String orgID, LookupValues cohortLV, String cohortShortDescr) {
 		this.setOrgID(orgID);
-		this.feedCohortTypeCD = cohortCD;		
+		this.feedCohortLookupValue = cohortLV;		
 		this.feedCohortTypeShortDescription = cohortShortDescr;
 	}
-	public String getFeedCohortTypeCD() {
-		return feedCohortTypeCD;
+	public LookupValues getFeedCohortLookupValue() {
+		return feedCohortLookupValue;
 	}
-	public void setFeedCohortTypeCD(String feedCohortTypeCD) {
-		this.feedCohortTypeCD = feedCohortTypeCD;
+	public void setFeedCohortLookupValue(LookupValues feedCohortValue) {
+		this.feedCohortLookupValue = feedCohortValue;
 	}
 	public String getFeedCohortTypeShortDescription() {
 		return feedCohortTypeShortDescription;
@@ -38,7 +38,8 @@ public class FeedCohort extends IMDairiesDTO{
 	}
 
 	private String stringify(String prefix) {
-		return  prefix + fieldToJson("feedCohortTypeCD", feedCohortTypeCD) + ",\n" + 
+		return  prefix + fieldToJson("feedCohortTypeCD", feedCohortLookupValue.getLookupValueCode()) + ",\n" + 
+				prefix + fieldToJson("feedCohortTypeShortDescr", feedCohortLookupValue.getShortDescription()) + ",\n" + 
 				prefix + fieldToJson("feedCohortTypeShortDescription", feedCohortTypeShortDescription == null ? "" : this.feedCohortTypeShortDescription) + ",\n" +
 				prefix + fieldToJson("feedCohortDeterminatationCriteria", this.feedCohortDeterminationCriteria == null ? "" : this.feedCohortDeterminationCriteria) + ",\n" +
 				prefix + fieldToJson("animalFeedCohortDeterminatationMessage", this.animalFeedCohortDeterminatationMessage == null ? "" : this.animalFeedCohortDeterminatationMessage) + ",\n";

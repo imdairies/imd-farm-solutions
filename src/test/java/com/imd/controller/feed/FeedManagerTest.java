@@ -20,6 +20,7 @@ import com.imd.dto.FeedCohort;
 import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.LookupValues;
 import com.imd.dto.Note;
 import com.imd.dto.Person;
 import com.imd.dto.Sire;
@@ -81,8 +82,8 @@ class FeedManagerTest {
 			
 			assertEquals(1,anmLdr.insertAnimal(maleCalf));
 			assertEquals(1,anmLdr.insertAnimal(bull));
-			assertEquals(Util.FeedCohortType.BULL,manager.getAnimalFeedCohortType(bull.getOrgID(), bull.getAnimalTag()).getFeedCohortTypeCD());
-			assertEquals(Util.FeedCohortType.MALECALF,manager.getAnimalFeedCohortType(maleCalf.getOrgID(), maleCalf.getAnimalTag()).getFeedCohortTypeCD());
+			assertEquals(Util.FeedCohortType.BULL,manager.getAnimalFeedCohortType(bull.getOrgID(), bull.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.MALECALF,manager.getAnimalFeedCohortType(maleCalf.getOrgID(), maleCalf.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
 			
 			assertEquals(1,anmLdr.deleteAnimal(maleCalf.getOrgID(), maleCalf.getAnimalTag()));
 			assertEquals(1,anmLdr.deleteAnimal(bull.getOrgID(), bull.getAnimalTag()));
@@ -143,8 +144,8 @@ class FeedManagerTest {
 			anmLdr.insertAnimal(pregnantHeifer);
 			anmLdr.insertAnimal(nonPregnantHeifer);
 			eventLoader.insertLifeCycleEvent(inseminationEvent);
-			assertEquals(Util.FeedCohortType.HEIFER,manager.getAnimalFeedCohortType(orgID, nonPregHeiferTag).getFeedCohortTypeCD());
-			assertEquals(Util.FeedCohortType.HFRCLOSEUP,manager.getAnimalFeedCohortType(orgID, pregHeiferTag).getFeedCohortTypeCD());
+			assertEquals(Util.FeedCohortType.HEIFER,manager.getAnimalFeedCohortType(orgID, nonPregHeiferTag).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.HFRCLOSEUP,manager.getAnimalFeedCohortType(orgID, pregHeiferTag).getFeedCohortLookupValue().getLookupValueCode());
 			
 
 			assertEquals(0,eventLoader.deleteAnimalLifecycleEvents(orgID, nonPregHeiferTag));
@@ -198,9 +199,9 @@ class FeedManagerTest {
 			eventLoader.insertLifeCycleEvent(midParturationEvent);
 			eventLoader.insertLifeCycleEvent(oldParturationEvent);
 
-			assertEquals(Util.FeedCohortType.LCTEARLY,manager.getAnimalFeedCohortType(orgID, freshLactationTag).getFeedCohortTypeCD());
-			assertEquals(Util.FeedCohortType.LCTMID,manager.getAnimalFeedCohortType(orgID, midLactationTag).getFeedCohortTypeCD());
-			assertEquals(Util.FeedCohortType.LCTOLD,manager.getAnimalFeedCohortType(orgID, oldLactationTag).getFeedCohortTypeCD());
+			assertEquals(Util.FeedCohortType.LCTEARLY,manager.getAnimalFeedCohortType(orgID, freshLactationTag).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.LCTMID,manager.getAnimalFeedCohortType(orgID, midLactationTag).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.LCTOLD,manager.getAnimalFeedCohortType(orgID, oldLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			
 			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(orgID, freshLactationTag));
 			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(orgID, midLactationTag));
@@ -249,8 +250,8 @@ class FeedManagerTest {
 			eventLoader.insertLifeCycleEvent(closeupInseminationEvent);
 			eventLoader.insertLifeCycleEvent(farInseminationEvent);
 
-			assertEquals(Util.FeedCohortType.NEARPRTRT,manager.getAnimalFeedCohortType(orgID, closeupDryPregTag).getFeedCohortTypeCD());
-			assertEquals(Util.FeedCohortType.FARPRTRT,manager.getAnimalFeedCohortType(orgID, faroffDryPregTag).getFeedCohortTypeCD());
+			assertEquals(Util.FeedCohortType.NEARPRTRT,manager.getAnimalFeedCohortType(orgID, closeupDryPregTag).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.FARPRTRT,manager.getAnimalFeedCohortType(orgID, faroffDryPregTag).getFeedCohortLookupValue().getLookupValueCode());
 
 //			assertEquals(Util.FeedCohortType.FAROFFPARTURATION,manager.getAnimalFeedCohortType(orgID, "018").getFeedCohortTypeCD());
 //			assertEquals(Util.FeedCohortType.FAROFFPARTURATION,manager.getAnimalFeedCohortType(orgID, "023").getFeedCohortTypeCD());
@@ -322,13 +323,13 @@ class FeedManagerTest {
 			while (it.hasNext()) {
 				Animal anml = it.next();
 				anml.dtoToJson("   ");
-				if (anml.getFeedCohortInformation().getFeedCohortTypeCD().equals(Util.FeedCohortType.UNDETERMINED))
+				if (anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode().equals(Util.FeedCohortType.UNDETERMINED))
 					undeterminedCount++;
 				if (anml.getAnimalTag().equals(nonPregHeiferTag)) {
-					assertEquals(Util.FeedCohortType.HEIFER,anml.getFeedCohortInformation().getFeedCohortTypeCD());
+					assertEquals(Util.FeedCohortType.HEIFER,anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
 					nonPregHeiferFound = true;
 				} else if (anml.getAnimalTag().equals(pregHeiferTag)) {
-					assertEquals(Util.FeedCohortType.HFRCLOSEUP,anml.getFeedCohortInformation().getFeedCohortTypeCD());
+					assertEquals(Util.FeedCohortType.HFRCLOSEUP,anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
 					pregHeiferFound = true;
 				}
 				assertTrue(anml.getFeedCohortInformation().getAnimalFeedCohortDeterminatationMessage().indexOf("ERROR") <0);
@@ -416,15 +417,19 @@ class FeedManagerTest {
 
 			assertEquals(1,anmLdr.insertAnimal(femaleCalf));
 			assertEquals(1,anmLdr.insertAnimal(femaleCalfWeanedOff));
-			assertEquals(Util.FeedCohortType.FEMALECALF,manager.getAnimalFeedCohortType(femaleCalf.getOrgID(), femaleCalf.getAnimalTag()).getFeedCohortTypeCD());
-			assertEquals(Util.FeedCohortType.FMLWNDOFF,manager.getAnimalFeedCohortType(femaleCalfWeanedOff.getOrgID(), femaleCalfWeanedOff.getAnimalTag()).getFeedCohortTypeCD());
+			assertEquals(Util.FeedCohortType.FEMALECALF,manager.getAnimalFeedCohortType(femaleCalf.getOrgID(), femaleCalf.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.FMLWNDOFF,manager.getAnimalFeedCohortType(femaleCalfWeanedOff.getOrgID(), femaleCalfWeanedOff.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
 			
 			// Create FEMALECALF feedplan
 			FeedLoader loader = new FeedLoader();
 			FeedItem feedItem = new FeedItem();
 			feedItem.setOrgID("IMD");
-			feedItem.setFeedItemCD("TST_ALFHAY");
-			feedItem.setFeedCohortCD(Util.FeedCohortType.FEMALECALF);
+			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_ALFHAY", "","");
+			feedItem.setFeedItemLookupValue(feedItemLV);		
+			
+			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.FEMALECALF, "","");
+			feedItem.setFeedCohortCD(feedCohortLV);
+
 			feedItem.setStart(0.0f);
 			feedItem.setEnd(90.0f);
 			feedItem.setMinimumFulfillment(0.5f);
@@ -441,15 +446,15 @@ class FeedManagerTest {
 			assertTrue(loader.deleteFeedPlanItem(feedItem) >= 0);
 			assertEquals(1,loader.insertFeedPlanItem(feedItem));
 			
-			
 			assertEquals(null,loader.retrieveFeedPlanItem(feedItem, 120f, 120f));
 			
 			float ageInDays = femaleCalf.getCurrentAgeInDays().getDays();
 			FeedItem item = loader.retrieveFeedPlanItem(feedItem, ageInDays);
 
-			
-			assertEquals(feedItem.getFeedItemCD(), item.getFeedItemCD());
-			assertEquals(feedItem.getFeedCohortCD(), item.getFeedCohortCD());
+			assertTrue(item != null);
+
+			assertEquals(feedItem.getFeedItemLookupValue().getLookupValueCode(), item.getFeedItemLookupValue().getLookupValueCode());
+			assertEquals(feedItem.getFeedCohortCD().getLookupValueCode(), item.getFeedCohortCD().getLookupValueCode());
 			assertEquals(feedItem.getStart(), item.getStart());
 			assertEquals(feedItem.getEnd(), item.getEnd());
 			assertEquals(feedItem.getMinimumFulfillment(), item.getMinimumFulfillment());
@@ -463,10 +468,10 @@ class FeedManagerTest {
 			assertEquals(feedItem.getUpdatedDTTMSQLFormat(), item.getUpdatedDTTMSQLFormat());
 			assertEquals(feedItem.getCreatedDTTMSQLFormat(), item.getCreatedDTTMSQLFormat());
 			
-			
 			FeedCohort feedCohort = new FeedCohort(feedItem.getOrgID(), feedItem.getFeedCohortCD(),"");
 			FeedPlan plan = manager.getPersonalizedFeedPlan(feedCohort, femaleCalf.getAnimalTag());
-			assertEquals(feedItem.getFeedCohortCD(), plan.getFeedCohort().getFeedCohortTypeCD());
+			assertTrue(plan != null && feedItem != null);
+			assertEquals(feedItem.getFeedCohortCD().getLookupValueCode(), plan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(feedItem.getOrgID(), plan.getOrgID());
 			
 			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
@@ -487,7 +492,7 @@ class FeedManagerTest {
 			fail(ex.getMessage());
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			fail(ex.getMessage());
+			fail("Exception occurred " + ex.getMessage());
 		}
 	}	
 	
@@ -502,8 +507,9 @@ class FeedManagerTest {
 			femaleCalf = createDam(orgID,femaleCalfTag,DateTime.now().minusDays(90), Util.AnimalTypes.FEMALECALF);
 			Sire bull = new Sire(bullTag);
 			
+			LookupValues lv = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.FEMALECALF,Util.FeedCohortType.FEMALECALF,"");
 			
-			FeedCohort feedCohort = new FeedCohort(orgID, Util.FeedCohortType.FEMALECALF,"");
+			FeedCohort feedCohort = new FeedCohort(orgID, lv,"");
 			FeedPlan plan = manager.getPersonalizedFeedPlan(feedCohort, femaleCalf.getAnimalTag());
 			assertTrue(plan!=null && plan.getFeedPlan() != null && !plan.getFeedPlan().isEmpty());
 			
@@ -512,7 +518,8 @@ class FeedManagerTest {
 				IMDLogger.log(it.next().getPersonalizedFeedMessage(), Util.INFO);
 			}			
 			
-			feedCohort = new FeedCohort(orgID, Util.FeedCohortType.BULL,"");
+			LookupValues lv2 = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.BULL,Util.FeedCohortType.BULL,"");
+			feedCohort = new FeedCohort(orgID, lv2,"");
 			plan = manager.getPersonalizedFeedPlan(feedCohort, bull.getAnimalTag());
 			assertTrue(plan!=null && plan.getFeedPlan() != null && !plan.getFeedPlan().isEmpty());
 			

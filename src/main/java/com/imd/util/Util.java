@@ -30,16 +30,18 @@ public class Util {
 
 	
 	 public static final class LookupValues {
-		public final static String LCYCL = "LCYCL";
+		public static final  String LCYCL = "LCYCL";
+		public static final String FEED = "FEED";
+		public static final String FEEDCOHORT = "FEEDCOHORT";
 	}
 
 	
 	
 	 public static final class PROPERTIES {
-		public final static String JDBC_DRIVER = "JDBC_DRIVER";
-		public final static String DB_URL = "DB_URL";
-		public final static String USER = "USER";
-		public final static String PASS = "PASS";
+		public static final String JDBC_DRIVER = "JDBC_DRIVER";
+		public static final  String DB_URL = "DB_URL";
+		public static final String USER = "USER";
+		public static final String PASS = "PASS";
 		public static final String APPLICATION_LOGGING_MODE = "APPLICATION_LOGGING_MODE";
 		public static final String IMD_SERVICES_URL = "IMD_SERVICES_URL";
 	}
@@ -163,7 +165,6 @@ public class Util {
 		public static final String NEARPRTRT = "NEARPRTRT";
 		public static final String FARPRTRT = "FARPRTRT";
 		public static final String PREGHFR = "PREGHFR";
-		
 	}
 
 	 public static final class GENDER {
@@ -356,7 +357,12 @@ public class Util {
 		if (records.length >= 3) {
 			comment = records[2].trim();
 		}				
-		return new TagVolumeCommentTriplet(tag,volume,comment);
+		TagVolumeCommentTriplet parsedRecord = new TagVolumeCommentTriplet();
+		parsedRecord.setTag(tag);
+		parsedRecord.setVolume(volume == null ? null : volume.toString());
+		parsedRecord.setComments(comment);
+		parsedRecord.setOutcome("");
+		return parsedRecord;
 	}		
 	
 	

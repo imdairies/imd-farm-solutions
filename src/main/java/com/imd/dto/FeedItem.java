@@ -1,8 +1,9 @@
 package com.imd.dto;
 
 public class FeedItem extends IMDairiesDTO {
-	private String feedCohortCD;
-	private String feedItemCD;
+	private LookupValues feedCohortLookupValue;
+//	private LookupValues feedCohortCD;
+	private LookupValues feedItemLookupValue;
 	private Float start;
 	private Float end;
 	private Float minimumFulfillment;
@@ -16,17 +17,17 @@ public class FeedItem extends IMDairiesDTO {
 	private Float personalizedQuantityToFeed;
 	private FeedItemNutritionalStats feedItemNutritionalStats;
 
-	public String getFeedItemCD() {
-		return feedItemCD;
+	public LookupValues getFeedItemLookupValue() {
+		return feedItemLookupValue;
 	}
-	public void setFeedItemCD(String feedItem) {
-		this.feedItemCD = feedItem;
+	public void setFeedItemLookupValue(LookupValues feedItem) {
+		this.feedItemLookupValue = feedItem;
 	}
-	public String getFeedCohortCD() {
-		return feedCohortCD;
+	public LookupValues getFeedCohortCD() {
+		return feedCohortLookupValue;
 	}
-	public void setFeedCohortCD(String feedCohort) {
-		this.feedCohortCD = feedCohort;
+	public void setFeedCohortCD(LookupValues feedCohort) {
+		this.feedCohortLookupValue = feedCohort;
 	}
 	public Float getStart() {
 		return start;

@@ -240,9 +240,10 @@ public class AnimalLoader {
 				"	ON a.SIRE_TAG=b.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
 				"	ON a.TYPE_CD=c.LOOKUP_CD " +
-				" WHERE ( a.ORG_ID=? ";		
+				" WHERE c.category_cd= ? AND ( a.ORG_ID=? ";		
 		
 		List<String> values = new ArrayList<String> ();
+		values.add(Util.LookupValues.LCYCL);
 		values.add(animalBean.getOrgID());		
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
 			qryString +=  " AND a.ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
