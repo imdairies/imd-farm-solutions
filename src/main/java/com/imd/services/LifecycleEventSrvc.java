@@ -351,8 +351,6 @@ public class LifecycleEventSrvc {
 		}
 	}
 
-
-
 	private String performPostEventAdditionSteps(LifeCycleEventBean eventBean, LifecycleEvent event, Animal animal, User user) {
 		String additionalMessage = performPostEventAdditionLifecycleStageUpdate(eventBean, animal, user);
 		additionalMessage += performPostEventAdditionInventoryUpdate(eventBean, animal, user);

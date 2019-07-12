@@ -580,6 +580,7 @@ public class LifeCycleEventsLoader {
 		String outcome = "";
 		try {
 			if (event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.CULLED) || 
+					event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.SOLD) ||
 					event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.DEATH)) {
 				AnimalLoader loader = new AnimalLoader();
 				int recordUpdated = loader.updateAnimalHerdLeavingDTTM(animal.getOrgID(), animal.getAnimalTag(), event.getEventTimeStampSQLFormat(), user);
@@ -596,30 +597,41 @@ public class LifeCycleEventsLoader {
 		return outcome;
 	}
 
-	private String updateLastInseminationOutcome(LifecycleEvent event, User user, String additionalMessage) {
+	private String updateLastInseminationOutcome(LifecycleEvent sourceEvent, User user, String additionalMessage) {
 		String outcome = "";
+		DateTime latestParturationOrAbortionTS = null;
 		try {
-			if (shouldUpdateInseminationResults(event)) {
+			if (shouldUpdateInseminationResults(sourceEvent)) {
 				IMDLogger.log("Updating the last insemination results", Util.INFO);
-				List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(event.getOrgID(), event.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
-				outcome = ". No past Insemination or Mating event found. This indicates data entry problem. Please make sure you have added an insemination or mating event for this animal against which you are recording the pregnancy test";
+				
+				List<LifecycleEvent> parturationAbortionEvents = retrieveSpecificLifeCycleEventsForAnimal(sourceEvent.getOrgID(), sourceEvent.getAnimalTag(), null, null, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,null,null,null);
+				if (parturationAbortionEvents != null && parturationAbortionEvents.size() >0)
+					// the latest insemination should be after the latest parturation else we may end up updating an insmemination
+					// from past lactation
+					latestParturationOrAbortionTS = parturationAbortionEvents.get(0).getEventTimeStamp();
+
+				List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(sourceEvent.getOrgID(), sourceEvent.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
+				outcome = ". No past Insemination or Mating or Insemination event found. This indicates data entry problem. Please make sure you have added an insemination or mating event for this animal against which you are recording this event";
 				if (inseminationEvents != null && !inseminationEvents.isEmpty()) {
 					Iterator<LifecycleEvent> it = inseminationEvents.iterator();
-					String pregnancyTestResult = determineInseminationOutcomeValue(event);
+					String pregnancyTestResult = determineInseminationOutcomeValue(sourceEvent);
 					while (it.hasNext()) {
-						LifecycleEvent evt = it.next();
-						if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) || evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING)) {
-							evt.setUpdatedBy(user);
-							if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING))
-								evt.setAuxField2Value(pregnancyTestResult);
+						LifecycleEvent affectedEvent = it.next();
+						if (latestParturationOrAbortionTS == null || latestParturationOrAbortionTS.isBefore(affectedEvent.getEventTimeStamp())) {
+//						if (evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) || evt.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING)) {
+							affectedEvent.setUpdatedBy(user);
+							if (affectedEvent.getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING))
+								affectedEvent.setAuxField2Value(pregnancyTestResult);
 							else 
-								evt.setAuxField3Value(pregnancyTestResult);
-							int updateCount = updateLifeCycleEvent(evt);
+								affectedEvent.setAuxField3Value(pregnancyTestResult);
+							int updateCount = updateLifeCycleEvent(affectedEvent);
 							if (updateCount > 0)
-								outcome = ". The outcome of the latest insemination/mating event (" + evt.getEventTransactionID() + ") was updated successfully";
+								outcome = ". The outcome of the latest insemination/mating event (" + affectedEvent.getEventTransactionID() + ") was updated successfully";
 							else 
-								outcome = ". " + Util.ERROR_POSTFIX + "The outcome of the latest insemination/mating event (" + evt.getEventTransactionID() + ") could NOT be updated successfully. Please update this event manually.";
+								outcome = ". " + Util.ERROR_POSTFIX + "The outcome of the latest insemination/mating event (" + affectedEvent.getEventTransactionID() + ") could NOT be updated successfully. Please update this event manually.";
 							break;									
+						} else {
+							outcome = ". We could not find any insemination or mating event for this animal since its latest parturition/abortion; therefore we can not update last insemination Outcome.";						
 						}
 					}
 		

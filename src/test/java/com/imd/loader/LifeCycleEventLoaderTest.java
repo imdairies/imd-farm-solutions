@@ -94,8 +94,12 @@ class LifeCycleEventLoaderTest {
 		String isSexed = "NO";
 		String isInseminationSuccessful = "TBD";
 		String cullingReason = "SADQA";
-		DateTime deathTS = DateTime.now().minusMonths(1);
+		DateTime soldTS = DateTime.now().minusMonths(10);
+		DateTime inseminationTS = DateTime.now().minusMonths(6);
+		DateTime pregTestTS = DateTime.now().minusMonths(4);
 		DateTime cullingTS = DateTime.now().minusMonths(3);
+		DateTime parturitionTS = DateTime.now().minusMonths(2);
+		DateTime deathTS = DateTime.now().minusMonths(1);
 		
 		try {
 			LifeCycleEventCode inseminateEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.INSEMINATE,"","");
@@ -104,6 +108,8 @@ class LifeCycleEventLoaderTest {
 			LifeCycleEventCode heatCD = new LifeCycleEventCode(Util.LifeCycleEvents.HEAT,"","");
 			LifeCycleEventCode culledCD = new LifeCycleEventCode(Util.LifeCycleEvents.CULLED,"","");
 			LifeCycleEventCode deathCD = new LifeCycleEventCode(Util.LifeCycleEvents.DEATH,"","");
+			LifeCycleEventCode soldCD = new LifeCycleEventCode(Util.LifeCycleEvents.SOLD,"","");
+			LifeCycleEventCode parturitionCD = new LifeCycleEventCode(Util.LifeCycleEvents.PARTURATE,"","");
 			
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			User user = new User("TEST");
@@ -129,6 +135,17 @@ class LifeCycleEventLoaderTest {
 			deathEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
 			deathEvent.setEventTimeStamp(deathTS);
 						
+			LifecycleEvent soldEvent = new LifecycleEvent(orgID,0,animalTag,soldCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
+			soldEvent.setOrgID(orgID);
+			soldEvent.setAnimalTag(animalTag);
+			soldEvent.setEventNote("test");
+			soldEvent.setAuxField1Value(null);
+			soldEvent.setAuxField2Value(null);
+			soldEvent.setAuxField3Value(null);
+			soldEvent.setAuxField4Value(null);
+			soldEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
+			soldEvent.setEventTimeStamp(soldTS);
+
 			LifecycleEvent matingEvent = new LifecycleEvent(orgID,0,animalTag,matingEventCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
 			matingEvent.setAuxField1Value(sire);
 			matingEvent.setAuxField2Value(isInseminationSuccessful);
@@ -147,12 +164,23 @@ class LifeCycleEventLoaderTest {
 			inseminationEvent.setAuxField3Value(isInseminationSuccessful);
 			inseminationEvent.setAuxField4Value(null);
 			inseminationEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
-			inseminationEvent.setEventTimeStamp(DateTime.now().minusMonths(6));
+			inseminationEvent.setEventTimeStamp(inseminationTS);
 			inseminationEvent.setCreatedBy(user);
 			inseminationEvent.setUpdatedBy(user);
 			inseminationEvent.setCreatedDTTM(DateTime.now());
 			inseminationEvent.setUpdatedDTTM(DateTime.now());
-	
+
+			LifecycleEvent parturitionEvent = new LifecycleEvent(orgID,0,animalTag,parturitionCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
+			parturitionEvent.setOrgID(orgID);
+			parturitionEvent.setAnimalTag(animalTag);
+			parturitionEvent.setAuxField1Value(Util.GENDER.FEMALE + ""); 
+			parturitionEvent.setAuxField2Value(null);
+			parturitionEvent.setAuxField3Value(null);
+			parturitionEvent.setAuxField4Value(null);
+			parturitionEvent.setEventTimeStamp(parturitionTS);
+			parturitionEvent.setEventNote("test");
+
+
 			LifeCycleEventBean pregTestEventBean = new LifeCycleEventBean();
 			pregTestEventBean.setOrgID(orgID);
 			pregTestEventBean.setAnimalTag(animalTag);
@@ -160,11 +188,11 @@ class LifeCycleEventLoaderTest {
 			pregTestEventBean.setAuxField2Value(Util.YES.toUpperCase()); // Update last insemination outcome = YES
 			pregTestEventBean.setAuxField3Value(null);
 			pregTestEventBean.setAuxField4Value(null);
-			pregTestEventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusMonths(4)));
+			pregTestEventBean.setEventTimeStamp(Util.getDateInSQLFormart(pregTestTS));
 			pregTestEventBean.setEventComments("test");
 			pregTestEventBean.setEventCode(pregTestCD.getEventCode());
 			pregTestEventBean.setOperatorID(user.getUserId());
-	
+
 			LifecycleEvent pregTestEvent = new LifecycleEvent(pregTestEventBean);
 			pregTestEvent.setCreatedBy(user);
 			pregTestEvent.setUpdatedBy(user);
@@ -234,10 +262,21 @@ class LifeCycleEventLoaderTest {
 			assertEquals(0,loader.performPostEventAdditionEventUpdate(deathEvent, animal, user).indexOf(". The animal's herd leaving date has been set to :"));
 			retAnimal = animalLoader.getAnimalRawInfo(animal).get(0);
 			assertEquals(Util.getDateInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateInSQLFormart(deathEvent.getEventTimeStamp()));
+
+			assertEquals(0,loader.performPostEventAdditionEventUpdate(soldEvent, animal, user).indexOf(". The animal's herd leaving date has been set to :"));
+			retAnimal = animalLoader.getAnimalRawInfo(animal).get(0);
+			assertEquals(Util.getDateInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateInSQLFormart(soldEvent.getEventTimeStamp()));
 			
+			assertTrue(loader.insertLifeCycleEvent(parturitionEvent)>0);
+			assertTrue(loader.insertLifeCycleEvent(inseminationEvent)>0);
+			assertEquals(0,loader.performPostEventAdditionEventUpdate(heatEvent, animal, user).indexOf(". This seems to be the first heat of the animal after its last parturition/abortion"));
+			inseminationEvent.setEventTimeStamp(parturitionTS.plusDays(21));
+			assertTrue(loader.insertLifeCycleEvent(inseminationEvent)>0);
+			assertEquals(0,loader.performPostEventAdditionEventUpdate(heatEvent, animal, user).indexOf(". The outcome of the latest insemination/mating event"));
+			
+			assertEquals(3,loader.deleteAnimalLifecycleEvents(orgID, animalTag));
 			assertEquals(1,animalLoader.deleteAnimal(orgID, animalTag));
 
-			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

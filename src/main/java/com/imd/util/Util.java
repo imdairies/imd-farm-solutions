@@ -114,6 +114,7 @@ public class Util {
 		public static final String DEWORM = "DEWORM";
 		public static final String CULLED = "CULLED";
 		public static final String DEATH = "DEATH";
+		public static final String SOLD = "SOLD";
 	}
 
 	public static final class AdvisementRules {
