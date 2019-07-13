@@ -12,11 +12,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.controller.feed.FeedManager;
 import com.imd.dto.Animal;
 import com.imd.dto.FeedCohort;
+import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
+import com.imd.loader.FeedLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
@@ -62,6 +65,7 @@ public class FeedSrvc {
 		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
+		String feedItems = "";
 
     	try {
 			FeedManager manager = new FeedManager();
@@ -70,15 +74,26 @@ public class FeedSrvc {
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found in the herd for the farm "+ orgID + "\"}").build();
 			}
+			String prefix = " ";
+			String feedItemsJson = "";
+			String animalFeedInfoJson = "";
+			FeedLoader loader = new FeedLoader();
+
+			feedItemsJson = loader.retrieveDistinctFeedItemsInFeedPlan(orgID).dtoToJson(prefix + prefix+prefix, false);
+			
 			Iterator<Animal> it = herd.iterator();
+			int count = 0;
 			while (it.hasNext()) {
+				count++;
 				Animal animalValue = it.next();
-				responseJson += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+//				responseJson += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
+				animalFeedInfoJson += prefix + prefix + "\n{\n" + createFeedListingJson(orgID, animalValue,manager.getPersonalizedFeedPlan(animalValue.getFeedCohortInformation(), animalValue.getAnimalTag()),prefix+prefix+prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + prefix + prefix + "\n} " 
+						+ (herd.size() == count ?  "" : ",");
 			}
-	    	if (responseJson != null && !responseJson.trim().isEmpty() )
-	    		responseJson = "[" + responseJson.substring(0,responseJson.lastIndexOf(",\n")) + "]";
-	    	else
-	    		responseJson = "[]";
+    		responseJson = "\n{\n" + prefix
+    				+ "\"feedItems\":{" + feedItemsJson + prefix + "},\n" + prefix
+    				+ "\"animalFeedInfo\":["  + animalFeedInfoJson + "]\n"
+    				+ "}";
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -88,6 +103,33 @@ public class FeedSrvc {
     	IMDLogger.log(responseJson, Util.INFO);
 		return Response.status(200).entity(responseJson).build();
 	}
-	
 
+	private String createFeedListingJson(String orgID, Animal animalValue, FeedPlan feedPlan, String prefix, DateTimeFormatter forPattern) throws IMDException {
+		String responseJson = "";
+		
+		responseJson =  prefix + animalValue.fieldToJson("orgID", orgID) + ",\n" + 
+				prefix + animalValue.fieldToJson("currentAge", animalValue.getCurrentAge()) + ",\n" + 
+				prefix + animalValue.fieldToJson("weight", animalValue.getWeight()) + ",\n" + 
+				prefix + animalValue.fieldToJson("animalTag", animalValue.getAnimalTag()) + ",\n" +
+				(animalValue.getFeedCohortInformation() == null ? "" : animalValue.getFeedCohortInformation().dtoToJson(prefix,false)) +
+				(animalValue.getAnimalNutritionalNeeds() == null ? "" : animalValue.getAnimalNutritionalNeeds().dtoToJson(prefix,false)) + 
+				(feedPlan != null ? feedPlan.dtoToJson(prefix + prefix, false) : "");
+		return responseJson;
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -634,7 +634,6 @@ public class LifeCycleEventsLoader {
 							outcome = ". We could not find any insemination or mating event for this animal since its latest parturition/abortion; therefore we can not update last insemination Outcome.";						
 						}
 					}
-		
 				}
 			}
 		}

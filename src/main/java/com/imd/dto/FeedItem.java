@@ -1,5 +1,7 @@
 package com.imd.dto;
 
+import org.joda.time.format.DateTimeFormatter;
+
 public class FeedItem extends IMDairiesDTO {
 	private LookupValues feedCohortLookupValue;
 //	private LookupValues feedCohortCD;
@@ -16,6 +18,8 @@ public class FeedItem extends IMDairiesDTO {
 	private String personalizedFeedMessage;
 	private Float personalizedQuantityToFeed;
 	private FeedItemNutritionalStats feedItemNutritionalStats;
+	private Float dailyIntake;
+	private String intakeType;
 
 	public LookupValues getFeedItemLookupValue() {
 		return feedItemLookupValue;
@@ -105,4 +109,43 @@ public class FeedItem extends IMDairiesDTO {
 		this.units = units;
 	}
 
+	public String dtoToJson(String prefix)  {		
+		return stringify(prefix) + super.dtoToJson(prefix);
+	}
+
+	private String stringify(String prefix) {
+		return  (feedItemLookupValue != null ? feedItemLookupValue.dtoToJson(prefix) + ",\n" : "") + fieldToJson("dailyIntake",dailyIntake);	
+	}
+	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
+		if (appendSuperJson)
+			return dtoToJson(prefix);
+		else
+			return stringify(prefix);
+	}
+	
+
+	public String dtoToJson(String prefix, boolean appendSuperJson, DateTimeFormatter fmt)  {		
+		if (appendSuperJson)
+			return dtoToJson(prefix,fmt);
+		else
+			return stringify(prefix);
+	}
+	
+	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
+		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+	}
+	public Float getDailyIntake() {
+		return dailyIntake;
+	}
+	public void setDailyIntake(Float dailyIntake) {
+		this.dailyIntake = dailyIntake;
+	}
+	public String getIntakeType() {
+		return intakeType;
+	}
+	public void setIntakeType(String intakeType) {
+		this.intakeType = intakeType;
+	}	
+	
+	
 }

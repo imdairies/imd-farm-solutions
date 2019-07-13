@@ -54,6 +54,7 @@ public class Animal extends IMDairiesDTO{
 	private DateTime herdLeavingDate;
 	private FeedCohort feedCohortInformation;
 	private CohortNutritionalNeeds animalNutritionalNeeds;
+	private FeedPlan animalIndividualizedFeedPlan;
 	
 	/**
 	 * M: Male
@@ -457,6 +458,14 @@ public class Animal extends IMDairiesDTO{
 	}
 	public Float getWeight() {
 		return this.weight;
+	}
+
+	public FeedPlan getAnimalIndividualizedFeedPlan() {
+		return animalIndividualizedFeedPlan;
+	}
+
+	public void setAnimalIndividualizedFeedPlan(FeedPlan animalIndividualizedFeedPlan) {
+		this.animalIndividualizedFeedPlan = animalIndividualizedFeedPlan;
 	}
 
 //	public void setAnimalNutritionalNeeds(CohortNutritionalNeeds needs) {

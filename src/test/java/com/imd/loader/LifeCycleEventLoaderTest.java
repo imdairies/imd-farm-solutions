@@ -269,7 +269,7 @@ class LifeCycleEventLoaderTest {
 			
 			assertTrue(loader.insertLifeCycleEvent(parturitionEvent)>0);
 			assertTrue(loader.insertLifeCycleEvent(inseminationEvent)>0);
-			assertEquals(0,loader.performPostEventAdditionEventUpdate(heatEvent, animal, user).indexOf(". This seems to be the first heat of the animal after its last parturition/abortion"));
+			assertEquals(0,loader.performPostEventAdditionEventUpdate(heatEvent, animal, user).indexOf(". We could not find any insemination or mating event for this animal since its latest parturition/abortion;"));
 			inseminationEvent.setEventTimeStamp(parturitionTS.plusDays(21));
 			assertTrue(loader.insertLifeCycleEvent(inseminationEvent)>0);
 			assertEquals(0,loader.performPostEventAdditionEventUpdate(heatEvent, animal, user).indexOf(". The outcome of the latest insemination/mating event"));

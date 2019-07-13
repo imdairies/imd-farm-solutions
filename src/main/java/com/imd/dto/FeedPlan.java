@@ -39,17 +39,23 @@ public class FeedPlan extends IMDairiesDTO {
 	
 	private String stringify(String prefix) {
 		String feedItemAnalysisMessages = "";
+		String itemsJson = "";
+		int count = 0;
 		if (feedPlan != null && !feedPlan.isEmpty()) {
 			Iterator<FeedItem> it = feedPlan.iterator();
 			while (it.hasNext()) {
-				feedItemAnalysisMessages += "\n " + it.next().getPersonalizedFeedMessage();
+				count++;
+				FeedItem item = it.next();
+				feedItemAnalysisMessages += (item.getPersonalizedFeedMessage() == null ? "" : "\n " + item.getPersonalizedFeedMessage());
+				itemsJson += "{\n" + item.dtoToJson(prefix,false) + "}" + (feedPlan.size() == count ? "" : ",\n");
 			}
 		}
-		return  prefix + fieldToJson("planAnalysisComments", (planAnalysisComments == null ? "": planAnalysisComments) + feedItemAnalysisMessages ) + ",\n";
+		return  prefix + fieldToJson("planAnalysisComments", (planAnalysisComments == null ? "": planAnalysisComments) + feedItemAnalysisMessages ) + ",\n" +
+				prefix +"\"feedPlanItems\" :[" + itemsJson + "]";
 	}
-
+	
 	public String dtoToJson(String prefix)  {		
-		return stringify(prefix) + super.dtoToJson(prefix);
+		return stringify(prefix) + ",\n" + super.dtoToJson(prefix);
 	}
 
 	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
@@ -68,7 +74,7 @@ public class FeedPlan extends IMDairiesDTO {
 	}
 	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
-		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+		return (stringify(prefix) +  ",\n" + super.dtoToJson(prefix, fmt));
 	}	
 	
 	

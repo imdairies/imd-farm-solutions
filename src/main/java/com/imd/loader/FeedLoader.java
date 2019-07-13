@@ -452,7 +452,48 @@ public class FeedLoader {
 	    return feedPlan;
 	}	
 	
-	
+	public FeedPlan retrieveDistinctFeedItemsInFeedPlan(String orgID) throws IMDException {
+		String qryString = "SELECT distinct a.org_id, a.FEED_ITEM, IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR" +
+				" FROM FEED_PLAN a " +
+				" left  outer join LOOKUP_VALUES b on (b.lookup_cd=a.FEED_ITEM and b.category_cd=?) where a.ORG_ID=? " + 
+				" order by ITEM_SHORT_DESCR ";
+		
+		FeedPlan feedPlan = null;
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		try {
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1,Util.LookupValues.FEED);
+			preparedStatement.setString(2,orgID);
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+				FeedItem feedItem = new FeedItem();
+				feedItem.setOrgID(rs.getString("ORG_ID"));				
+				LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), rs.getString("ITEM_SHORT_DESCR"),rs.getString("ITEM_LONG_DESCR"));
+				feedItem.setFeedItemLookupValue(feedItemLV);		
+
+		    	if (feedPlan == null) {
+		    		feedPlan = new FeedPlan();
+				    feedPlan.setOrgID(feedItem.getOrgID());
+				    feedPlan.setFeedPlan(new ArrayList<FeedItem>());
+		    	}
+		    	feedPlan.getFeedPlan().add(feedItem);
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return feedPlan;
+	}		
 	
 }
 

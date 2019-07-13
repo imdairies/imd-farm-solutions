@@ -104,6 +104,7 @@ public class FeedManager {
 				FeedItem item = it.next();
 				if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.ABSOLUTE)) {
 					item.setPersonalizedFeedMessage("Give the animal " + item.getFulfillmentPct() + " " + item.getUnits() + " of " + item.getFeedItemLookupValue().getShortDescription());
+					item.setDailyIntake(item.getFulfillmentPct());
 				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.FREEFLOW)) {
 					item.setPersonalizedFeedMessage("Put " + item.getFeedItemLookupValue().getShortDescription() + " infront of the animal and let is consume "  + item.getFeedItemLookupValue().getShortDescription() + " freely.");
 				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.BODYWEIGHT)) {
@@ -113,6 +114,7 @@ public class FeedManager {
 					}
 					else {
 						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
+						item.setDailyIntake((float)(item.getFulfillmentPct()* animalWeight));
 					}
 				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.MILKPROD)) {
 					LocalDate startAverageCalculationFrom = LocalDate.now().minusDays(1);
@@ -123,6 +125,7 @@ public class FeedManager {
 					}
 					else {
 						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/item.getFulfillmentPct()),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
+						item.setDailyIntake((float)(milkAverage/item.getFulfillmentPct()));
 					}
 				} else {
 					item.setPersonalizedFeedMessage("Unable to determine the usage of " + item.getFeedItemLookupValue());

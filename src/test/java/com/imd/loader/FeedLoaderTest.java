@@ -19,6 +19,7 @@ import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
+import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
 class FeedLoaderTest {
@@ -72,7 +73,9 @@ class FeedLoaderTest {
 			e.printStackTrace();
 			fail("Exception Occurred");
 		}
-	}	
+	}
+	
+	
 	@Test
 	void testFoodPlanRetrieval() {
 		try {
@@ -121,7 +124,7 @@ class FeedLoaderTest {
 			feedItem2.setUpdatedBy(feedItem2.getCreatedBy());
 			feedItem2.setUpdatedDTTM(feedItem2.getCreatedDTTM());
 			
-			assertTrue(loader.deleteFeedPlanItem(feedItem1) >= 0);			
+			assertTrue(loader.deleteFeedPlanItem(feedItem1) >= 0);
 			assertTrue(loader.deleteFeedPlanItem(feedItem2) >= 0);
 
 			assertEquals(1,loader.insertFeedPlanItem(feedItem1));
@@ -133,6 +136,21 @@ class FeedLoaderTest {
 			assertEquals(feedItem1.getOrgID(),plan.getOrgID());
 			assertTrue(plan.getFeedPlan().get(0).getFeedItemLookupValue().getLookupValueCode().equals(feedItem1.getFeedItemLookupValue().getLookupValueCode()) || plan.getFeedPlan().get(0).getFeedItemLookupValue().getLookupValueCode().equals(feedItem2.getFeedItemLookupValue().getLookupValueCode()));
 			assertTrue(plan.getFeedPlan().get(1).getFeedItemLookupValue().getLookupValueCode().equals(feedItem1.getFeedItemLookupValue().getLookupValueCode()) || plan.getFeedPlan().get(1).getFeedItemLookupValue().getLookupValueCode().equals(feedItem2.getFeedItemLookupValue().getLookupValueCode()));
+
+			plan = loader.retrieveDistinctFeedItemsInFeedPlan(feedItem1.getOrgID());
+			assertTrue(plan.getFeedPlan().size()>= 2);
+			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
+			while(it.hasNext()) {
+				FeedItem item = it.next();
+				if (item.getFeedItemLookupValue().getLookupValueCode().equalsIgnoreCase(feedItem1.getFeedItemLookupValue().getLookupValueCode())) {
+					assertEquals(null,item.getFeedItemLookupValue().getLongDescription());
+					assertEquals(feedItem1.getFeedItemLookupValue().getLookupValueCode(),item.getFeedItemLookupValue().getShortDescription());
+				} else 	if (item.getFeedItemLookupValue().getLookupValueCode().equalsIgnoreCase(feedItem2.getFeedItemLookupValue().getLookupValueCode())) {
+					assertEquals(null,item.getFeedItemLookupValue().getLongDescription());
+					assertEquals(feedItem2.getFeedItemLookupValue().getLookupValueCode(),item.getFeedItemLookupValue().getShortDescription());
+				}
+			}
+			IMDLogger.log(plan.dtoToJson("  "), Util.INFO);
 			
 			assertEquals(1,loader.deleteFeedPlanItem(feedItem1, " AND START >= ? AND END >= ?", feedItem1.getStart(), feedItem1.getEnd()));
 			assertEquals(1,loader.deleteFeedPlanItem(feedItem2, " AND START >= ? AND END >= ?", feedItem2.getStart(), feedItem2.getEnd()));

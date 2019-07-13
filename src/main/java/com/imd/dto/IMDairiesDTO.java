@@ -113,22 +113,22 @@ public class IMDairiesDTO {
 
 	}
 	
-	protected String fieldToJson(String fieldName, Period dateDifference) {
+	public String fieldToJson(String fieldName, Period dateDifference) {
 		return ("\"" + fieldName + "\":\"" + (dateDifference == null ? "\"\"" : 
 				(dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") +
 				(dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") +
 				(dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "")) + "\"");	
 	}
 
-	protected String fieldToJson(String fieldName, LocalDate valueDt) {
+	public String fieldToJson(String fieldName, LocalDate valueDt) {
 		return ("\"" + fieldName + "\":" + (valueDt == null ? "\"\"" : "\"" + this.getDateInSQLFormart(valueDt) + "\""));
 	}
 	
-	protected String fieldToJson(String fieldName, LocalTime valueTm) {
+	public String fieldToJson(String fieldName, LocalTime valueTm) {
 		return ("\"" + fieldName + "\":" + (valueTm == null ? "\"\"" : "\"" + valueTm.getHourOfDay() + ":" + valueTm.getMinuteOfHour() + "\""));
 	}
 
-	protected String fieldToJson(String fieldName, String[] nextLifecycleStageList) {
+	public String fieldToJson(String fieldName, String[] nextLifecycleStageList) {
 		String values = "";
 		if (nextLifecycleStageList == null || nextLifecycleStageList.length == 0)
 			return ("\"" + fieldName + "\":[]");
@@ -144,49 +144,49 @@ public class IMDairiesDTO {
 		return values;
 	}
 
-	protected String fieldToJson(String fieldName, String strValue) {		
+	public String fieldToJson(String fieldName, String strValue) {		
 		return ("\"" + fieldName + "\":" + (strValue == null ? "\"\"" : "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(strValue)) + "\""));
 	}
-	protected String fieldToJson(String fieldName, URL url) {		
+	public String fieldToJson(String fieldName, URL url) {		
 		return ("\"" + fieldName + "\":" + (url == null ? "\"\"" : "\"" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(url.toString())) + "\""));
 	}
-	protected String fieldToJson(String fieldName, DateTime valueDTTM) {
+	public String fieldToJson(String fieldName, DateTime valueDTTM) {
 		return ("\"" + fieldName + "\":" + (valueDTTM == null ? "\"\"" : "\"" + this.getDateInSQLFormart(valueDTTM) + "\""));
 	}
-	protected String fieldToJson(String fieldName, int intValue) {
+	public String fieldToJson(String fieldName, int intValue) {
 		return ("\"" + fieldName + "\":" + Integer.toString(intValue));
 	}
-	protected String fieldToJson(String fieldName, short shortValue) {
+	public String fieldToJson(String fieldName, short shortValue) {
 		return ("\"" + fieldName + "\":" + shortValue);
 	}
-	protected String fieldToJson(String fieldName, Short shortValue) {
+	public String fieldToJson(String fieldName, Short shortValue) {
 		return ("\"" + fieldName + "\":" + (shortValue == null ? "\"\"" : shortValue));
 	}
-	protected String fieldToJson(String fieldName, Integer intValue) {
+	public String fieldToJson(String fieldName, Integer intValue) {
 		return ("\"" + fieldName + "\":" + (intValue == null ? "\"\"" : intValue));
 	}
-	protected String fieldToJson(String fieldName, char charValue) {
+	public String fieldToJson(String fieldName, char charValue) {
 		return ("\"" + fieldName + "\":\"" + charValue + "\"");
 	}
-	protected String fieldToJson(String fieldName, double dblValue) {
+	public String fieldToJson(String fieldName, double dblValue) {
 		return ("\"" + fieldName + "\":" + Double.toString(dblValue));
 	}
-	protected String fieldToJson(String fieldName, Double dblValue) {
+	public String fieldToJson(String fieldName, Double dblValue) {
 		return ("\"" + fieldName + "\":" + (dblValue == null ? "\"\"" : dblValue.doubleValue()));
 	}
-	protected String fieldToJson(String fieldName, float flValue) {
+	public String fieldToJson(String fieldName, float flValue) {
 		return ("\"" + fieldName + "\":" + flValue);
 	}
-	protected String fieldToJson(String fieldName, Float flValue) {
+	public String fieldToJson(String fieldName, Float flValue) {
 		return ("\"" + fieldName + "\":" + (flValue == null ? "\"\"" : flValue.floatValue()));
 	}
-	protected String fieldToJson(String fieldName, Person personValue) {
+	public String fieldToJson(String fieldName, Person personValue) {
 		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(personValue.getPersonID() == null ? "" : personValue.getPersonID()))  + "\""));
 	}
-	protected String fieldToJson(String fieldName, User usrValue) {
+	public String fieldToJson(String fieldName, User usrValue) {
 		return ("\"" + fieldName + "\":" + (usrValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(usrValue.getUserId() == null ? "" : usrValue.getUserId())) + "\""));
 	}
-	protected String fieldToJson(String fieldName, boolean boolValue) {
+	public String fieldToJson(String fieldName, boolean boolValue) {
 		return ("\"" + fieldName + "\":" + (boolValue ? "true" : "false"));
 	}
 	public String getOrgID() {
