@@ -2,6 +2,7 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,7 +13,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.imd.dto.Animal;
+import com.imd.dto.Dam;
 import com.imd.dto.Inventory;
+import com.imd.dto.Note;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.services.bean.InventoryBean;
@@ -38,6 +42,30 @@ class InventoryLoaderTest {
 	void tearDown() throws Exception {
 	}
 
+	public Animal createTestSire(String animalTag) throws Exception {
+		Sire c000 = new Sire(/*orgid*/"IMD",/*tag*/animalTag,/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/100000,/*price currency*/"PKR");
+		c000.setAlias("Laal");
+		c000.setBreed(Util.Breed.HFCROSS);
+		c000.setAnimalType(Util.AnimalTypes.BULL);
+		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
+		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
+		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
+		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
+//		c000.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
+//				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
+		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
+		c000.setCreatedBy(new User("KASHIF"));
+		c000.setCreatedDTTM(DateTime.now());
+		c000.setHerdJoiningDate(DateTime.now().minusDays(10));
+		c000.setHerdLeavingDate(null);
+		c000.setUpdatedBy(c000.getCreatedBy());
+		c000.setUpdatedDTTM(c000.getCreatedDTTM());
+		c000.setAnimalDam(null);
+		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
+		c000.addNote(newNote);
+//		setMilkingRecord(c000);
+		return c000;
+	}
 
 	@Test
 	void testInsertSemenInv() {
@@ -133,8 +161,10 @@ class InventoryLoaderTest {
 			
 			int result = animalLoader.deleteSire(sireBean.getAnimalTag());
 			assertTrue(result == 0 || result ==1);
+			result = animalLoader.deleteAnimal(sireBean.getOrgID(), sireBean.getAnimalTag());
+			assertTrue(result == 0 || result ==1);
 			
-			animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(), user.getUserId(), DateTime.now());
+			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(), user.getUserId(), DateTime.now()));
 			
 			InventoryBean invBean = new InventoryBean();
 			invBean.setItemSKU("-999");
@@ -188,9 +218,31 @@ class InventoryLoaderTest {
 				}
 			}
 			assertTrue(found);
+			
 			assertEquals(1,invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU(), inv.getInventoryAddDttm()));
 			assertEquals(1,invLoader.deleteSemenInventory(inv.getOrgID(), invBean.getItemSKU(), invBean.getItemType()));
 			assertEquals(1,animalLoader.deleteSire(sireBean.getAnimalTag()));
+
+			sireBean.setSemenInd("N");
+			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(), user.getUserId(), DateTime.now()));
+			assertEquals(1,animalLoader.insertAnimal(createTestSire(sireBean.getAnimalTag())));
+			assertEquals(1,animalLoader.updateAnimalHerdLeavingDTTM(sireBean.getOrgID(), sireBean.getAnimalTag(), Util.getDateInSQLFormart(DateTime.now().minusDays(2)), user));
+			sires = invLoader.getSiresWithAvailableInventory(inv.getOrgID());
+			it = sires.iterator();
+			found = false;
+			while (it.hasNext()) {
+				Sire sire = it.next();
+				if (sire.getAnimalTag().equalsIgnoreCase(inv.getItemSKU())) {
+					assertTrue(sire.getNote(1).getNoteText().equals("N"));
+					found=true;
+				}
+			}
+			assertFalse(found);
+		
+			assertEquals(1,animalLoader.deleteSire(sireBean.getAnimalTag()));
+			assertEquals(1,animalLoader.deleteAnimal(sireBean.getOrgID(), sireBean.getAnimalTag()));
+		
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Inventory processing Failed.");

@@ -54,7 +54,7 @@ public class Animal extends IMDairiesDTO{
 	private DateTime herdLeavingDate;
 	private FeedCohort feedCohortInformation;
 	private CohortNutritionalNeeds animalNutritionalNeeds;
-	private FeedPlan animalIndividualizedFeedPlan;
+	private FeedPlan animalFeedPlan;
 	
 	/**
 	 * M: Male
@@ -278,6 +278,8 @@ public class Animal extends IMDairiesDTO{
 		return value;
 	}
 	private String stringify(String prefix) {
+		String cohort = (this.feedCohortInformation == null ? "" : this.feedCohortInformation.dtoToJson(prefix,false));
+
 		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
@@ -301,8 +303,7 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("frontSideImageURL", this.frontSideImageURL) + ",\n" +
 				prefix + fieldToJson("backSideImageURL", this.backSideImageURL) + ",\n" + 
 				prefix + fieldToJson("rightSideImageURL", this.rightSideImageURL) + ",\n" +
-				prefix + fieldToJson("leftSideImageURL", this.leftSideImageURL) + ",\n" + 
-				(this.feedCohortInformation == null ? "" : this.feedCohortInformation.dtoToJson(prefix,false)) +
+				prefix + fieldToJson("leftSideImageURL", this.leftSideImageURL) + ",\n" + cohort +
 				(this.animalNutritionalNeeds == null ? "" : this.animalNutritionalNeeds.dtoToJson(prefix,false));
 	}
 	
@@ -440,13 +441,14 @@ public class Animal extends IMDairiesDTO{
 		this.feedCohortInformation = feedCohortInformation;
 	}
 	
-	public void setAnimalNutritionalNeeds(CohortNutritionalNeeds needs, Float weightInKg) {
-		if (weightInKg != null && needs != null) {
-			this.animalNutritionalNeeds = needs;
-			this.animalNutritionalNeeds.setDryMatter(needs.getDryMatter() * weightInKg);
-			this.animalNutritionalNeeds.setCrudeProtein(needs.getCrudeProtein() * this.animalNutritionalNeeds.getDryMatter());
-			this.animalNutritionalNeeds.setMetabloizableEnergy(needs.getMetabloizableEnergy());
-		}
+	public void setAnimalNutritionalNeeds(CohortNutritionalNeeds needs) {
+//		if (weightInKg != null && needs != null) {
+//			this.animalNutritionalNeeds = needs;
+//			this.animalNutritionalNeeds.setDryMatter(needs.getDryMatter() * weightInKg);
+//			this.animalNutritionalNeeds.setCrudeProtein(needs.getCrudeProtein() * this.animalNutritionalNeeds.getDryMatter());
+//			this.animalNutritionalNeeds.setMetabloizableEnergy(needs.getMetabloizableEnergy());
+//		}
+		this.animalNutritionalNeeds = needs;
 	}
 	
 	public CohortNutritionalNeeds getAnimalNutritionalNeeds() {
@@ -460,12 +462,12 @@ public class Animal extends IMDairiesDTO{
 		return this.weight;
 	}
 
-	public FeedPlan getAnimalIndividualizedFeedPlan() {
-		return animalIndividualizedFeedPlan;
+	public FeedPlan getAnimalFeedPlan() {
+		return animalFeedPlan;
 	}
 
-	public void setAnimalIndividualizedFeedPlan(FeedPlan animalIndividualizedFeedPlan) {
-		this.animalIndividualizedFeedPlan = animalIndividualizedFeedPlan;
+	public void setAnimalFeedPlan(FeedPlan animalIndividualizedFeedPlan) {
+		this.animalFeedPlan = animalIndividualizedFeedPlan;
 	}
 
 //	public void setAnimalNutritionalNeeds(CohortNutritionalNeeds needs) {

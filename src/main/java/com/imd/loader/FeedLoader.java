@@ -13,6 +13,7 @@ import org.joda.time.DateTime;
 import com.imd.dto.CohortNutritionalNeeds;
 import com.imd.dto.FeedCohort;
 import com.imd.dto.FeedItem;
+import com.imd.dto.FeedItemNutritionalStats;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
@@ -305,8 +306,35 @@ public class FeedLoader {
 		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
 		feedItem.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		FeedItemNutritionalStats itemNutritionalValues = new FeedItemNutritionalStats();
+		itemNutritionalValues.setDryMatter(0f);
+		itemNutritionalValues.setCrudeProtein(0f);
+		itemNutritionalValues.setMetabolizableEnergy(0f);
+		Float dm = null;
+		Float cp = null;
+		Float me = null;
+		
+		try {
+			String dmCpMe = rs.getString("ITEM_NUTRITIONAL_VALUES");
+			String[] stats = dmCpMe.split("\n");
+			for (int i=0; i<stats.length; i++) {
+				if (stats[i].indexOf(Util.NutritionalStats.DM_POSTFIX) >=0)
+					dm =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.DM_POSTFIX) + Util.NutritionalStats.DM_POSTFIX.length()));
+				else if (stats[i].indexOf(Util.NutritionalStats.CP_POSTFIX) >=0)
+					cp =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.CP_POSTFIX) + Util.NutritionalStats.CP_POSTFIX.length()));
+				else if (stats[i].indexOf(Util.NutritionalStats.ME_POSTFIX) >=0)
+					me =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.ME_POSTFIX) + Util.NutritionalStats.ME_POSTFIX.length()));
+			}
+			itemNutritionalValues.setDryMatter(dm);
+			itemNutritionalValues.setCrudeProtein(cp);
+			itemNutritionalValues.setMetabolizableEnergy(me);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			IMDLogger.log("Could not parse one or more of DM, CP, ME value for the feed item: " + feedItemLV.getLookupValueCode() + ". You must specify these values prefixed by DM=, CP=, ME= each on a separate line in the \"Additional Info 1\" field for this particular Feed Item lookup", Util.ERROR);
+		}
+		feedItem.setFeedItemNutritionalStats(itemNutritionalValues);
 		return feedItem;
-	}	
+	}
 
 	public List<CohortNutritionalNeeds> retrieveCohortNutritionalNeeds(FeedCohort cohort, Float start, Float end) {
 		List<CohortNutritionalNeeds> dietReq = new ArrayList<CohortNutritionalNeeds>();
@@ -453,7 +481,7 @@ public class FeedLoader {
 	}	
 	
 	public FeedPlan retrieveDistinctFeedItemsInFeedPlan(String orgID) throws IMDException {
-		String qryString = "SELECT distinct a.org_id, a.FEED_ITEM, IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR" +
+		String qryString = "SELECT distinct a.org_id, a.FEED_ITEM,a.units, IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR" +
 				" FROM FEED_PLAN a " +
 				" left  outer join LOOKUP_VALUES b on (b.lookup_cd=a.FEED_ITEM and b.category_cd=?) where a.ORG_ID=? " + 
 				" order by ITEM_SHORT_DESCR ";
@@ -472,8 +500,8 @@ public class FeedLoader {
 				FeedItem feedItem = new FeedItem();
 				feedItem.setOrgID(rs.getString("ORG_ID"));				
 				LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), rs.getString("ITEM_SHORT_DESCR"),rs.getString("ITEM_LONG_DESCR"));
-				feedItem.setFeedItemLookupValue(feedItemLV);		
-
+				feedItem.setFeedItemLookupValue(feedItemLV);	
+				feedItem.setUnits(rs.getString("UNITS"));
 		    	if (feedPlan == null) {
 		    		feedPlan = new FeedPlan();
 				    feedPlan.setOrgID(feedItem.getOrgID());

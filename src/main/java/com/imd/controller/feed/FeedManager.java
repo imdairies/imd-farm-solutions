@@ -11,6 +11,7 @@ import com.imd.dto.Animal;
 import com.imd.dto.CohortNutritionalNeeds;
 import com.imd.dto.FeedCohort;
 import com.imd.dto.FeedItem;
+import com.imd.dto.FeedItemNutritionalStats;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.LookupValues;
@@ -45,27 +46,26 @@ public class FeedManager {
 		while (it.hasNext()) {
 			Animal animal = it.next();
 			animal.setWeight(getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag()));
-			animal.setFeedCohortInformation(getAnimalFeedCohortType(animal.getOrgID(), animal.getAnimalTag()));
-			animal.setAnimalNutritionalNeeds(getAnimalNutritionalNeeds(animal),animal.getWeight());
+			animal.setFeedCohortInformation(getAnimalFeedCohort(animal.getOrgID(), animal.getAnimalTag()));
+			animal.setAnimalNutritionalNeeds(this.getFeedCohortNutritionalNeeds(animal.getFeedCohortInformation(),animal.getAnimalTag()));
 //			IMDLogger.log(animal.getFeedCohortInformation().toString(), Util.INFO);
 		}		
 		return farmActiveHerd;
 	}
 
-	private CohortNutritionalNeeds getAnimalNutritionalNeeds(Animal animal) {
+	private CohortNutritionalNeeds getFeedCohortNutritionalNeeds(FeedCohort feedCohort, String animalTag) {
 		FeedLoader feedLoader = new FeedLoader();
-		List<CohortNutritionalNeeds> needs = feedLoader.retrieveCohortNutritionalNeeds(animal.getFeedCohortInformation(), 0f, 9999f);
-		CohortNutritionalNeeds need = null;
+		List<CohortNutritionalNeeds> needs = feedLoader.retrieveCohortNutritionalNeeds(feedCohort, 0f, 9999f);
 		if (needs == null || needs.isEmpty()) {
-			IMDLogger.log("Nutritional Needs for the animal " + animal.getAnimalTag() + " could not be found. This indicates that nutritioanl needs for the cohort " + animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode() + " has not been configured", Util.ERROR);
+			IMDLogger.log("Nutritional Needs for the animal " + animalTag + " could not be found. This indicates that nutritioanl needs for the cohort " + feedCohort.getFeedCohortLookupValue().getLookupValueCode() + " has not been configured", Util.ERROR);
 			return null;
 		} else if (needs.size() >1) {
-			IMDLogger.log(needs.size() + " nutritional needs records were found for the animal " + animal.getAnimalTag() + " belonging to the cohort " + animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode() + ". We will use the record with the smallest start and end values.", Util.ERROR);
+			IMDLogger.log(needs.size() + " nutritional needs records were found for the animal " + animalTag + " belonging to the cohort " + feedCohort.getFeedCohortLookupValue().getLookupValueCode() + ". We will use the record with the smallest start and end values.", Util.ERROR);
 		} 
 		return needs.get(0);
 	}
 	
-	public FeedCohort getAnimalFeedCohortType(String orgID, String animalTag) throws Exception {
+	public FeedCohort getAnimalFeedCohort(String orgID, String animalTag) throws Exception {
 		AnimalLoader animalLoader = new AnimalLoader();
 		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
 		List<Animal> animals = animalLoader.getAnimalRawInfo(orgID, animalTag);		
@@ -77,62 +77,246 @@ public class FeedManager {
 		}
 		Animal animal = animals.get(0);
 		animal.setLifeCycleEvents(eventLoader.retrieveAllLifeCycleEventsForAnimal(orgID, animalTag));
-
 		return findAnimalFeedCohort(animal);
 	}
 	
-	public FeedPlan getPersonalizedFeedPlan(FeedCohort cohort, String animalTag) throws IMDException {
-		FeedLoader loader = new FeedLoader();
-//		if (cohort.getFeedCohortTypeCD().equals(Util.FeedCohortType.FEMALECALF)) {
-			return getFeedCohortPersonalizedPlan(cohort,loader.retrieveFeedPlan(cohort.getOrgID(), cohort.getFeedCohortLookupValue().getLookupValueCode()), animalTag);
-//		} else 	if (cohort.getFeedCohortTypeCD().equals(Util.FeedCohortType.BULL)) {
-//			return getFeedCohortPersonalizedPlan(loader.retrieveFeedPlan(cohort.getOrgID(), cohort.getFeedCohortTypeCD()), animal);
-//		} else 
-//
-//			return null;
+	public FeedPlan getPersonalizedFeedPlan(FeedCohort cohort, FeedPlan cohortFeedPlan, Animal animal) throws Exception {
+		return getPersonalizedPlanOfAnAnimal(animal, cohortFeedPlan);
+	}
+	public FeedPlan getPersonalizedFeedPlan(FeedCohort cohort, Animal animal) throws Exception {
+		return getPersonalizedPlanOfAnAnimal(animal, null);
 	}
 	
-	private FeedPlan getFeedCohortPersonalizedPlan(FeedCohort cohort, FeedPlan plan, String animalTag) {
-		if (plan == null || plan.getFeedPlan() == null) {
-			plan = new FeedPlan();
-			plan.setFeedPlan(new ArrayList<FeedItem>());
-			plan.setPlanAnalysisComments("The cohort " + cohort.getFeedCohortLookupValue().getLookupValueCode() + " does not have any feed plan specified. Therefore, we can not determine a personalized feed for " + animalTag);
-			return plan;
-		} else {
-			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
-			while (it.hasNext()) {
-				FeedItem item = it.next();
-				if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.ABSOLUTE)) {
-					item.setPersonalizedFeedMessage("Give the animal " + item.getFulfillmentPct() + " " + item.getUnits() + " of " + item.getFeedItemLookupValue().getShortDescription());
-					item.setDailyIntake(item.getFulfillmentPct());
-				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.FREEFLOW)) {
-					item.setPersonalizedFeedMessage("Put " + item.getFeedItemLookupValue().getShortDescription() + " infront of the animal and let is consume "  + item.getFeedItemLookupValue().getShortDescription() + " freely.");
-				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.BODYWEIGHT)) {
-					Float animalWeight = getLatestEventWeight(cohort.getOrgID(), animalTag);
-					if (animalWeight == null) {
-						item.setPersonalizedFeedMessage("In order to determine the personalized feed value for the animal, we need its weight. We could not find a valid weight event in the animal's record. Please weigh the animal and add the weight event to the animal record and try again");
-					}
-					else {
-						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
-						item.setDailyIntake((float)(item.getFulfillmentPct()* animalWeight));
-					}
-				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.MILKPROD)) {
-					LocalDate startAverageCalculationFrom = LocalDate.now().minusDays(1);
-					int numOfAdditionalDaysToAverage = 2;
-					Float milkAverage = getMilkAverage(cohort.getOrgID(), animalTag,startAverageCalculationFrom, numOfAdditionalDaysToAverage);
-					if (milkAverage == null) {
-						item.setPersonalizedFeedMessage("In order to determine the " + item.getFeedItemLookupValue().getShortDescription() + " requirements of the animal, we need its daily milk record. We could not find the milk record. Please add the animal's milk record and try again");
-					}
-					else {
-						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/item.getFulfillmentPct()),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
-						item.setDailyIntake((float)(milkAverage/item.getFulfillmentPct()));
-					}
-				} else {
-					item.setPersonalizedFeedMessage("Unable to determine the usage of " + item.getFeedItemLookupValue());
+//	private FeedPlan getFeedCohortPersonalizedPlan(FeedCohort cohort, FeedPlan plan, String animalTag) {
+//		if (plan == null || plan.getFeedPlan() == null) {
+//			plan = new FeedPlan();
+//			plan.setFeedPlan(new ArrayList<FeedItem>());
+//			plan.setPlanAnalysisComments("The cohort " + cohort.getFeedCohortLookupValue().getLookupValueCode() + " does not have any feed plan specified. Therefore, we can not determine a personalized feed for " + animalTag);
+//			return plan;
+//		} else {
+//			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
+//			while (it.hasNext()) {
+//				FeedItem item = it.next();
+//				if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.ABSOLUTE)) {
+//					item.setPersonalizedFeedMessage("Give the animal " + item.getFulfillmentPct() + " " + item.getUnits() + " of " + item.getFeedItemLookupValue().getShortDescription());
+//					item.setDailyIntake(item.getFulfillmentPct());
+//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.FREEFLOW)) {
+//					item.setPersonalizedFeedMessage("Put " + item.getFeedItemLookupValue().getShortDescription() + " infront of the animal and let it consume "  + item.getFeedItemLookupValue().getShortDescription() + " freely.");
+//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.BODYWEIGHT)) {
+//					Float animalWeight = getLatestEventWeight(cohort.getOrgID(), animalTag);
+//					if (animalWeight == null) {
+//						item.setPersonalizedFeedMessage("In order to determine the personalized feed value for the animal, we need its weight. We could not find a valid weight event in the animal's record. Please weigh the animal and add the weight event to the animal record and try again");
+//					}
+//					else {
+//						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
+//						item.setDailyIntake((float)(item.getFulfillmentPct()* animalWeight));
+//					}
+//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.BYDMREQPCT)) {
+//					Float animalWeight = getLatestEventWeight(cohort.getOrgID(), animalTag);
+//					if (animalWeight == null) {
+//						item.setPersonalizedFeedMessage("In order to determine the personalized feed value for the animal, we need its weight. We could not find a valid weight event in the animal's record. Please weigh the animal and add the weight event to the animal record and try again");
+//					}
+//					else {
+//						
+//						// For Dry Matter Body Weight, we find out the DM content of the fodder and then 
+//						
+//						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
+//						item.setDailyIntake((float)(item.getFulfillmentPct()* animalWeight));
+//					}
+//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.MILKPROD)) {
+//					LocalDate startAverageCalculationFrom = LocalDate.now().minusDays(1);
+//					int numOfAdditionalDaysToAverage = 2;
+//					Float milkAverage = getMilkAverage(cohort.getOrgID(), animalTag,startAverageCalculationFrom, numOfAdditionalDaysToAverage);
+//					if (milkAverage == null) {
+//						item.setPersonalizedFeedMessage("In order to determine the " + item.getFeedItemLookupValue().getShortDescription() + " requirements of the animal, we need its daily milk record. We could not find the milk record. Please add the animal's milk record and try again");
+//					}
+//					else {
+//						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/item.getFulfillmentPct()),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
+//						item.setDailyIntake((float)(milkAverage/item.getFulfillmentPct()));
+//					}
+//				} else {
+//					item.setPersonalizedFeedMessage("Unable to determine the usage of " + item.getFeedItemLookupValue());
+//				}
+//			}
+//		}
+//		return plan;
+//	}
+
+	public FeedPlan getPersonalizedPlanOfAnAnimal(Animal animal, FeedPlan cohortFeedPlan) throws Exception {
+		FeedPlan personalizePlan = new FeedPlan();
+		FeedLoader feedLoader = new FeedLoader();
+		FeedCohort animalFeedCohort = animal.getFeedCohortInformation();
+		if (animalFeedCohort == null || animalFeedCohort.getCohortNutritionalNeeds() == null) {
+			animalFeedCohort = this.getAnimalFeedCohort(animal.getOrgID(), animal.getAnimalTag());
+			if (animalFeedCohort == null) {
+				personalizePlan.setPlanAnalysisComments("Could not determine the feed cohort of " + animal.getAnimalTag() + " probably because of some missing configurations. It's personalized feed plan can not be determined.");
+				return personalizePlan;
+			}
+			animal.setFeedCohortInformation(animalFeedCohort);
+		}
+		// ... by now we would have figured out the animal's feedcohort and the nutritional needs of that feed cohort.
+
+		// A lot of our calculations depend on the animal's weight.
+		Float animalWeight = animal.getWeight();
+		if (animalWeight == null) {
+			animalWeight = this.getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag());
+			if (animalWeight == null) {
+				// assume a weight based on the animal's age.
+				personalizePlan.setPlanAnalysisComments(animal.getAnimalTag() + " has never been weighed. Animal must have a weight event before we can determine its personalized feed plan");
+				return personalizePlan;
+			}
+			animal.setWeight(animalWeight);
+		}
+		//... now we have the cohort and the weight.
+		
+		// Now we need to figure out the specific nutritional needs of THIS particular animal.
+		CohortNutritionalNeeds animalNeeds = this.getAnimalNutritionalNeeds(animal);
+		animal.setAnimalNutritionalNeeds(animalNeeds);
+		
+		String feedCohortCD =  animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode();
+		// Now we get the feed plan with which we wish to fulfill the cohort needs.
+		if (cohortFeedPlan == null)
+			cohortFeedPlan = feedLoader.retrieveFeedPlan(animal.getOrgID(), feedCohortCD);
+		// Finally we get to determining the feed plan for THIS animal with which we will meet THIS animal's nutritional needs.
+		personalizePlan = this.getAnimalPersonalizePlanFromCohortFeedPlan(cohortFeedPlan, animal);
+		return personalizePlan;
+	}	
+	
+	private CohortNutritionalNeeds getAnimalNutritionalNeeds(Animal animal) {
+		CohortNutritionalNeeds animalNeeds = new CohortNutritionalNeeds();
+		Float dm = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getDryMatter();
+		Float cp = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getCrudeProtein();
+		Float me = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getMetabloizableEnergy();
+		Float animalDM = dm * animal.getWeight();
+		Float animalCP = animalDM * cp;
+		Float animalME = me;// ME measured in daily ME requirements
+		animalNeeds.setDryMatter(animalDM);
+		animalNeeds.setCrudeProtein(animalCP);
+		animalNeeds.setMetabloizableEnergy(animalME);
+		return animalNeeds;
+	}
+
+	private FeedPlan getAnimalPersonalizePlanFromCohortFeedPlan(FeedPlan cohortFeedPlan, Animal animal) {
+		FeedPlan animalSpecificFeedPlan = new FeedPlan();
+		animalSpecificFeedPlan.setFeedPlan(new ArrayList<FeedItem>());
+		Float animalWeight = animal.getWeight();
+		Iterator<FeedItem> it = cohortFeedPlan.getFeedPlan().iterator();
+		while (it.hasNext()) {
+			FeedItem feedItem = it.next();
+			String fulFillmentTypeCD = feedItem.getFulFillmentTypeCD();
+			if (fulFillmentTypeCD.equals(Util.FulfillmentType.ABSOLUTE)) {
+				Float dailyIntake = feedItem.getFulfillmentPct();
+				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
+				Float dm = itemStats.getDryMatter() * dailyIntake;
+				Float cp = itemStats.getCrudeProtein() * dm;
+				Float me = itemStats.getMetabolizableEnergy() * dm;
+				feedItem.setDailyIntake(dailyIntake);				
+				feedItem.getFeedItemNutritionalStats().setDryMatter(dm);
+				feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
+				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
+
+				feedItem.setPersonalizedFeedMessage("Give the animal " + dailyIntake + " " + feedItem.getUnits() + " of " + feedItem.getFeedItemLookupValue().getShortDescription());
+				
+				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, dm, cp, me);
+				
+			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.FREEFLOW)) {
+				feedItem.setPersonalizedFeedMessage("Put " + feedItem.getFeedItemLookupValue().getShortDescription() + " infront of the animal and let it consume "  + feedItem.getFeedItemLookupValue().getShortDescription() + " freely.");
+				Float dm = 0f;
+				Float cp = 0f * dm;
+				Float me = 0f * dm;
+				feedItem.setDailyIntake(0f);				
+				feedItem.getFeedItemNutritionalStats().setDryMatter(dm);
+				feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
+				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
+				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, dm, cp, me);
+			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.BODYWEIGHT)) {
+				Float dailyIntake = (float)(feedItem.getFulfillmentPct() * animalWeight);
+				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
+				Float dm = (itemStats.getDryMatter()==Util.FulfillmentType.NO_DM_MEASUREONVOLUME ? 1f:itemStats.getDryMatter()) * dailyIntake;
+				Float cp = itemStats.getCrudeProtein() * dm;
+				Float me = itemStats.getMetabolizableEnergy() * dm;
+				feedItem.setDailyIntake(dailyIntake);				
+				feedItem.getFeedItemNutritionalStats().setDryMatter(itemStats.getDryMatter()==Util.FulfillmentType.NO_DM_MEASUREONVOLUME ? 0f:dm);
+				feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
+				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
+
+				feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces(dailyIntake,2) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
+
+				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, feedItem.getFeedItemNutritionalStats().getDryMatter(), cp, me);
+				
+			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.BYDMREQPCT)) {
+				// intake to be determined by the specified pecentage of Dry Matter needs of the animal.
+				// for example if DM need of the animal is 3.0% of body weight. Assume the body weight is
+				// 600 Kgs. Assume that the DM of this feeditem is 20%. Then a 0.50 value of feedItem.getFulfillmentPct()
+				// will mean that the daily intake of this feeditem will be = (600 * 30% * 0.50) / 20% = 45 Kgs
+				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
+				Float feedItemDM = itemStats.getDryMatter();
+				Float cohortDMNeeds = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getDryMatter();
+				Float animalDMNeeds = animalWeight * cohortDMNeeds;
+				Float animalDMNeedsToBeFilledByThisItem = animalDMNeeds * feedItem.getFulfillmentPct();
+				Float dailyIntake = animalDMNeedsToBeFilledByThisItem / feedItemDM;
+				Float cp = itemStats.getCrudeProtein() * animalDMNeedsToBeFilledByThisItem;
+				Float me = itemStats.getMetabolizableEnergy() * animalDMNeedsToBeFilledByThisItem;
+
+				feedItem.setDailyIntake(dailyIntake);				
+				feedItem.getFeedItemNutritionalStats().setDryMatter(animalDMNeedsToBeFilledByThisItem);
+				feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
+				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
+
+				feedItem.setPersonalizedFeedMessage("Give the animal " + dailyIntake + " " + feedItem.getUnits() + " of " + feedItem.getFeedItemLookupValue().getShortDescription());
+				
+				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, animalDMNeedsToBeFilledByThisItem, cp, me);
+			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.MILKPROD)) {
+				LocalDate startAverageCalculationFrom = LocalDate.now().minusDays(1);
+				int numOfAdditionalDaysToAverage = 2;
+				Float dailyIntake = null;
+				Float milkAverage = getMilkAverage(animal.getOrgID(), animal.getAnimalTag(),startAverageCalculationFrom, numOfAdditionalDaysToAverage);
+				if (milkAverage == null) {
+					feedItem.setPersonalizedFeedMessage("In order to determine the " + feedItem.getFeedItemLookupValue().getShortDescription() + " requirements of the animal, we need its daily milk record. We could not find the milk record. Please add the animal's milk record and try again");
+					dailyIntake = 0f;
+					milkAverage = 0f;
 				}
+				else {
+					feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/feedItem.getFulfillmentPct()),1) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
+					dailyIntake = (float)(milkAverage/feedItem.getFulfillmentPct());
+				}
+				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
+				Float cp = itemStats.getCrudeProtein() * milkAverage;
+				Float me = itemStats.getMetabolizableEnergy() * milkAverage;
+				feedItem.setDailyIntake(dailyIntake);				
+				feedItem.getFeedItemNutritionalStats().setDryMatter(0f);
+				feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
+				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
+				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, 0f, cp, me);				
+			} else {
+				feedItem.setPersonalizedFeedMessage("Unable to determine the usage of " + feedItem.getFeedItemLookupValue());
+				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
 			}
 		}
-		return plan;
+		return animalSpecificFeedPlan;
+	}
+
+	private FeedPlan updatePlanNutritionalStats(FeedPlan animalSpecificFeedPlan, Float dm, Float cp, Float me) {
+		if (animalSpecificFeedPlan.getPlanDM() == null)
+			animalSpecificFeedPlan.setPlanDM(dm);
+		else 
+			animalSpecificFeedPlan.setPlanDM(animalSpecificFeedPlan.getPlanDM() + dm);
+		
+		if (animalSpecificFeedPlan.getPlanCP() == null)
+			animalSpecificFeedPlan.setPlanCP(cp);
+		else 
+			animalSpecificFeedPlan.setPlanCP(animalSpecificFeedPlan.getPlanCP() + cp);
+		
+		if (animalSpecificFeedPlan.getPlanME() == null)
+			animalSpecificFeedPlan.setPlanME(me);
+		else 
+			animalSpecificFeedPlan.setPlanME(animalSpecificFeedPlan.getPlanME() + me);
+		return animalSpecificFeedPlan;
 	}
 
 	private Float getMilkAverage(String orgID, String animalTag, LocalDate startAverageCalculationFrom, int numOfDaysToAverage) {
@@ -327,6 +511,7 @@ public class FeedManager {
 			if (duplicateCheck.trim().equals(animalFeedCohortCD)) {
 				cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage);
 				cohort.setFeedCohortDeterminationCriteria(animalFeedCohortDeterminationCriteria);
+				cohort.setCohortNutritionalNeeds(getFeedCohortNutritionalNeeds(cohort, animal.getAnimalTag()));
 			} else {
 				// multiple rules were fired by this animal.
 				cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage + ". ⛔️Please note that this animal was found to belong to multiple feed cohorts [" + duplicateCheck.trim() +  "]. This is an ERROR; caused either because of data issues or a programming issue. Please submit a bug report");
@@ -390,5 +575,11 @@ public class FeedManager {
 			throw new IMDException("Could not determine whether the animal " + animal.getAnimalTag() + " has been weaned off or not because of the following exception: " + ex.getClass().getSimpleName() + " " + ex.getMessage());
 		}
 		return weanedOff;
+	}
+
+	public FeedPlan getPersonalizedFeedPlan(FeedCohort feedCohortType, String animalTag) throws Exception {
+		AnimalLoader anmlLoader = new AnimalLoader();
+		Animal animal = anmlLoader.getAnimalRawInfo(feedCohortType.getOrgID(), animalTag).get(0);		
+		return getPersonalizedFeedPlan(feedCohortType,animal);
 	}
 }

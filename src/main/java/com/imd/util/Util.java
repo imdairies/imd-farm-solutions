@@ -68,12 +68,30 @@ public class Util {
 	public static final String ERROR_POSTFIX = "ERROR: ";
 	public static final String SUCCESS_POSTFIX = "SUCCESS: ";
 
+	public static final class FeedItems {
+		public static final String ALFAHAY = "ALFAHAY";
+		public static final String VANDA = "VANDA";
+		public static final String WATER = "WATER";
+		public static final String MILK = "MILK";
+		public static final String CORNSILAGE = "CORNSILAGE";
+		
+	}
+
+	public static final class NutritionalStats {
+		public static final String DM_POSTFIX = "DM=";
+		public static final String CP_POSTFIX = "CP=";
+		public static final String ME_POSTFIX = "ME=";
+		
+	}
+
 
 	public static final class FulfillmentType {
 		public static final String ABSOLUTE = "ABSOLUTE";
 		public static final String BODYWEIGHT = "BODYWEIGHT";
 		public static final String FREEFLOW = "FREEFLOW";
 		public static final String MILKPROD = "MILKPROD";
+		public static final String BYDMREQPCT = "BYDMREQPCT";
+		public static final Float NO_DM_MEASUREONVOLUME = -1f;
 	}
 
 	public static final class Breed  {

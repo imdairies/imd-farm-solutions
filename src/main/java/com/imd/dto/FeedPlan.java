@@ -16,6 +16,10 @@ public class FeedPlan extends IMDairiesDTO {
 	 */
 	private List<FeedItem> feedPlan;
 	
+	private Float planDM;
+	private Float planCP;
+	private Float planME;
+	
 	private String planAnalysisComments;
 	
 	public FeedCohort getFeedCohort() {
@@ -75,6 +79,24 @@ public class FeedPlan extends IMDairiesDTO {
 	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
 		return (stringify(prefix) +  ",\n" + super.dtoToJson(prefix, fmt));
+	}
+	public Float getPlanDM() {
+		return planDM;
+	}
+	public void setPlanDM(Float planDM) {
+		this.planDM = planDM;
+	}
+	public Float getPlanCP() {
+		return planCP;
+	}
+	public void setPlanCP(Float planCP) {
+		this.planCP = planCP;
+	}
+	public Float getPlanME() {
+		return planME;
+	}
+	public void setPlanME(Float planME) {
+		this.planME = planME;
 	}	
 	
 	

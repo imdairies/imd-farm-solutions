@@ -114,7 +114,9 @@ public class FeedItem extends IMDairiesDTO {
 	}
 
 	private String stringify(String prefix) {
-		return  (feedItemLookupValue != null ? feedItemLookupValue.dtoToJson(prefix) + ",\n" : "") + fieldToJson("dailyIntake",dailyIntake);	
+		return  (feedItemLookupValue != null ? feedItemLookupValue.dtoToJson(prefix) + ",\n" : "") + 
+				prefix + fieldToJson("units",units) + ",\n" + 
+				prefix + fieldToJson("dailyIntake",dailyIntake);	
 	}
 	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
 		if (appendSuperJson)
@@ -132,7 +134,7 @@ public class FeedItem extends IMDairiesDTO {
 	}
 	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
-		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+		return (stringify(prefix) + ",\n" + super.dtoToJson(prefix, fmt));
 	}
 	public Float getDailyIntake() {
 		return dailyIntake;

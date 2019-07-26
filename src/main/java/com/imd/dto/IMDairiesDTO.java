@@ -10,6 +10,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.util.BufferRecyclers;
+import com.imd.util.Util;
 
 public class IMDairiesDTO {
 	
@@ -178,7 +179,7 @@ public class IMDairiesDTO {
 		return ("\"" + fieldName + "\":" + flValue);
 	}
 	public String fieldToJson(String fieldName, Float flValue) {
-		return ("\"" + fieldName + "\":" + (flValue == null ? "\"\"" : flValue.floatValue()));
+		return ("\"" + fieldName + "\":" + (flValue == null ? "\"\"" : Util.formatTwoDecimalPlaces(flValue.floatValue())));
 	}
 	public String fieldToJson(String fieldName, Person personValue) {
 		return ("\"" + fieldName + "\":" + (personValue == null ? "\"\"" : "\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(personValue.getPersonID() == null ? "" : personValue.getPersonID()))  + "\""));

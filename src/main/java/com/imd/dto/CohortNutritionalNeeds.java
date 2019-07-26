@@ -47,7 +47,7 @@ public class CohortNutritionalNeeds extends IMDairiesDTO {
 	public void setCrudeProtein(Float crudeProtein) {
 		this.nutritionalNeedsCrudeProtein = crudeProtein;
 	}
-	private String stringify(String prefix) {
+	public String stringify(String prefix) {
 		return  prefix + fieldToJson("nutritionalNeedsFeedCohortCD", nutritionalNeedsFeedCohortCD) + ",\n" + 
 				prefix + fieldToJson("nutritionalNeedsStart", this.nutritionalNeedsStart == null ? "" : this.nutritionalNeedsStart.toString()) + ",\n" +
 				prefix + fieldToJson("nutritionalNeedsEnd", this.nutritionalNeedsEnd == null ? "" : this.nutritionalNeedsEnd.toString()) + ",\n" +

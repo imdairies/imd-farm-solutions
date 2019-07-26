@@ -7,6 +7,7 @@ public class FeedCohort extends IMDairiesDTO{
 	private String feedCohortTypeShortDescription;
 	private String feedCohortDeterminationCriteria;
 	private String animalFeedCohortDeterminatationMessage;
+	private CohortNutritionalNeeds cohortNutritionalNeeds;
 	public FeedCohort(String orgID, LookupValues cohortLV, String cohortShortDescr) {
 		this.setOrgID(orgID);
 		this.feedCohortLookupValue = cohortLV;		
@@ -42,14 +43,15 @@ public class FeedCohort extends IMDairiesDTO{
 				prefix + fieldToJson("feedCohortTypeShortDescr", feedCohortLookupValue.getShortDescription()) + ",\n" + 
 				prefix + fieldToJson("feedCohortTypeShortDescription", feedCohortTypeShortDescription == null ? "" : this.feedCohortTypeShortDescription) + ",\n" +
 				prefix + fieldToJson("feedCohortDeterminatationCriteria", this.feedCohortDeterminationCriteria == null ? "" : this.feedCohortDeterminationCriteria) + ",\n" +
-				prefix + fieldToJson("animalFeedCohortDeterminatationMessage", this.animalFeedCohortDeterminatationMessage == null ? "" : this.animalFeedCohortDeterminatationMessage) + ",\n";
+				prefix + fieldToJson("animalFeedCohortDeterminatationMessage", this.animalFeedCohortDeterminatationMessage == null ? "" : this.animalFeedCohortDeterminatationMessage) + ",\n" + 
+				(this.cohortNutritionalNeeds == null ? "" : this.cohortNutritionalNeeds.stringify(prefix));
 	}
 
 	public String dtoToJson(String prefix)  {		
 		return stringify(prefix) + super.dtoToJson(prefix);
 	}
 
-	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
+	public String dtoToJson(String prefix, boolean appendSuperJson)  {
 		if (appendSuperJson)
 			return dtoToJson(prefix);
 		else
@@ -66,6 +68,12 @@ public class FeedCohort extends IMDairiesDTO{
 	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
 		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+	}
+	public CohortNutritionalNeeds getCohortNutritionalNeeds() {
+		return cohortNutritionalNeeds;
+	}
+	public void setCohortNutritionalNeeds(CohortNutritionalNeeds cohortNutritionalNeeds) {
+		this.cohortNutritionalNeeds = cohortNutritionalNeeds;
 	}
 
 }

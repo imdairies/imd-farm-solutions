@@ -196,7 +196,8 @@ public class InventoryLoader {
 				+ " LEFT OUTER JOIN  LV_SIRE b ON b.id=a.item_id " 
 				+ " LEFT OUTER JOIN SIRE_USAGE_STATS_VW c ON a.item_id=C.CODE  WHERE a.item_id = b.id and a.org_id=? and remaining_qty > 0 "				
 				+ " union "
-				+ " select 0 as USE_COUNT,0 as success_count,0 as failure_count,0 as tbd_count, \"∞\" as REMAINING_QTY,'N' as SEXED, a.* from LV_SIRE a where semen_ind='N'";
+				+ " select 0 as USE_COUNT,0 as success_count,0 as failure_count,0 as tbd_count, \"∞\" as REMAINING_QTY,'N' as SEXED, a.* from LV_SIRE a where semen_ind='N' "
+				+ " and  a.ID not in (select animal_tag from animals where herd_leaving_dttm is not null)";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
