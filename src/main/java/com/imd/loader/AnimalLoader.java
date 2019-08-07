@@ -354,7 +354,7 @@ public class AnimalLoader {
 		
 		
 		String qryString = "Select a.*, \"\" as RECORD_URL, \"\" AS SIRE_ALIAS, \"\" as ID,  b.SHORT_DESCR as ANIMAL_TYPE, b.ADDITIONAL_FLD1 AS STATUS_INDICATOR, c.LACTATION_NBR from imd.ANIMALS a " +
-		" left outer join imd.LOOKUP_VALUES b on a.TYPE_CD = b.LOOKUP_CD " +
+		" left outer join imd.LOOKUP_VALUES b on a.TYPE_CD = b.LOOKUP_CD  AND CATEGORY_CD='" + Util.LookupValues.LCYCL+ "' " +
         " left outer join (SELECT e.ANIMAL_TAG, COUNT(*) AS LACTATION_NBR FROM imd.LIFECYCLE_EVENTS e WHERE  (e.EVENT_CD='PARTURATE' OR e.EVENT_CD='ABORTION') GROUP BY e.ANIMAL_TAG) c  " +
         " on c.animal_tag=a.animal_tag  " +
         " WHERE a.ORG_ID=? AND GENDER = 'F' and (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) and DOB <= ?" ;

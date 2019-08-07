@@ -87,60 +87,7 @@ public class FeedManager {
 		return getPersonalizedPlanOfAnAnimal(animal, null);
 	}
 	
-//	private FeedPlan getFeedCohortPersonalizedPlan(FeedCohort cohort, FeedPlan plan, String animalTag) {
-//		if (plan == null || plan.getFeedPlan() == null) {
-//			plan = new FeedPlan();
-//			plan.setFeedPlan(new ArrayList<FeedItem>());
-//			plan.setPlanAnalysisComments("The cohort " + cohort.getFeedCohortLookupValue().getLookupValueCode() + " does not have any feed plan specified. Therefore, we can not determine a personalized feed for " + animalTag);
-//			return plan;
-//		} else {
-//			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
-//			while (it.hasNext()) {
-//				FeedItem item = it.next();
-//				if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.ABSOLUTE)) {
-//					item.setPersonalizedFeedMessage("Give the animal " + item.getFulfillmentPct() + " " + item.getUnits() + " of " + item.getFeedItemLookupValue().getShortDescription());
-//					item.setDailyIntake(item.getFulfillmentPct());
-//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.FREEFLOW)) {
-//					item.setPersonalizedFeedMessage("Put " + item.getFeedItemLookupValue().getShortDescription() + " infront of the animal and let it consume "  + item.getFeedItemLookupValue().getShortDescription() + " freely.");
-//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.BODYWEIGHT)) {
-//					Float animalWeight = getLatestEventWeight(cohort.getOrgID(), animalTag);
-//					if (animalWeight == null) {
-//						item.setPersonalizedFeedMessage("In order to determine the personalized feed value for the animal, we need its weight. We could not find a valid weight event in the animal's record. Please weigh the animal and add the weight event to the animal record and try again");
-//					}
-//					else {
-//						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
-//						item.setDailyIntake((float)(item.getFulfillmentPct()* animalWeight));
-//					}
-//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.BYDMREQPCT)) {
-//					Float animalWeight = getLatestEventWeight(cohort.getOrgID(), animalTag);
-//					if (animalWeight == null) {
-//						item.setPersonalizedFeedMessage("In order to determine the personalized feed value for the animal, we need its weight. We could not find a valid weight event in the animal's record. Please weigh the animal and add the weight event to the animal record and try again");
-//					}
-//					else {
-//						
-//						// For Dry Matter Body Weight, we find out the DM content of the fodder and then 
-//						
-//						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(item.getFulfillmentPct()* animalWeight),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
-//						item.setDailyIntake((float)(item.getFulfillmentPct()* animalWeight));
-//					}
-//				} else if (item.getFulFillmentTypeCD().equals(Util.FulfillmentType.MILKPROD)) {
-//					LocalDate startAverageCalculationFrom = LocalDate.now().minusDays(1);
-//					int numOfAdditionalDaysToAverage = 2;
-//					Float milkAverage = getMilkAverage(cohort.getOrgID(), animalTag,startAverageCalculationFrom, numOfAdditionalDaysToAverage);
-//					if (milkAverage == null) {
-//						item.setPersonalizedFeedMessage("In order to determine the " + item.getFeedItemLookupValue().getShortDescription() + " requirements of the animal, we need its daily milk record. We could not find the milk record. Please add the animal's milk record and try again");
-//					}
-//					else {
-//						item.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/item.getFulfillmentPct()),1) + " " + item.getUnits() + " " + item.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
-//						item.setDailyIntake((float)(milkAverage/item.getFulfillmentPct()));
-//					}
-//				} else {
-//					item.setPersonalizedFeedMessage("Unable to determine the usage of " + item.getFeedItemLookupValue());
-//				}
-//			}
-//		}
-//		return plan;
-//	}
+
 
 	public FeedPlan getPersonalizedPlanOfAnAnimal(Animal animal, FeedPlan cohortFeedPlan) throws Exception {
 		FeedPlan personalizePlan = new FeedPlan();
@@ -491,6 +438,14 @@ public class FeedManager {
 			duplicateCheck += animalFeedCohortCD + " ";
 			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is " + animalFeedCohortCD + ". It is expected to calve after " + Util.getDaysBetween(latestInseminationOrMatingEventTS.plusDays(PREGNANCY_DURATION_DAYS),now) + " days, In Sha Allah";
 			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is Dry and Pregnant and it will calve after more than " + NEAR_PARTURATION_THRESHOLD_DAYS + " days";			
+		}
+		if (!animal.isLactating()  && animal.getAnimalTypeCD().equalsIgnoreCase(Util.AnimalTypes.LCTPOSTPAR) &&
+				latestParturationEventTS != null && now.isBefore(latestParturationEventTS.plusDays(RECENT_PARTURATION_DAYS_LIMIT))){
+			animalFeedCohortCD = Util.FeedCohortType.LCTPOSTPAR;
+			duplicateCheck += animalFeedCohortCD + " ";
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is " + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(), latestParturationEventTS)+ " days ago. Its milk is not yet fit for general consumption.";
+			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is LCTPOSTPAR and it parturated/aborted with-in the last " 
+			+ RECENT_PARTURATION_DAYS_LIMIT + " days";
 		}
 		
 		// remaining cohorts: high yielder lactating early, high yielder lactating mid, high yielder lactation far, lactating dry

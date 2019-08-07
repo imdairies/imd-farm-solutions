@@ -539,7 +539,7 @@ class FeedManagerTest {
 			IMDLogger.log("The animal's feedplan will give it:\n" + Util.formatTwoDecimalPlaces(plan.getPlanDM()) + " Kgs. of Dry Matter. Required:"+ Util.formatTwoDecimalPlaces(nutritionalNeeds.getDryMatter() * femaleCalf.getWeight()) + " Kgs.\n" +
 					Util.formatTwoDecimalPlaces(plan.getPlanCP()) + " Kgs. of Crude Protein. Required:"+ Util.formatTwoDecimalPlaces(nutritionalNeeds.getCrudeProtein() * nutritionalNeeds.getDryMatter() * femaleCalf.getWeight()) + " Kgs.\n" +
 					Util.formatTwoDecimalPlaces(plan.getPlanME()) + " MJ of Metabolizable Energy. Required:"+ nutritionalNeeds.getMetabloizableEnergy() + " MJ.\n", Util.INFO);
-			assertEquals(Util.formatTwoDecimalPlaces(29.58944f),Util.formatTwoDecimalPlaces(plan.getPlanME()));
+			assertEquals(Util.formatTwoDecimalPlaces(30.715136f),Util.formatTwoDecimalPlaces(plan.getPlanME()));
 			assertEquals(Util.formatTwoDecimalPlaces(0.499775f),Util.formatTwoDecimalPlaces(plan.getPlanCP()));
 			assertEquals(Util.formatTwoDecimalPlaces(1.565f),Util.formatTwoDecimalPlaces(plan.getPlanDM()));
 			
@@ -617,7 +617,7 @@ class FeedManagerTest {
 			item3.setFeedItemNutritionalStats(new FeedItemNutritionalStats());
 			item3.getFeedItemNutritionalStats().setDryMatter(0.88f);
 			item3.getFeedItemNutritionalStats().setCrudeProtein(0.19f);
-			item3.getFeedItemNutritionalStats().setMetabolizableEnergy(8.32f);
+			item3.getFeedItemNutritionalStats().setMetabolizableEnergy(10.8784f/*8.32f*/);//2600 Kcal = 10.8784 MJ 
 			plan.add(item3);
 			
 			FeedItem item4 = new FeedItem();

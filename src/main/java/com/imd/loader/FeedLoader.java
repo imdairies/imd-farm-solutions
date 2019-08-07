@@ -442,7 +442,6 @@ public class FeedLoader {
 				" left  outer join LOOKUP_VALUES C on (c.lookup_cd=a.FEED_COHORT and c.category_cd=? ) " +
 				"  where "  + 
 				" ORG_ID=? AND FEED_COHORT= ? ";
-
 		
 		FeedPlan feedPlan = null;
 		ResultSet rs = null;

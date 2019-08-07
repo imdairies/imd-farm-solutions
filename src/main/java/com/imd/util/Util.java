@@ -155,6 +155,7 @@ public class Util {
 		public static final String MALECALF = "MALECALF";
 		public static final String HFRPREGN = "HFRPREGN";
 		public static final String LACTATING = "LACTATING";
+		public static final String LCTPOSTPAR = "LCTPOSTPAR";
 		public static final String LCTINSEMIN = "LCTINSEMIN";
 		public static final String LCTPRGNT = "LCTPRGNT";
 		public static final String HFRINSEMIN = "HFRINSEMIN";
@@ -168,22 +169,17 @@ public class Util {
 		public static final String BULL = "BULL";
 		public static final String MALECALF = "MALECALF";
 		public static final String HEIFER = "HEIFER";
+		public static final String PREGHFR = "PREGHFR";
 		public static final String HFRCLOSEUP = "HFRCLOSEUP";
+		public static final String LCTPOSTPAR = "LCTPOSTPAR";
 		public static final String LCTEARLY = "LCTEARLY";
-//		public static final String LACTATING = "LACTATING";
-//		public static final String LCTINSEMIN = "LCTINSEMIN";
-//		public static final String LCTPRGNT = "LCTPRGNT";
-//		public static final String HFRINSEMIN = "HFRINSEMIN";
-//		public static final String DRYINSEMIN = "DRYINSEMIN";
-//		public static final String DRYPRENG = "DRYPRENG";
+		public static final String LCTMID = "LCTMID";
+		public static final String LCTOLD = "LCTOLD";
 		public static final String FMLWNDOFF = "FMLWNDOFF";
 		public static final String FEMALECALF = "FEMALECALF";
 		public static final String UNDETERMINED = "UNDETERMINED";
-		public static final String LCTMID = "LCTMID";
-		public static final String LCTOLD = "LCTOLD";
 		public static final String NEARPRTRT = "NEARPRTRT";
 		public static final String FARPRTRT = "FARPRTRT";
-		public static final String PREGHFR = "PREGHFR";
 	}
 
 	 public static final class GENDER {

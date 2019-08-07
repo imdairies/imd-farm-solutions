@@ -110,13 +110,27 @@ public class FeedItem extends IMDairiesDTO {
 	}
 
 	public String dtoToJson(String prefix)  {		
-		return stringify(prefix) + super.dtoToJson(prefix);
+		return stringify(prefix) + ",\n" + super.dtoToJson(prefix);
 	}
 
+//	private String stringify(String prefix) {
+//		return  (feedItemLookupValue != null ? feedItemLookupValue.dtoToJson(prefix) + ",\n" : "") + 
+//				prefix + fieldToJson("units",units) + ",\n" + 
+//				prefix + fieldToJson("dailyIntake",dailyIntake);
+//	}
 	private String stringify(String prefix) {
 		return  (feedItemLookupValue != null ? feedItemLookupValue.dtoToJson(prefix) + ",\n" : "") + 
+				prefix + fieldToJson("start",start) + ",\n" + 
+				prefix + fieldToJson("end",end) + ",\n" + 
+				prefix + fieldToJson("minimumFulfillment",minimumFulfillment) + ",\n" + 
+				prefix + fieldToJson("fulfillmentPct",fulfillmentPct) + ",\n" + 
+				prefix + fieldToJson("maximumFulfillment",maximumFulfillment) + ",\n" + 
+				prefix + fieldToJson("fulFillmentTypeCD",fulFillmentTypeCD) + ",\n" + 
 				prefix + fieldToJson("units",units) + ",\n" + 
-				prefix + fieldToJson("dailyIntake",dailyIntake);	
+				prefix + fieldToJson("dailyFrequency",dailyFrequency) + ",\n" + 
+				prefix + fieldToJson("comments",comments) + ",\n" + 
+				prefix + fieldToJson("intakeType",intakeType) + ",\n" + 
+				prefix + fieldToJson("dailyIntake",dailyIntake);
 	}
 	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
 		if (appendSuperJson)

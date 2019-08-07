@@ -30,6 +30,46 @@ import com.imd.util.Util;
 @Path("/feed")
 public class FeedSrvc {
 	
+	
+	
+
+	@POST
+	@Path("/retrievefeedplan")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveFeedPlan(AnimalBean animalBean){
+    	IMDLogger.log(animalBean.toString(), Util.INFO);
+		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
+		String responseJson = "";
+		String feedCohortCD = animalBean.getAnimalType();
+		String prefix = "  ";
+		if ( feedCohortCD == null || feedCohortCD.isEmpty())
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"Please specify a valid cohort type.\"}").build();
+
+    	try {
+			FeedLoader loader = new FeedLoader();
+			FeedPlan feedPlan = loader.retrieveFeedPlan(orgID, feedCohortCD);
+			if (feedPlan == null || feedPlan.getFeedPlan().isEmpty())
+				return Response.status(400).entity("{ \"error\": true, \"message\":\"Could not find feed plan for the cohort: " + feedCohortCD + " .\"}").build();
+			Iterator<FeedItem> it = feedPlan.getFeedPlan().iterator();
+			while(it.hasNext()) {
+				FeedItem item = it.next();
+				responseJson += "{\n" +  item.dtoToJson(prefix) + "\n}" + (it.hasNext() ? ",\n" : "\n");
+			}	
+	    	responseJson = "[" + responseJson + "]";
+	    	IMDLogger.log(responseJson, Util.INFO);
+			return Response.status(200).entity(responseJson).build(); 
+		} catch (IMDException e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in FeedSrvc.retrieveFeedPlan() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + e.getMessage() + "\"}").build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in FeedSrvc.retrieveFeedPlan() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"Following error was encountered in retrieving cohort feed plan: " + e.getMessage() + "\"}").build();
+		}
+	}	
+	
 	@POST
 	@Path("/determineanimalfeed")
 	@Consumes (MediaType.APPLICATION_JSON)
