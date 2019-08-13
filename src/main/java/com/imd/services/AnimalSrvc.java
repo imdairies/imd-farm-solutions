@@ -156,7 +156,7 @@ public class AnimalSrvc {
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
 		}
 		else if (typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status at the time of animal addition. Please choose another status to add this animla and then add an event that results in an inactive status.\"}").build();			
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status at the time of animal addition. Instead, add an event that results in an inactive status.\"}").build();			
 		}
 		
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
@@ -217,6 +217,103 @@ public class AnimalSrvc {
 
 	}
 
+	
+	
+	@POST
+	@Path("/updateanimal")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response updateAnimal(AnimalBean animalBean){
+		Animal animal = null;			
+		String tag = animalBean.getAnimalTag();
+		String alias  = animalBean.getAlias();
+		String typeCD = animalBean.getAnimalType();
+		String dob = animalBean.getDateOfBirthStr();
+		String breed = animalBean.getBreed();
+		String gender = "" + animalBean.getGender();
+		String damTag = animalBean.getDam();
+		String sireTag = animalBean.getSire();
+		String dobAccuracyInd = animalBean.getDobAccuracyInd();
+		String herdJoiningDate = animalBean.getHerdJoiningDttmStr();
+		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
+		IMDLogger.log("Update Animal Called with following input values", Util.INFO);
+		IMDLogger.log(animalBean.toString(), Util.INFO);
+		
+		if (tag == null || tag.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
+		}
+		else if (typeCD == null || typeCD.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
+		}
+		else if (dob == null || dob.trim().isEmpty()) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
+		}
+//		else if (gender == "" || gender.trim().isEmpty()) {
+//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal gender.\"}").build();
+//		}
+//		else if (dobAccuracyInd == null || dobAccuracyInd.trim().isEmpty()) {
+//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
+//		}
+//		else if (breed == null || breed.trim().isEmpty()) {
+//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
+//		}
+//		else if (herdJoiningDate == null || herdJoiningDate.isEmpty()) {
+//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
+//		}
+		else if (typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")) {
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status. Instead, please add an event that results in an inactive status.\"}").build();			
+		}
+		
+		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
+		int result = -1;
+		String frontPose = animalBean.getFrontPoseImage() == null || animalBean.getFrontPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/1.png": animalBean.getFrontPoseImage();
+		String backPose =  animalBean.getBackPoseImage() == null || animalBean.getBackPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/2.png": animalBean.getBackPoseImage();
+		String rightPose = animalBean.getRightPoseImage() == null || animalBean.getRightPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/3.png": animalBean.getRightPoseImage();
+		String leftPose =  animalBean.getLeftPoseImage() == null || animalBean.getLeftPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/4.png": animalBean.getLeftPoseImage();
+
+		try {
+			AnimalLoader loader = new AnimalLoader();
+			animal = new Animal(tag);
+//			animal.setFrontSideImageURL(frontPose);
+//			animal.setBackSideImageURL(backPose);
+//			animal.setRightSideImageURL(rightPose);
+//			animal.setLeftSideImageURL(leftPose);
+			animal.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+			if (alias != null && !alias.trim().isEmpty())
+				animal.setAlias(alias);
+			animal.setAnimalTypeCD(typeCD);
+//			animal.setBreed(animalBean.getBreed());
+//			animal.setDateOfBirth(animalBean.getDateOfBirth("MM/dd/yyyy, hh:mm:ss aa"));
+//			animal.setHerdJoiningDate(animalBean.getHerdJoiningDate("MM/dd/yyyy, hh:mm:ss aa"));
+//			animal.setDateOfBirthEstimated(!dobAccuracyInd.equalsIgnoreCase("Y"));
+//			animal.setBornThroughAI(aiInd.equalsIgnoreCase("Y"));
+//			if (damTag != null && !damTag.trim().isEmpty())
+//				animal.setAnimalDam(new Dam(damTag));
+//			if (sireTag != null && !sireTag.trim().isEmpty())
+//				animal.setAnimalSire(new Sire(sireTag));
+//			animal.setFrontSideImageURL(frontPose);
+//			animal.setBackSideImageURL(backPose);
+//			animal.setRightSideImageURL(rightPose);
+//			animal.setLeftSideImageURL(leftPose);
+			animal.setUpdatedBy(new User(userID));
+			animal.setUpdatedDTTM(DateTime.now());
+			result = loader.updateAnimal(animal);
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.addAnimal() service method: " + e.getMessage(),  Util.ERROR);
+		}
+		if (result == 1) {
+//			String message = performPostInsertionSteps(animal);
+			return Response.status(200).entity("{ \"error\": false, \"message\":\"Animal has been updated successfully.\"}").build();
+		}
+		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be updated. Please reduce the field length and try again.\"}").build();
+		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be updated. Please submit a bug report.\"}").build();
+		else
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred during animal update\"}").build();
+
+	}
+	
 	
 	@POST
 	@Path("/addsire")

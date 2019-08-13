@@ -696,6 +696,50 @@ public class AnimalLoader {
 		return retrieveAnimalTypes(values, qryString);
 	}
 
+	public int updateAnimal(Animal animalDto) {
+		int recordAdded = -1;
+		String qryString = "UPDATE ANIMALS SET " + 
+				(animalDto.getAnimalTypeCD() == null ? "" : " TYPE_CD=?,") +
+				(animalDto.getAlias() == null ? "" : " ALIAS=?,") + 
+				" UPDATED_BY=?, UPDATED_DTTM=? WHERE ORG_ID=? AND ANIMAL_TAG=?";
+
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			if (animalDto.getAnimalTypeCD() != null)
+				preparedStatement.setString(index++, animalDto.getAnimalTypeCD());
+			if (animalDto.getAlias() != null)
+				preparedStatement.setString(index++, animalDto.getAlias());
+			preparedStatement.setString(index++, animalDto.getUpdatedBy().getUserId());
+			preparedStatement.setString(index++, animalDto.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(index++, animalDto.getOrgID());
+			preparedStatement.setString(index++, animalDto.getAnimalTag());
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			recordAdded = preparedStatement.executeUpdate();
+		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
+			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
+			ex.printStackTrace();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordAdded;
+	}	
 	public int updateAnimalStatus(Animal animalDto) {
 		int recordAdded = -1;
 		String qryString = "UPDATE ANIMALS SET TYPE_CD=?, UPDATED_BY=?, UPDATED_DTTM=? WHERE ORG_ID=? AND ANIMAL_TAG=?";

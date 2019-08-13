@@ -283,6 +283,7 @@ public class Animal extends IMDairiesDTO{
 		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
+				prefix + fieldToJson("animalTypeCD", this.animalTypeCD) + ",\n" +
 				prefix + fieldToJson("weight", this.weight == null ? "" : this.weight.toString()) + ",\n" +
 				prefix + fieldToJson("statusIndicators", this.statusIndicators == null ? "" : this.statusIndicators) + ",\n" + 
 				prefix + fieldToJson("breed", this.breed) + ",\n" +
