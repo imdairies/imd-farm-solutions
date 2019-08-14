@@ -57,7 +57,7 @@ class FeedLoaderTest {
 			feedItem.setEnd(0.0f);
 			feedItem.setMinimumFulfillment(3.3f);
 			feedItem.setFulfillmentPct(3.0f);
-			feedItem.setMaximumFulfillment(null);
+//			feedItem.setMaximumFulfillment(null);
 			feedItem.setUnits("Kgs");
 			feedItem.setFulFillmentTypeCD(Util.FulfillmentType.ABSOLUTE);
 			feedItem.setDailyFrequency((Integer)null);
@@ -93,7 +93,7 @@ class FeedLoaderTest {
 			feedItem1.setEnd(0.0f);
 			feedItem1.setMinimumFulfillment(3.3f);
 			feedItem1.setFulfillmentPct(3.0f);
-			feedItem1.setMaximumFulfillment(null);
+//			feedItem1.setMaximumFulfillment(null);
 			feedItem1.setUnits("Kgs");
 			feedItem1.setFulFillmentTypeCD(Util.FulfillmentType.ABSOLUTE);
 			feedItem1.setDailyFrequency((Integer)null);
@@ -115,7 +115,7 @@ class FeedLoaderTest {
 			feedItem2.setEnd(0.0f);
 			feedItem2.setMinimumFulfillment(3.3f);
 			feedItem2.setFulfillmentPct(3.0f);
-			feedItem2.setMaximumFulfillment(null);
+//			feedItem2.setMaximumFulfillment(null);
 			feedItem2.setUnits("Liters");
 			feedItem2.setFulFillmentTypeCD(Util.FulfillmentType.ABSOLUTE);
 			feedItem2.setDailyFrequency((Integer)1);

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.joda.time.format.DateTimeFormatter;
 
+import com.imd.util.Util;
+
 public class FeedPlan extends IMDairiesDTO {
 
 	/**
@@ -55,6 +57,9 @@ public class FeedPlan extends IMDairiesDTO {
 			}
 		}
 		return  prefix + fieldToJson("planAnalysisComments", (planAnalysisComments == null ? "": planAnalysisComments) + feedItemAnalysisMessages ) + ",\n" +
+				prefix + fieldToJson("planAchievedDM", (this.planDM == null ? 0f: new Float(Util.formatTwoDecimalPlaces(this.planDM.floatValue())))) + ",\n" +
+				prefix + fieldToJson("planAchievedCP", (this.planCP == null ? 0f: new Float(Util.formatTwoDecimalPlaces(this.planCP.floatValue())))) + ",\n" +
+				prefix + fieldToJson("planAchievedME", (this.planME == null ? 0f: new Float(Util.formatTwoDecimalPlaces(this.planME.floatValue())))) + ",\n" +
 				prefix +"\"feedPlanItems\" :[" + itemsJson + "]";
 	}
 	

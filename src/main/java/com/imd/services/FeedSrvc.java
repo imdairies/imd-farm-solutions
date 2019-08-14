@@ -131,9 +131,10 @@ public class FeedSrvc {
 //				if (!animalValue.getAnimalTag().equalsIgnoreCase("047"))
 //					continue;
 				try {
-					FeedPlan rawPlan = manager.getPersonalizedFeedPlan(animalValue.getFeedCohortInformation(), animalValue.getAnimalTag());
+//					animalValue.setAnimalNutritionalNeeds(manager.getAnimalNutritionalNeeds(animalValue));
+					FeedPlan rawPlan = manager.getPersonalizedFeedPlan(animalValue);
 					List<FeedItem> formattedPlan = formatFeedPlan(allFeedItems.getFeedPlan(), rawPlan, intakeQuantity);
-					rawPlan.setFeedPlan(formattedPlan);
+					rawPlan.setFeedPlan(formattedPlan); 
 					animalFeedInfoJson += prefix + prefix + "\n{\n" + createFeedListingJson(orgID, animalValue,rawPlan,prefix+prefix+prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + prefix + prefix + "\n} " 
 							+ (herd.size() == count ?  "" : ",");
 				} catch (Exception ex) {
@@ -208,8 +209,10 @@ public class FeedSrvc {
 				prefix + animalValue.fieldToJson("currentAge", animalValue.getCurrentAge()) + ",\n" + 
 				prefix + animalValue.fieldToJson("weight", animalValue.getWeight()) + ",\n" + 
 				prefix + animalValue.fieldToJson("animalTag", animalValue.getAnimalTag()) + ",\n" +
-				(animalValue.getFeedCohortInformation() == null ? "" : animalValue.getFeedCohortInformation().dtoToJson(prefix,false)) +
-				//(animalValue.getAnimalNutritionalNeeds() == null ? "" : animalValue.getAnimalNutritionalNeeds().dtoToJson(prefix,false)) + 
+				(animalValue.getAnimalNutritionalNeeds() == null ? "" : animalValue.getAnimalNutritionalNeeds().dtoToJson(prefix,false)) + 
+//				(animalValue.getFeedCohortInformation() == null ? "" : animalValue.getFeedCohortInformation().dtoToJson(prefix,false)) +
+				prefix + animalValue.fieldToJson("feedCohortDeterminatationCriteria", animalValue.getFeedCohortInformation().getAnimalFeedCohortDeterminatationMessage()) + ",\n" +
+				prefix + animalValue.fieldToJson("feedCohortTypeShortDescr", animalValue.getFeedCohortInformation().getFeedCohortLookupValue().getShortDescription()) + ",\n" +
 				(feedPlan != null ? feedPlan.dtoToJson(prefix + prefix, false) : "");
 		return responseJson;
 	}

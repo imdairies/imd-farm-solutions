@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -324,13 +325,13 @@ class FeedManagerTest {
 			boolean nutritionalNeedsFound = false;
 			while (it.hasNext()) {
 				Animal anml = it.next();
-//				anml.dtoToJson("   ");
 				if (anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode().equals(Util.FeedCohortType.UNDETERMINED))
 					undeterminedCount++;
 				if (anml.getAnimalTag().equals(nonPregHeiferTag)) {
 					assertEquals(Util.FeedCohortType.HEIFER,anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
 					nonPregHeiferFound = true;
 				} else if (anml.getAnimalTag().equals(pregHeiferTag)) {
+					assertEquals(400f,anml.getWeight().floatValue());
 					assertEquals(Util.FeedCohortType.HFRCLOSEUP,anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
 					pregHeiferFound = true;
 				}
@@ -499,7 +500,7 @@ class FeedManagerTest {
 	}	
 	
 	@Test
-	void testPersonalizedFeedPlans() {
+	void testPersonalizedFeedPlanOfFemaleCalf() {
 		String orgID = "IMD";
 		String femaleCalfTag = "-999";
 //		String bullTag = "-998";
@@ -519,6 +520,7 @@ class FeedManagerTest {
 			assertEquals(1,anmLdr.insertAnimal(femaleCalf));
 			
 			femaleCalf.setWeight(50f);
+//			femaleCalf.setWeight(78f);
 			
 			LookupValues lv = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.FEMALECALF,Util.FeedCohortType.FEMALECALF,"");
 			
@@ -527,21 +529,65 @@ class FeedManagerTest {
 			feedCohort.setCohortNutritionalNeeds(nutritionalNeeds);
 			femaleCalf.setFeedCohortInformation(feedCohort);
 			
-			FeedPlan cohortFeedPlan = getCohortFeedPlan(feedCohort, femaleCalf);
+			HashMap<String,Float> minFulfillment = new HashMap<String,Float> ();
+			HashMap<String,Float>  maxFulfillment = new HashMap<String,Float> ();
+//			maxFulfillment.put(Util.FeedItems.MILK, new Float(6));
+			
+			FeedPlan cohortFeedPlan = getCohortFeedPlan(feedCohort, femaleCalf, minFulfillment, maxFulfillment);
 			
 			FeedPlan plan = manager.getPersonalizedFeedPlan(feedCohort, cohortFeedPlan, femaleCalf);
 			assertTrue(plan!=null && plan.getFeedPlan() != null && !plan.getFeedPlan().isEmpty());
 			
 			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
 			while (it.hasNext()) {
-				IMDLogger.log(it.next().getPersonalizedFeedMessage(), Util.INFO);
+				FeedItem item = it.next();
+				IMDLogger.log(item.getPersonalizedFeedMessage(), Util.INFO);
+				if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.MILK))
+					assertEquals(6f,item.getDailyIntake().floatValue());
+				else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.ALFAHAY))
+					assertEquals(1.5f,item.getDailyIntake().floatValue());
+				else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.WATER))
+					assertEquals(5f,item.getDailyIntake().floatValue());
+				else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.VANDA))
+					assertEquals(0.5f,item.getDailyIntake().floatValue());
 			}
 			IMDLogger.log("The animal's feedplan will give it:\n" + Util.formatTwoDecimalPlaces(plan.getPlanDM()) + " Kgs. of Dry Matter. Required:"+ Util.formatTwoDecimalPlaces(nutritionalNeeds.getDryMatter() * femaleCalf.getWeight()) + " Kgs.\n" +
 					Util.formatTwoDecimalPlaces(plan.getPlanCP()) + " Kgs. of Crude Protein. Required:"+ Util.formatTwoDecimalPlaces(nutritionalNeeds.getCrudeProtein() * nutritionalNeeds.getDryMatter() * femaleCalf.getWeight()) + " Kgs.\n" +
 					Util.formatTwoDecimalPlaces(plan.getPlanME()) + " MJ of Metabolizable Energy. Required:"+ nutritionalNeeds.getMetabloizableEnergy() + " MJ.\n", Util.INFO);
-			assertEquals(Util.formatTwoDecimalPlaces(30.715136f),Util.formatTwoDecimalPlaces(plan.getPlanME()));
-			assertEquals(Util.formatTwoDecimalPlaces(0.499775f),Util.formatTwoDecimalPlaces(plan.getPlanCP()));
-			assertEquals(Util.formatTwoDecimalPlaces(1.565f),Util.formatTwoDecimalPlaces(plan.getPlanDM()));
+			assertEquals(Util.formatToSpecifiedDecimalPlaces(32.612096f,4),Util.formatToSpecifiedDecimalPlaces(plan.getPlanME(),4));
+			assertEquals(Util.formatToSpecifiedDecimalPlaces(0.5427758f,4),Util.formatToSpecifiedDecimalPlaces(plan.getPlanCP(),4));
+			assertEquals(Util.formatToSpecifiedDecimalPlaces(1.793f,3),Util.formatToSpecifiedDecimalPlaces(plan.getPlanDM(),3));
+			
+			
+			
+			maxFulfillment.put(Util.FeedItems.MILK, new Float(3));
+			minFulfillment.put(Util.FeedItems.ALFAHAY, new Float(5));
+			
+			cohortFeedPlan = getCohortFeedPlan(feedCohort, femaleCalf, minFulfillment, maxFulfillment);
+			
+			plan = manager.getPersonalizedFeedPlan(feedCohort, cohortFeedPlan, femaleCalf);
+			assertTrue(plan!=null && plan.getFeedPlan() != null && !plan.getFeedPlan().isEmpty());
+			
+			it = plan.getFeedPlan().iterator();
+			while (it.hasNext()) {
+				FeedItem item = it.next();
+				IMDLogger.log(item.getPersonalizedFeedMessage(), Util.INFO);
+				if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.MILK))
+					assertEquals(3f,item.getDailyIntake().floatValue());
+				else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.ALFAHAY))
+					assertEquals(5f,item.getDailyIntake().floatValue());
+				else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.WATER))
+					assertEquals(5f,item.getDailyIntake().floatValue());
+				else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.VANDA))
+					assertEquals(0.5f,item.getDailyIntake().floatValue());
+			}
+			IMDLogger.log("The animal's feedplan will give it:\n" + Util.formatTwoDecimalPlaces(plan.getPlanDM()) + " Kgs. of Dry Matter. Required:"+ Util.formatTwoDecimalPlaces(nutritionalNeeds.getDryMatter() * femaleCalf.getWeight()) + " Kgs.\n" +
+					Util.formatTwoDecimalPlaces(plan.getPlanCP()) + " Kgs. of Crude Protein. Required:"+ Util.formatTwoDecimalPlaces(nutritionalNeeds.getCrudeProtein() * nutritionalNeeds.getDryMatter() * femaleCalf.getWeight()) + " Kgs.\n" +
+					Util.formatTwoDecimalPlaces(plan.getPlanME()) + " MJ of Metabolizable Energy. Required:"+ nutritionalNeeds.getMetabloizableEnergy() + " MJ.\n", Util.INFO);
+			assertFalse(Util.formatTwoDecimalPlaces(30.715136f).equals(Util.formatTwoDecimalPlaces(plan.getPlanME())));
+			assertFalse(Util.formatTwoDecimalPlaces(0.499775f).equals(Util.formatTwoDecimalPlaces(plan.getPlanCP())));
+			assertFalse(Util.formatTwoDecimalPlaces(1.565f).equals(Util.formatTwoDecimalPlaces(plan.getPlanDM())));			
+			
 			
 			assertEquals(1,anmLdr.deleteAnimal(orgID,femaleCalfTag));
 			
@@ -558,7 +604,7 @@ class FeedManagerTest {
 
 	}
 	
-	private FeedPlan getCohortFeedPlan(FeedCohort feedCohort, Animal animal) {
+	private FeedPlan getCohortFeedPlan(FeedCohort feedCohort, Animal animal, HashMap<String,Float> minFulfillment, HashMap<String,Float> maxFulfillment) {
 		String cohortCD = feedCohort.getFeedCohortLookupValue().getLookupValueCode();
 		FeedPlan feedPlan = new FeedPlan();
 		feedPlan.setOrgID(animal.getOrgID());
@@ -575,12 +621,14 @@ class FeedManagerTest {
 			item1.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item1.setStart(4f);
 			item1.setEnd(90f);
-			item1.setFulfillmentPct(0.025f);
+			item1.setFulfillmentPct(0.030f);
+			item1.setMinimumFulfillment(minFulfillment.get(Util.FeedItems.ALFAHAY));
+			item1.setMaximumFulfillment(maxFulfillment.get(Util.FeedItems.ALFAHAY));
 			item1.setFulFillmentTypeCD(Util.FulfillmentType.BODYWEIGHT);
 			item1.setUnits("Kgs.");
 			item1.setComments("Alfahay");
 			item1.setFeedItemNutritionalStats(new FeedItemNutritionalStats());
-			item1.getFeedItemNutritionalStats().setDryMatter(0.90f);
+			item1.getFeedItemNutritionalStats().setDryMatter(0.9020f);
 			item1.getFeedItemNutritionalStats().setCrudeProtein(0.1886f);
 			item1.getFeedItemNutritionalStats().setMetabolizableEnergy(8.32f);
 			plan.add(item1);
@@ -592,6 +640,8 @@ class FeedManagerTest {
 			item2.setStart(0f);
 			item2.setEnd(90f);
 			item2.setFulfillmentPct(0.12f);
+			item2.setMinimumFulfillment(minFulfillment.get(Util.FeedItems.MILK));
+			item2.setMaximumFulfillment(maxFulfillment.get(Util.FeedItems.MILK));
 			item2.setFulFillmentTypeCD(Util.FulfillmentType.BODYWEIGHT);
 			item2.setUnits("Liters");
 			item2.setComments("Milk");
@@ -611,6 +661,8 @@ class FeedManagerTest {
 			item3.setStart(0f);
 			item3.setEnd(90f);
 			item3.setFulfillmentPct(0.01f);
+			item3.setMinimumFulfillment(minFulfillment.get(Util.FeedItems.VANDA));
+			item3.setMaximumFulfillment(maxFulfillment.get(Util.FeedItems.VANDA));
 			item3.setFulFillmentTypeCD(Util.FulfillmentType.BODYWEIGHT);
 			item3.setUnits("Kgs.");
 			item3.setComments("Vanda # 12");
@@ -626,8 +678,10 @@ class FeedManagerTest {
 			item4.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item4.setStart(0f);
 			item4.setEnd(9999f);
-			item4.setFulfillmentPct(1f);
-			item4.setFulFillmentTypeCD(Util.FulfillmentType.FREEFLOW);
+			item4.setFulfillmentPct(0.10f);
+			item4.setMinimumFulfillment(minFulfillment.get(Util.FeedItems.WATER));
+			item4.setMaximumFulfillment(maxFulfillment.get(Util.FeedItems.WATER));
+			item4.setFulFillmentTypeCD(Util.FulfillmentType.BODYWEIGHT);
 			item4.setUnits("Liters");
 			item4.setComments("Water");
 			item4.setFeedItemNutritionalStats(new FeedItemNutritionalStats());

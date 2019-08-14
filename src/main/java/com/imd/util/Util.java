@@ -91,7 +91,7 @@ public class Util {
 		public static final String FREEFLOW = "FREEFLOW";
 		public static final String MILKPROD = "MILKPROD";
 		public static final String BYDMREQPCT = "BYDMREQPCT";
-		public static final Float NO_DM_MEASUREONVOLUME = -1f;
+		public static final Float NO_DM_MEASUREONVOLUME = new Float(0f);
 	}
 
 	public static final class Breed  {

@@ -69,11 +69,23 @@ public class FeedItem extends IMDairiesDTO {
 	public void setMinimumFulfillment(Float minimumFulfimment) {
 		this.minimumFulfillment = minimumFulfimment;
 	}
+	public void setMinimumFulfillment(String minFulfillment) {
+		if (minFulfillment !=  null)
+			setMinimumFulfillment(new Float(minFulfillment));
+		else
+			this.minimumFulfillment = null;
+	}
 	public Float getMaximumFulfillment() {
 		return maximumFulfillment;
 	}
 	public void setMaximumFulfillment(Float maximumFulfimment) {
 		this.maximumFulfillment = maximumFulfimment;
+	}
+	public void setMaximumFulfillment(String maxFulfillment) {
+		if (maxFulfillment !=  null)
+			setMaximumFulfillment(new Float(maxFulfillment));
+		else
+			this.maximumFulfillment = null;
 	}
 	public Integer getDailyFrequency() {
 		return dailyFrequency;

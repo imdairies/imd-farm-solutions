@@ -295,8 +295,8 @@ public class FeedLoader {
 		feedItem.setFeedItemLookupValue(feedItemLV);		
 		feedItem.setStart(rs.getFloat("START"));
 		feedItem.setEnd(rs.getFloat("END"));
-		feedItem.setMinimumFulfillment(rs.getFloat("MIN_FULFILLMENT"));
-		feedItem.setMaximumFulfillment(rs.getFloat("MAX_FULFILLMENT"));
+		feedItem.setMinimumFulfillment(rs.getString("MIN_FULFILLMENT"));
+		feedItem.setMaximumFulfillment(rs.getString("MAX_FULFILLMENT"));
 		feedItem.setFulfillmentPct(rs.getFloat("FULFILLMENT_PCT"));
 		feedItem.setFulFillmentTypeCD(rs.getString("FULFILLMENT_TYPE"));
 		feedItem.setUnits(rs.getString("UNITS"));

@@ -28,6 +28,8 @@ import com.imd.util.Util;
 
 public class FeedManager {
 	
+	private static final float MIN_FULFILLMENT_VALUE = -9999f;
+	private static final float MAX_FULFILLMENT_VALUE = 9999f;
 	public static final int MATURITY_AGE_IN_DAYS = 270;
 	public static final int HEIFER_MIN_AGE_IN_DAYS = 180;
 	public static final int DRYOFF_BY_DAYS = 210;
@@ -45,9 +47,11 @@ public class FeedManager {
 		Iterator<Animal> it = farmActiveHerd.iterator();
 		while (it.hasNext()) {
 			Animal animal = it.next();
+			animal.setWeight(getLatestEventWeight(orgID, animal.getAnimalTag()));
 			animal.setWeight(getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag()));
 			animal.setFeedCohortInformation(getAnimalFeedCohort(animal.getOrgID(), animal.getAnimalTag()));
-			animal.setAnimalNutritionalNeeds(this.getFeedCohortNutritionalNeeds(animal.getFeedCohortInformation(),animal.getAnimalTag()));
+			animal.getFeedCohortInformation().setCohortNutritionalNeeds(this.getFeedCohortNutritionalNeeds(animal.getFeedCohortInformation(),animal.getAnimalTag()));
+			animal.setAnimalNutritionalNeeds(getAnimalNutritionalNeeds(animal));
 //			IMDLogger.log(animal.getFeedCohortInformation().toString(), Util.INFO);
 		}		
 		return farmActiveHerd;
@@ -86,6 +90,9 @@ public class FeedManager {
 	public FeedPlan getPersonalizedFeedPlan(FeedCohort cohort, Animal animal) throws Exception {
 		return getPersonalizedPlanOfAnAnimal(animal, null);
 	}
+	public FeedPlan getPersonalizedFeedPlan(Animal animal) throws Exception {
+		return getPersonalizedPlanOfAnAnimal(animal, null);
+	}
 	
 
 
@@ -117,8 +124,10 @@ public class FeedManager {
 		//... now we have the cohort and the weight.
 		
 		// Now we need to figure out the specific nutritional needs of THIS particular animal.
-		CohortNutritionalNeeds animalNeeds = this.getAnimalNutritionalNeeds(animal);
-		animal.setAnimalNutritionalNeeds(animalNeeds);
+		if (animal.getAnimalNutritionalNeeds() != null) {
+			CohortNutritionalNeeds animalNeeds = this.getAnimalNutritionalNeeds(animal);
+			animal.setAnimalNutritionalNeeds(animalNeeds);
+		}
 		
 		String feedCohortCD =  animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode();
 		// Now we get the feed plan with which we wish to fulfill the cohort needs.
@@ -129,17 +138,18 @@ public class FeedManager {
 		return personalizePlan;
 	}	
 	
-	private CohortNutritionalNeeds getAnimalNutritionalNeeds(Animal animal) {
+	public CohortNutritionalNeeds getAnimalNutritionalNeeds(Animal animal) {
 		CohortNutritionalNeeds animalNeeds = new CohortNutritionalNeeds();
 		Float dm = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getDryMatter();
 		Float cp = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getCrudeProtein();
 		Float me = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getMetabloizableEnergy();
-		Float animalDM = dm * animal.getWeight();
+		Float animalDM = dm * (animal.getWeight() == null ? 0 : animal.getWeight());
 		Float animalCP = animalDM * cp;
 		Float animalME = me;// ME measured in daily ME requirements
 		animalNeeds.setDryMatter(animalDM);
 		animalNeeds.setCrudeProtein(animalCP);
 		animalNeeds.setMetabloizableEnergy(animalME);
+		animalNeeds.setFeedCohortCD(animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
 		return animalNeeds;
 	}
 
@@ -152,7 +162,7 @@ public class FeedManager {
 			FeedItem feedItem = it.next();
 			String fulFillmentTypeCD = feedItem.getFulFillmentTypeCD();
 			if (fulFillmentTypeCD.equals(Util.FulfillmentType.ABSOLUTE)) {
-				Float dailyIntake = feedItem.getFulfillmentPct();
+				Float dailyIntake = getAllowedDailyIntakeValue(feedItem,null);
 				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
 				Float dm = itemStats.getDryMatter() * dailyIntake;
 				Float cp = itemStats.getCrudeProtein() * dm;
@@ -172,7 +182,7 @@ public class FeedManager {
 				Float dm = 0f;
 				Float cp = 0f * dm;
 				Float me = 0f * dm;
-				feedItem.setDailyIntake(0f);				
+				feedItem.setDailyIntake(getAllowedDailyIntakeValue(feedItem,0f));
 				feedItem.getFeedItemNutritionalStats().setDryMatter(dm);
 				feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
 				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
@@ -180,18 +190,19 @@ public class FeedManager {
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, dm, cp, me);
 			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.BODYWEIGHT)) {
 				Float dailyIntake = (float)(feedItem.getFulfillmentPct() * animalWeight);
+				dailyIntake = getAllowedDailyIntakeValue(feedItem,dailyIntake);
+
 				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
-				Float dm = (itemStats.getDryMatter()==Util.FulfillmentType.NO_DM_MEASUREONVOLUME ? 1f:itemStats.getDryMatter()) * dailyIntake;
+				Float dm = (itemStats.getDryMatter().floatValue() == Util.FulfillmentType.NO_DM_MEASUREONVOLUME.floatValue() ? 1f:itemStats.getDryMatter()) * dailyIntake;
 				Float cp = itemStats.getCrudeProtein() * dm;
 				Float me = itemStats.getMetabolizableEnergy() * dm;
 				feedItem.setDailyIntake(dailyIntake);				
-				feedItem.getFeedItemNutritionalStats().setDryMatter(itemStats.getDryMatter()==Util.FulfillmentType.NO_DM_MEASUREONVOLUME ? 0f:dm);
+				feedItem.getFeedItemNutritionalStats().setDryMatter(((itemStats.getDryMatter().floatValue() == Util.FulfillmentType.NO_DM_MEASUREONVOLUME.floatValue() ? 0f:itemStats.getDryMatter()) * dailyIntake));
 				feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
 				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
-
 				feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces(dailyIntake,2) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
-
 				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+//				IMDLogger.log(">>>>>>>> " + feedItem.getFeedItemLookupValue().getLookupValueCode() + " = " + dailyIntake + " DM=[" + dm + "],[CP=" + cp + "],[ME=" + me + "]", Util.ERROR);
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, feedItem.getFeedItemNutritionalStats().getDryMatter(), cp, me);
 				
 			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.BYDMREQPCT)) {
@@ -205,6 +216,10 @@ public class FeedManager {
 				Float animalDMNeeds = animalWeight * cohortDMNeeds;
 				Float animalDMNeedsToBeFilledByThisItem = animalDMNeeds * feedItem.getFulfillmentPct();
 				Float dailyIntake = animalDMNeedsToBeFilledByThisItem / feedItemDM;
+				dailyIntake = getAllowedDailyIntakeValue(feedItem,dailyIntake);
+//				dailyIntake = dailyIntake > feedItem.getMaximumFulfillment() ?  feedItem.getMaximumFulfillment() : dailyIntake;
+//				dailyIntake = feedItem.getMaximumFulfillment() != null && dailyIntake > feedItem.getMaximumFulfillment() ?  feedItem.getMaximumFulfillment() : dailyIntake;
+
 				Float cp = itemStats.getCrudeProtein() * animalDMNeedsToBeFilledByThisItem;
 				Float me = itemStats.getMetabolizableEnergy() * animalDMNeedsToBeFilledByThisItem;
 
@@ -230,6 +245,7 @@ public class FeedManager {
 				else {
 					feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/feedItem.getFulfillmentPct()),1) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
 					dailyIntake = (float)(milkAverage/feedItem.getFulfillmentPct());
+					dailyIntake = getAllowedDailyIntakeValue(feedItem,dailyIntake);
 				}
 				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
 				Float cp = itemStats.getCrudeProtein() * milkAverage;
@@ -246,6 +262,35 @@ public class FeedManager {
 			}
 		}
 		return animalSpecificFeedPlan;
+	}
+
+	private Float getAllowedDailyIntakeValue(FeedItem feedItem, Float dailyIntake) {
+		
+		Float maxFulfillment = feedItem.getMaximumFulfillment();
+		Float minFulfillment = feedItem.getMinimumFulfillment();
+//		IMDLogger.log("**********************************************", Util.INFO);		
+//		IMDLogger.log(feedItem.getFeedItemLookupValue().getLookupValueCode() + " = " + dailyIntake, Util.INFO);
+//		IMDLogger.log(" MAX = " + maxFulfillment, Util.INFO);
+//		IMDLogger.log(" MIN = " + minFulfillment, Util.INFO);
+		
+		if (dailyIntake == null) {
+			dailyIntake = feedItem.getFulfillmentPct();
+		}
+		if (maxFulfillment == null)
+			maxFulfillment = MAX_FULFILLMENT_VALUE;
+		if (minFulfillment == null)
+			minFulfillment = MIN_FULFILLMENT_VALUE;
+		
+		if (minFulfillment > maxFulfillment) {
+			IMDLogger.log("The following FeedItem's minimum and maximum fulfillments are incorrectly configured. Min fulfillment must be smaller than maximum fulfillment. We shall ignore the min and max fulfillments for this calculation: " + feedItem.getFeedCohortCD().getLookupValueCode() + " (" + feedItem.getFeedItemLookupValue().getLookupValueCode() + ")" , Util.ERROR);
+		} else {	
+			dailyIntake = Math.min(dailyIntake, maxFulfillment);
+			dailyIntake = Math.max(dailyIntake, minFulfillment);
+		}
+//		IMDLogger.log(feedItem.getFeedItemLookupValue().getLookupValueCode() + " = " + dailyIntake, Util.INFO);
+//		IMDLogger.log("**********************************************", Util.INFO);		
+		
+		return dailyIntake;
 	}
 
 	private FeedPlan updatePlanNutritionalStats(FeedPlan animalSpecificFeedPlan, Float dm, Float cp, Float me) {
