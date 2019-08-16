@@ -25,6 +25,7 @@ import com.imd.loader.MilkingDetailLoader;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
+import com.imd.util.Util.NutritionalStats;
 
 public class FeedManager {
 	
@@ -581,5 +582,30 @@ public class FeedManager {
 		AnimalLoader anmlLoader = new AnimalLoader();
 		Animal animal = anmlLoader.getAnimalRawInfo(feedCohortType.getOrgID(), animalTag).get(0);		
 		return getPersonalizedFeedPlan(feedCohortType,animal);
+	}
+	
+	/**
+	 * Determine Energy, DM, CP requirements of dairy cow based on the information provided in the following
+	 * text (Chapter 6 & 7): 
+	 * Tropical dairy farming : feeding management for small holder dairy farmers in the humid tropics By John Moran, 312 pp., Landlinks Press, 2005
+	 * @param Animal
+	 * @return NutritionalStats
+	 */
+	public NutritionalStats determineFeedRequirementsOfLactatingCow(Animal animal) throws IMDException {
+		Float animalWeight = animal.getWeight();
+		if (animalWeight == null) {
+			throw new IMDException ("We can not calculate the dietary requirements of the animal " + animal.getAnimalTag() + " without its weight. Please add a Weight event for this animal and try again");
+		}
+		Float me = getMaintenanceEnergyRequiremnt(animalWeight);	
+		return null;
+		
+	}
+
+	private Float getMaintenanceEnergyRequiremnt(Float animalWeight) {
+		Float me = null;
+		if (animalWeight )
+		Util.AnimalTypes.BULL
+		
+		return null;
 	}
 }

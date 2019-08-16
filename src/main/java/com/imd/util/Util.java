@@ -3,6 +3,7 @@ package com.imd.util;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
@@ -148,6 +149,7 @@ public class Util {
 		public static final String WEANOFF = "WEANOFF";
 		public static final String DEWORM = "DEWORM";
 	}
+	
 	
 	public static final class AnimalTypes {
 		public static final String HEIFER = "HEIFER";
