@@ -11,6 +11,7 @@ public class CohortNutritionalNeeds extends IMDairiesDTO {
 	private Float nutritionalNeedsDryMatter;
 	private Float nutritionalNeedsCrudeProtein;
 	private Float nutritionalNeedsMetabloizableEnergy;
+	private Float nutritionalNeedsTDN;
 	public String getFeedCohortCD() {
 		return nutritionalNeedsFeedCohortCD;
 	}
@@ -53,6 +54,7 @@ public class CohortNutritionalNeeds extends IMDairiesDTO {
 				prefix + fieldToJson("nutritionalNeedsEnd", this.nutritionalNeedsEnd == null ? "" : this.nutritionalNeedsEnd.toString()) + ",\n" +
 				prefix + fieldToJson("nutritionalNeedsDryMatter", this.nutritionalNeedsDryMatter == null ? 0f : new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsDryMatter,2))) + ",\n" +
 				prefix + fieldToJson("nutritionalNeedsCrudeProtein", this.nutritionalNeedsCrudeProtein == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsCrudeProtein,2))) + ",\n" +
+				prefix + fieldToJson("nutritionalNeedsTDN", this.nutritionalNeedsTDN == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsTDN,2))) + ",\n" +
 				prefix + fieldToJson("nutritionalNeedsMetabloizableEnergy", this.nutritionalNeedsMetabloizableEnergy == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsMetabloizableEnergy,2))) + ",\n";
 	}
 
@@ -81,7 +83,10 @@ public class CohortNutritionalNeeds extends IMDairiesDTO {
 	public String tostring () {
 		return dtoToJson("  ");
 	}
-
-	
-
+	public Float getNutritionalNeedsTDN() {
+		return nutritionalNeedsTDN;
+	}
+	public void setNutritionalNeedsTDN(Float nutritionalNeedsTDN) {
+		this.nutritionalNeedsTDN = nutritionalNeedsTDN;
+	}
 }

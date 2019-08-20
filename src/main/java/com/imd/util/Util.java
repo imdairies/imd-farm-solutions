@@ -310,6 +310,18 @@ public class Util {
 		DecimalFormat decimalFormat = new DecimalFormat(pattern);
 		return decimalFormat.format(floatValue);
 	}
+
+	public static String formatTwoDecimalPlaces(double floatValue) {
+		return formatToSpecifiedDecimalPlaces(floatValue,2);
+	}
+	public static String formatToSpecifiedDecimalPlaces(double floatValue, int decimalPlaces) {
+		String pattern = "#.";
+		for (int i=0;i<decimalPlaces; i++) {
+			pattern += "#";
+		}
+		DecimalFormat decimalFormat = new DecimalFormat(pattern);
+		return decimalFormat.format(floatValue);
+	}
 	
 	public static FarmMilkingDetailBean parseFarmMilkingDetailBean(InputDelimitedFileBean commaSeparatedRecords) throws IMDException {
 		FarmMilkingDetailBean bean = new FarmMilkingDetailBean();

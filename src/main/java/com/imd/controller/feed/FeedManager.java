@@ -1,6 +1,7 @@
 package com.imd.controller.feed;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,6 +40,8 @@ public class FeedManager {
 	public static final int MID_PARTURATION_DAYS_END = 180;
 	public static final int PREGNANCY_DURATION_DAYS = 270;
 	public static final int NEAR_PARTURATION_THRESHOLD_DAYS = 15;
+	private static final Double DEFAULT_FAT_PCT = new Double(3.7d);
+	private static final Double DEFAULT_PROTEIN_PCT = new Double(3.4d);
 
 	public List<Animal> getFeedCohortInformationForFarmActiveAnimals(String orgID) throws Exception{
 		AnimalLoader aLoader = new AnimalLoader();
@@ -591,21 +594,284 @@ public class FeedManager {
 	 * @param Animal
 	 * @return NutritionalStats
 	 */
-	public NutritionalStats determineFeedRequirementsOfLactatingCow(Animal animal) throws IMDException {
-		Float animalWeight = animal.getWeight();
-		if (animalWeight == null) {
+	public CohortNutritionalNeeds determineFeedRequirementsOfLactatingCow(Animal animal) throws IMDException {
+		if (animal.getWeight() == null) {
 			throw new IMDException ("We can not calculate the dietary requirements of the animal " + animal.getAnimalTag() + " without its weight. Please add a Weight event for this animal and try again");
 		}
-		Float me = getMaintenanceEnergyRequiremnt(animalWeight);	
-		return null;
+		Double animalWeight = new Double (animal.getWeight());
+		Float milkAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(), 3);
+		if (milkAverage == null) {
+			throw new IMDException ("We can not calculate the dietary requirements of the animal " + animal.getAnimalTag() + " without its milking average. Please add its milking information for at least the last three days");
+		}
 		
+		Double pregnancyDays = 0d;
+		if (animal.isPregnant()) {
+			DateTime latestInseminationOrMatingEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
+			if (latestInseminationOrMatingEventTS != null) {
+				pregnancyDays = new Double(Util.getDaysBetween(DateTime.now(),latestInseminationOrMatingEventTS));		
+			}
+		}
+		CohortNutritionalNeeds nutritionalNeeds = getMetabolizableEnergyRequiremnt(animalWeight,new Double(milkAverage), pregnancyDays, animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode(),null,null);
+		// CP
+		// DM
+		return nutritionalNeeds;
+	}
+	public CohortNutritionalNeeds getMetabolizableEnergyRequiremnt(Double animalWeight, Double threeDaysMilkingAverage, Double daysIntoPregnancy, String feedCohort, Double fat, Double protein) {
+		CohortNutritionalNeeds needs = new CohortNutritionalNeeds();
+		CohortNutritionalNeeds maintenanceNeeds = getMaintenanceEnergyRequirement(animalWeight);
+		CohortNutritionalNeeds pregnancyNeeds = getPregnancyEnergyRequirement(daysIntoPregnancy);
+		CohortNutritionalNeeds milkProdNeeds = getMilkingEnergyRequirement(threeDaysMilkingAverage, (fat == null ? DEFAULT_FAT_PCT : fat), (protein == null ? DEFAULT_PROTEIN_PCT : protein));
+		
+		needs.setMetabloizableEnergy(maintenanceNeeds.getMetabloizableEnergy() + pregnancyNeeds.getMetabloizableEnergy() + milkProdNeeds.getMetabloizableEnergy());
+		needs.setNutritionalNeedsTDN(maintenanceNeeds.getNutritionalNeedsTDN() + pregnancyNeeds.getNutritionalNeedsTDN() + milkProdNeeds.getNutritionalNeedsTDN());
+		
+		return needs;
 	}
 
-	private Float getMaintenanceEnergyRequiremnt(Float animalWeight) {
-		Float me = null;
-		if (animalWeight )
-		Util.AnimalTypes.BULL
+	public CohortNutritionalNeeds getMilkingEnergyRequirement(Double threeDaysMilkingAverage, Double fat, Double protein) {
+		double meMatrix[][] = new double[16][10];
+		double tdnMatrix[][] = new double[16][10];
+		if (fat == null)
+			fat = DEFAULT_FAT_PCT;
+		if (protein == null)
+			protein = DEFAULT_PROTEIN_PCT;
+		int row = 0;
+		String[] rowVal = "4.5,4.5,4.6,4.7,4.8,4.8,4.9,5,5,5.1".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "4.6,4.7,4.7,4.8,4.9,5,5,5.1,5.2,5.2".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "4.7,4.8,4.9,4.9,5,5.1,5.2,5.2,5.3,5.4".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "4.9,4.9,5,5.1,5.1,5.2,5.3,5.4,5.4,5.5".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5,5.1,5.1,5.2,5.3,5.3,5.4,5.5,5.6,5.6".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5.1,5.2,5.3,5.3,5.4,5.5,5.5,5.6,5.7,5.8".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5.3,5.3,5.4,5.5,5.5,5.6,5.7,5.7,5.8,5.9".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5.4,5.5,5.5,5.6,5.7,5.7,5.8,5.9,6,6".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5.5,5.6,5.7,5.7,5.8,5.9,5.9,6,6.1,6.2".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5.6,5.7,5.8,5.9,5.9,6,6.1,6.1,6.2,6.3".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5.8,5.8,5.9,6,6.1,6.1,6.2,6.3,6.3,6.4".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "5.9,6,6,6.1,6.2,6.3,6.3,6.4,6.5,6.5".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "6,6.1,6.2,6.3,6.3,6.4,6.5,6.5,6.6,6.7".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "6.2,6.2,6.3,6.4,6.5,6.5,6.6,6.7,6.7,6.8".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "6.3,6.4,6.4,6.5,6.6,6.7,6.7,6.8,6.9,6.9".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		rowVal = "6.4,6.5,6.6,6.6,6.7,6.8,6.9,6.9,7,7.1".split(",");
+		meMatrix[row++] = parseValues(rowVal);
+		int rowIndex = determineIndex(fat,3d,6d,0.2d);
+		int colIndex = determineIndex(protein,2.6d,4.4d,0.2d);
+		CohortNutritionalNeeds needs = new CohortNutritionalNeeds();
+		needs.setMetabloizableEnergy(new Float(meMatrix[rowIndex][colIndex] * threeDaysMilkingAverage));
 		
-		return null;
+		row = 0;
+		rowVal = "0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.3,0.3,0.3,0.3,0.3,0.3,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.3,0.3,0.3,0.3,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.3,0.3,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.5".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.5,0.5".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.4,0.4,0.5,0.5,0.5,0.5,0.5".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.4,0.4,0.5,0.5,0.5,0.5,0.5,0.5,0.5".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.4,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+		rowVal = "0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5".split(",");
+		tdnMatrix[row++] = parseValues(rowVal);
+
+		rowIndex = determineIndex(fat,3d,6d,0.2d);
+		colIndex = determineIndex(protein,2.6d,4.4d,0.2d);
+		needs.setNutritionalNeedsTDN(new Float(tdnMatrix[rowIndex][colIndex] * threeDaysMilkingAverage));		
+		
+		return needs;
+	}
+	private int determineIndex(Double fat, double start, double end, double increment) {
+		int index = 0;
+		for (double f = start; f <= end; f += increment) {
+			if (fat.doubleValue() > f)
+				index++;
+			else
+				break;
+		}
+		return index;
+	}
+
+	private double[] parseValues(String[] strValues) {
+		double[] dblValues = new double[strValues.length];
+		for (int i=0; i<strValues.length; i++) {
+			dblValues[i] = Float.parseFloat(strValues[i]);
+		}
+		return dblValues;
+	}
+
+	/**
+	 * Calculations as per the research presented in (Chapter 6 & 7): 
+	 * Tropical dairy farming : feeding management for small holder dairy farmers in the humid tropics By John Moran, 
+	 * 312 pp., Landlinks Press, 2005
+	 * @param daysSinceSuccessfulInsemination
+	 * @return
+	 */
+	public CohortNutritionalNeeds getPregnancyEnergyRequirement(Double daysSinceSuccessfulInsemination) {
+		Float me = null;
+		Float tdn = null;
+		if (daysSinceSuccessfulInsemination == null)
+			return null;
+		else if (daysSinceSuccessfulInsemination <= 150f) {
+			me = new Float(0);
+			tdn = new Float(0);
+		} else if (daysSinceSuccessfulInsemination > 150 && daysSinceSuccessfulInsemination <= 180) {
+			// sixth month of pregnancy
+			me = new Float(8f);
+			tdn = new Float(0.6f);
+		} else if (daysSinceSuccessfulInsemination > 180 && daysSinceSuccessfulInsemination <= 210) {
+			// seventh month of pregnancy
+			me = new Float(10f);
+			tdn = new Float(0.7f);
+		} else if (daysSinceSuccessfulInsemination > 210 && daysSinceSuccessfulInsemination <= 240) {
+			// eighth month of pregnancy
+			me = new Float(15f);
+			tdn = new Float(1.1f);
+		} else if (daysSinceSuccessfulInsemination > 240) {
+			// ninth month of pregnancy
+			me = new Float(20f);
+			tdn = new Float(1.4f);
+		}
+		CohortNutritionalNeeds energyRequirements = new CohortNutritionalNeeds();
+		energyRequirements.setMetabloizableEnergy(me);
+		energyRequirements.setNutritionalNeedsTDN(tdn);
+		return energyRequirements;	
+	}	
+	
+	/**
+	 * Calculations as per the research presented in (Chapter 6 & 7): 
+	 * Tropical dairy farming : feeding management for small holder dairy farmers in the humid tropics By John Moran, 
+	 * 312 pp., Landlinks Press, 2005
+	 * @param animalWeight
+	 * @return
+	 */
+	public CohortNutritionalNeeds getMaintenanceEnergyRequirement(Double animalWeight) {
+		Float me = null;
+		Float tdn = null;
+		Float y1 = null;
+		Float y2 = null;
+		Float x1 = null;
+		Float x2 = null;
+		Float z1 = null;
+		Float z2 = null;
+		if (animalWeight == null)
+			return null;
+		else if (animalWeight <= 100f) {
+			y1 = 0f;
+			y2 = 100f;
+			x1 = 0f;
+			x2 = 17f;
+			z1 = 0f;
+			z2 = 1.2f;
+		} else if (animalWeight <= 150) {
+			y1 = 100f;
+			y2 = y1 + 50;
+			x1 = 17f;
+			x2 = x1 + 5f;
+			z1 = 1.2f;
+			z2 = z1 + 0.3f;
+		} else if (animalWeight <= 200) {
+			y1 = 150f;
+			y2 = y1 + 50;
+			x1 = 22f;
+			x2 = x1 + 5f;
+			z1 = 1.5f;
+			z2 = z1 + 0.4f;
+		} else if (animalWeight <= 250) {
+			y1 = 200f;
+			y2 = 250f;
+			x1 = 27f;
+			x2 = x1 + 4f;
+			z1 = 1.9f;
+			z2 = z1 + 0.3f;
+		} else if (animalWeight <= 300) {
+			y1 = 250f;
+			y2 = y1 + 50;
+			x1 = 31f;
+			x2 = x1 + 5f;
+			z1 = 2.2f;
+			z2 = z1 + 0.3f;
+		} else if (animalWeight <= 350) {
+			y1 = 300f;
+			y2 = y1 + 50;
+			x1 = 36f;
+			x2 = x1 + 4f;
+			z1 = 2.5f;
+			z2 = z1 + 0.3f;
+		} else if (animalWeight <= 400) {
+			y1 = 350f;
+			y2 = y1 + 50;
+			x1 = 40f;
+			x2 = x1 + 5f;
+			z1 = 2.8f;
+			z2 = z1 + 0.3f;
+		} else if (animalWeight <= 450) {
+			y1 = 400f;
+			y2 = y1 + 50;
+			x1 = 45f;
+			x2 = x1 + 4f;
+			z1 = 3.1f;
+			z2 = z1 + 0.3f;
+		} else if (animalWeight <= 500) {
+			y1 = 450f;
+			y2 = y1 + 50;
+			x1 = 49f;
+			x2 = x1 + 5f;
+			z1 = 3.4f;
+			z2 = z1 + 0.4f;
+		} else if (animalWeight <= 550) {
+			y1 = 500f;
+			y2 = y1 + 50;
+			x1 = 54f;
+			x2 = x1 + 5f;
+			z1 = 3.8f;
+			z2 = z1 + 0.3f;
+		} else {
+			/* > 550 kg */ 
+			y1 = 550f;
+			y2 = y1 + 50;
+			x1 = 59f;
+			x2 = x1 + 4f;
+			z1 = 4.1f;
+			z2 = z1 + 0.3f;
+		}
+		me = new Float( Util.formatTwoDecimalPlaces((x1 + ((animalWeight - y1) *  (x2 - x1)/ (y2-y1)))));
+		tdn = new Float(  Util.formatTwoDecimalPlaces(z1 + ((animalWeight - y1) *  (z2 - z1)/ (y2-y1))));
+		CohortNutritionalNeeds energyRequirements = new CohortNutritionalNeeds();
+		energyRequirements.setMetabloizableEnergy(me);
+		energyRequirements.setNutritionalNeedsTDN(tdn);
+		return energyRequirements;
 	}
 }
