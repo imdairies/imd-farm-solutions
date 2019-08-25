@@ -109,6 +109,153 @@ public class AnimalSrvc {
     }
 	
 	
+	
+	@POST
+	@Path("/getgrowthdata")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response getGrowthData(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log("Inside AnimalSrvc.getGrowthData " + searchBean.toString(), Util.INFO);
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveMatchingAnimals(searchBean);
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+
+			} else if (animalValues.size() > 1) {
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"Multiple matching records found for this animal. Please report a product bug\"}").build();				
+			}
+						
+    		Animal animalValue = animalValues.get(0);
+    		LifeCycleEventsLoader evtLoader = new LifeCycleEventsLoader();
+    		List<LifecycleEvent> weights = evtLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(), animalValue.getAnimalTag(), Util.LifeCycleEvents.WEIGHT);
+
+    		if (weights == null || weights.isEmpty()) {
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"You have never measured the weight of this animal. Growth information can't be displayed.\"}").build();				
+			}
+    		
+    		IMDLogger.log("Total Weight Events " + weights.size(), Util.INFO);
+    		String days = "";
+    		String idealWeight = "";
+    		String animalWeight = "";
+    		int recProcessed = weights.size()-1;
+    		String lastMeasuredWeight = "0";  
+    		double dailyWeightGain = 0;
+    		double offset = Util.BIRTH_WEIGHT;
+    		double daysInCategory = 0;
+    		double largestYAxisValue = 0;
+    		double idealWtAtAge = 0;
+			for (int i=0; i<= animalValue.getCurrentAgeInDays().getDays(); i++) {
+				days += i;
+				if (i == 0) {
+					dailyWeightGain = Util.DAILY_WEIGHT_GAIN_YEAR1;
+				} else if (i == ((365*1) + 1)) {
+					offset = offset + ((daysInCategory) * dailyWeightGain);
+					dailyWeightGain = Util.DAILY_WEIGHT_GAIN_YEAR2;
+					daysInCategory = 0;
+				} else if (i == ((365*2) + 1)) {
+					offset = offset + ((daysInCategory) * dailyWeightGain);
+					dailyWeightGain = Util.DAILY_WEIGHT_GAIN_YEAR3;
+					daysInCategory = 0;
+				} else if (i == ((365*3) + 1)) {
+					offset = offset + ((daysInCategory) * dailyWeightGain);
+					dailyWeightGain = Util.DAILY_WEIGHT_GAIN_YEAR4;
+					daysInCategory = 0;
+				} else if (i == ((365*4) + 1)) {
+					offset = offset + ((daysInCategory) * dailyWeightGain);
+					dailyWeightGain = Util.DAILY_WEIGHT_GAIN_YEAR5;
+					daysInCategory = 0;
+				} else if (i == ((365*5) + 1)) {
+					offset = offset + ((daysInCategory) * dailyWeightGain);
+					dailyWeightGain = Util.DAILY_WEIGHT_GAIN_YEAR5;
+					daysInCategory = 0;
+				}
+				idealWtAtAge = Math.min(( offset + (daysInCategory * dailyWeightGain)), Util.MAX_BODY_WEIGHT);
+
+				idealWeight += Util.formatToSpecifiedDecimalPlaces(idealWtAtAge,1);
+				int ageAtWeightMeasurement = Util.getDaysBetween(weights.get(recProcessed).getEventTimeStamp(), animalValue.getDateOfBirth());
+				Double extrapolatedWeight = getExtrapolatedWeight(weights, animalValue.getDateOfBirth(),i);
+				if (extrapolatedWeight == null)
+					extrapolatedWeight = Double.parseDouble(lastMeasuredWeight);
+				else
+					lastMeasuredWeight = Double.toString(extrapolatedWeight);
+				
+				if (ageAtWeightMeasurement == i) {
+					lastMeasuredWeight = weights.get(recProcessed).getAuxField1Value();
+					animalWeight += Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(lastMeasuredWeight), 1);
+					recProcessed = recProcessed == 0 ? 0 : recProcessed-1;
+				} else {
+					animalWeight += Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(lastMeasuredWeight), 1);;
+				}	
+				
+				if (i < animalValue.getCurrentAgeInDays().getDays()) {
+					days += ",";
+					idealWeight += ",";
+					animalWeight += ",";
+				}
+				if (largestYAxisValue < Math.max(Double.parseDouble(lastMeasuredWeight), idealWtAtAge))
+					largestYAxisValue = Math.max(Double.parseDouble(lastMeasuredWeight), idealWtAtAge);				
+
+				daysInCategory++;
+			}
+			animalValueResult += "{\n" +
+    	    		"\"largestYAxisValue\":" + largestYAxisValue + ",\n" +			
+    	    		"\"ageInDays\":[" + days + "],\n" +
+    	    		"\"idealWeight\":[" + idealWeight + "],\n" +
+    	    		"\"actualWeight\":[" + animalWeight + "]" +
+    				"\n}";
+
+    		if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.getGrowthData() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"Following exception occurred while processing AnimalSrvc.getGrowthData(): " +  e.getClass().getName() + " " + e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
+    }
+	
+	public Double getExtrapolatedWeight(List<LifecycleEvent> reverseSortedWeightEvents, DateTime dateOfBirth, int age) {
+		Double extrapolatedWeight = null;
+		int beforeIndex = reverseSortedWeightEvents.size()-1;
+		int afterIndex = beforeIndex;
+		
+		if (reverseSortedWeightEvents != null && !reverseSortedWeightEvents.isEmpty()) {
+			for (int i=reverseSortedWeightEvents.size()-1; i >= 0; i--) {
+				LifecycleEvent wtEvent = reverseSortedWeightEvents.get(i);
+				int ageAtEvent = Util.getDaysBetween(wtEvent.getEventTimeStamp(), dateOfBirth);
+				double weight = Double.parseDouble(wtEvent.getAuxField1Value());
+				if (ageAtEvent == age) {
+					extrapolatedWeight = weight;
+					break;
+				} else if (ageAtEvent < age){
+					beforeIndex = i;
+				} else {
+					// we have two indices that we can now use to calculate extrapolated weight.
+					afterIndex = i;
+					double w1 = Util.BIRTH_WEIGHT;
+					double w2 = weight;
+					double age1 = 0;
+					double age2 = ageAtEvent;
+					if (afterIndex != beforeIndex) {
+						w1 =  Double.parseDouble(reverseSortedWeightEvents.get(beforeIndex).getAuxField1Value());
+						age1 =  Util.getDaysBetween(reverseSortedWeightEvents.get(beforeIndex).getEventTimeStamp(), dateOfBirth);;
+					}
+//					IMDLogger.log(" ((" + age + " - " + age1 + ")*((" + w2 + " - " + w1 + ")/(" + age2 + " - " + age1 + "))) + " + w1, Util.INFO);
+					extrapolatedWeight = ((age - age1)*((w2 - w1)/(age2 - age1))) + w1;
+					break;
+				}
+			}
+		}
+		IMDLogger.log("At Age " + age + " Extrapolated weight = " + extrapolatedWeight, Util.INFO);
+		return extrapolatedWeight;
+	}
+	
 	/**
 	 * This API adds a new animal.
 	 * Sample Use Case: Call this API to add a new animal.

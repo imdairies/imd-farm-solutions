@@ -69,6 +69,14 @@ public class Util {
 	public static final String ERROR_POSTFIX = "ERROR: ";
 	public static final String SUCCESS_POSTFIX = "SUCCESS: ";
 
+	public static final double BIRTH_WEIGHT = 30d;
+	public static final double DAILY_WEIGHT_GAIN_YEAR1 = 0.75d;
+	public static final double DAILY_WEIGHT_GAIN_YEAR2 = 0.5d;
+	public static final double DAILY_WEIGHT_GAIN_YEAR3 = 0.25d;
+	public static final double DAILY_WEIGHT_GAIN_YEAR4 = 0.125d;
+	public static final double DAILY_WEIGHT_GAIN_YEAR5 = 0.0625d;
+	public static final double MAX_BODY_WEIGHT = 650d;
+
 	public static final class FeedItems {
 		public static final String ALFAHAY = "ALFAHAY";
 		public static final String VANDA = "VANDA";
