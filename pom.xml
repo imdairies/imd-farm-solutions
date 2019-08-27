@@ -6,11 +6,28 @@
   <name>IMdairiesFarmManagement</name>
   <description>IMDairies' Free Dairy Farm Management Software</description>
   
+  
+	<distributionManagement>
+	    <site>
+	      <id>imdairies.wixsite.com</id>
+	      <url>scp://imdairies.wixsite.com/www/docs/project/</url>
+	    </site>
+	  </distributionManagement>  
+  
   <properties>
 	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jersey.version>2.17</jersey.version>
   </properties>
   
+	  <reporting>
+	    <plugins>
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-surefire-report-plugin</artifactId>
+	        <version>3.0.0-M3</version>
+	      </plugin>
+	    </plugins>
+	  </reporting>
   
     <dependencyManagement>
         <dependencies>
@@ -25,7 +42,13 @@
 			    <groupId>org.glassfish.jersey.media</groupId>
 			    <artifactId>jersey-media-multipart</artifactId>
 			    <version>${jersey2.version}</version>
-			</dependency>            
+			</dependency>
+			<dependency>
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-surefire-report-plugin</artifactId>
+			  <version>2.22.2</version>
+			  <type>maven-plugin</type>
+			</dependency>			  
         </dependencies>
     </dependencyManagement>
     
@@ -43,6 +66,16 @@
     </resources>
     <plugins>
 		<plugin>
+        	<groupId>org.apache.maven.plugins</groupId>
+        	<artifactId>maven-site-plugin</artifactId>
+        	<version>3.7.1</version>
+		</plugin>
+		<plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>3.0.0</version>
+      	</plugin>
+        <plugin>
 			<artifactId>maven-surefire-plugin</artifactId>
 			<version>2.22.1</version>
 			<dependencies>
