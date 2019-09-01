@@ -558,8 +558,6 @@ class FeedManagerTest {
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(0.5427758f,4),Util.formatToSpecifiedDecimalPlaces(plan.getPlanCP(),4));
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(1.793f,3),Util.formatToSpecifiedDecimalPlaces(plan.getPlanDM(),3));
 			
-			
-			
 			maxFulfillment.put(Util.FeedItems.MILK, new Float(3));
 			minFulfillment.put(Util.FeedItems.ALFAHAY, new Float(5));
 			
@@ -830,36 +828,35 @@ class FeedManagerTest {
 			assertEquals(null,manager.getPregnancyEnergyRequirement(null));
 			assertEquals(null,manager.getPregnancyEnergyRequirement(null));
 
-			assertEquals(0f,manager.getPregnancyEnergyRequirement(0d).getMetabloizableEnergy().floatValue());
-			assertEquals(0f,manager.getPregnancyEnergyRequirement(0d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(0f,manager.getPregnancyEnergyRequirement(0).getMetabloizableEnergy().floatValue());
+			assertEquals(0f,manager.getPregnancyEnergyRequirement(0).getNutritionalNeedsTDN().floatValue());
 		
-			assertEquals(0f,manager.getPregnancyEnergyRequirement(50d).getMetabloizableEnergy().floatValue());
-			assertEquals(0f,manager.getPregnancyEnergyRequirement(50d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(0f,manager.getPregnancyEnergyRequirement(50).getMetabloizableEnergy().floatValue());
+			assertEquals(0f,manager.getPregnancyEnergyRequirement(50).getNutritionalNeedsTDN().floatValue());
 
-			assertEquals(0f,manager.getPregnancyEnergyRequirement(150d).getMetabloizableEnergy().floatValue());
-			assertEquals(0f,manager.getPregnancyEnergyRequirement(150d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(0f,manager.getPregnancyEnergyRequirement(150).getMetabloizableEnergy().floatValue());
+			assertEquals(0f,manager.getPregnancyEnergyRequirement(150).getNutritionalNeedsTDN().floatValue());
 			
-			assertEquals(8f,manager.getPregnancyEnergyRequirement(180d).getMetabloizableEnergy().floatValue());
-			assertEquals(0.6f,manager.getPregnancyEnergyRequirement(180d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(8f,manager.getPregnancyEnergyRequirement(180).getMetabloizableEnergy().floatValue());
+			assertEquals(0.6f,manager.getPregnancyEnergyRequirement(180).getNutritionalNeedsTDN().floatValue());
 
-			assertEquals(10f,manager.getPregnancyEnergyRequirement(200d).getMetabloizableEnergy().floatValue());
-			assertEquals(0.7f,manager.getPregnancyEnergyRequirement(200d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(10f,manager.getPregnancyEnergyRequirement(200).getMetabloizableEnergy().floatValue());
+			assertEquals(0.7f,manager.getPregnancyEnergyRequirement(200).getNutritionalNeedsTDN().floatValue());
 			
-			assertEquals(10f,manager.getPregnancyEnergyRequirement(210d).getMetabloizableEnergy().floatValue());
-			assertEquals(0.7f,manager.getPregnancyEnergyRequirement(210d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(10f,manager.getPregnancyEnergyRequirement(210).getMetabloizableEnergy().floatValue());
+			assertEquals(0.7f,manager.getPregnancyEnergyRequirement(210).getNutritionalNeedsTDN().floatValue());
 
-			assertEquals(15f,manager.getPregnancyEnergyRequirement(240d).getMetabloizableEnergy().floatValue());
-			assertEquals(1.1f,manager.getPregnancyEnergyRequirement(240d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(15f,manager.getPregnancyEnergyRequirement(240).getMetabloizableEnergy().floatValue());
+			assertEquals(1.1f,manager.getPregnancyEnergyRequirement(240).getNutritionalNeedsTDN().floatValue());
 
-			assertEquals(20f,manager.getPregnancyEnergyRequirement(255.5d).getMetabloizableEnergy().floatValue());
-			assertEquals(1.4f,manager.getPregnancyEnergyRequirement(255.5d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(20f,manager.getPregnancyEnergyRequirement(255).getMetabloizableEnergy().floatValue());
+			assertEquals(1.4f,manager.getPregnancyEnergyRequirement(255).getNutritionalNeedsTDN().floatValue());
 
-			assertEquals(20f,manager.getPregnancyEnergyRequirement(300d).getMetabloizableEnergy().floatValue());
-			assertEquals(1.4f,manager.getPregnancyEnergyRequirement(300d).getNutritionalNeedsTDN().floatValue());
+			assertEquals(20f,manager.getPregnancyEnergyRequirement(300).getMetabloizableEnergy().floatValue());
+			assertEquals(1.4f,manager.getPregnancyEnergyRequirement(300).getNutritionalNeedsTDN().floatValue());
 
-			assertEquals(20f,manager.getPregnancyEnergyRequirement(317d).getMetabloizableEnergy().floatValue());
-			assertEquals(1.4f,manager.getPregnancyEnergyRequirement(317d).getNutritionalNeedsTDN().floatValue());
-
+			assertEquals(20f,manager.getPregnancyEnergyRequirement(317).getMetabloizableEnergy().floatValue());
+			assertEquals(1.4f,manager.getPregnancyEnergyRequirement(317).getNutritionalNeedsTDN().floatValue());
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -880,7 +877,6 @@ class FeedManagerTest {
 
 			assertEquals(Util.formatTwoDecimalPlaces(7.1f * milkVol),Util.formatTwoDecimalPlaces(manager.getMilkingEnergyRequirement(milkVol,16d,14.4d).getMetabloizableEnergy().doubleValue()));
 			assertEquals(Util.formatTwoDecimalPlaces(0.5f * milkVol),Util.formatTwoDecimalPlaces(manager.getMilkingEnergyRequirement(milkVol,16d,14.4d).getNutritionalNeedsTDN().doubleValue()));
-
 
 			assertEquals(Util.formatTwoDecimalPlaces(6.9f * milkVol),Util.formatTwoDecimalPlaces(manager.getMilkingEnergyRequirement(milkVol,5.8d,4.2d).getMetabloizableEnergy().doubleValue()));
 			assertEquals(Util.formatTwoDecimalPlaces(0.5f * milkVol),Util.formatTwoDecimalPlaces(manager.getMilkingEnergyRequirement(milkVol,5.8d,4.2d).getNutritionalNeedsTDN().doubleValue()));
@@ -903,10 +899,21 @@ class FeedManagerTest {
 	void testMetabolizableEnergyRequirements() {
 		FeedManager manager = new FeedManager();
 		try { 
-			double milkVol = 1f;
-			CohortNutritionalNeeds needs = manager.getMetabolizableEnergyRequiremnt(550d, 13d, 175d,Util.FeedCohortType.LCTOLD, 3.6d, 3.2d);
-			assertEquals(Util.formatTwoDecimalPlaces(133.3d),Util.formatTwoDecimalPlaces(needs.getMetabloizableEnergy().doubleValue()));
-			assertEquals(Util.formatTwoDecimalPlaces(9.9),Util.formatTwoDecimalPlaces(needs.getNutritionalNeedsTDN().doubleValue()));
+			CohortNutritionalNeeds needs = manager.getMetabolizableEnergyRequiremnt(493d, 17.5d/*milking avg*/, 0/*days into pregnancy*/,Util.FeedCohortType.LCTOLD, 3.6d, 3.2d);
+			assertEquals(Util.formatTwoDecimalPlaces(142.55d),Util.formatTwoDecimalPlaces(needs.getMetabloizableEnergy().doubleValue()));
+			assertEquals(Util.formatTwoDecimalPlaces(10.74),Util.formatTwoDecimalPlaces(needs.getNutritionalNeedsTDN().doubleValue()));
+
+			needs = manager.getMetabolizableEnergyRequiremnt(493d, 17.5d/*milking avg*/, 0/*days into pregnancy*/,Util.FeedCohortType.LCTOLD, null,null);
+			assertEquals(Util.formatTwoDecimalPlaces(146.05d),Util.formatTwoDecimalPlaces(needs.getMetabloizableEnergy().doubleValue()));
+			assertEquals(Util.formatTwoDecimalPlaces(10.74),Util.formatTwoDecimalPlaces(needs.getNutritionalNeedsTDN().doubleValue()));
+
+			needs = manager.getMetabolizableEnergyRequiremnt(550d, 10d/*milking avg*/, 181/*days into pregnancy*/,Util.FeedCohortType.LCTOLD, 3.6d,3.2d);
+			assertEquals(Util.formatTwoDecimalPlaces(120d),Util.formatTwoDecimalPlaces(needs.getMetabloizableEnergy().doubleValue()));
+			assertEquals(Util.formatTwoDecimalPlaces(8.8d),Util.formatTwoDecimalPlaces(needs.getNutritionalNeedsTDN().doubleValue()));
+			
+			needs = manager.getMetabolizableEnergyRequiremnt(550d, 20d/*milking avg*/, 60/*days into pregnancy*/,Util.FeedCohortType.LCTOLD, 3.6d,3.2d);
+			assertEquals(Util.formatTwoDecimalPlaces(161d),Util.formatTwoDecimalPlaces(needs.getMetabloizableEnergy().doubleValue()));
+			assertEquals(Util.formatTwoDecimalPlaces(12.1d),Util.formatTwoDecimalPlaces(needs.getNutritionalNeedsTDN().doubleValue()));
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();

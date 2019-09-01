@@ -1,7 +1,5 @@
 package com.imd.services;
 
-
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,9 +27,6 @@ import com.imd.util.Util;
 
 @Path("/feed")
 public class FeedSrvc {
-	
-	
-	
 
 	@POST
 	@Path("/retrievefeedplan")
@@ -128,10 +123,7 @@ public class FeedSrvc {
 			while (it.hasNext()) {
 				count++;
 				Animal animalValue = it.next();
-//				if (!animalValue.getAnimalTag().equalsIgnoreCase("047"))
-//					continue;
 				try {
-//					animalValue.setAnimalNutritionalNeeds(manager.getAnimalNutritionalNeeds(animalValue));
 					FeedPlan rawPlan = manager.getPersonalizedFeedPlan(animalValue);
 					List<FeedItem> formattedPlan = formatFeedPlan(allFeedItems.getFeedPlan(), rawPlan, intakeQuantity);
 					rawPlan.setFeedPlan(formattedPlan); 
@@ -141,8 +133,6 @@ public class FeedSrvc {
 					ex.printStackTrace();
 					IMDLogger.log("An exception occurred while determining the Feed plan for tag#: " + animalValue.getAnimalTag(), Util.ERROR);
 					String defaultValues = createFeedListingJson(orgID, animalValue,null,prefix+prefix+prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm"));
-//					if (defaultValues.trim().lastIndexOf(',') == defaultValues.trim().length()-1)
-//						defaultValues = defaultValues.substring(0,defaultValues.lastIndexOf(','));
 					animalFeedInfoJson += prefix + prefix + "\n{\n" + defaultValues + addNullValues(prefix+prefix, animalValue) + prefix + prefix + "\n} " 
 							+ (herd.size() == count ?  "" : ",");
 				}
@@ -154,7 +144,7 @@ public class FeedSrvc {
 				FeedItem item = it1.next();
 				String code = item.getFeedItemLookupValue().getLookupValueCode();
 				item.setDailyIntake(intakeQuantity.get(code));
-			}			
+			}
 			
 			
 			feedItemsJson = allFeedItems.dtoToJson(prefix + prefix+prefix, false);
@@ -162,7 +152,6 @@ public class FeedSrvc {
     				+ "\"feedItems\":{" + feedItemsJson + prefix + "},\n" + prefix
     				+ "\"animalFeedInfo\":["  + animalFeedInfoJson + "]\n"
     				+ "}";
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.retrieveActiveAnimalFeedListing() service method: " + e.getMessage(),  Util.ERROR);

@@ -77,6 +77,15 @@ public class Util {
 	public static final double DAILY_WEIGHT_GAIN_YEAR5 = 0.0625d;
 	public static final double MAX_BODY_WEIGHT = 650d;
 
+	public static final class DefaultValues {
+
+		public static final Double THREE_DAY_MILKING_AVERAGE = new Double(18.0d);
+		public static final Double DEFAULT_FAT_PCT = new Double(3.7d);
+		public static final Double DEFAULT_PROTEIN_PCT = new Double(3.4d);
+		public static final Double ADULT_COW_WEIGHT = new Double(500d);
+		
+	}
+
 	public static final class FeedItems {
 		public static final String ALFAHAY = "ALFAHAY";
 		public static final String VANDA = "VANDA";

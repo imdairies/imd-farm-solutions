@@ -43,7 +43,6 @@ public class IMDLogger {
 			else if (loggingMode == Util.ERROR)
 				messageColor = "[" + ANSI_ERROR_RED + "ERROR" +  ANSI_RESET + "]";
 			System.out.println(messageColor + currentDTTMStr + ": " + message);
-			
 		}		
 	}
 }
