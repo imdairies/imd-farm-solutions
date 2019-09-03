@@ -330,7 +330,7 @@ public class FeedLoader {
 			itemNutritionalValues.setMetabolizableEnergy(me);
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			IMDLogger.log("Could not parse one or more of DM, CP, ME value for the feed item: " + feedItemLV.getLookupValueCode() + ". You must specify these values prefixed by DM=, CP=, ME= each on a separate line in the \"Additional Info 1\" field for this particular Feed Item lookup", Util.ERROR);
+			IMDLogger.log("Could not parse one or more of DM, CP, ME value for the feed item: " + feedItemLV.getLookupValueCode() + ". You must specify these values prefixed by DM=, CP=, ME= each on A separate line in the \"Additional Info 1\" field for this particular Feed Item lookup", Util.ERROR);
 		}
 		feedItem.setFeedItemNutritionalStats(itemNutritionalValues);
 		return feedItem;
@@ -384,13 +384,13 @@ public class FeedLoader {
 		return retrieveFeedPlanItem(feedItem, betweenStartAndEnd, betweenStartAndEnd);
 	}
 	public FeedItem retrieveFeedPlanItem(FeedItem feedItem, Float gteStart, Float lteEnd) throws IMDException {
-		String qryString = " SELECT a.*, " +
-				" IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR,b.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
-				" IFNULL(c.short_descr,a.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, c.long_descr AS FEED_COHORT_LONG_DESCR,c.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
+		String qryString = " SELECT A.*, " +
+				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, B.long_descr as ITEM_LONG_DESCR,B.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
+				" IFNULL(C.short_descr,A.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, C.long_descr AS FEED_COHORT_LONG_DESCR,C.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
 				" from  " +
 				" FEED_PLAN A " +
-				" left  outer join LOOKUP_VALUES B on (b.lookup_cd=a.feed_item AND b.category_cd=? )  " +
-				" left  outer join LOOKUP_VALUES C on (c.lookup_cd=a.FEED_COHORT AND c.category_cd=? ) " +
+				" left  outer join LOOKUP_VALUES B on (B.lookup_cd=A.feed_item AND B.category_cd=? )  " +
+				" left  outer join LOOKUP_VALUES C on (C.lookup_cd=A.FEED_COHORT AND C.category_cd=? ) " +
 				" where A.ORG_ID=? "
 				+ " AND A.FEED_ITEM = ? AND A.FEED_COHORT= ? AND A.START <= ? AND A.END >= ? ";
 		
@@ -433,13 +433,13 @@ public class FeedLoader {
 
 	public FeedPlan retrieveFeedPlan(String orgID, String feedCohortCD) throws IMDException {
 		
-		String qryString = " SELECT a.*, " +
-				" IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR,b.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
-				" IFNULL(c.short_descr,a.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, c.long_descr AS FEED_COHORT_LONG_DESCR,c.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
+		String qryString = " SELECT A.*, " +
+				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, B.long_descr as ITEM_LONG_DESCR,B.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
+				" IFNULL(C.short_descr,A.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, C.long_descr AS FEED_COHORT_LONG_DESCR,C.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
 				" from  " +
 				" FEED_PLAN A " +
-				" left  outer join LOOKUP_VALUES B on (b.lookup_cd=a.feed_item AND b.category_cd=?   )  " +
-				" left  outer join LOOKUP_VALUES C on (c.lookup_cd=a.FEED_COHORT and c.category_cd=? ) " +
+				" left  outer join LOOKUP_VALUES B on (B.lookup_cd=A.feed_item AND B.category_cd=?   )  " +
+				" left  outer join LOOKUP_VALUES C on (C.lookup_cd=A.FEED_COHORT and C.category_cd=? ) " +
 				"  where "  + 
 				" ORG_ID=? AND FEED_COHORT= ? ";
 		
@@ -480,9 +480,9 @@ public class FeedLoader {
 	}	
 	
 	public FeedPlan retrieveDistinctFeedItemsInFeedPlan(String orgID) throws IMDException {
-		String qryString = "SELECT distinct a.org_id, a.FEED_ITEM,a.units, IFNULL(b.short_descr,a.FEED_ITEM) as ITEM_SHORT_DESCR, b.long_descr as ITEM_LONG_DESCR" +
-				" FROM FEED_PLAN a " +
-				" left  outer join LOOKUP_VALUES b on (b.lookup_cd=a.FEED_ITEM and b.category_cd=?) where a.ORG_ID=? " + 
+		String qryString = "SELECT distinct A.org_id, A.FEED_ITEM,A.units, IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, B.long_descr as ITEM_LONG_DESCR" +
+				" FROM FEED_PLAN A " +
+				" left  outer join LOOKUP_VALUES B on (B.lookup_cd=A.FEED_ITEM and B.category_cd=?) where A.ORG_ID=? " + 
 				" order by ITEM_SHORT_DESCR ";
 		
 		FeedPlan feedPlan = null;

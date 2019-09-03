@@ -191,13 +191,13 @@ public class InventoryLoader {
 	public List<Sire> getSiresWithAvailableInventory(String orgID) {
 		List<Sire> sireList = new ArrayList<Sire>();
 		ResultSet rs;
-		String qryString = "SELECT c.USE_COUNT, c.success_count, c.failure_count, c.tbd_count, a.remaining_qty as REMAINING_QTY, a.sexed, b.* " 
-				+ " FROM imd.SEMEN_RMNG_QTY_VW a " 
-				+ " LEFT OUTER JOIN  LV_SIRE b ON b.id=a.item_id " 
-				+ " LEFT OUTER JOIN SIRE_USAGE_STATS_VW c ON a.item_id=C.CODE  WHERE a.item_id = b.id and a.org_id=? and remaining_qty > 0 "				
+		String qryString = "SELECT C.USE_COUNT, C.success_count, C.failure_count, C.tbd_count, A.remaining_qty as REMAINING_QTY, A.sexed, B.* " 
+				+ " FROM imd.SEMEN_RMNG_QTY_VW A " 
+				+ " LEFT OUTER JOIN  LV_SIRE B ON B.id=A.item_id " 
+				+ " LEFT OUTER JOIN SIRE_USAGE_STATS_VW c ON A.item_id=C.CODE  WHERE A.item_id = B.id and A.org_id=? and remaining_qty > 0 "				
 				+ " union "
-				+ " select 0 as USE_COUNT,0 as success_count,0 as failure_count,0 as tbd_count, \"∞\" as REMAINING_QTY,'N' as SEXED, a.* from LV_SIRE a where semen_ind='N' "
-				+ " and  a.ID not in (select animal_tag from animals where herd_leaving_dttm is not null)";
+				+ " select 0 as USE_COUNT,0 as success_count,0 as failure_count,0 as tbd_count, \"∞\" as REMAINING_QTY,'N' as SEXED, A.* from LV_SIRE A where semen_ind='N' "
+				+ " and  A.ID not in (select animal_tag from animals where herd_leaving_dttm is not null)";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {

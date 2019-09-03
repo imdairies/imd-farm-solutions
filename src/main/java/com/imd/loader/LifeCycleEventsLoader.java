@@ -102,18 +102,18 @@ public class LifeCycleEventsLoader {
 
 	
 	public LifecycleEvent retrieveLifeCycleEvent(String orgId, int transID) {
-		String qryString = "Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, "
-				+ "b.FIELD1_LABEL, b.FIELD1_TYPE, b.FIELD1_UNIT,"
-				+ "b.FIELD2_LABEL, b.FIELD2_TYPE, b.FIELD2_UNIT,"
-				+ "b.FIELD3_LABEL, b.FIELD3_TYPE, b.FIELD3_UNIT,"
-				+ "b.FIELD4_LABEL, b.FIELD4_TYPE, b.FIELD4_UNIT,"
-				+ "c.SHORT_DESCR as OPERATOR_SHORT_DESCR "
-				+ " from LIFECYCLE_EVENTS a  "
-				+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  "
-				+ "  ON	a.EVENT_CD = b.EVENT_CD  "
+		String qryString = "Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, "
+				+ "B.FIELD1_LABEL, B.FIELD1_TYPE, B.FIELD1_UNIT,"
+				+ "B.FIELD2_LABEL, B.FIELD2_TYPE, B.FIELD2_UNIT,"
+				+ "B.FIELD3_LABEL, B.FIELD3_TYPE, B.FIELD3_UNIT,"
+				+ "B.FIELD4_LABEL, B.FIELD4_TYPE, B.FIELD4_UNIT,"
+				+ "C.SHORT_DESCR as OPERATOR_SHORT_DESCR "
+				+ " from LIFECYCLE_EVENTS A  "
+				+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  "
+				+ "  ON	A.EVENT_CD = B.EVENT_CD  "
 				+ "  LEFT OUTER JOIN LOOKUP_VALUES c "
-				+ "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' "
-				+ " where a.ORG_ID=? AND a.ID =?  ORDER BY a.EVENT_DTTM DESC";
+				+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
+				+ " where A.ORG_ID=? AND A.ID =?  ORDER BY A.EVENT_DTTM DESC";
 		
 		LifecycleEvent event = null;
 		Statement st = null;
@@ -229,24 +229,24 @@ public class LifeCycleEventsLoader {
 
 	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
-		String qryString = " Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
-							+ " b.FIELD1_LABEL, b.FIELD1_TYPE, b.FIELD1_UNIT, "
-							+ " b.FIELD2_LABEL, b.FIELD2_TYPE, b.FIELD2_UNIT, "
-							+ " b.FIELD3_LABEL, b.FIELD3_TYPE, b.FIELD3_UNIT, "
-							+ " b.FIELD4_LABEL, b.FIELD4_TYPE, b.FIELD4_UNIT  " 
-							+ " from LIFECYCLE_EVENTS a  "
-							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " 
-							+ "  ON	a.EVENT_CD = b.EVENT_CD  " 
+		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
+							+ " B.FIELD1_LABEL, B.FIELD1_TYPE, B.FIELD1_UNIT, "
+							+ " B.FIELD2_LABEL, B.FIELD2_TYPE, B.FIELD2_UNIT, "
+							+ " B.FIELD3_LABEL, B.FIELD3_TYPE, B.FIELD3_UNIT, "
+							+ " B.FIELD4_LABEL, B.FIELD4_TYPE, B.FIELD4_UNIT  " 
+							+ " from LIFECYCLE_EVENTS A  "
+							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  " 
+							+ "  ON	A.EVENT_CD = B.EVENT_CD  " 
 							+ "  LEFT OUTER JOIN LOOKUP_VALUES c "
-							+ "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' "
-							+ " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  ";
+							+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
+							+ " where A.ORG_ID=?  AND A.ANIMAL_TAG =?  ";
 		String event1Str = "";
 		String event2Str = "";
 		if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty()) {
-			event1Str = " a.EVENT_CD=? ";
+			event1Str = " A.EVENT_CD=? ";
 		}
 		if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty()) {
-			event2Str = " a.EVENT_CD=? ";
+			event2Str = " A.EVENT_CD=? ";
 		}
 	    
 		if (event1Str.isEmpty() && event2Str.isEmpty()) {
@@ -260,7 +260,7 @@ public class LifeCycleEventsLoader {
 				(auxField2Value != null ? " AND AUX_FL2_VALUE=? "  :  "") + 
 				(auxField3Value != null ? " AND AUX_FL3_VALUE=? " : "") + 
 				(auxField4Value != null ? " AND AUX_FL4_VALUE=? " : "") + 
-				(fromDate != null ? " AND a.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND a.EVENT_DTTM <=? " : "" ) +  " ORDER BY a.EVENT_DTTM DESC";		
+				(fromDate != null ? " AND A.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND A.EVENT_DTTM <=? " : "" ) +  " ORDER BY A.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
 		Statement st = null;
 		ResultSet rs = null;
@@ -314,13 +314,13 @@ public class LifeCycleEventsLoader {
 	
 	public List<LifecycleEvent> retrieveAllLifeCycleEventsForAnimal(String orgId, String tagNumber) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
-		String qryString = " Select a.*, b.SHORT_DESCR as EVENT_SHORT_DESCR, c.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
-		  " from LIFECYCLE_EVENTS a  " +
-		  "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT b  " +
-		  "  ON	a.EVENT_CD = b.EVENT_CD  " +
-		  "  LEFT OUTER JOIN LOOKUP_VALUES c " +
-		  "  ON c.LOOKUP_CD=a.OPERATOR and  c.CATEGORY_CD='OPRTR' " +
-		  " where a.ORG_ID=?  AND a.ANIMAL_TAG =?  ORDER BY a.EVENT_DTTM DESC";		
+		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
+		  " from LIFECYCLE_EVENTS A  " +
+		  "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  " +
+		  "  ON	A.EVENT_CD = B.EVENT_CD  " +
+		  "  LEFT OUTER JOIN LOOKUP_VALUES C " +
+		  "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' " +
+		  " where A.ORG_ID=?  AND A.ANIMAL_TAG =?  ORDER BY A.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
 		Statement st = null;
 		ResultSet rs = null;
@@ -501,9 +501,9 @@ public class LifeCycleEventsLoader {
 	}
 
 	public int determineInseminationAttemptCountInCurrentLactation(String orgID, String animalTag) {
-		String qryString = "select animal_tag,count(*) AS INSEMINATION_ATTEMPTS_COUNT from LIFECYCLE_EVENTS a "
-				+ "where A.ORG_ID = ? AND a.animal_tag=? and (event_cd=? OR event_cd=?) and "
-				+ "event_dttm >= (select max(EVENT_DTTM) from LIFECYCLE_EVENTS where org_id=a.org_id and animal_tag=a.animal_tag and (event_cd=? OR event_cd=?  OR event_cd=?) )";
+		String qryString = "select animal_tag,count(*) AS INSEMINATION_ATTEMPTS_COUNT from LIFECYCLE_EVENTS A "
+				+ "where A.ORG_ID = ? AND A.animal_tag=? and (event_cd=? OR event_cd=?) and "
+				+ "event_dttm >= (select max(EVENT_DTTM) from LIFECYCLE_EVENTS where org_id=A.org_id and animal_tag=A.animal_tag and (event_cd=? OR event_cd=?  OR event_cd=?) )";
 		int inseminationAttemptsCount = 0;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
@@ -565,7 +565,7 @@ public class LifeCycleEventsLoader {
 	}
 	public String performPostEventAdditionEventUpdate(LifecycleEvent event, Animal animal, User user) {
 		String additionalMessage = "";
-		IMDLogger.log("Checking if a related event needs to be updated..." + event, Util.INFO);
+		IMDLogger.log("Checking if A related event needs to be updated..." + event, Util.INFO);
 		
 		additionalMessage = updateLastInseminationOutcome(event, user, additionalMessage);
 		additionalMessage += updateHerdLeavingDttm(event, animal, user);
@@ -647,7 +647,7 @@ public class LifeCycleEventsLoader {
 	private String determineInseminationOutcomeValue(LifecycleEvent event) {
 		String retValue = "";
 		if (event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.HEAT))
-			// if a cow comes in heat then this is a sign that previous insemination was unsuccessful.
+			// if A cow comes in heat then this is A sign that previous insemination was unsuccessful.
 			retValue = Util.NO.toUpperCase();
 		else if (event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PREGTEST))
 			retValue = event.getAuxField1Value();

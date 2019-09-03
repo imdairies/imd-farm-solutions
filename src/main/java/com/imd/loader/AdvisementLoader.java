@@ -19,34 +19,34 @@ import com.imd.util.Util;
 public class AdvisementLoader {
 	
 	public Advisement retrieveAdvisementRule(String orgId, String advisementID, boolean activeOnly) {
-		String qryString = " SELECT  b.ORG_ID AS ORG_ID, " + 
-				" a.ADVISEMENT_ID AS ADVISEMENT_ID, " +
-				" b.ADVISEMENT_ID AS ORG_ADVISEMENT_ID, " + 
-				" a.ENABLE_IND AS RULE_ENABLED, " + 
-				" b.ENABLE_IND AS RULE_ENABLED_FOR_ORG, " + 
-				" a.short_descr AS SHORT_DESCR, " + 
+		String qryString = " SELECT  B.ORG_ID AS ORG_ID, " + 
+				" A.ADVISEMENT_ID AS ADVISEMENT_ID, " +
+				" B.ADVISEMENT_ID AS ORG_ADVISEMENT_ID, " + 
+				" A.ENABLE_IND AS RULE_ENABLED, " + 
+				" B.ENABLE_IND AS RULE_ENABLED_FOR_ORG, " + 
+				" A.short_descr AS SHORT_DESCR, " + 
 				" A.LONG_DESCR AS LONG_DESCR, " + 
-				" b.THRESHOLD1 AS THRESHOLD1, " + 
-				" b.THRESHOLD2 AS THRESHOLD2, " + 
-				" b.THRESHOLD3 AS THRESHOLD3, " + 
-				" b.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
-				" b.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
-				" b.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
-				" b.EMAIL_IND AS EMAIL_IND, " + 
-				" b.SMS_IND AS SMS_IND, " + 
-				" b.WEB_IND AS WEB_IND, " + 
-				" a.CREATED_BY AS TEMPLATE_CREATED_BY, " + 
-				" a.CREATED_DTTM AS TEMPLATE_CREATED_DTTM, " + 
-				" a.UPDATED_BY AS TEMPLATE_UPDATED_BY, " + 
-				" a.UPDATED_DTTM AS TEMPLATE_UPDATED_DTTM, " + 
-				" b.CREATED_BY AS CREATED_BY, " + 
-				" b.CREATED_DTTM AS CREATED_DTTM, " + 
-				" b.UPDATED_BY AS UPDATED_BY, " + 
-				" b.UPDATED_DTTM AS UPDATED_DTTM " +			    
+				" B.THRESHOLD1 AS THRESHOLD1, " + 
+				" B.THRESHOLD2 AS THRESHOLD2, " + 
+				" B.THRESHOLD3 AS THRESHOLD3, " + 
+				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
+				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
+				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+				" B.EMAIL_IND AS EMAIL_IND, " + 
+				" B.SMS_IND AS SMS_IND, " + 
+				" B.WEB_IND AS WEB_IND, " + 
+				" A.CREATED_BY AS TEMPLATE_CREATED_BY, " + 
+				" A.CREATED_DTTM AS TEMPLATE_CREATED_DTTM, " + 
+				" A.UPDATED_BY AS TEMPLATE_UPDATED_BY, " + 
+				" A.UPDATED_DTTM AS TEMPLATE_UPDATED_DTTM, " + 
+				" B.CREATED_BY AS CREATED_BY, " + 
+				" B.CREATED_DTTM AS CREATED_DTTM, " + 
+				" B.UPDATED_BY AS UPDATED_BY, " + 
+				" B.UPDATED_DTTM AS UPDATED_DTTM " +			    
 				" FROM " +   
-				" imd.ADVISEMENT_RULE_TEMPLATE a, imd.ADVISEMENT_RULES b " + 
+				" imd.ADVISEMENT_RULE_TEMPLATE a, imd.ADVISEMENT_RULES B " + 
 			    " where " +   
-				" a.ADVISEMENT_ID = b.ADVISEMENT_ID AND b.ORG_ID=? AND A.ADVISEMENT_ID=? " + (activeOnly? " AND a.ENABLE_IND='Y' AND b.ENABLE_IND='Y' ": " ");
+				" A.ADVISEMENT_ID = B.ADVISEMENT_ID AND B.ORG_ID=? AND A.ADVISEMENT_ID=? " + (activeOnly? " AND A.ENABLE_IND='Y' AND B.ENABLE_IND='Y' ": " ");
 		
 		Advisement advRule = null;
 		PreparedStatement preparedStatement = null;
@@ -104,34 +104,34 @@ public class AdvisementLoader {
 	}
 
 	public List<Advisement> getAllActiveRules(String orgId) {
-		String qryString = " SELECT  b.ORG_ID AS ORG_ID, " + 
-				" a.ADVISEMENT_ID AS ADVISEMENT_ID, " +
-				" b.ADVISEMENT_ID AS ORG_ADVISEMENT_ID, " + 
-				" a.ENABLE_IND AS RULE_ENABLED, " + 
-				" b.ENABLE_IND AS RULE_ENABLED_FOR_ORG, " + 
-				" a.short_descr AS SHORT_DESCR, " + 
+		String qryString = " SELECT  B.ORG_ID AS ORG_ID, " + 
+				" A.ADVISEMENT_ID AS ADVISEMENT_ID, " +
+				" B.ADVISEMENT_ID AS ORG_ADVISEMENT_ID, " + 
+				" A.ENABLE_IND AS RULE_ENABLED, " + 
+				" B.ENABLE_IND AS RULE_ENABLED_FOR_ORG, " + 
+				" A.short_descr AS SHORT_DESCR, " + 
 				" A.LONG_DESCR AS LONG_DESCR, " + 
-				" b.THRESHOLD1 AS THRESHOLD1, " + 
-				" b.THRESHOLD2 AS THRESHOLD2, " + 
-				" b.THRESHOLD3 AS THRESHOLD3, " + 
-				" b.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
-				" b.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
-				" b.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
-				" b.EMAIL_IND AS EMAIL_IND, " + 
-				" b.SMS_IND AS SMS_IND, " + 
-				" b.WEB_IND AS WEB_IND, " + 
-				" a.CREATED_BY AS TEMPLATE_CREATED_BY, " + 
-				" a.CREATED_DTTM AS TEMPLATE_CREATED_DTTM, " + 
-				" a.UPDATED_BY AS TEMPLATE_UPDATED_BY, " + 
-				" a.UPDATED_DTTM AS TEMPLATE_UPDATED_DTTM, " + 
-				" b.CREATED_BY AS CREATED_BY, " + 
-				" b.CREATED_DTTM AS CREATED_DTTM, " + 
-				" b.UPDATED_BY AS UPDATED_BY, " + 
-				" b.UPDATED_DTTM AS UPDATED_DTTM " +			    
+				" B.THRESHOLD1 AS THRESHOLD1, " + 
+				" B.THRESHOLD2 AS THRESHOLD2, " + 
+				" B.THRESHOLD3 AS THRESHOLD3, " + 
+				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
+				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
+				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+				" B.EMAIL_IND AS EMAIL_IND, " + 
+				" B.SMS_IND AS SMS_IND, " + 
+				" B.WEB_IND AS WEB_IND, " + 
+				" A.CREATED_BY AS TEMPLATE_CREATED_BY, " + 
+				" A.CREATED_DTTM AS TEMPLATE_CREATED_DTTM, " + 
+				" A.UPDATED_BY AS TEMPLATE_UPDATED_BY, " + 
+				" A.UPDATED_DTTM AS TEMPLATE_UPDATED_DTTM, " + 
+				" B.CREATED_BY AS CREATED_BY, " + 
+				" B.CREATED_DTTM AS CREATED_DTTM, " + 
+				" B.UPDATED_BY AS UPDATED_BY, " + 
+				" B.UPDATED_DTTM AS UPDATED_DTTM " +			    
 				" FROM " +   
-				" imd.ADVISEMENT_RULE_TEMPLATE a, imd.ADVISEMENT_RULES b " + 
+				" imd.ADVISEMENT_RULE_TEMPLATE a, imd.ADVISEMENT_RULES B " + 
 			    " where " +   
-				" a.ADVISEMENT_ID = b.ADVISEMENT_ID AND b.ORG_ID=? AND a.ENABLE_IND='Y' and b.ENABLE_IND='Y'";
+				" A.ADVISEMENT_ID = B.ADVISEMENT_ID AND B.ORG_ID=? AND A.ENABLE_IND='Y' and B.ENABLE_IND='Y'";
 		
 		List<Advisement> advRules = new ArrayList<Advisement>();
 		PreparedStatement preparedStatement = null;

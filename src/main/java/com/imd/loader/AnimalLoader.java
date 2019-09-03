@@ -234,32 +234,32 @@ public class AnimalLoader {
 	public List<Animal> getAnimalRawInfo(AnimalBean animalBean) throws Exception {
 		boolean isWildCardSearch = false;
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
-		String qryString =  "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString =  "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.CATEGORY_CD=?)" + 
-				" WHERE ( a.ORG_ID=? ";		
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" + 
+				" WHERE ( A.ORG_ID=? ";		
 		
 		List<String> values = new ArrayList<String> ();
 		values.add(Util.LookupValues.LCYCL);
 		values.add(animalBean.getOrgID());		
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
-			qryString +=  " AND a.ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
+			qryString +=  " AND A.ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
 			values.add(animalBean.getAnimalTag());
 			if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
-				qryString +=  " AND a.TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
+				qryString +=  " AND A.TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 				values.add(animalBean.getAnimalType());
 			}
 		} else if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
-			qryString +=  " AND a.TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
+			qryString +=  " AND A.TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 			values.add(animalBean.getAnimalType());
 		}
 		if (animalBean.getActiveOnly()) {
-			qryString +=  " AND (a.HERD_JOINING_DTTM IS NOT NULL AND a.HERD_LEAVING_DTTM IS NULL))  ORDER BY a.ANIMAL_TAG";
+			qryString +=  " AND (A.HERD_JOINING_DTTM IS NOT NULL AND A.HERD_LEAVING_DTTM IS NULL))  ORDER BY A.ANIMAL_TAG";
 		} else {
-			qryString += ") ORDER BY a.ANIMAL_TAG";
+			qryString += ") ORDER BY A.ANIMAL_TAG";
 		}
 		Animal animalValue = null;
 		ResultSet rs = null;
@@ -288,13 +288,13 @@ public class AnimalLoader {
 	
 	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean, boolean isWildCardSearch, String additionalQuery) throws Exception {		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
 
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.CATEGORY_CD=?)" +   
-				" WHERE ( a.ORG_ID=? ";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" +   
+				" WHERE ( A.ORG_ID=? ";
 		
 		
 		List<String> values = new ArrayList<String> ();
@@ -353,15 +353,15 @@ public class AnimalLoader {
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
 		
 		
-		String qryString = "Select a.*, \"\" as RECORD_URL, \"\" AS SIRE_ALIAS, \"\" as ID,  b.SHORT_DESCR as ANIMAL_TYPE, b.ADDITIONAL_FLD1 AS STATUS_INDICATOR, c.LACTATION_NBR from imd.ANIMALS a " +
-		" left outer join imd.LOOKUP_VALUES b on a.TYPE_CD = b.LOOKUP_CD  AND CATEGORY_CD='" + Util.LookupValues.LCYCL+ "' " +
+		String qryString = "Select A.*, \"\" as RECORD_URL, \"\" AS SIRE_ALIAS, \"\" as ID,  B.SHORT_DESCR as ANIMAL_TYPE, B.ADDITIONAL_FLD1 AS STATUS_INDICATOR, C.LACTATION_NBR from imd.ANIMALS A " +
+		" left outer join imd.LOOKUP_VALUES B on A.TYPE_CD = B.LOOKUP_CD  AND CATEGORY_CD='" + Util.LookupValues.LCYCL+ "' " +
         " left outer join (SELECT e.ANIMAL_TAG, COUNT(*) AS LACTATION_NBR FROM imd.LIFECYCLE_EVENTS e WHERE  (e.EVENT_CD='PARTURATE' OR e.EVENT_CD='ABORTION') GROUP BY e.ANIMAL_TAG) c  " +
-        " on c.animal_tag=a.animal_tag  " +
-        " WHERE a.ORG_ID=? AND GENDER = 'F' and (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) and DOB <= ?" ;
+        " on C.animal_tag=A.animal_tag  " +
+        " WHERE A.ORG_ID=? AND GENDER = 'F' and (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) and DOB <= ?" ;
 		
-//		String qryString = "Select a.*, \" \" as RECORD_URL, \" \"  SIRE_ALIAS, \" \" as ID, b.SHORT_DESCR as ANIMAL_TYPE, b.ADDITIONAL_FLD1 AS STATUS_INDICATOR from imd.ANIMALS a, "
-//				+ " imd.LOOKUP_VALUES b WHERE "
-//				+ " a.ORG_ID=? AND GENDER = 'F' and STATUS='ACTIVE' and DOB <= ? and a.TYPE_CD = b.LOOKUP_CD ORDER BY ANIMAL_TAG";
+//		String qryString = "Select A.*, \" \" as RECORD_URL, \" \"  SIRE_ALIAS, \" \" as ID, B.SHORT_DESCR as ANIMAL_TYPE, B.ADDITIONAL_FLD1 AS STATUS_INDICATOR from imd.ANIMALS a, "
+//				+ " imd.LOOKUP_VALUES B WHERE "
+//				+ " A.ORG_ID=? AND GENDER = 'F' and STATUS='ACTIVE' and DOB <= ? and A.TYPE_CD = B.LOOKUP_CD ORDER BY ANIMAL_TAG";
 		
 		Animal animalValue = null;
 		ResultSet rs = null;
@@ -474,8 +474,8 @@ public class AnimalLoader {
 	public List<Sire> retrieveAISire()  throws Exception {
 		ArrayList<Sire> allMatchingValues = new ArrayList<Sire>();
 		String qryString = "Select * from LV_SIRE A " + 
-				"left outer join SIRE_USAGE_STATS_VW B on a.id=b.code " + 
-				"ORDER BY a.CONTROLLER,a.ALIAS";
+				"left outer join SIRE_USAGE_STATS_VW B on A.id=B.code " + 
+				"ORDER BY A.CONTROLLER,A.ALIAS";
 		List<String> values = new ArrayList<String> ();
 		Sire animalValue = null;
 		ResultSet rs = null;
@@ -498,11 +498,11 @@ public class AnimalLoader {
 	
 	public List<Animal> retrieveDamOrSire(AnimalBean animalBean)  throws Exception {
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
-		String qryString = "Select a.*,s.RECORD_URL, s.ALIAS SIRE_ALIAS, s.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
-				" from ANIMALS a " + 
-				" LEFT OUTER JOIN LV_SIRE s ON a.SIRE_TAG=s.ID " + 
-				" LEFT OUTER JOIN LOOKUP_VALUES c ON (a.TYPE_CD=c.LOOKUP_CD AND c.CATEGORY_CD=?)" + 
-				" WHERE ( a.ORG_ID=? AND a.GENDER=?)";
+		String qryString = "Select A.*,s.RECORD_URL, s.ALIAS SIRE_ALIAS, s.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
+				" from ANIMALS A " + 
+				" LEFT OUTER JOIN LV_SIRE s ON A.SIRE_TAG=s.ID " + 
+				" LEFT OUTER JOIN LOOKUP_VALUES c ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" + 
+				" WHERE ( A.ORG_ID=? AND A.GENDER=?)";
 		
 		List<String> values = new ArrayList<String> ();
 		values.add( Util.LookupValues.LCYCL);
@@ -529,13 +529,13 @@ public class AnimalLoader {
 
 	public List<Animal> retrieveActiveLactatingAnimals(String orgID) throws Exception {
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND c.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String> ();
 		values.add(orgID);		
 		Animal animalValue = null;
@@ -557,39 +557,39 @@ public class AnimalLoader {
 	}
 
 	public List<Animal> retrieveActivePregnantAnimals(String orgID) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND c.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
 		return retrieveAnimalTypes(values, qryString);
 	}
 	
 	public List<Animal> retrieveActiveNonDryPregnantAnimals(String orgID) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND c.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
 		return retrieveAnimalTypes(values, qryString);
 	}
 	
 	public List<Animal> retrieveActiveDryPregnantAnimals(String orgID) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND c.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
 		return retrieveAnimalTypes(values, qryString);
@@ -616,26 +616,26 @@ public class AnimalLoader {
 	}
 	
 	public List<Animal> retrieveActiveNonPregnantNonInseminatedLactatingOrDryCows(String orgId) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND (c.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' OR c.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%') AND c.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND (C.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' OR C.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%') AND C.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);
 		return retrieveAnimalTypes(values, qryString);
 	}
 	
 	public List<Animal> retrieveActiveNonPregnantNonInseminatedHeifers(String orgId) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " +
-				"	ON a.SIRE_TAG=b.ID " +
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " +
+				"	ON A.SIRE_TAG=B.ID " +
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " +
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND c.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);
 		return retrieveAnimalTypes(values, qryString);
@@ -644,26 +644,26 @@ public class AnimalLoader {
 
 	
 	public List<Animal> retrieveActiveHeifers(String orgId) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR " +
-				" from ANIMALS a " +
-				"	LEFT OUTER JOIN LV_SIRE b " +
-				"	ON a.SIRE_TAG=b.ID " +
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " +
+				" from ANIMALS A " +
+				"	LEFT OUTER JOIN LV_SIRE B " +
+				"	ON A.SIRE_TAG=B.ID " +
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " +
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND c.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);
 		return retrieveAnimalTypes(values, qryString);
 	}
 
 	public List<Animal> retrieveActiveFemaleCalves(String orgID) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND a.TYPE_CD='" + Util.AnimalTypes.FEMALECALF + "' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND A.TYPE_CD='" + Util.AnimalTypes.FEMALECALF + "' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
 		return retrieveAnimalTypes(values, qryString);
@@ -671,26 +671,26 @@ public class AnimalLoader {
 
 
 	public List<Animal> retrieveCalves(String orgId) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND (a.TYPE_CD='" + Util.AnimalTypes.FEMALECALF +"' OR a.TYPE_CD='" + Util.AnimalTypes.MALECALF + "') ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND (A.TYPE_CD='" + Util.AnimalTypes.FEMALECALF +"' OR A.TYPE_CD='" + Util.AnimalTypes.MALECALF + "') ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);
 		return retrieveAnimalTypes(values, qryString);
 	}
 
 	public List<Animal> retrieveActiveInseminatedNonPregnantAnimals(String orgId) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE, c.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND c.ADDITIONAL_FLD1 LIKE '%" + INSEMINATED_INDICATOR + "%' AND c.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + INSEMINATED_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgId);
 		return retrieveAnimalTypes(values, qryString);
@@ -779,13 +779,13 @@ public class AnimalLoader {
 	}
 
 	public List<Animal> retrieveAnimalsYoungerThanSpecifiedDays(String orgId, LocalDate dobThreshold) throws Exception {
-		String qryString = "Select a.*,b.RECORD_URL, b.ALIAS SIRE_ALIAS, b.ID, c.SHORT_DESCR as ANIMAL_TYPE " + 
-				"from ANIMALS a " + 
-				"	LEFT OUTER JOIN LV_SIRE b " + 
-				"	ON a.SIRE_TAG=b.ID " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
-				"	ON (a.TYPE_CD=c.LOOKUP_CD AND c.category_cd=?) " +
-				" WHERE a.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL)  AND DOB >= ? ORDER BY ANIMAL_TAG";
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd=?) " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL)  AND DOB >= ? ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add( Util.LookupValues.LCYCL);
 		values.add(orgId);
@@ -795,8 +795,8 @@ public class AnimalLoader {
 
 	public Sire retrieveSire(String inseminationSireCode) {
 		String qryString = "Select * from LV_SIRE A " + 
-				"left outer join SIRE_USAGE_STATS_VW B on a.id=b.code " + 
-				" WHERE a.ID=? ORDER BY a.ALIAS ";
+				"left outer join SIRE_USAGE_STATS_VW B on A.id=B.code " + 
+				" WHERE A.ID=? ORDER BY A.ALIAS ";
 		Sire animalValue = null;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
