@@ -238,7 +238,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" + 
 				" WHERE ( A.ORG_ID=? ";		
 		
@@ -273,7 +273,6 @@ public class AnimalLoader {
 
 		IMDLogger.log(preparedStatement.toString(),Util.INFO);
 		
-		
 	    rs = preparedStatement.executeQuery();
 	    while (rs.next()) {
 	    	animalValue = getAnimalFromSQLRecord(rs);
@@ -292,7 +291,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" +   
 				" WHERE ( A.ORG_ID=? ";
 		
@@ -355,7 +354,7 @@ public class AnimalLoader {
 		
 		String qryString = "Select A.*, \"\" as RECORD_URL, \"\" AS SIRE_ALIAS, \"\" as ID,  B.SHORT_DESCR as ANIMAL_TYPE, B.ADDITIONAL_FLD1 AS STATUS_INDICATOR, C.LACTATION_NBR from imd.ANIMALS A " +
 		" left outer join imd.LOOKUP_VALUES B on A.TYPE_CD = B.LOOKUP_CD  AND CATEGORY_CD='" + Util.LookupValues.LCYCL+ "' " +
-        " left outer join (SELECT e.ANIMAL_TAG, COUNT(*) AS LACTATION_NBR FROM imd.LIFECYCLE_EVENTS e WHERE  (e.EVENT_CD='PARTURATE' OR e.EVENT_CD='ABORTION') GROUP BY e.ANIMAL_TAG) c  " +
+        " left outer join (SELECT e.ANIMAL_TAG, COUNT(*) AS LACTATION_NBR FROM imd.LIFECYCLE_EVENTS e WHERE  (e.EVENT_CD='PARTURATE' OR e.EVENT_CD='ABORTION') GROUP BY e.ANIMAL_TAG) C  " +
         " on C.animal_tag=A.animal_tag  " +
         " WHERE A.ORG_ID=? AND GENDER = 'F' and (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) and DOB <= ?" ;
 		
@@ -501,7 +500,7 @@ public class AnimalLoader {
 		String qryString = "Select A.*,s.RECORD_URL, s.ALIAS SIRE_ALIAS, s.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
 				" from ANIMALS A " + 
 				" LEFT OUTER JOIN LV_SIRE s ON A.SIRE_TAG=s.ID " + 
-				" LEFT OUTER JOIN LOOKUP_VALUES c ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" + 
+				" LEFT OUTER JOIN LOOKUP_VALUES C ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" + 
 				" WHERE ( A.ORG_ID=? AND A.GENDER=?)";
 		
 		List<String> values = new ArrayList<String> ();
@@ -533,7 +532,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String> ();
@@ -561,7 +560,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -574,7 +573,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -587,7 +586,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -620,7 +619,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND (C.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' OR C.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%') AND C.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -633,7 +632,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " +
 				"	ON A.SIRE_TAG=B.ID " +
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " +
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " +
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + INSEMINATED_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -648,7 +647,7 @@ public class AnimalLoader {
 				" from ANIMALS A " +
 				"	LEFT OUTER JOIN LV_SIRE B " +
 				"	ON A.SIRE_TAG=B.ID " +
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " +
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " +
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + HEIFER_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -661,7 +660,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND A.TYPE_CD='" + Util.AnimalTypes.FEMALECALF + "' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -675,7 +674,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND (A.TYPE_CD='" + Util.AnimalTypes.FEMALECALF +"' OR A.TYPE_CD='" + Util.AnimalTypes.MALECALF + "') ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -688,7 +687,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + INSEMINATED_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + PREGNANT_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
@@ -783,7 +782,7 @@ public class AnimalLoader {
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES c " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd=?) " +
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL)  AND DOB >= ? ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();

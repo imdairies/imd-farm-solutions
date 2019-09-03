@@ -194,7 +194,7 @@ public class InventoryLoader {
 		String qryString = "SELECT C.USE_COUNT, C.success_count, C.failure_count, C.tbd_count, A.remaining_qty as REMAINING_QTY, A.sexed, B.* " 
 				+ " FROM imd.SEMEN_RMNG_QTY_VW A " 
 				+ " LEFT OUTER JOIN  LV_SIRE B ON B.id=A.item_id " 
-				+ " LEFT OUTER JOIN SIRE_USAGE_STATS_VW c ON A.item_id=C.CODE  WHERE A.item_id = B.id and A.org_id=? and remaining_qty > 0 "				
+				+ " LEFT OUTER JOIN SIRE_USAGE_STATS_VW C ON A.item_id=C.CODE  WHERE A.item_id = B.id and A.org_id=? and remaining_qty > 0 "				
 				+ " union "
 				+ " select 0 as USE_COUNT,0 as success_count,0 as failure_count,0 as tbd_count, \"∞\" as REMAINING_QTY,'N' as SEXED, A.* from LV_SIRE A where semen_ind='N' "
 				+ " and  A.ID not in (select animal_tag from animals where herd_leaving_dttm is not null)";

@@ -111,7 +111,7 @@ public class LifeCycleEventsLoader {
 				+ " from LIFECYCLE_EVENTS A  "
 				+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  "
 				+ "  ON	A.EVENT_CD = B.EVENT_CD  "
-				+ "  LEFT OUTER JOIN LOOKUP_VALUES c "
+				+ "  LEFT OUTER JOIN LOOKUP_VALUES C "
 				+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
 				+ " where A.ORG_ID=? AND A.ID =?  ORDER BY A.EVENT_DTTM DESC";
 		
@@ -237,7 +237,7 @@ public class LifeCycleEventsLoader {
 							+ " from LIFECYCLE_EVENTS A  "
 							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  " 
 							+ "  ON	A.EVENT_CD = B.EVENT_CD  " 
-							+ "  LEFT OUTER JOIN LOOKUP_VALUES c "
+							+ "  LEFT OUTER JOIN LOOKUP_VALUES C "
 							+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
 							+ " where A.ORG_ID=?  AND A.ANIMAL_TAG =?  ";
 		String event1Str = "";
