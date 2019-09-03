@@ -473,7 +473,7 @@ public class AnimalLoader {
 	public List<Sire> retrieveAISire()  throws Exception {
 		ArrayList<Sire> allMatchingValues = new ArrayList<Sire>();
 		String qryString = "Select * from LV_SIRE A " + 
-				"left outer join SIRE_USAGE_STATS_VW B on A.id=B.code " + 
+				"left outer join sire_usage_stats_vw B on A.id=B.code " + 
 				"ORDER BY A.CONTROLLER,A.ALIAS";
 		List<String> values = new ArrayList<String> ();
 		Sire animalValue = null;
@@ -794,7 +794,7 @@ public class AnimalLoader {
 
 	public Sire retrieveSire(String inseminationSireCode) {
 		String qryString = "Select * from LV_SIRE A " + 
-				"left outer join SIRE_USAGE_STATS_VW B on A.id=B.code " + 
+				"left outer join sire_usage_stats_vw B on A.id=B.code " + 
 				" WHERE A.ID=? ORDER BY A.ALIAS ";
 		Sire animalValue = null;
 		ResultSet rs = null;
@@ -822,7 +822,7 @@ public class AnimalLoader {
 	    return animalValue;
     }
 	public int getActiveHerdCountForDate(org.joda.time.LocalDate date) {
-		String qryString = "SELECT count(*) AS HERD_COUNT FROM imd.animals "
+		String qryString = "SELECT count(*) AS HERD_COUNT FROM imd.ANIMALS "
 				+ " where herd_joining_dttm <= ? and (herd_leaving_dttm is null or herd_leaving_dttm > ?)";
 		ResultSet rs = null;
 		int retValue = 0;

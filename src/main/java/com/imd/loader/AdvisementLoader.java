@@ -129,7 +129,7 @@ public class AdvisementLoader {
 				" B.UPDATED_BY AS UPDATED_BY, " + 
 				" B.UPDATED_DTTM AS UPDATED_DTTM " +			    
 				" FROM " +   
-				" imd.ADVISEMENT_RULE_TEMPLATE a, imd.ADVISEMENT_RULES B " + 
+				" imd.ADVISEMENT_RULE_TEMPLATE A, imd.ADVISEMENT_RULES B " + 
 			    " where " +   
 				" A.ADVISEMENT_ID = B.ADVISEMENT_ID AND B.ORG_ID=? AND A.ENABLE_IND='Y' and B.ENABLE_IND='Y'";
 		
