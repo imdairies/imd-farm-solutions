@@ -240,7 +240,7 @@ public class MilkingDetailLoader {
 	public List<MilkingDetail> retrieveSingleMilkingRecordsOfCow(MilkingDetailBean milkingSearchParam, boolean isMonthlyAverageRequired) throws Exception {
 		String qryString = "";
 		if (isMonthlyAverageRequired)
-			qryString = "SELECT A.*,B.AVERAGE_VOL AS AVERAGE_VOL FROM imd.MILK_LOG A, imd.MILK_SEQ_AVG_VW B " + 
+			qryString = "SELECT A.*,B.AVERAGE_VOL AS AVERAGE_VOL FROM imd.MILK_LOG A, imd.milk_seq_avg_vw B " + 
 					"where A.org_id=? " + 
 					"and A.animal_tag=? and A.MILK_DATE=? and A.SEQ_NBR=? AND A.ORG_ID=B.ORG_ID AND A.ANIMAL_TAG=B.ANIMAL_TAG AND A.SEQ_NBR=B.SEQ_NBR AND B.MONTH = MONTH(A.MILK_DATE)";
 		else
@@ -535,7 +535,7 @@ public class MilkingDetailLoader {
 		try {
 			milkDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE, (rs.getString("AVERAGE_VOL") == null || rs.getString("AVERAGE_VOL").isEmpty() ? 0f :Float.parseFloat(rs.getString("AVERAGE_VOL"))));
 		} catch (SQLException ex) {
-			IMDLogger.log("The column AVERAGE_VOL does not exist in the resultset. This is probably because the query does not have a join with MILK_SEQ_AVG_VW view. This may not be a critical error and may be ignored, but its certainly worth investigating. [ANIMAL_TAG=" + milkDetail.getAnimalTag() +"]", Util.WARNING);
+			IMDLogger.log("The column AVERAGE_VOL does not exist in the resultset. This is probably because the query does not have a join with milk_seq_avg_vw view. This may not be a critical error and may be ignored, but its certainly worth investigating. [ANIMAL_TAG=" + milkDetail.getAnimalTag() +"]", Util.WARNING);
 			ex.printStackTrace();
 		}
 			
