@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -22,9 +23,11 @@ import com.imd.dto.Note;
 import com.imd.dto.User;
 import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 class FarmLoaderTest {
+
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
@@ -57,7 +60,7 @@ class FarmLoaderTest {
 		c000.setUpdatedBy(c000.getCreatedBy());
 		c000.setUpdatedDTTM(c000.getCreatedDTTM());
 		c000.setAnimalDam(null);
-		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
+		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", DateTime.now(IMDProperties.getServerTimeZone()));		
 		c000.addNote(newNote);
 		return c000;
 	}

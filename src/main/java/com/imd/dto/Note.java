@@ -1,15 +1,16 @@
 package com.imd.dto;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 
 public class Note {
 	private int noteID;
 	private String noteText;
-	private LocalDateTime noteDateTimeStamp;
+	private DateTime noteDateTimeStamp;
 	
-	public Note(int id, String text, LocalDateTime noteDTTM) {
+	public Note(int id, String text, DateTime noteDTTM) {
 		this.noteID = id;
 		this.noteText = text;
 		this.noteDateTimeStamp = noteDTTM;
@@ -19,7 +20,7 @@ public class Note {
 	public Note(int id, String text) {
 		this.noteID = id;
 		this.noteText = text;
-		this.noteDateTimeStamp = LocalDateTime.now();
+		this.noteDateTimeStamp = DateTime.now();
 
 	}
 	public int getNoteID() {
@@ -28,10 +29,10 @@ public class Note {
 	public void setNoteID(int noteID) {
 		this.noteID = noteID;
 	}
-	public LocalDateTime getNoteTimeStamp() {
+	public DateTime getNoteTimeStamp() {
 		return noteDateTimeStamp;
 	}
-	public void setNoteTimeStamp(LocalDateTime noteTimeStamp) {
+	public void setNoteTimeStamp(DateTime noteTimeStamp) {
 		this.noteDateTimeStamp = noteTimeStamp;
 	}
 	public String getNoteText() {
@@ -41,7 +42,7 @@ public class Note {
 		this.noteText = text;
 	}
 	public void setNoteDateTimeStampToNow() {
-		noteDateTimeStamp = LocalDateTime.now();
+		noteDateTimeStamp = DateTime.now();
 	}
 	public LocalDate getNoteDate() {
 		return noteDateTimeStamp.toLocalDate();

@@ -45,6 +45,7 @@ public class Util {
 		public static final String PASS = "PASS";
 		public static final String APPLICATION_LOGGING_MODE = "APPLICATION_LOGGING_MODE";
 		public static final String IMD_SERVICES_URL = "IMD_SERVICES_URL";
+		public static final String SERVER_TIMEZONE = "SERVER_TIMEZONE";
 	}
 
 	public static final int INFO = 0;

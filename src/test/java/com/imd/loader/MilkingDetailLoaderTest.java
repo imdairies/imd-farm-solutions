@@ -23,6 +23,7 @@ import com.imd.dto.User;
 import com.imd.services.bean.MilkingDetailBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 class MilkingDetailLoaderTest {
@@ -62,7 +63,7 @@ class MilkingDetailLoaderTest {
 		dam.setUpdatedBy(dam.getCreatedBy());
 		dam.setUpdatedDTTM(dam.getCreatedDTTM());
 		dam.setAnimalDam(null);
-		Note newNote = new Note (1,"test note", LocalDateTime.now());		
+		Note newNote = new Note (1,"test note", DateTime.now(IMDProperties.getServerTimeZone()));		
 		dam.addNote(newNote);
 		return dam;		
 	}	

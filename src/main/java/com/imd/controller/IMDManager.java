@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import com.imd.dto.Animal;
 import com.imd.dto.BankDetails;
@@ -20,6 +21,7 @@ import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Sire;
 import com.imd.util.IMDException;
+import com.imd.util.IMDProperties;
 import com.imd.util.MessageManager;
 
 public class IMDManager {
@@ -45,7 +47,7 @@ public class IMDManager {
 		setPurchaseFromContact(c026);
 		setSireInformation(c026);
 		c026.setAnimalDam(null);
-		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
+		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", DateTime.now(IMDProperties.getServerTimeZone()));		
 		c026.addNote(newNote);
 		setMilkingRecord(c026);
 		//System.out.println(c026.convertToJason());
@@ -72,7 +74,7 @@ public class IMDManager {
 		Contact company = new Contact("CRV");
 		company.setWebURI(URI.create("https://www.crv4all-international.com/find-bull/"));
 		sire.setOwnerCompany(company);
-		sire.addNote(new Note(1,"Not sure if this is truly the sire. Got minimal information of the sire of 026 from Babar Hameed Jathol", LocalDateTime.now()));
+		sire.addNote(new Note(1,"Not sure if this is truly the sire. Got minimal information of the sire of 026 from Babar Hameed Jathol", DateTime.now(IMDProperties.getServerTimeZone())));
 		c026.setAnimalSire(sire);
 	}
 

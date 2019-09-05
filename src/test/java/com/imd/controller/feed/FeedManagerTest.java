@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -34,6 +36,7 @@ import com.imd.loader.FeedLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 class FeedManagerTest {
@@ -61,23 +64,23 @@ class FeedManagerTest {
 		try {
 			Sire maleCalf = new Sire("TEST-MALECALF");
 			maleCalf.setOrgID("IMD");
-			maleCalf.setDateOfBirth(DateTime.now().minusDays(100));
+			maleCalf.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(100));
 			maleCalf.setAnimalTypeCD(Util.AnimalTypes.MALECALF);
 			maleCalf.setBreed(Util.Breed.HFCROSS);
 			maleCalf.setHerdJoiningDate(maleCalf.getDateOfBirth());
 			maleCalf.setCreatedBy(new User("KASHIF"));
-			maleCalf.setCreatedDTTM(DateTime.now());
+			maleCalf.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			maleCalf.setUpdatedBy(maleCalf.getCreatedBy());
 			maleCalf.setUpdatedDTTM(maleCalf.getCreatedDTTM());
 			
 			Sire bull = new Sire("TEST-BULL");
 			bull.setOrgID(maleCalf.getOrgID());
-			bull.setDateOfBirth(DateTime.now().minusDays(300));
+			bull.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(300));
 			bull.setAnimalTypeCD(Util.AnimalTypes.BULL);
 			bull.setBreed(maleCalf.getBreed());
 			bull.setHerdJoiningDate(maleCalf.getHerdJoiningDate());
 			bull.setCreatedBy(new User("KASHIF"));
-			bull.setCreatedDTTM(DateTime.now());
+			bull.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			bull.setUpdatedBy(maleCalf.getCreatedBy());
 			bull.setUpdatedDTTM(maleCalf.getCreatedDTTM());
 			
@@ -113,13 +116,13 @@ class FeedManagerTest {
 
 		dam.setPurchaseDate(DateTime.parse("2017-02-08"));
 		dam.setCreatedBy(new User("KASHIF"));
-		dam.setCreatedDTTM(DateTime.now());
+		dam.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		dam.setHerdJoiningDate(dob);
 		dam.setHerdLeavingDate(null);
 		dam.setUpdatedBy(dam.getCreatedBy());
 		dam.setUpdatedDTTM(dam.getCreatedDTTM());
 		dam.setAnimalDam(null);
-		Note newNote = new Note (1,"test note", LocalDateTime.now());		
+		Note newNote = new Note (1,"test note", DateTime.now(IMDProperties.getServerTimeZone()));		
 		dam.addNote(newNote);
 		return dam;		
 	}
@@ -134,10 +137,10 @@ class FeedManagerTest {
 			String pregHeiferTag = "-998";
 			String orgID = "IMD";
 			User user = new User("KASHIF");
-			Dam nonPregnantHeifer = createDam(orgID,nonPregHeiferTag,DateTime.now().minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRAWTHEAT);
-			Dam pregnantHeifer = createDam(orgID,pregHeiferTag,DateTime.now().minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRPREGN);
-			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,pregHeiferTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(),user,DateTime.now());
-			inseminationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS + 1));
+			Dam nonPregnantHeifer = createDam(orgID,nonPregHeiferTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRAWTHEAT);
+			Dam pregnantHeifer = createDam(orgID,pregHeiferTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRPREGN);
+			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,pregHeiferTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS + 1));
 
 
 			eventLoader.deleteAnimalLifecycleEvents(orgID, nonPregHeiferTag);
@@ -175,19 +178,19 @@ class FeedManagerTest {
 			String oldLactationTag = "-997";
 			String orgID = "IMD";
 			User user = new User("KASHIF");
-			Dam freshLactation = createDam(orgID,freshLactationTag,DateTime.now().minusDays(4*365),Util.AnimalTypes.LACTATING);
-			Dam midLactation = createDam(orgID,midLactationTag,DateTime.now().minusDays(4*365),Util.AnimalTypes.LCTINSEMIN);
-			Dam oldLactation = createDam(orgID,oldLactationTag,DateTime.now().minusDays(4*365),Util.AnimalTypes.LCTPRGNT);
+			Dam freshLactation = createDam(orgID,freshLactationTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.LACTATING);
+			Dam midLactation = createDam(orgID,midLactationTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.LCTINSEMIN);
+			Dam oldLactation = createDam(orgID,oldLactationTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.LCTPRGNT);
 
 			
-			LifecycleEvent freshParturationEvent = new LifecycleEvent(orgID,0,freshLactationTag,Util.LifeCycleEvents.PARTURATE,user,DateTime.now(),user,DateTime.now());
-			freshParturationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.RECENT_PARTURATION_DAYS_LIMIT));
+			LifecycleEvent freshParturationEvent = new LifecycleEvent(orgID,0,freshLactationTag,Util.LifeCycleEvents.PARTURATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			freshParturationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.RECENT_PARTURATION_DAYS_LIMIT));
 			
-			LifecycleEvent midParturationEvent = new LifecycleEvent(orgID,0,midLactationTag,Util.LifeCycleEvents.PARTURATE,user,DateTime.now(),user,DateTime.now());
-			midParturationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.RECENT_PARTURATION_DAYS_LIMIT + 1));
+			LifecycleEvent midParturationEvent = new LifecycleEvent(orgID,0,midLactationTag,Util.LifeCycleEvents.PARTURATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			midParturationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.RECENT_PARTURATION_DAYS_LIMIT + 1));
 
-			LifecycleEvent oldParturationEvent = new LifecycleEvent(orgID,0,oldLactationTag,Util.LifeCycleEvents.PARTURATE,user,DateTime.now(),user,DateTime.now());
-			oldParturationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.DRYOFF_BY_DAYS));
+			LifecycleEvent oldParturationEvent = new LifecycleEvent(orgID,0,oldLactationTag,Util.LifeCycleEvents.PARTURATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			oldParturationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.DRYOFF_BY_DAYS));
 			
 			eventLoader.deleteAnimalLifecycleEvents(orgID, freshLactationTag);
 			eventLoader.deleteAnimalLifecycleEvents(orgID, midLactationTag);
@@ -232,15 +235,15 @@ class FeedManagerTest {
 			String orgID = "IMD";
 			User user = new User("KASHIF");
 			
-			Dam closeupDryPreg = createDam(orgID,closeupDryPregTag,DateTime.now().minusDays(4*365),Util.AnimalTypes.DRYPREG);
-			Dam faroffDryPreg = createDam(orgID,faroffDryPregTag,DateTime.now().minusDays(4*365),Util.AnimalTypes.DRYPREG);
+			Dam closeupDryPreg = createDam(orgID,closeupDryPregTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.DRYPREG);
+			Dam faroffDryPreg = createDam(orgID,faroffDryPregTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.DRYPREG);
 
 			
-			LifecycleEvent closeupInseminationEvent = new LifecycleEvent(orgID,0,closeupDryPregTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(),user,DateTime.now());
-			closeupInseminationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS + 1));
+			LifecycleEvent closeupInseminationEvent = new LifecycleEvent(orgID,0,closeupDryPregTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			closeupInseminationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS + 1));
 			
-			LifecycleEvent farInseminationEvent = new LifecycleEvent(orgID,0,faroffDryPregTag,Util.LifeCycleEvents.MATING,user,DateTime.now(),user,DateTime.now());
-			farInseminationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS - 10));
+			LifecycleEvent farInseminationEvent = new LifecycleEvent(orgID,0,faroffDryPregTag,Util.LifeCycleEvents.MATING,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			farInseminationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS - 10));
 
 			
 			eventLoader.deleteAnimalLifecycleEvents(orgID, closeupDryPregTag);
@@ -285,15 +288,15 @@ class FeedManagerTest {
 			String pregHeiferTag = "-998";
 			String orgID = "IMD";
 			User user = new User("KASHIF");
-			Dam nonPregnantHeifer = createDam(orgID,nonPregHeiferTag,DateTime.now().minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRAWTHEAT);
-			Dam pregnantHeifer = createDam(orgID,pregHeiferTag,DateTime.now().minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRPREGN);
-			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,pregHeiferTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(),user,DateTime.now());
-			inseminationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS + 1));
-//			inseminationEvent.setEventTimeStamp(DateTime.now().minusDays(FeedManager.DRYOFF_BY_DAYS+30));
+			Dam nonPregnantHeifer = createDam(orgID,nonPregHeiferTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRAWTHEAT);
+			Dam pregnantHeifer = createDam(orgID,pregHeiferTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.HEIFER_MIN_AGE_IN_DAYS),Util.AnimalTypes.HFRPREGN);
+			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,pregHeiferTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.PREGNANCY_DURATION_DAYS - FeedManager.NEAR_PARTURATION_THRESHOLD_DAYS + 1));
+//			inseminationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.DRYOFF_BY_DAYS+30));
 
-			LifecycleEvent weightEvent = new LifecycleEvent(orgID,0,pregHeiferTag,Util.LifeCycleEvents.WEIGHT,user,DateTime.now(),user,DateTime.now());
+			LifecycleEvent weightEvent = new LifecycleEvent(orgID,0,pregHeiferTag,Util.LifeCycleEvents.WEIGHT,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
 			weightEvent.setAuxField1Value("400");
-			weightEvent.setEventTimeStamp(DateTime.now());
+			weightEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()));
 
 
 			eventLoader.deleteAnimalLifecycleEvents(orgID, nonPregHeiferTag);
@@ -364,12 +367,10 @@ class FeedManagerTest {
 			assertEquals(2,eventLoader.deleteAnimalLifecycleEvents(orgID, pregHeiferTag));
 			assertEquals(1,anmLdr.deleteAnimal(orgID, nonPregHeiferTag));
 			assertEquals(1,anmLdr.deleteAnimal(orgID, pregHeiferTag));
-			
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail("Exception occurred");
 		}
-
 	}
 	
 	@Test
@@ -381,32 +382,31 @@ class FeedManagerTest {
 		try {
 			Dam femaleCalf = new Dam("TEST-FEMALECALF");
 			femaleCalf.setOrgID("IMD");
-			femaleCalf.setDateOfBirth(DateTime.now().minusDays(50));
+			femaleCalf.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(50));
 			femaleCalf.setAnimalTypeCD(Util.AnimalTypes.FEMALECALF);
 			femaleCalf.setBreed(Util.Breed.HFCROSS);
 			femaleCalf.setHerdJoiningDate(femaleCalf.getDateOfBirth());
 			femaleCalf.setCreatedBy(new User("KASHIF"));
-			femaleCalf.setCreatedDTTM(DateTime.now());
+			femaleCalf.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			femaleCalf.setUpdatedBy(femaleCalf.getCreatedBy());
 			femaleCalf.setUpdatedDTTM(femaleCalf.getCreatedDTTM());
 			
 			Dam femaleCalfWeanedOff = new Dam("TEST-FEMALEWEANEDOFF");
 			femaleCalfWeanedOff.setOrgID(femaleCalf.getOrgID());
-			femaleCalfWeanedOff.setDateOfBirth(DateTime.now().minusDays(100));
+			femaleCalfWeanedOff.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(100));
 			femaleCalfWeanedOff.setAnimalTypeCD(Util.AnimalTypes.FEMALECALF);
 			femaleCalfWeanedOff.setBreed(femaleCalf.getBreed());
 			femaleCalfWeanedOff.setHerdJoiningDate(femaleCalfWeanedOff.getDateOfBirth());
 			femaleCalfWeanedOff.setCreatedBy(new User("KASHIF"));
-			femaleCalfWeanedOff.setCreatedDTTM(DateTime.now());
+			femaleCalfWeanedOff.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			femaleCalfWeanedOff.setUpdatedBy(femaleCalf.getCreatedBy());
 			femaleCalfWeanedOff.setUpdatedDTTM(femaleCalf.getCreatedDTTM());
 			
-			
-			LifecycleEvent event = new LifecycleEvent(femaleCalfWeanedOff.getOrgID(), 0, femaleCalfWeanedOff.getAnimalTag(),Util.LifeCycleEvents.WEANEDOFF,user,DateTime.now(),user,DateTime.now());			
+			LifecycleEvent event = new LifecycleEvent(femaleCalfWeanedOff.getOrgID(), 0, femaleCalfWeanedOff.getAnimalTag(),Util.LifeCycleEvents.WEANEDOFF,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));			
 			event.setEventTimeStamp(femaleCalfWeanedOff.getDateOfBirth().plusDays(60));
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
-			event.setCreatedDTTM(DateTime.now());
+			event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setUpdatedBy(event.getCreatedBy());
 			event.setUpdatedDTTM(event.getCreatedDTTM());
 			event.setEventNote("Testing");
@@ -443,7 +443,7 @@ class FeedManagerTest {
 			feedItem.setDailyFrequency((Integer)null);
 			feedItem.setComments("Put alfaalfa hay infront of the calves and let them eat as much as they wish");
 			feedItem.setCreatedBy(new User("KASHIF"));
-			feedItem.setCreatedDTTM(DateTime.now());
+			feedItem.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			feedItem.setUpdatedBy(feedItem.getCreatedBy());
 			feedItem.setUpdatedDTTM(feedItem.getCreatedDTTM());
 			assertTrue(loader.deleteFeedPlanItem(feedItem) >= 0);
@@ -508,7 +508,7 @@ class FeedManagerTest {
 		FeedManager manager = new FeedManager();
 		Dam femaleCalf;
 		try {
-			femaleCalf = createDam(orgID,femaleCalfTag,DateTime.now().minusDays(60), Util.AnimalTypes.FEMALECALF);
+			femaleCalf = createDam(orgID,femaleCalfTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(60), Util.AnimalTypes.FEMALECALF);
 //			Sire bull = new Sire(bullTag);
 //			bull.setOrgID(orgID);
 //			bull.setWeight(300f);

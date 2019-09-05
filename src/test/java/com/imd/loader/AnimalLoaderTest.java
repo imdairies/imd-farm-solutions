@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,10 +36,12 @@ import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.MessageManager;
 import com.imd.util.Util;
 
 class AnimalLoaderTest {
+	
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
@@ -77,7 +80,7 @@ class AnimalLoaderTest {
 		setPurchaseFromContact(c000);
 		setSireInformation(c000);
 		c000.setAnimalDam(null);
-		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", LocalDateTime.now());		
+		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", DateTime.now(IMDProperties.getServerTimeZone()));		
 		c000.addNote(newNote);
 //		setMilkingRecord(c000);
 		return c000;
@@ -104,7 +107,7 @@ class AnimalLoaderTest {
 		Contact company = new Contact("CRV");
 		company.setWebURI(URI.create("https://www.crv4all-international.com/find-bull/"));
 		sire.setOwnerCompany(company);
-		sire.addNote(new Note(1,"Not sure if this is truly the sire. Got minimal'\"%\n information of the sire of 026 from Babar Hameed Jathol", LocalDateTime.now()));
+		sire.addNote(new Note(1,"Not sure if this is truly the sire. Got minimal'\"%\n information of the sire of 026 from Babar Hameed Jathol", DateTime.now(IMDProperties.getServerTimeZone())));
 		c000.setAnimalSire(sire);
 	}
 

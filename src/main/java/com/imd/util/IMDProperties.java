@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.joda.time.DateTimeZone;
+
 public class IMDProperties {
+	private static DateTimeZone timeZone = DateTimeZone.forID("Asia/Karachi");
 	
 	static Properties imdProperties;
 	public static void loadProperties() {
@@ -26,7 +29,18 @@ public class IMDProperties {
 					}
 				}
 			}
+			String serverTimezone = getProperty(Util.PROPERTIES.SERVER_TIMEZONE);
+			try {
+				if (serverTimezone != null && DateTimeZone.forID("Asia/Karachi") != null)
+					timeZone = DateTimeZone.forID(serverTimezone);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				timeZone = DateTimeZone.forID("Asia/Karachi");
+			}
 		}
+	}
+	public static DateTimeZone getServerTimeZone() {
+		return 	timeZone;
 	}
 	public static String getProperty(String key) {
 		if (imdProperties == null)
