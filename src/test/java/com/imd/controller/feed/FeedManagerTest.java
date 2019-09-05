@@ -468,7 +468,7 @@ class FeedManagerTest {
 			assertEquals(feedItem.getComments(), item.getComments());
 			assertEquals(feedItem.getCreatedBy().getUserId(), item.getCreatedBy().getUserId());
 			assertEquals(feedItem.getUpdatedBy().getUserId(), item.getUpdatedBy().getUserId());
-			assertEquals("Feed Item [" + feedItem.getFeedItemLookupValue().getLookupValueCode() + "] updated DTTM should have been : " + feedItem.getUpdatedDTTMSQLFormat(), feedItem.getUpdatedDTTMSQLFormat(), item.getUpdatedDTTMSQLFormat());
+			assertEquals(feedItem.getUpdatedDTTMSQLFormat(), item.getUpdatedDTTMSQLFormat(), "Feed Item [" + feedItem.getFeedItemLookupValue().getLookupValueCode() + "] should have been: " + feedItem.getUpdatedDTTMSQLFormat() + " it actually was: " + item.getUpdatedDTTMSQLFormat());
 			assertEquals(feedItem.getCreatedDTTMSQLFormat(), item.getCreatedDTTMSQLFormat());
 			
 //			FeedCohort feedCohort = new FeedCohort(feedItem.getOrgID(), feedItem.getFeedCohortCD(),"");
