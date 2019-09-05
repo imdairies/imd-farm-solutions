@@ -518,7 +518,7 @@ public class MilkingDetailLoader {
 		
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
 		LocalTime localTime = fmt.parseLocalTime(rs.getString("MILK_TIME"));
-		milkDetail.setRecordDate(new LocalDate(milkingDate));
+		milkDetail.setRecordDate(new LocalDate(milkingDate, IMDProperties.getServerTimeZone()));
 		milkDetail.setRecordTime(new LocalTime(localTime));
 		milkDetail.setMilkingEventNumber(rs.getShort("SEQ_NBR"));
 		milkDetail.setMilkVolume(rs.getString("VOL") == null || rs.getString("VOL").isEmpty() ? null : rs.getFloat("VOL"));
