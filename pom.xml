@@ -78,7 +78,7 @@
         <plugin>
 			<artifactId>maven-surefire-plugin</artifactId>
 			<version>2.22.1</version>
-			<configuration>
+<!-- 			<configuration>
 				<excludes>
 					<exclude>**/Feed*.java</exclude>
 					<exclude>**/Milk*.java</exclude>
@@ -91,7 +91,7 @@
 					<exclude>**/Util*.java</exclude>
 					<exclude>**/Advise*.java</exclude>
 				</excludes>
-			</configuration>
+			</configuration> -->
 			<dependencies>
 				<dependency>
 					<groupId>org.junit.platform</groupId>
