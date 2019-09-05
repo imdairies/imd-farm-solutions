@@ -134,7 +134,31 @@ public class InventoryLoader {
 		}
 		return result;
 	}
-
+	public int deleteSemenInventoryUsage(String orgID, String itemId) {
+		String qryString = "DELETE FROM INV_SEMEN_USAGE where ORG_ID= ?  AND ITEM_ID = ?";
+		
+		int result = -1;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, orgID);
+			preparedStatement.setString(2, itemId);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			result = preparedStatement.executeUpdate();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
 	public int addSemenInventoryUsage(Inventory inventory) {
 		int recordAdded = -1;
 		String qryString = "insert into INV_SEMEN_USAGE (ORG_ID,"

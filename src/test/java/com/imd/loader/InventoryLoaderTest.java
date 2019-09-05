@@ -160,6 +160,7 @@ class InventoryLoaderTest {
 			sireBean.setSemenInd("Y");
 			User user = new User("KASHIF");
 			
+			
 			int result = animalLoader.deleteSire(sireBean.getAnimalTag());
 			assertTrue(result == 0 || result ==1);
 			result = animalLoader.deleteAnimal(sireBean.getOrgID(), sireBean.getAnimalTag());
@@ -170,8 +171,8 @@ class InventoryLoaderTest {
 			InventoryBean invBean = new InventoryBean();
 			invBean.setItemSKU("-999");
 			invBean.setItemType("Y");
-			invBean.setOrderDttm(DateTime.now());
-			invBean.setReceivedDttm(DateTime.now());
+			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
 			invBean.setInventoryAddDttm(new DateTime(2019,1,1,1,1,1));
 			invBean.setPrice(1000.0f);
 			invBean.setDiscount(10.0f);
@@ -180,12 +181,12 @@ class InventoryLoaderTest {
 			Inventory inv = new Inventory(invBean);
 			inv.setOrgID("IMD");
 			inv.setCreatedBy(new User("KASHIF"));
-			inv.setCreatedDTTM(DateTime.now());
+			inv.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			inv.setUpdatedBy(new User("KASHIF"));
-			inv.setUpdatedDTTM(DateTime.now());
+			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 
 			
-			assertTrue(invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU(), inv.getInventoryAddDttm()) >= 0);
+			assertTrue(invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU()) >= 0);
 			assertTrue(invLoader.deleteSemenInventory(inv.getOrgID(), invBean.getItemSKU(), invBean.getItemType()) >= 0);
 			
 			invLoader.insertSemenInventory(inv);
