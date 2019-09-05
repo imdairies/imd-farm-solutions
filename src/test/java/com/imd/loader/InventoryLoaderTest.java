@@ -188,7 +188,6 @@ class InventoryLoaderTest {
 			assertTrue(invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU(), inv.getInventoryAddDttm()) >= 0);
 			assertTrue(invLoader.deleteSemenInventory(inv.getOrgID(), invBean.getItemSKU(), invBean.getItemType()) >= 0);
 			
-			
 			invLoader.insertSemenInventory(inv);
 			inv.setQuantity(inv.getQuantity()-2);
 			invLoader.addSemenInventoryUsage(inv);

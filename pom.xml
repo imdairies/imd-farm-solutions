@@ -78,6 +78,20 @@
         <plugin>
 			<artifactId>maven-surefire-plugin</artifactId>
 			<version>2.22.1</version>
+			<configuration>
+				<excludes>
+					<exclude>**/Feed*.java</exclude>
+					<exclude>**/Milk*.java</exclude>
+					<exclude>**/Lookup*.java</exclude>
+					<exclude>**/Life*.java</exclude>
+					<exclude>**/Farm*.java</exclude>
+					<exclude>**/Animal*.java</exclude>
+					<exclude>**/LV*.java</exclude>
+					<exclude>**/Service*.java</exclude>
+					<exclude>**/Util*.java</exclude>
+					<exclude>**/Advise*.java</exclude>
+				</excludes>
+			</configuration>
 			<dependencies>
 				<dependency>
 					<groupId>org.junit.platform</groupId>
