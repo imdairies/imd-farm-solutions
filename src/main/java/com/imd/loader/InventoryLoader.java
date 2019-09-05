@@ -118,7 +118,7 @@ public class InventoryLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, orgID);
 			preparedStatement.setString(2, itemId);
-			preparedStatement.setTimestamp(3, new Timestamp(addedDTTM.getMillis()));
+			preparedStatement.setString(3, Util.getDateInSQLFormart(addedDTTM));
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			result = preparedStatement.executeUpdate();
 		} catch (Exception ex) {
