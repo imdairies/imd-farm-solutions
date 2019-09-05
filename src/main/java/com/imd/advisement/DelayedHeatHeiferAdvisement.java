@@ -17,6 +17,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -64,7 +65,7 @@ public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 								Util.LifeCycleEvents.HEAT, Util.LifeCycleEvents.ABORTION,null,null,null,null);
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No heat event found - indicates that the animal has never come in heat since its birth.
-							int currentAgeInDays = getDaysBetween(DateTime.now(), animal.getDateOfBirth());
+							int currentAgeInDays = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), animal.getDateOfBirth());
 							String animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has never come in heat.";	
 							String ruleNote = "";
 							if (thirdThreshold > 0 && currentAgeInDays >= (thirdThreshold)) {
@@ -88,7 +89,7 @@ public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 						} else {
 							// Heat event found - indicates that the animal did come in heat, but since it has not been inseminated and neither is it pregnant
 							// we need to flag this problem. A heifer that comes in heat should be inseminated as soon as its weight is 300kg+.
-							int daysSinceHeat = getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
+							int daysSinceHeat = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							String animalNote = "This animal (" + animal.getAnimalTag() + ") came in heat " + daysSinceHeat + " days ago on " + lifeEvents.get(0).getEventTimeStampSQLFormat();
 							String ruleNote = "";
 							if (daysSinceHeat > HEAT_FREQUENCY_THRESHOLD) {

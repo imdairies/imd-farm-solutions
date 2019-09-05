@@ -22,6 +22,7 @@ import com.imd.loader.InventoryLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.InventoryBean;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 @Path("/inventory")
@@ -41,9 +42,9 @@ public class InventorySrvc {
 				String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
 				inventory.setOrgID(orgId);
 				inventory.setCreatedBy(new User(userID));
-				inventory.setCreatedDTTM(DateTime.now());
+				inventory.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 				inventory.setUpdatedBy(new User(userID));
-				inventory.setUpdatedDTTM(DateTime.now());
+				inventory.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 	    		InventoryLoader loader = new InventoryLoader();
 				result  = loader.insertSemenInventory(inventory);
 			} catch (Exception e) {

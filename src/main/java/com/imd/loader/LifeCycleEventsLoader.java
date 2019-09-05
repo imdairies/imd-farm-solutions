@@ -421,7 +421,7 @@ public class LifeCycleEventsLoader {
 			updateString.add(event.getUpdatedBy().getUserId());
 		}
 		if (event.getUpdatedDTTM() == null) {
-			event.setUpdatedDTTM(DateTime.now());
+			event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		}
 		valuestoBeUpdated += ", UPDATED_DTTM=?";
 		updateString.add(event.getUpdatedDTTMSQLFormat());

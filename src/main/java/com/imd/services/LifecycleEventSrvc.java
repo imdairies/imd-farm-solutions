@@ -27,6 +27,7 @@ import com.imd.loader.LookupValuesLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -260,9 +261,9 @@ public class LifecycleEventSrvc {
 				event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
 				LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 				event.setCreatedBy(new User(userID));
-				event.setCreatedDTTM(DateTime.now());
+				event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 				event.setUpdatedBy(new User(userID));
-				event.setUpdatedDTTM(DateTime.now());
+				event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 				result = loader.insertLifeCycleEvent(event);
 				if (result > 0)
 					additionalMessage = Util.SUCCESS_POSTFIX + eventBean.getEventCode() + " successfully added for " + animalBean.getAnimalTag() + " [TRANS_ID:" + result + "]";
@@ -324,9 +325,9 @@ public class LifecycleEventSrvc {
 					event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
 					User user = new User(userID);
 					event.setCreatedBy(user);
-					event.setCreatedDTTM(DateTime.now());
+					event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 					event.setUpdatedBy(user);
-					event.setUpdatedDTTM(DateTime.now());
+					event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 					result = eventsLoader.insertLifeCycleEvent(event);
 					event.setEventTransactionID(result);
 					eventBean.setEventTransactionID("" + result);
@@ -392,9 +393,9 @@ public class LifecycleEventSrvc {
 				inventory.setQuantity(1.0f); // single usage per insemination
 				inventory.setAuxValue1(eventBean.getEventTransactionID()); // FK to event table
 				inventory.setCreatedBy(user);
-				inventory.setCreatedDTTM(DateTime.now());
+				inventory.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 				inventory.setUpdatedBy(user);
-				inventory.setUpdatedDTTM(DateTime.now());
+				inventory.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 				int result = loader.addSemenInventoryUsage(inventory);
 				if (result == 1)
 					additionalMessage = ". Semen Inventory has been updated";
@@ -416,7 +417,7 @@ public class LifecycleEventSrvc {
 	private String updateAnimalLifecycleStage(Animal animalDto, User user) {
 		AnimalLoader loader = new AnimalLoader();
 		animalDto.setUpdatedBy(user);
-		animalDto.setUpdatedDTTM(DateTime.now());
+		animalDto.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		int result = loader.updateAnimalStatus(animalDto);
 		if (result == 1)
 			return "The animal lifecycle stage was automatically updated to " + animalDto.getAnimalType() + "(" + animalDto.getAnimalTypeCD() + ")";
@@ -451,7 +452,7 @@ public class LifecycleEventSrvc {
 			LifecycleEvent event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			event.setUpdatedBy(new User(userID));
-			event.setUpdatedDTTM(DateTime.now());
+			event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 			result = loader.updateLifeCycleEvent(event);
 		} catch (Exception e) {

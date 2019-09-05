@@ -18,6 +18,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -60,7 +61,7 @@ public class DewormingAdvisement extends AdvisementRule {
 						String ruleNote = "";
 						String animalNote = animal.getAnimalTag() + " has never been dewormed.";							
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
-							int daysSinceDewormed= Util.getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
+							int daysSinceDewormed= Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceDewormed >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);

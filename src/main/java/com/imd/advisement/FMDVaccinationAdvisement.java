@@ -18,6 +18,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -55,8 +56,8 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 					while (it.hasNext()) {
 						String message = "";
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now().minusDays((int)ruleDto.getThirdThreshold());
-						LocalDate endDate = LocalDate.now().plusDays(1);
+						LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays((int)ruleDto.getThirdThreshold());
+						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								startDate,
@@ -66,7 +67,7 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 						String animalNote = ""; 						
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							IMDLogger.log("Latest Vaccination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
-							int daysSinceVaccinated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
+							int daysSinceVaccinated= getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							animalNote = "This animal was given vaccination " + daysSinceVaccinated + " days ago.";
 								if (ruleDto.getThirdThreshold() > 0 && daysSinceVaccinated >= ruleDto.getThirdThreshold()) {
 									ruleNote = ruleDto.getThirdThresholdMessage();

@@ -34,6 +34,7 @@ import com.imd.dto.User;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 class AdvisementLoaderTest {
@@ -77,55 +78,55 @@ class AdvisementLoaderTest {
 			///////////////////
 
 			Animal oldAnimal = createTestAnimal("-999");
-			oldAnimal.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			oldAnimal.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
 			oldAnimal.setHerdLeavingDate(null);
-			oldAnimal.setDateOfBirth(DateTime.now().minusDays(210));
+			oldAnimal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(210));
 			oldAnimal.setAnimalType(Util.AnimalTypes.HEIFER);
 			int transOldAnimal = animalLoader.insertAnimal(oldAnimal);
 			assertEquals(1,transOldAnimal, "Exactly one record -999 should have been inserted");
 			
 			Animal noViolation = createTestAnimal("-998");
-			noViolation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			noViolation.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
 			noViolation.setHerdLeavingDate(null);
 			noViolation.setAnimalType(Util.AnimalTypes.FEMALECALF);
-			noViolation.setDateOfBirth(DateTime.now().minusDays(92));
+			noViolation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(92));
 			LifeCycleEventBean noViolationBean = new LifeCycleEventBean();
 			noViolationBean.setAnimalTag(noViolation.getAnimalTag());
 			noViolationBean.setEventCode(Util.LifeCycleEvents.WEANEDOFF);
 			noViolationBean.setEventComments("Test  Event - does not violate any threshold");
 			noViolationBean.setOrgID("IMD");
-			noViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(10)));
+			noViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10)));
 			LifecycleEvent noViolationEvent = new LifecycleEvent(noViolationBean);
 			noViolationEvent.setCreatedBy(new User("KASHIF"));
 			noViolationEvent.setUpdatedBy(new User("KASHIF"));
-			noViolationEvent.setCreatedDTTM(DateTime.now());
-			noViolationEvent.setUpdatedDTTM(DateTime.now());
+			noViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			noViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transNoViolation = animalLoader.insertAnimal(noViolation);
 			assertEquals(1,transNoViolation, "Exactly one record -998 should have been inserted");
 			assertTrue(eventsLoader.insertLifeCycleEvent(noViolationEvent)>0);	
 						
 			Animal th1Violation = createTestAnimal("-997");
-			th1Violation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			th1Violation.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
 			th1Violation.setHerdLeavingDate(null);
 			th1Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
-			th1Violation.setDateOfBirth(DateTime.now().minusDays(86));
+			th1Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(86));
 			int transTh1Violation = animalLoader.insertAnimal(th1Violation);
 			assertEquals(1,transTh1Violation, "Exactly one record -997 should have been inserted");				
 						
 			Animal th2Violation = createTestAnimal("-996");
-			th2Violation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			th2Violation.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
 			th2Violation.setHerdLeavingDate(null);
 			th2Violation.setAnimalType(Util.AnimalTypes.MALECALF);
-			th2Violation.setDateOfBirth(DateTime.now().minusDays(91));
+			th2Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(91));
 			int transTh2Violation = animalLoader.insertAnimal(th2Violation);
 			assertEquals(1,transTh2Violation, "Exactly one record -996 should have been inserted");				
 
 			
 			Animal th3Violation = createTestAnimal("-995");
-			th3Violation.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			th3Violation.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
 			th3Violation.setHerdLeavingDate(null);
 			th3Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
-			th3Violation.setDateOfBirth(DateTime.now().minusDays(96));
+			th3Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(96));
 			int transTh3Violation = animalLoader.insertAnimal(th3Violation);
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 
@@ -207,63 +208,63 @@ class AdvisementLoaderTest {
 			///////////////////
 
 			Animal oldAnimal = createTestAnimal("-999");
-			oldAnimal.setHerdJoiningDate(DateTime.now().minusMonths(12));
+			oldAnimal.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
 			oldAnimal.setHerdLeavingDate(null);
-			oldAnimal.setDateOfBirth(DateTime.now().minusDays(210));
+			oldAnimal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(210));
 			oldAnimal.setAnimalType(Util.AnimalTypes.HEIFER);
 			int transOldAnimal = animalLoader.insertAnimal(oldAnimal);
 			assertEquals(1,transOldAnimal, "Exactly one record -999 should have been inserted");
 			
 			Animal noViolation = createTestAnimal("-998");
 			noViolation.setAnimalType(Util.AnimalTypes.FEMALECALF);
-			noViolation.setDateOfBirth(DateTime.now().minusDays(170));
+			noViolation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(170));
 			LifeCycleEventBean noViolationBean = new LifeCycleEventBean();
 			noViolationBean.setAnimalTag(noViolation.getAnimalTag());
 			noViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
 			noViolationBean.setEventComments("Test  Event - does not violate any threshold");
 			noViolationBean.setOrgID("IMD");
-			noViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(10)));
+			noViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10)));
 			LifecycleEvent noViolationEvent = new LifecycleEvent(noViolationBean);
 			noViolationEvent.setCreatedBy(new User("KASHIF"));
 			noViolationEvent.setUpdatedBy(new User("KASHIF"));
-			noViolationEvent.setCreatedDTTM(DateTime.now());
-			noViolationEvent.setUpdatedDTTM(DateTime.now());
+			noViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			noViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transNoViolation = animalLoader.insertAnimal(noViolation);
 			assertEquals(1,transNoViolation, "Exactly one record -998 should have been inserted");
 			assertTrue(eventsLoader.insertLifeCycleEvent(noViolationEvent)>0);	
 						
 			Animal th1Violation = createTestAnimal("-997");
 			th1Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
-			th1Violation.setDateOfBirth(DateTime.now().minusDays(170));
+			th1Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(170));
 			LifeCycleEventBean th1ViolationBean = new LifeCycleEventBean();
 			th1ViolationBean.setAnimalTag(th1Violation.getAnimalTag());
 			th1ViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
 			th1ViolationBean.setEventComments("Test  Event - Violates Threshold 1");
 			th1ViolationBean.setOrgID("IMD");
-			th1ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(16)));
+			th1ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(16)));
 			LifecycleEvent th1ViolationEvent = new LifecycleEvent(th1ViolationBean);
 			th1ViolationEvent.setCreatedBy(new User("KASHIF"));
 			th1ViolationEvent.setUpdatedBy(new User("KASHIF"));
-			th1ViolationEvent.setCreatedDTTM(DateTime.now());
-			th1ViolationEvent.setUpdatedDTTM(DateTime.now());
+			th1ViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th1ViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transTh1Violation = animalLoader.insertAnimal(th1Violation);
 			assertEquals(1,transTh1Violation, "Exactly one record -997 should have been inserted");				
 			assertTrue(eventsLoader.insertLifeCycleEvent(th1ViolationEvent)>0);	
 						
 			Animal th2Violation = createTestAnimal("-996");
 			th2Violation.setAnimalType(Util.AnimalTypes.MALECALF);
-			th2Violation.setDateOfBirth(DateTime.now().minusDays(170));
+			th2Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(170));
 			LifeCycleEventBean th2ViolationBean = new LifeCycleEventBean();
 			th2ViolationBean.setAnimalTag(th2Violation.getAnimalTag());
 			th2ViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
 			th2ViolationBean.setEventComments("Test  Event -  Violates Threshold 2");
 			th2ViolationBean.setOrgID("IMD");
-			th2ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(22)));
+			th2ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(22)));
 			LifecycleEvent th2ViolationEvent = new LifecycleEvent(th2ViolationBean);
 			th2ViolationEvent.setCreatedBy(new User("KASHIF"));
 			th2ViolationEvent.setUpdatedBy(new User("KASHIF"));
-			th2ViolationEvent.setCreatedDTTM(DateTime.now());
-			th2ViolationEvent.setUpdatedDTTM(DateTime.now());
+			th2ViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th2ViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transTh2Violation = animalLoader.insertAnimal(th2Violation);
 			assertEquals(1,transTh2Violation, "Exactly one record -996 should have been inserted");				
 			assertTrue(eventsLoader.insertLifeCycleEvent(th2ViolationEvent)>0);	
@@ -271,18 +272,18 @@ class AdvisementLoaderTest {
 			
 			Animal th3Violation = createTestAnimal("-995");
 			th3Violation.setAnimalType(Util.AnimalTypes.FEMALECALF);
-			th3Violation.setDateOfBirth(DateTime.now().minusDays(170));
+			th3Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(170));
 			LifeCycleEventBean th3ViolationBean = new LifeCycleEventBean();
 			th3ViolationBean.setAnimalTag(th3Violation.getAnimalTag());
 			th3ViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
 			th3ViolationBean.setEventComments("Test  Event -  Violates Threshold 3");
 			th3ViolationBean.setOrgID("IMD");
-			th3ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(29)));
+			th3ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(29)));
 			LifecycleEvent th3ViolationEvent = new LifecycleEvent(th3ViolationBean);
 			th3ViolationEvent.setCreatedBy(new User("KASHIF"));
 			th3ViolationEvent.setUpdatedBy(new User("KASHIF"));
-			th3ViolationEvent.setCreatedDTTM(DateTime.now());
-			th3ViolationEvent.setUpdatedDTTM(DateTime.now());
+			th3ViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th3ViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transTh3Violation = animalLoader.insertAnimal(th3Violation);
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 			assertTrue(eventsLoader.insertLifeCycleEvent(th3ViolationEvent)>0);	
@@ -379,12 +380,12 @@ class AdvisementLoaderTest {
 			th1_1ViolatedBean1.setEventCode(Util.LifeCycleEvents.ABORTION);
 			th1_1ViolatedBean1.setEventComments("Test  Event - violates 1st threshold");
 			th1_1ViolatedBean1.setOrgID("IMD");
-			th1_1ViolatedBean1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(61)));
+			th1_1ViolatedBean1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(61)));
 			LifecycleEvent th1_1ViolatedBeanEvent1 = new LifecycleEvent(th1_1ViolatedBean1);
 			th1_1ViolatedBeanEvent1.setCreatedBy(new User("KASHIF"));
 			th1_1ViolatedBeanEvent1.setUpdatedBy(new User("KASHIF"));
-			th1_1ViolatedBeanEvent1.setCreatedDTTM(DateTime.now());
-			th1_1ViolatedBeanEvent1.setUpdatedDTTM(DateTime.now());
+			th1_1ViolatedBeanEvent1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th1_1ViolatedBeanEvent1.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			eventsLoader.insertLifeCycleEvent(th1_1ViolatedBeanEvent1);
 
 			LifeCycleEventBean th1_1ViolatedBean2 = new LifeCycleEventBean();
@@ -392,12 +393,12 @@ class AdvisementLoaderTest {
 			th1_1ViolatedBean2.setEventCode(Util.LifeCycleEvents.HEAT);
 			th1_1ViolatedBean2.setEventComments("Test  Event - violates 1st threshold");
 			th1_1ViolatedBean2.setOrgID("IMD");
-			th1_1ViolatedBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(240)));
+			th1_1ViolatedBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(240)));
 			LifecycleEvent th1_1ViolatedBeanEvent2 = new LifecycleEvent(th1_1ViolatedBean2);
 			th1_1ViolatedBeanEvent2.setCreatedBy(new User("KASHIF"));
 			th1_1ViolatedBeanEvent2.setUpdatedBy(new User("KASHIF"));
-			th1_1ViolatedBeanEvent2.setCreatedDTTM(DateTime.now());
-			th1_1ViolatedBeanEvent2.setUpdatedDTTM(DateTime.now());
+			th1_1ViolatedBeanEvent2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th1_1ViolatedBeanEvent2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			eventsLoader.insertLifeCycleEvent(th1_1ViolatedBeanEvent2);
 			
 			
@@ -410,12 +411,12 @@ class AdvisementLoaderTest {
 			recentlyParturatedBean.setEventCode(Util.LifeCycleEvents.PARTURATE);
 			recentlyParturatedBean.setEventComments("Test  Event - does not violate any threshold");
 			recentlyParturatedBean.setOrgID("IMD");
-			recentlyParturatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(20)));
+			recentlyParturatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(20)));
 			LifecycleEvent recentlyParturatedEvent = new LifecycleEvent(recentlyParturatedBean);
 			recentlyParturatedEvent.setCreatedBy(new User("KASHIF"));
 			recentlyParturatedEvent.setUpdatedBy(new User("KASHIF"));
-			recentlyParturatedEvent.setCreatedDTTM(DateTime.now());
-			recentlyParturatedEvent.setUpdatedDTTM(DateTime.now());
+			recentlyParturatedEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			recentlyParturatedEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transRecentlyParturated = animalLoader.insertAnimal(recentlyParturated);
 			eventsLoader.insertLifeCycleEvent(recentlyParturatedEvent);
 			assertEquals(1,transRecentlyParturated, "Exactly one record -999 should have been inserted");
@@ -428,12 +429,12 @@ class AdvisementLoaderTest {
 			th00ViolatedBean.setEventCode(Util.LifeCycleEvents.PARTURATE);
 			th00ViolatedBean.setEventComments("Test  Event - does not violate any threshold");
 			th00ViolatedBean.setOrgID("IMD");
-			th00ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(90)));
+			th00ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(90)));
 			LifecycleEvent th00ViolatedEvent = new LifecycleEvent(th00ViolatedBean);
 			th00ViolatedEvent.setCreatedBy(new User("KASHIF"));
 			th00ViolatedEvent.setUpdatedBy(new User("KASHIF"));
-			th00ViolatedEvent.setCreatedDTTM(DateTime.now());
-			th00ViolatedEvent.setUpdatedDTTM(DateTime.now());
+			th00ViolatedEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th00ViolatedEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transTh0Violated = animalLoader.insertAnimal(th0Violated);
 			assertEquals(1,transTh0Violated, "Exactly one record -995 should have been inserted");				
 
@@ -443,12 +444,12 @@ class AdvisementLoaderTest {
 			th0ViolatedBean.setEventCode(Util.LifeCycleEvents.HEAT);
 			th0ViolatedBean.setEventComments("Test  Event - does not violate any threshold");
 			th0ViolatedBean.setOrgID("IMD");
-			th0ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(10)));
+			th0ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10)));
 			LifecycleEvent th0ViolatedEvent = new LifecycleEvent(th0ViolatedBean);
 			th0ViolatedEvent.setCreatedBy(new User("KASHIF"));
 			th0ViolatedEvent.setUpdatedBy(new User("KASHIF"));
-			th0ViolatedEvent.setCreatedDTTM(DateTime.now());
-			th0ViolatedEvent.setUpdatedDTTM(DateTime.now());
+			th0ViolatedEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th0ViolatedEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			eventsLoader.insertLifeCycleEvent(th0ViolatedEvent);
 			
 			Animal th3Violated = createTestAnimal("-996");
@@ -458,12 +459,12 @@ class AdvisementLoaderTest {
 			th3ViolatedBean.setEventCode(Util.LifeCycleEvents.PARTURATE);
 			th3ViolatedBean.setEventComments("Test  Event - violates 3rd threshold");
 			th3ViolatedBean.setOrgID("IMD");
-			th3ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(121)));
+			th3ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(121)));
 			LifecycleEvent th3ViolatedEvent = new LifecycleEvent(th3ViolatedBean);
 			th3ViolatedEvent.setCreatedBy(new User("KASHIF"));
 			th3ViolatedEvent.setUpdatedBy(new User("KASHIF"));
-			th3ViolatedEvent.setCreatedDTTM(DateTime.now());
-			th3ViolatedEvent.setUpdatedDTTM(DateTime.now());
+			th3ViolatedEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th3ViolatedEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transTh3Violated = animalLoader.insertAnimal(th3Violated);
 			eventsLoader.insertLifeCycleEvent(th3ViolatedEvent);
 			assertEquals(1,transTh3Violated, "Exactly one record -996 should have been inserted");			
@@ -475,12 +476,12 @@ class AdvisementLoaderTest {
 			th2ViolatedBean.setEventCode(Util.LifeCycleEvents.PARTURATE);
 			th2ViolatedBean.setEventComments("Test  Event - violates 2nd threshold");
 			th2ViolatedBean.setOrgID("IMD");
-			th2ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(91)));
+			th2ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(91)));
 			LifecycleEvent th2ViolatedEvent = new LifecycleEvent(th2ViolatedBean);
 			th2ViolatedEvent.setCreatedBy(new User("KASHIF"));
 			th2ViolatedEvent.setUpdatedBy(new User("KASHIF"));
-			th2ViolatedEvent.setCreatedDTTM(DateTime.now());
-			th2ViolatedEvent.setUpdatedDTTM(DateTime.now());
+			th2ViolatedEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th2ViolatedEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transTh2Violated = animalLoader.insertAnimal(th2Violated);
 			eventsLoader.insertLifeCycleEvent(th2ViolatedEvent);
 			assertEquals(1,transTh2Violated, "Exactly one record -997 should have been inserted");
@@ -492,12 +493,12 @@ class AdvisementLoaderTest {
 			th1ViolatedBean.setEventCode(Util.LifeCycleEvents.PARTURATE);
 			th1ViolatedBean.setEventComments("Test  Event - violates 1st threshold");
 			th1ViolatedBean.setOrgID("IMD");
-			th1ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(61)));
+			th1ViolatedBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(61)));
 			LifecycleEvent th1ViolatedEvent = new LifecycleEvent(th1ViolatedBean);
 			th1ViolatedEvent.setCreatedBy(new User("KASHIF"));
 			th1ViolatedEvent.setUpdatedBy(new User("KASHIF"));
-			th1ViolatedEvent.setCreatedDTTM(DateTime.now());
-			th1ViolatedEvent.setUpdatedDTTM(DateTime.now());
+			th1ViolatedEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th1ViolatedEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transTh1Violated = animalLoader.insertAnimal(th1Violated);
 			eventsLoader.insertLifeCycleEvent(th1ViolatedEvent);
 			assertEquals(1,transTh1Violated, "Exactly one record -998 should have been inserted");
@@ -593,23 +594,23 @@ class AdvisementLoaderTest {
 			///////////////////
 
 			Animal youngHeifer = createTestAnimal("-999");
-			youngHeifer.setDateOfBirth(DateTime.now().minusMonths(11));
+			youngHeifer.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(11));
 			youngHeifer.setAnimalType("HEIFER");
 
 			Animal th1Heifer =createTestAnimal("-998");
-			th1Heifer.setDateOfBirth(DateTime.now().minusDays(366));
+			th1Heifer.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(366));
 			th1Heifer.setAnimalType("HEIFER");
 			
 			Animal th2Heifer =createTestAnimal("-997");
-			th2Heifer.setDateOfBirth(DateTime.now().minusDays(550));
+			th2Heifer.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(550));
 			th2Heifer.setAnimalType("HEIFER");
 
 			Animal th3Heifer =createTestAnimal("-996");
-			th3Heifer.setDateOfBirth(DateTime.now().minusDays(730));
+			th3Heifer.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(730));
 			th3Heifer.setAnimalType("HEIFER");
 
 			Animal th3WithHeatHeifer =createTestAnimal("-995");
-			th3WithHeatHeifer.setDateOfBirth(DateTime.now().minusDays(730));
+			th3WithHeatHeifer.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(730));
 			th3WithHeatHeifer.setAnimalType("HFRAWTHEAT");
 			
 			LifeCycleEventBean eventBean = new LifeCycleEventBean();
@@ -617,15 +618,15 @@ class AdvisementLoaderTest {
 			eventBean.setEventCode(Util.LifeCycleEvents.HEAT);
 			eventBean.setEventComments("Test  Event - violates Threshold 3");
 			eventBean.setOrgID("IMD");
-			eventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(100)));
+			eventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(100)));
 			LifecycleEvent heiferHeatEvent = new LifecycleEvent(eventBean);
 			heiferHeatEvent.setCreatedBy(new User("KASHIF"));
 			heiferHeatEvent.setUpdatedBy(new User("KASHIF"));
-			heiferHeatEvent.setCreatedDTTM(DateTime.now());
-			heiferHeatEvent.setUpdatedDTTM(DateTime.now());
+			heiferHeatEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			heiferHeatEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 			Animal th0WithHeatHeifer =createTestAnimal("-994");
-			th0WithHeatHeifer.setDateOfBirth(DateTime.now().minusDays(730));
+			th0WithHeatHeifer.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(730));
 			th0WithHeatHeifer.setAnimalType("HFRAWTHEAT");
 			
 			LifeCycleEventBean eventTh0Bean = new LifeCycleEventBean();
@@ -633,12 +634,12 @@ class AdvisementLoaderTest {
 			eventTh0Bean.setEventCode(Util.LifeCycleEvents.HEAT);
 			eventTh0Bean.setEventComments("Test  Event - does not violate Threshold 3");
 			eventTh0Bean.setOrgID("IMD");
-			eventTh0Bean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(20)));
+			eventTh0Bean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(20)));
 			LifecycleEvent heiferTh0HeatEvent = new LifecycleEvent(eventTh0Bean);
 			heiferTh0HeatEvent.setCreatedBy(new User("KASHIF"));
 			heiferTh0HeatEvent.setUpdatedBy(new User("KASHIF"));
-			heiferTh0HeatEvent.setCreatedDTTM(DateTime.now());
-			heiferTh0HeatEvent.setUpdatedDTTM(DateTime.now());
+			heiferTh0HeatEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			heiferTh0HeatEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 
 			int transYoungHeifer = animalLoader.insertAnimal(youngHeifer);
 			int transTh1Heifer = animalLoader.insertAnimal(th1Heifer);
@@ -749,12 +750,12 @@ class AdvisementLoaderTest {
 			heatBeanTh1.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			heatBeanTh1.setEventComments("Test  Event - violates Threshold 1");
 			heatBeanTh1.setOrgID("IMD");
-			heatBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(19)));
+			heatBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(19)));
 			LifecycleEvent heatInseminationEventTh1 = new LifecycleEvent(heatBeanTh1);
 			heatInseminationEventTh1.setCreatedBy(new User("KASHIF"));
 			heatInseminationEventTh1.setUpdatedBy(new User("KASHIF"));
-			heatInseminationEventTh1.setCreatedDTTM(DateTime.now());
-			heatInseminationEventTh1.setUpdatedDTTM(DateTime.now());
+			heatInseminationEventTh1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			heatInseminationEventTh1.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 			Animal heatWarningTh2 = createTestAnimal("-998");
 			heatWarningTh2.setAnimalType("LCTINSEMIN");
@@ -763,12 +764,12 @@ class AdvisementLoaderTest {
 			heatBeanTh2.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			heatBeanTh2.setEventComments("Test  Event - violates Threshold 2");
 			heatBeanTh2.setOrgID("IMD");
-			heatBeanTh2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(43)));
+			heatBeanTh2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(43)));
 			LifecycleEvent heatInseminationEventTh2 = new LifecycleEvent(heatBeanTh2);
 			heatInseminationEventTh2.setCreatedBy(new User("KASHIF"));
 			heatInseminationEventTh2.setUpdatedBy(new User("KASHIF"));
-			heatInseminationEventTh2.setCreatedDTTM(DateTime.now());
-			heatInseminationEventTh2.setUpdatedDTTM(DateTime.now());	
+			heatInseminationEventTh2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			heatInseminationEventTh2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));	
 			
 			Animal heatWarningTh3 = createTestAnimal("-997");
 			heatWarningTh3.setAnimalType("LCTINSEMIN");
@@ -777,12 +778,12 @@ class AdvisementLoaderTest {
 			heatBeanTh3.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			heatBeanTh3.setEventComments("Test  Event - violates Threshold 3");
 			heatBeanTh3.setOrgID("IMD");
-			heatBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(63)));
+			heatBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(63)));
 			LifecycleEvent heatInseminationEventTh3 = new LifecycleEvent(heatBeanTh3);
 			heatInseminationEventTh3.setCreatedBy(new User("KASHIF"));
 			heatInseminationEventTh3.setUpdatedBy(new User("KASHIF"));
-			heatInseminationEventTh3.setCreatedDTTM(DateTime.now());
-			heatInseminationEventTh3.setUpdatedDTTM(DateTime.now());				
+			heatInseminationEventTh3.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			heatInseminationEventTh3.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));				
 
 			Animal heatWarningTh0 = createTestAnimal("-996");
 			heatWarningTh0.setAnimalType("LCTINSEMIN");
@@ -791,12 +792,12 @@ class AdvisementLoaderTest {
 			heatBeanTh0.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			heatBeanTh0.setEventComments("Test  Event - does not violate any threshold");
 			heatBeanTh0.setOrgID("IMD");
-			heatBeanTh0.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(39)));
+			heatBeanTh0.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(39)));
 			LifecycleEvent heatInseminationEventTh0 = new LifecycleEvent(heatBeanTh0);
 			heatInseminationEventTh0.setCreatedBy(new User("KASHIF"));
 			heatInseminationEventTh0.setUpdatedBy(new User("KASHIF"));
-			heatInseminationEventTh0.setCreatedDTTM(DateTime.now());
-			heatInseminationEventTh0.setUpdatedDTTM(DateTime.now());
+			heatInseminationEventTh0.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			heatInseminationEventTh0.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 			
 			int transactionID0 = animalLoader.insertAnimal(heatWarningTh0);
@@ -901,19 +902,19 @@ class AdvisementLoaderTest {
 			
 
 			Animal femaleCalf = createTestAnimal("-999");
-			femaleCalf.setDateOfBirth(DateTime.now().minusDays(90));
+			femaleCalf.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(90));
 			femaleCalf.setAnimalType("FEMALECALF");
 
 			Animal maleCalf = createTestAnimal("-998");
-			maleCalf.setDateOfBirth(DateTime.now().minusDays(90));
+			maleCalf.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(90));
 			maleCalf.setAnimalType("MALECALF");
 			
 			Animal dryPregnant = createTestAnimal("-997");
-			dryPregnant.setDateOfBirth(DateTime.now().minusDays(600));
+			dryPregnant.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(600));
 			dryPregnant.setAnimalType("DRYPREG");
 
 			Animal dehornedCalf = createTestAnimal("-996");
-			dehornedCalf.setDateOfBirth(DateTime.now().minusDays(90));
+			dehornedCalf.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(90));
 			dehornedCalf.setAnimalType("FEMALECALF");
 			
 			
@@ -922,12 +923,12 @@ class AdvisementLoaderTest {
 			eventBean.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBean.setEventComments("Test Insemination Event");
 			eventBean.setOrgID("IMD");
-			eventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(240)));
+			eventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(240)));
 			LifecycleEvent lcEvent = new LifecycleEvent(eventBean);
 			lcEvent.setCreatedBy(new User("KASHIF"));
 			lcEvent.setUpdatedBy(new User("KASHIF"));
-			lcEvent.setCreatedDTTM(DateTime.now());
-			lcEvent.setUpdatedDTTM(DateTime.now());
+			lcEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			lcEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			int transactionID1 = animalLoader.insertAnimal(femaleCalf);			
 			int transactionID2 = animalLoader.insertAnimal(maleCalf);
 			
@@ -1050,36 +1051,36 @@ class AdvisementLoaderTest {
 			eventBeanTh3.setEventCode(Util.LifeCycleEvents.MATING);
 			eventBeanTh3.setEventComments("Test  Event - violates Threshold 3");
 			eventBeanTh3.setOrgID("IMD");
-			eventBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(210)));
+			eventBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(210)));
 			LifecycleEvent inseminationEventTh3 = new LifecycleEvent(eventBeanTh3);
 			inseminationEventTh3.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh3.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh3.setCreatedDTTM(DateTime.now());
-			inseminationEventTh3.setUpdatedDTTM(DateTime.now());
+			inseminationEventTh3.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh3.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 			LifeCycleEventBean eventBeanTh2 = new LifeCycleEventBean();
 			eventBeanTh2.setAnimalTag(inseminationTh2.getAnimalTag());
 			eventBeanTh2.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBeanTh2.setEventComments("Test Event - violates Threshold 2");
 			eventBeanTh2.setOrgID("IMD");
-			eventBeanTh2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(75)));
+			eventBeanTh2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(75)));
 			LifecycleEvent inseminationEventTh2 = new LifecycleEvent(eventBeanTh2);
 			inseminationEventTh2.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh2.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh2.setCreatedDTTM(DateTime.now());
-			inseminationEventTh2.setUpdatedDTTM(DateTime.now());
+			inseminationEventTh2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		
 			LifeCycleEventBean eventBeanTh1 = new LifeCycleEventBean();
 			eventBeanTh1.setAnimalTag(inseminationTh1.getAnimalTag());
 			eventBeanTh1.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBeanTh1.setEventComments("Test Event - violates Threshold 1");
 			eventBeanTh1.setOrgID("IMD");
-			eventBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(60)));
+			eventBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(60)));
 			LifecycleEvent inseminationEventTh1 = new LifecycleEvent(eventBeanTh1);
 			inseminationEventTh1.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh1.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh1.setCreatedDTTM(DateTime.now());
-			inseminationEventTh1.setUpdatedDTTM(DateTime.now());
+			inseminationEventTh1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh1.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 
 			LifeCycleEventBean eventBeanTh0 = new LifeCycleEventBean();
@@ -1087,12 +1088,12 @@ class AdvisementLoaderTest {
 			eventBeanTh0.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBeanTh0.setEventComments("Test FMD Vaccination Event - no violation");
 			eventBeanTh0.setOrgID("IMD");
-			eventBeanTh0.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(30)));
+			eventBeanTh0.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(30)));
 			LifecycleEvent inseminationEventTh0 = new LifecycleEvent(eventBeanTh0);
 			inseminationEventTh0.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh0.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh0.setCreatedDTTM(DateTime.now());
-			inseminationEventTh0.setUpdatedDTTM(DateTime.now());			
+			inseminationEventTh0.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh0.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));			
 			
 
 			int transNotInseminated = animalLoader.insertAnimal(notInseminated);
@@ -1230,12 +1231,12 @@ class AdvisementLoaderTest {
 			eventBeanNotFMD.setOrgID("IMD");
 			eventBeanNotFMD.setAuxField1Value("BQ");
 			
-			eventBeanNotFMD.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(149)));
+			eventBeanNotFMD.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(149)));
 			LifecycleEvent inseminationEventNoFMD = new LifecycleEvent(eventBeanNotFMD);
 			inseminationEventNoFMD.setCreatedBy(new User("KASHIF"));
 			inseminationEventNoFMD.setUpdatedBy(new User("KASHIF"));
-			inseminationEventNoFMD.setCreatedDTTM(DateTime.now());
-			inseminationEventNoFMD.setUpdatedDTTM(DateTime.now());
+			inseminationEventNoFMD.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventNoFMD.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			inseminationEventNoFMD.setEventNote("Test Vaccination Event. This animal should not violate any threshold.");
 			inseminationEventNoFMD.setAnimalTag(vaccineButNotFMD.getAnimalTag());
 
@@ -1250,12 +1251,12 @@ class AdvisementLoaderTest {
 			eventBeanTh3.setEventCode(Util.LifeCycleEvents.VACCINE);
 			eventBeanTh3.setEventComments("Test FMD Vaccination Event - violates Threshold 3");
 			eventBeanTh3.setOrgID("IMD");
-			eventBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(210)));
+			eventBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(210)));
 			LifecycleEvent inseminationEventTh3 = new LifecycleEvent(eventBeanTh3);
 			inseminationEventTh3.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh3.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh3.setCreatedDTTM(DateTime.now());
-			inseminationEventTh3.setUpdatedDTTM(DateTime.now());
+			inseminationEventTh3.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh3.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 			LifeCycleEventBean eventBeanTh2 = new LifeCycleEventBean();
 			eventBeanTh2.setAnimalTag(vaccineTh2.getAnimalTag());
@@ -1263,12 +1264,12 @@ class AdvisementLoaderTest {
 			eventBeanTh2.setEventComments("Test FMD Vaccination Event - violates Threshold 2");
 			eventBeanTh2.setOrgID("IMD");
 			eventBeanTh2.setAuxField1Value("FOOT&MOUTH");
-			eventBeanTh2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(175)));
+			eventBeanTh2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(175)));
 			LifecycleEvent inseminationEventTh2 = new LifecycleEvent(eventBeanTh2);
 			inseminationEventTh2.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh2.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh2.setCreatedDTTM(DateTime.now());
-			inseminationEventTh2.setUpdatedDTTM(DateTime.now());
+			inseminationEventTh2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		
 			LifeCycleEventBean eventBeanTh1 = new LifeCycleEventBean();
 			eventBeanTh1.setAnimalTag(vaccineTh1.getAnimalTag());
@@ -1277,12 +1278,12 @@ class AdvisementLoaderTest {
 			eventBeanTh1.setOrgID("IMD");
 			eventBeanTh1.setAuxField1Value("FOOT&MOUTH");
 
-			eventBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(151)));
+			eventBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(151)));
 			LifecycleEvent inseminationEventTh1 = new LifecycleEvent(eventBeanTh1);
 			inseminationEventTh1.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh1.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh1.setCreatedDTTM(DateTime.now());
-			inseminationEventTh1.setUpdatedDTTM(DateTime.now());
+			inseminationEventTh1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh1.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 
 			LifeCycleEventBean eventBeanTh0 = new LifeCycleEventBean();
@@ -1292,12 +1293,12 @@ class AdvisementLoaderTest {
 			eventBeanTh0.setOrgID("IMD");
 			eventBeanTh0.setAuxField1Value("FOOT&MOUTH");
 			
-			eventBeanTh0.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(149)));
+			eventBeanTh0.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(149)));
 			LifecycleEvent inseminationEventTh0 = new LifecycleEvent(eventBeanTh0);
 			inseminationEventTh0.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh0.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh0.setCreatedDTTM(DateTime.now());
-			inseminationEventTh0.setUpdatedDTTM(DateTime.now());			
+			inseminationEventTh0.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh0.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));			
 			
 
 			int transNoVaccine = animalLoader.insertAnimal(noVaccine);
@@ -1437,24 +1438,24 @@ class AdvisementLoaderTest {
 			eventBean1.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBean1.setEventComments("Test Insemination Event");
 			eventBean1.setOrgID("IMD");
-			eventBean1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(240)));
+			eventBean1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(240)));
 			LifecycleEvent inseminationEvent1 = new LifecycleEvent(eventBean1);
 			inseminationEvent1.setCreatedBy(new User("KASHIF"));
 			inseminationEvent1.setUpdatedBy(new User("KASHIF"));
-			inseminationEvent1.setCreatedDTTM(DateTime.now());
-			inseminationEvent1.setUpdatedDTTM(DateTime.now());
+			inseminationEvent1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent1.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 
 			LifeCycleEventBean eventBean2 = new LifeCycleEventBean();
 			eventBean2.setAnimalTag(lactatingNonDryPregnantThreshold1.getAnimalTag());
 			eventBean2.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBean2.setEventComments("Test Insemination Event");
 			eventBean2.setOrgID("IMD");
-			eventBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(180)));
+			eventBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(180)));
 			LifecycleEvent inseminationEvent2 = new LifecycleEvent(eventBean2);
 			inseminationEvent2.setCreatedBy(new User("KASHIF"));
 			inseminationEvent2.setUpdatedBy(new User("KASHIF"));
-			inseminationEvent2.setCreatedDTTM(DateTime.now());
-			inseminationEvent2.setUpdatedDTTM(DateTime.now());
+			inseminationEvent2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 
 			int transactionID1 = animalLoader.insertAnimal(lactatingNotPregnant);
 			
@@ -1546,24 +1547,24 @@ class AdvisementLoaderTest {
 			Animal dewormOk = createTestAnimal("-992");
 			dewormOk.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			assertEquals(1,animalLoader.insertAnimal(dewormOk));
-			assertTrue(insertEvent(dewormOk.getAnimalTag(), "DOES NOT Violate ANY Threshold", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(10)) >= 0);
+			assertTrue(insertEvent(dewormOk.getAnimalTag(), "DOES NOT Violate ANY Threshold", Util.LifeCycleEvents.DEWORM, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10)) >= 0);
 			
 
 			Animal dewormTh1 = createTestAnimal("-993");
 			dewormTh1.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			assertEquals(1,animalLoader.insertAnimal(dewormTh1));
-			assertTrue(insertEvent(dewormTh1.getAnimalTag(), "Violates Threshold 1", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(118)) >= 0);
+			assertTrue(insertEvent(dewormTh1.getAnimalTag(), "Violates Threshold 1", Util.LifeCycleEvents.DEWORM, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(118)) >= 0);
 
 			Animal dewormTh2 = createTestAnimal("-994");
 			dewormTh2.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			assertEquals(1,animalLoader.insertAnimal(dewormTh2));
-			assertTrue(insertEvent(dewormTh2.getAnimalTag(), "Violates Threshold 2", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(121)) >= 0);
+			assertTrue(insertEvent(dewormTh2.getAnimalTag(), "Violates Threshold 2", Util.LifeCycleEvents.DEWORM, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(121)) >= 0);
 			
 			
 			Animal dewormTh3 = createTestAnimal("-995");
 			dewormTh3.setAnimalType(Util.AnimalTypes.DRYINSEMIN);
 			assertEquals(1,animalLoader.insertAnimal(dewormTh3));
-			assertTrue(insertEvent(dewormTh3.getAnimalTag(), "Violates Threshold 3", Util.LifeCycleEvents.DEWORM, DateTime.now().minusDays(200)) >= 0);
+			assertTrue(insertEvent(dewormTh3.getAnimalTag(), "Violates Threshold 3", Util.LifeCycleEvents.DEWORM, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(200)) >= 0);
 			
 			boolean th1Found = false;
 			boolean th2Found = false;
@@ -1646,11 +1647,11 @@ class AdvisementLoaderTest {
 			dryPregnant.setAnimalType("DRYPREG");
 			
 			Animal nonDehornedCalf = createTestAnimal("-996");
-			nonDehornedCalf.setDateOfBirth(DateTime.now().minusDays(90));
+			nonDehornedCalf.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(90));
 			nonDehornedCalf.setAnimalType("FEMALECALF");
 
 			Animal nonFmd = createTestAnimal("-995");
-			nonFmd.setDateOfBirth(DateTime.now().minusDays(90));
+			nonFmd.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(90));
 			nonFmd.setAnimalType("FEMALECALF");
 
 			Animal inseminationAnimalTh3 = createTestAnimal("-994");
@@ -1660,12 +1661,12 @@ class AdvisementLoaderTest {
 			inseminationBeanTh3.setEventCode(Util.LifeCycleEvents.MATING);
 			inseminationBeanTh3.setEventComments("Test  Event - violates Threshold ");
 			inseminationBeanTh3.setOrgID("IMD");
-			inseminationBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(82)));
+			inseminationBeanTh3.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(82)));
 			LifecycleEvent inseminationEventTh3 = new LifecycleEvent(inseminationBeanTh3);
 			inseminationEventTh3.setCreatedBy(new User("KASHIF"));
 			inseminationEventTh3.setUpdatedBy(new User("KASHIF"));
-			inseminationEventTh3.setCreatedDTTM(DateTime.now());
-			inseminationEventTh3.setUpdatedDTTM(DateTime.now());			
+			inseminationEventTh3.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEventTh3.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));			
 
 			
 			Animal heatWarningTh1 = createTestAnimal("-993");
@@ -1675,12 +1676,12 @@ class AdvisementLoaderTest {
 			heatWarningBeanTh1.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			heatWarningBeanTh1.setEventComments("Test  Event - violates Threshold ");
 			heatWarningBeanTh1.setOrgID("IMD");
-			heatWarningBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(82)));
+			heatWarningBeanTh1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(82)));
 			LifecycleEvent heatWarningEventTh1 = new LifecycleEvent(heatWarningBeanTh1);
 			heatWarningEventTh1.setCreatedBy(new User("KASHIF"));
 			heatWarningEventTh1.setUpdatedBy(new User("KASHIF"));
-			heatWarningEventTh1.setCreatedDTTM(DateTime.now());
-			heatWarningEventTh1.setUpdatedDTTM(DateTime.now());					
+			heatWarningEventTh1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			heatWarningEventTh1.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));					
 			
 			
 			LifeCycleEventBean eventBean = new LifeCycleEventBean();
@@ -1688,12 +1689,12 @@ class AdvisementLoaderTest {
 			eventBean.setEventCode(Util.LifeCycleEvents.INSEMINATE);
 			eventBean.setEventComments("Test Insemination Event");
 			eventBean.setOrgID("IMD");
-			eventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now().minusDays(240)));
+			eventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(240)));
 			LifecycleEvent inseminationEvent = new LifecycleEvent(eventBean);
 			inseminationEvent.setCreatedBy(new User("KASHIF"));
 			inseminationEvent.setUpdatedBy(new User("KASHIF"));
-			inseminationEvent.setCreatedDTTM(DateTime.now());
-			inseminationEvent.setUpdatedDTTM(DateTime.now());
+			inseminationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
 			int transactionID1 = animalLoader.insertAnimal(lactatingNotPregnant);
 			
@@ -1807,14 +1808,14 @@ class AdvisementLoaderTest {
 		c000.setAlias("Laal");
 		c000.setBreed(Util.Breed.HFCROSS);
 		c000.setAnimalType("LACTATING");
-		c000.setHerdJoiningDate(DateTime.now().minusMonths(12));
+		c000.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
 		c000.setFrontSideImageURL("/assets/img/cow-thumbnails/000/1.png");
 		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
 		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
 		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
 		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
 		c000.setCreatedBy(new User("KASHIF"));
-		c000.setCreatedDTTM(DateTime.now());
+		c000.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		c000.setUpdatedBy(c000.getCreatedBy());
 		c000.setUpdatedDTTM(c000.getCreatedDTTM());
 		c000.setAnimalSire(null);
@@ -1831,8 +1832,8 @@ class AdvisementLoaderTest {
 		LifecycleEvent lifecycleEvent = new LifecycleEvent(eventBean);
 		lifecycleEvent.setCreatedBy(new User("KASHIF"));
 		lifecycleEvent.setUpdatedBy(new User("KASHIF"));
-		lifecycleEvent.setCreatedDTTM(DateTime.now());
-		lifecycleEvent.setUpdatedDTTM(DateTime.now());
+		lifecycleEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+		lifecycleEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		
 		return (loader.insertLifeCycleEvent(lifecycleEvent));

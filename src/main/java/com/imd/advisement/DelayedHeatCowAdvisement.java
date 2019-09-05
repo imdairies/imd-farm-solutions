@@ -18,6 +18,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -57,7 +58,7 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 					while (it.hasNext()) {
 						Animal animal = it.next();
 //						LocalDate startDate = new LocalDate(animal.getDateOfBirth().plusDays((int)ruleDto.getFirstThreshold()));
-//						LocalDate endDate = LocalDate.now().plusDays(1);// Adding one will take care of the case when the animal came in heat today, so we want to include that event as well.
+//						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);// Adding one will take care of the case when the animal came in heat today, so we want to include that event as well.
 						List<LifecycleEvent> parturitionEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								null,
@@ -71,11 +72,11 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 							List<LifecycleEvent> heatEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 									orgId,animal.getAnimalTag(),
 									new LocalDate(parturitionEvents.get(0).getEventTimeStamp()),
-									LocalDate.now().plusDays(1),/*this ensures that we accommodate today's events*/
+									LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1),/*this ensures that we accommodate today's events*/
 									Util.LifeCycleEvents.HEAT, null,null,null,null,null);
 							if (heatEvents == null || heatEvents.isEmpty()) {
 								// This animal never came into heat since its last parturition.
-								int daysSinceParturition = getDaysBetween(DateTime.now(), parturitionEvents.get(0).getEventTimeStamp());
+								int daysSinceParturition = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), parturitionEvents.get(0).getEventTimeStamp());
 								animalNote = "This animal (" + animal.getAnimalTag() + ") parturated " + daysSinceParturition + " days ago and hasn't come into heat since then.";	
 								if (thirdThreshold > 0 && daysSinceParturition >= (thirdThreshold)) {
 									ruleNote = ruleDto.getThirdThresholdMessage();
@@ -96,8 +97,8 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 									eligiblePopulation.add(animal);
 								}
 							} else {
-								int daysSinceParturition = getDaysBetween(DateTime.now(), parturitionEvents.get(0).getEventTimeStamp());
-								int daysSinceLastHeatAfterParturition = getDaysBetween(DateTime.now(), heatEvents.get(0).getEventTimeStamp());
+								int daysSinceParturition = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), parturitionEvents.get(0).getEventTimeStamp());
+								int daysSinceLastHeatAfterParturition = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), heatEvents.get(0).getEventTimeStamp());
 								animalNote = "This animal (" + animal.getAnimalTag() + ") parturated " + daysSinceParturition + " days ago and its latest heat was " + daysSinceLastHeatAfterParturition + " days ago.";	
 								animalNote += " It seems that after its last heat, the animal was not inseminated (if it was then the insemination event was not added to the record). The animal should now have come in heat again but it didn't. Please consult the vet";
 								if (thirdThreshold > 0 && daysSinceLastHeatAfterParturition >= (thirdThreshold)) {

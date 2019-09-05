@@ -25,6 +25,7 @@ import com.imd.loader.LookupValuesLoader;
 import com.imd.loader.MilkingDetailLoader;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 import com.imd.util.Util.NutritionalStats;
 
@@ -82,20 +83,20 @@ public class FeedManager {
 				IMDLogger.log("Animal " + animal.getAnimalTag() + " does not have any weight specified. We will assume the weight to be " + Util.DefaultValues.ADULT_COW_WEIGHT + " in our getMetabolizableEnergyRequiremnt calculations", Util.ERROR);
 				wt = Util.DefaultValues.ADULT_COW_WEIGHT.floatValue();
 			}
-			Double threeDaysMilkingAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(), 3).doubleValue();
+			Double threeDaysMilkingAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()), 3).doubleValue();
 			Integer daysIntoPregnancy = null;
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			if (animal.isPregnant()) {
 				List<LifecycleEvent> evts = loader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), 
-						animal.getAnimalTag(), LocalDate.now().minusDays(270),null,
+						animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(270),null,
 						Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
 				if (evts != null && !evts.isEmpty()) {
 					if (evts.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) && 
 							evts.get(0).getAuxField3Value().equals(Util.YES)) {
-						daysIntoPregnancy = Util.getDaysBetween(evts.get(0).getEventTimeStamp(),DateTime.now());
+						daysIntoPregnancy = Util.getDaysBetween(evts.get(0).getEventTimeStamp(),DateTime.now(IMDProperties.getServerTimeZone()));
 					} else if (evts.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING) && 
 							evts.get(0).getAuxField2Value().equals(Util.YES)) {
-						daysIntoPregnancy = Util.getDaysBetween(evts.get(0).getEventTimeStamp(),DateTime.now());
+						daysIntoPregnancy = Util.getDaysBetween(evts.get(0).getEventTimeStamp(),DateTime.now(IMDProperties.getServerTimeZone()));
 					}
 				}
 				if (daysIntoPregnancy == null)
@@ -278,7 +279,7 @@ public class FeedManager {
 				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, animalDMNeedsToBeFilledByThisItem, cp, me);
 			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.MILKPROD)) {
-				LocalDate startAverageCalculationFrom = LocalDate.now().minusDays(1);
+				LocalDate startAverageCalculationFrom = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(1);
 				int numOfAdditionalDaysToAverage = 2;
 				Float dailyIntake = null;
 				Float milkAverage = getMilkAverage(animal.getOrgID(), animal.getAnimalTag(),startAverageCalculationFrom, numOfAdditionalDaysToAverage);
@@ -414,7 +415,7 @@ public class FeedManager {
 		String animalFeedCohortDeterminatationMessage = null;
 		String animalFeedCohortDeterminationCriteria = null;
 		boolean isMale = animal.getClass().getSimpleName().equals(Sire.class.getSimpleName());
-		DateTime now = DateTime.now();
+		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 		now = new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(),0,0);
 		DateTime latestInseminationOrMatingEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
 		DateTime latestParturationEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.PARTURATE,Util.LifeCycleEvents.ABORTION);
@@ -493,7 +494,7 @@ public class FeedManager {
 				latestParturationEventTS != null && now.isBefore(latestParturationEventTS.plusDays(RECENT_PARTURATION_DAYS_LIMIT))){
 			animalFeedCohortCD = Util.FeedCohortType.LCTEARLY;
 			duplicateCheck += animalFeedCohortCD + " ";
-			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is " + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(), latestParturationEventTS)+ " days ago";
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is " + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), latestParturationEventTS)+ " days ago";
 			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is LACTATING and it parturated/aborted with-in the last " 
 			+ RECENT_PARTURATION_DAYS_LIMIT + " days";
 		}
@@ -503,7 +504,7 @@ public class FeedManager {
 				   now.isBefore(latestParturationEventTS.plusDays(MID_PARTURATION_DAYS_END))){
 			animalFeedCohortCD = Util.FeedCohortType.LCTMID;
 			duplicateCheck += animalFeedCohortCD + " ";
-			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is "  + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(), latestParturationEventTS)+ " days ago";
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is "  + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), latestParturationEventTS)+ " days ago";
 			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is LACTATING and it parturated/aborted with-in the last " 
 					+ MID_PARTURATION_DAYS_START + " to " + MID_PARTURATION_DAYS_END + " days";
 		} 
@@ -512,7 +513,7 @@ public class FeedManager {
 				   !now.isBefore(latestParturationEventTS.plusDays(MID_PARTURATION_DAYS_END))){
 			animalFeedCohortCD = Util.FeedCohortType.LCTOLD;
 			duplicateCheck += animalFeedCohortCD + " ";
-			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is "  + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(), latestParturationEventTS)+ " days ago";
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is "  + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), latestParturationEventTS)+ " days ago";
 			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is " + animalFeedCohortCD + " and it parturated/aborted more than " + MID_PARTURATION_DAYS_END + " days ago";
 		} 
 		if (!animal.isHeifer() && animal.isDry()  && animal.isPregnant() &&
@@ -536,7 +537,7 @@ public class FeedManager {
 				latestParturationEventTS != null && now.isBefore(latestParturationEventTS.plusDays(RECENT_PARTURATION_DAYS_LIMIT))){
 			animalFeedCohortCD = Util.FeedCohortType.LCTPOSTPAR;
 			duplicateCheck += animalFeedCohortCD + " ";
-			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is " + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(), latestParturationEventTS)+ " days ago. Its milk is not yet fit for general consumption.";
+			animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is " + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), latestParturationEventTS)+ " days ago. Its milk is not yet fit for general consumption.";
 			animalFeedCohortDeterminationCriteria = "Animal whose type indicates that it is LCTPOSTPAR and it parturated/aborted with-in the last " 
 			+ RECENT_PARTURATION_DAYS_LIMIT + " days";
 		}
@@ -642,7 +643,7 @@ public class FeedManager {
 			throw new IMDException ("We can not calculate the dietary requirements of the animal " + animal.getAnimalTag() + " without its weight. Please add a Weight event for this animal and try again");
 		}
 		Double animalWeight = new Double (animal.getWeight());
-		Float milkAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(), 3);
+		Float milkAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()), 3);
 		if (milkAverage == null) {
 			throw new IMDException ("We can not calculate the dietary requirements of the animal " + animal.getAnimalTag() + " without its milking average. Please add its milking information for at least the last three days");
 		}
@@ -651,7 +652,7 @@ public class FeedManager {
 		if (animal.isPregnant()) {
 			DateTime latestInseminationOrMatingEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
 			if (latestInseminationOrMatingEventTS != null) {
-				pregnancyDays = Util.getDaysBetween(DateTime.now(),latestInseminationOrMatingEventTS);		
+				pregnancyDays = Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()),latestInseminationOrMatingEventTS);		
 			}
 		}
 		CohortNutritionalNeeds nutritionalNeeds = getMetabolizableEnergyRequiremnt(animalWeight,new Double(milkAverage), pregnancyDays, animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode(),null,null);

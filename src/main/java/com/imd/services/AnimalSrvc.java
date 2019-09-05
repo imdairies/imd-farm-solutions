@@ -34,6 +34,7 @@ import com.imd.services.bean.MilkingDetailBean;
 import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;;
 
 @Path("/animals")
@@ -341,9 +342,9 @@ public class AnimalSrvc {
 			animal.setRightSideImageURL(rightPose);
 			animal.setLeftSideImageURL(leftPose);
 			animal.setCreatedBy(new User(userID));
-			animal.setCreatedDTTM(DateTime.now());
+			animal.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			animal.setUpdatedBy(new User(userID));
-			animal.setUpdatedDTTM(DateTime.now());
+			animal.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.insertAnimal(animal);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -442,7 +443,7 @@ public class AnimalSrvc {
 //			animal.setRightSideImageURL(rightPose);
 //			animal.setLeftSideImageURL(leftPose);
 			animal.setUpdatedBy(new User(userID));
-			animal.setUpdatedDTTM(DateTime.now());
+			animal.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.updateAnimal(animal);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -505,7 +506,7 @@ public class AnimalSrvc {
 		try {
 			result = 1;
 			AnimalLoader loader = new AnimalLoader();
-			result = loader.insertSire(sireBean,userID,DateTime.now(),userID,DateTime.now());
+			result = loader.insertSire(sireBean,userID,DateTime.now(IMDProperties.getServerTimeZone()),userID,DateTime.now(IMDProperties.getServerTimeZone()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.addSire() service method: " + e.getMessage(),  Util.ERROR);
@@ -542,9 +543,9 @@ public class AnimalSrvc {
 			event = new LifecycleEvent(eventBean, "yyyy-MM-dd HH:mm:ss");
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			event.setCreatedBy(new User(userID));
-			event.setCreatedDTTM(DateTime.now());
+			event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setUpdatedBy(new User(userID));
-			event.setUpdatedDTTM(DateTime.now());
+			event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.insertLifeCycleEvent(event);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -586,10 +587,10 @@ public class AnimalSrvc {
 		    	String strInseminationTimeInfo = ""; 
 	    		if (animalValue.isPregnant() || animalValue.isInseminated()) {
 	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
-	    					animalValue.getAnimalTag(), LocalDate.now().minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
+	    					animalValue.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
-		    			int daysSinceInseminated = Util.getDaysBetween( DateTime.now(), inseminatedDate);
+		    			int daysSinceInseminated = Util.getDaysBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
 	    				if (animalEvents.get(0).getEventTimeStamp().getHourOfDay() == 0 && 
 	    						animalEvents.get(0).getEventTimeStamp().getMinuteOfDay() == 0)
 	    					fmt = DateTimeFormat.forPattern("d MMM yyyy");

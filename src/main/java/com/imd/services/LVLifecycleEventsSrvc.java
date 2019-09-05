@@ -26,6 +26,7 @@ import com.imd.loader.LVLifeCycleEventLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 @Path("/lv-lifecycle-event")
@@ -194,9 +195,9 @@ public class LVLifecycleEventsSrvc {
 		try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
 			event.setCreatedBy(new User(userID));
-			event.setCreatedDTTM(DateTime.now());
+			event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setUpdatedBy(new User(userID));
-			event.setUpdatedDTTM(DateTime.now());
+			event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.insertLifeCycleEvent(event);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -243,9 +244,9 @@ public class LVLifecycleEventsSrvc {
 		try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
 			event.setCreatedBy(new User(userID));
-			event.setCreatedDTTM(DateTime.now());
+			event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setUpdatedBy(new User(userID));
-			event.setUpdatedDTTM(DateTime.now());
+			event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.updateLifeCycleEvent(event);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -137,12 +137,12 @@ class MilkingDetailLoaderTest {
 			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
 
 			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
-			assertEquals(Util.getDaysBetween(LocalDate.now(), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
+			assertEquals(Util.getDaysBetween(LocalDate.now(IMDProperties.getServerTimeZone()), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
 			
 			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecordBeforeParturation.getMilkingDetailBean()));
 
 			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
-			assertEquals(Util.getDaysBetween(LocalDate.now(), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
+			assertEquals(Util.getDaysBetween(LocalDate.now(IMDProperties.getServerTimeZone()), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
 			
 			assertEquals(1,milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDate1));
 			assertEquals(1,milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDateBeforeParturation));

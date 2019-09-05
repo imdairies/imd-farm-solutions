@@ -18,6 +18,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -53,8 +54,8 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now().minusDays(LACTATION_DURATION);
-						LocalDate endDate = LocalDate.now().plusDays(1);
+						LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(LACTATION_DURATION);
+						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								startDate,
@@ -62,7 +63,7 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 								Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
-							int daysSinceInseminated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
+							int daysSinceInseminated= getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							String animalNote = "This cow (" + animal.getAnimalTag() + ") was successfully inseminated " + daysSinceInseminated + " days ago.";							
 							String ruleNote = "";
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceInseminated >= ruleDto.getThirdThreshold()) {

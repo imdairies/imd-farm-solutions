@@ -5,6 +5,8 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
+import com.imd.util.IMDProperties;
+
 public class Note {
 	private int noteID;
 	private String noteText;
@@ -20,7 +22,7 @@ public class Note {
 	public Note(int id, String text) {
 		this.noteID = id;
 		this.noteText = text;
-		this.noteDateTimeStamp = DateTime.now();
+		this.noteDateTimeStamp = DateTime.now(IMDProperties.getServerTimeZone());
 
 	}
 	public int getNoteID() {
@@ -42,7 +44,7 @@ public class Note {
 		this.noteText = text;
 	}
 	public void setNoteDateTimeStampToNow() {
-		noteDateTimeStamp = DateTime.now();
+		noteDateTimeStamp = DateTime.now(IMDProperties.getServerTimeZone());
 	}
 	public LocalDate getNoteDate() {
 		return noteDateTimeStamp.toLocalDate();

@@ -18,6 +18,7 @@ import com.imd.dto.User;
 import com.imd.loader.LookupValuesLoader;
 import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 @Path("/lookupvalues")
@@ -96,9 +97,9 @@ public class LookupValuesSrvc {
 		try {
 			LookupValuesLoader loader = new LookupValuesLoader();
 			luValue.setCreatedBy(new User(userID));
-			luValue.setCreatedDTTM(DateTime.now());
+			luValue.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			luValue.setUpdatedBy(new User(userID));
-			luValue.setUpdatedDTTM(DateTime.now());
+			luValue.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.insertLookupValues(luValue);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -151,9 +152,9 @@ public class LookupValuesSrvc {
 		try {
 			LookupValuesLoader loader = new LookupValuesLoader();
 			luValue.setCreatedBy(new User(userID));
-			luValue.setCreatedDTTM(DateTime.now());
+			luValue.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			luValue.setUpdatedBy(new User(userID));
-			luValue.setUpdatedDTTM(DateTime.now());
+			luValue.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.updateLookupValues(luValue);
 		} catch (Exception e) {
 			e.printStackTrace();

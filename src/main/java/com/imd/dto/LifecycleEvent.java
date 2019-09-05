@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDException;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class LifecycleEvent extends IMDairiesDTO{
@@ -58,7 +59,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 	
 	public int getDaysFromToday() {
 		if (this.eventTimeStamp != null) 
-			return Util.getDaysBetween(DateTime.now(), this.eventTimeStamp);
+			return Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), this.eventTimeStamp);
 		else 
 			return -999;	
 	}

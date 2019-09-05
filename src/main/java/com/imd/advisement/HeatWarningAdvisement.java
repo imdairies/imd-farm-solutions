@@ -18,6 +18,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -53,8 +54,8 @@ public class HeatWarningAdvisement extends AdvisementRule {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now().minusDays((int)ruleDto.getThirdThreshold()* 4);
-						LocalDate endDate = LocalDate.now().plusDays(1);// Adding one will take care of the case when insemination today, so we want to include that event as well.
+						LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays((int)ruleDto.getThirdThreshold()* 4);
+						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);// Adding one will take care of the case when insemination today, so we want to include that event as well.
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								startDate,
@@ -66,7 +67,7 @@ public class HeatWarningAdvisement extends AdvisementRule {
 						} else if (lifeEvents != null && !lifeEvents.isEmpty()) {
 								
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
-							int daysSinceInseminated= getDaysBetween(DateTime.now(), lifeEvents.get(0).getEventTimeStamp());
+							int daysSinceInseminated= getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							String animalNote = "This cow (" + animal.getAnimalTag() + ") was inseminated " + daysSinceInseminated + " days ago.";	
 							String ruleNote = "";
 							int remainder = (daysSinceInseminated % thirdThreshold);

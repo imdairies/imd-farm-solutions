@@ -369,7 +369,7 @@ public class AnimalLoader {
 		Connection conn = DBManager.getDBConnection();
 		preparedStatement = conn.prepareStatement(qryString);
 		preparedStatement.setString(1,orgID);
-		preparedStatement.setString(2,DateTime.now().minusDays(ageInDays).toString());		
+		preparedStatement.setString(2,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(ageInDays).toString());		
 		IMDLogger.log(preparedStatement.toString(), Util.INFO);
 	    rs = preparedStatement.executeQuery();
 	    while (rs.next()) {
@@ -902,7 +902,7 @@ public class AnimalLoader {
 			IMDLogger.log("TBD_COUNT column not found in the query", Util.WARNING);
 		}
 							
-		animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
+		animalValue = new Sire("GBL", id,DateTime.now(IMDProperties.getServerTimeZone()),true,0d,"PKR");
 		animalValue.setBreed(breed);
 		animalValue.setAlias(alias);
 		animalValue.setSemenInd(semenInd);
@@ -936,7 +936,7 @@ public class AnimalLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(index++, timeStamp);
 			preparedStatement.setString(index++, user.getUserId());
-			preparedStatement.setString(index++, Util.getDateInSQLFormart(DateTime.now()));
+			preparedStatement.setString(index++, Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
 			preparedStatement.setString(index++, orgID);
 			preparedStatement.setString(index++, animalTag);
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);

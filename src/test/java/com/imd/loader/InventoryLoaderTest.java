@@ -2,7 +2,6 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.imd.dto.Animal;
-import com.imd.dto.Dam;
 import com.imd.dto.Inventory;
 import com.imd.dto.Note;
 import com.imd.dto.Sire;
@@ -44,7 +42,7 @@ class InventoryLoaderTest {
 	}
 
 	public Animal createTestSire(String animalTag) throws Exception {
-		Sire c000 = new Sire(/*orgid*/"IMD",/*tag*/animalTag,/*dob*/DateTime.parse("2014-02-09"),/*dob estimated*/true,/*price*/100000,/*price currency*/"PKR");
+		Sire c000 = new Sire(/*orgid*/"IMD",/*tag*/animalTag,/*dob*/new DateTime(2014,2,9,1,1,1,IMDProperties.getServerTimeZone()),/*dob estimated*/true,/*price*/100000,/*price currency*/"PKR");
 		c000.setAlias("Laal");
 		c000.setBreed(Util.Breed.HFCROSS);
 		c000.setAnimalType(Util.AnimalTypes.BULL);
@@ -52,92 +50,89 @@ class InventoryLoaderTest {
 		c000.setBackSideImageURL("/assets/img/cow-thumbnails/000/2.png");
 		c000.setRightSideImageURL("/assets/img/cow-thumbnails/000/3.png");
 		c000.setLeftSideImageURL("/assets/img/cow-thumbnails/000/4.png");
-//		c000.setMilkingAverageAtPurchase(new MilkingDetail(/*milk freq*/(short)3, /*machine milked*/true, /*record date*/LocalDate.parse("2017-02-08"), 
-//				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
-		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
+		c000.setPurchaseDate(new DateTime(2017,2,8,1,1,1,IMDProperties.getServerTimeZone()));
 		c000.setCreatedBy(new User("KASHIF"));
-		c000.setCreatedDTTM(DateTime.now());
-		c000.setHerdJoiningDate(DateTime.now().minusDays(10));
+		c000.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+		c000.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10));
 		c000.setHerdLeavingDate(null);
 		c000.setUpdatedBy(c000.getCreatedBy());
 		c000.setUpdatedDTTM(c000.getCreatedDTTM());
 		c000.setAnimalDam(null);
 		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", DateTime.now(IMDProperties.getServerTimeZone()));		
 		c000.addNote(newNote);
-//		setMilkingRecord(c000);
 		return c000;
 	}
 
-//	@Test
-//	void testInsertSemenInv() {
-//		try {
-//			InventoryBean invBean = new InventoryBean();
-//			invBean.setItemSKU("-999");
-//			invBean.setItemType("Y");
-//			invBean.setOrderDttm(DateTime.now());
-//			invBean.setReceivedDttm(DateTime.now());
-//			invBean.setInventoryAddDttm(DateTime.now());
-//			
-//			assertFalse(invBean.validateValues().isEmpty());
-//			invBean.setPrice(1000.0f);
-//			invBean.setDiscount(10.0f);
-//			invBean.setQuantity(5.0f);
-//			
-//			Inventory inv = new Inventory(invBean);
-//			inv.setOrgID("IMD");
-//			inv.setCreatedBy(new User("KASHIF"));
-//			inv.setCreatedDTTM(DateTime.now());
-//			inv.setUpdatedBy(new User("KASHIF"));
-//			inv.setUpdatedDTTM(DateTime.now());
-//			
-//			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
-//			InventoryLoader loader = new InventoryLoader();
-//			int result = loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType());
-//			assertTrue(result >= 0);
-//			assertEquals(1,loader.insertSemenInventory(inv));
-//	
-//			assertEquals(1,loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType()));
-//			
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			fail("Inventory processing Failed.");
-//		}
-//	}
-//	
-//	@Test
-//	void testInsertSemenUsageInv() {
-//		try {
-//			InventoryBean invBean = new InventoryBean();
-//			invBean.setItemSKU("-999");
-//			invBean.setItemType("Y");
-//			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-//			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-//			invBean.setInventoryAddDttm(new DateTime(2019,1,1,0,0,0));
-//			
-//			assertFalse(invBean.validateValues().isEmpty());
-//			invBean.setQuantity(1.0f);
-//			invBean.setAuxValue1("-9999");
-//			
-//			Inventory inv = new Inventory(invBean);
-//			inv.setOrgID("IMD");
-//			inv.setCreatedBy(new User("KASHIF"));
-//			inv.setCreatedDTTM(DateTime.now());
-//			inv.setUpdatedBy(new User("KASHIF"));
-//			inv.setUpdatedDTTM(DateTime.now());
-//			
-//			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
-//			InventoryLoader loader = new InventoryLoader();
-//			int result = loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU());
-//			assertTrue(result >= 0);
-//			assertEquals(1,loader.addSemenInventoryUsage(inv));
-//	
-//			assertEquals(1,loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU()));
-//			
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			fail("Inventory processing Failed.");
-//		}
-//	}
+	@Test
+	void testInsertSemenInv() {
+		try {
+			InventoryBean invBean = new InventoryBean();
+			invBean.setItemSKU("-999");
+			invBean.setItemType("Y");
+			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+			invBean.setInventoryAddDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+			
+			assertFalse(invBean.validateValues().isEmpty());
+			invBean.setPrice(1000.0f);
+			invBean.setDiscount(10.0f);
+			invBean.setQuantity(5.0f);
+			
+			Inventory inv = new Inventory(invBean);
+			inv.setOrgID("IMD");
+			inv.setCreatedBy(new User("KASHIF"));
+			inv.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inv.setUpdatedBy(new User("KASHIF"));
+			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			
+			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
+			InventoryLoader loader = new InventoryLoader();
+			int result = loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType());
+			assertTrue(result >= 0);
+			assertEquals(1,loader.insertSemenInventory(inv));
+	
+			assertEquals(1,loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType()));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Inventory processing Failed.");
+		}
+	}
+	
+	@Test
+	void testInsertSemenUsageInv() {
+		try {
+			InventoryBean invBean = new InventoryBean();
+			invBean.setItemSKU("-999");
+			invBean.setItemType("Y");
+			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+			invBean.setInventoryAddDttm(new DateTime(2019,1,1,0,0,0,IMDProperties.getServerTimeZone()));
+			
+			assertFalse(invBean.validateValues().isEmpty());
+			invBean.setQuantity(1.0f);
+			invBean.setAuxValue1("-9999");
+			
+			Inventory inv = new Inventory(invBean);
+			inv.setOrgID("IMD");
+			inv.setCreatedBy(new User("KASHIF"));
+			inv.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inv.setUpdatedBy(new User("KASHIF"));
+			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			
+			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
+			InventoryLoader loader = new InventoryLoader();
+			int result = loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU());
+			assertTrue(result >= 0);
+			assertEquals(1,loader.addSemenInventoryUsage(inv));
+	
+			assertEquals(1,loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU()));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Inventory processing Failed.");
+		}
+	}
 	@Test
 	void testSemenQtyUpdate() {
 		try {			
@@ -166,14 +161,14 @@ class InventoryLoaderTest {
 			result = animalLoader.deleteAnimal(sireBean.getOrgID(), sireBean.getAnimalTag());
 			assertTrue(result == 0 || result ==1);
 			
-			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(), user.getUserId(), DateTime.now()));
+			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(IMDProperties.getServerTimeZone()), user.getUserId(), DateTime.now(IMDProperties.getServerTimeZone())));
 			
 			InventoryBean invBean = new InventoryBean();
 			invBean.setItemSKU("-999");
 			invBean.setItemType("Y");
 			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
 			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-			invBean.setInventoryAddDttm(new DateTime(2019,1,1,1,1,1));
+			invBean.setInventoryAddDttm(new DateTime(2019,1,1,1,1,1,IMDProperties.getServerTimeZone()));
 			invBean.setPrice(1000.0f);
 			invBean.setDiscount(10.0f);
 			invBean.setQuantity(5.0f);
@@ -226,9 +221,9 @@ class InventoryLoaderTest {
 			assertEquals(1,animalLoader.deleteSire(sireBean.getAnimalTag()));
 
 			sireBean.setSemenInd("N");
-			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(), user.getUserId(), DateTime.now()));
+			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(IMDProperties.getServerTimeZone()), user.getUserId(), DateTime.now(IMDProperties.getServerTimeZone())));
 			assertEquals(1,animalLoader.insertAnimal(createTestSire(sireBean.getAnimalTag())));
-			assertEquals(1,animalLoader.updateAnimalHerdLeavingDTTM(sireBean.getOrgID(), sireBean.getAnimalTag(), Util.getDateInSQLFormart(DateTime.now().minusDays(2)), user));
+			assertEquals(1,animalLoader.updateAnimalHerdLeavingDTTM(sireBean.getOrgID(), sireBean.getAnimalTag(), Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(2)), user));
 			sires = invLoader.getSiresWithAvailableInventory(inv.getOrgID());
 			it = sires.iterator();
 			found = false;

@@ -16,6 +16,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -48,7 +49,7 @@ public class WeanOffAdvisement extends AdvisementRule {
 			if (ruleDto != null) {
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
-				animalPopulation = animalLoader.retrieveAnimalsYoungerThanSpecifiedDays(orgId, LocalDate.now().minusDays(YOUNG_ANIMAL_AGE_LIMIT));
+				animalPopulation = animalLoader.retrieveAnimalsYoungerThanSpecifiedDays(orgId, LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(YOUNG_ANIMAL_AGE_LIMIT));
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
@@ -58,7 +59,7 @@ public class WeanOffAdvisement extends AdvisementRule {
 								null,
 								null,
 								Util.LifeCycleEvents.WEANEDOFF, null,null,null,null,null);
-						int currentAgeInDays = Util.getDaysBetween(DateTime.now(), animal.getDateOfBirth());
+						int currentAgeInDays = Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), animal.getDateOfBirth());
 						String ruleNote = "";
 						String animalNote = "";
 						if (lifeEvents == null || lifeEvents.isEmpty()) {

@@ -330,7 +330,7 @@ public class InventoryLoader {
 		}
 		
 		
-		animalValue = new Sire("GBL", id,DateTime.now(),true,0d,"PKR");
+		animalValue = new Sire("GBL", id,DateTime.now(IMDProperties.getServerTimeZone()),true,0d,"PKR");
 		animalValue.setBreed(breed);
 		animalValue.setAlias(alias);
 		animalValue.setSemenInd(semenInd);

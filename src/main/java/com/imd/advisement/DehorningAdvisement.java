@@ -15,6 +15,7 @@ import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 /**
@@ -60,7 +61,7 @@ public class DehorningAdvisement extends AdvisementRule {
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No dehorning event found - the calf was never dehorned.
 							IMDLogger.log("Birth Date: " + animal.getDateOfBirth(), Util.INFO);
-							int daysSinceBirth= Util.getDaysBetween(DateTime.now(), animal.getDateOfBirth());
+							int daysSinceBirth= Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), animal.getDateOfBirth());
 							String ruleNote = "";
 							String animalNote = animal.getAnimalTag() + " was born " + daysSinceBirth + " days ago and it hasn't been dehorned yet.";							
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceBirth >= ruleDto.getThirdThreshold()) {

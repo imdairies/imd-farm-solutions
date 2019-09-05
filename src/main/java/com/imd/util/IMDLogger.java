@@ -20,7 +20,7 @@ public class IMDLogger {
 	
 	public static void log(String message, int messageSeverity) {
 		DateTimeFormatter currentDTTMFmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-		String currentDTTMStr = currentDTTMFmt.print(DateTime.now());
+		String currentDTTMStr = currentDTTMFmt.print(DateTime.now(IMDProperties.getServerTimeZone()));
 
 		if (loggingMode < 0) {
 			// we haven't yet loaded the logging mode value from the properties file.
