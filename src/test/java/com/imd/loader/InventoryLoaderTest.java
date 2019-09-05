@@ -216,7 +216,7 @@ class InventoryLoaderTest {
 			}
 			assertTrue(found);
 			
-			assertEquals(1,invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU()));
+			assertEquals(1,invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU(), inv.getInventoryAddDttm()));
 			assertEquals(1,invLoader.deleteSemenInventory(inv.getOrgID(), invBean.getItemSKU(), invBean.getItemType()));
 			assertEquals(1,animalLoader.deleteSire(sireBean.getAnimalTag()));
 
