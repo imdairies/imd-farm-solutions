@@ -181,7 +181,7 @@ class InventoryLoaderTest {
 			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 
 			
-			assertTrue(invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU()) >= 0);
+			assertTrue(invLoader.deleteSemenInventoryUsage(inv.getOrgID(), invBean.getItemSKU(),inv.getInventoryAddDttm()) >= 0);
 			assertTrue(invLoader.deleteSemenInventory(inv.getOrgID(), invBean.getItemSKU(), invBean.getItemType()) >= 0);
 			
 			invLoader.insertSemenInventory(inv);
