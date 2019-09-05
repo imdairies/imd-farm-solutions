@@ -62,77 +62,77 @@ class InventoryLoaderTest {
 		c000.addNote(newNote);
 		return c000;
 	}
-
-	@Test
-	void testInsertSemenInv() {
-		try {
-			InventoryBean invBean = new InventoryBean();
-			invBean.setItemSKU("-999");
-			invBean.setItemType("Y");
-			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-			invBean.setInventoryAddDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-			
-			assertFalse(invBean.validateValues().isEmpty());
-			invBean.setPrice(1000.0f);
-			invBean.setDiscount(10.0f);
-			invBean.setQuantity(5.0f);
-			
-			Inventory inv = new Inventory(invBean);
-			inv.setOrgID("IMD");
-			inv.setCreatedBy(new User("KASHIF"));
-			inv.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
-			inv.setUpdatedBy(new User("KASHIF"));
-			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
-			
-			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
-			InventoryLoader loader = new InventoryLoader();
-			int result = loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType());
-			assertTrue(result >= 0);
-			assertEquals(1,loader.insertSemenInventory(inv));
-	
-			assertEquals(1,loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType()));
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Inventory processing Failed.");
-		}
-	}
-	
-	@Test
-	void testInsertSemenUsageInv() {
-		try {
-			InventoryBean invBean = new InventoryBean();
-			invBean.setItemSKU("-999");
-			invBean.setItemType("Y");
-			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
-			invBean.setInventoryAddDttm(new DateTime(2019,1,1,0,0,0,IMDProperties.getServerTimeZone()));
-			
-			assertFalse(invBean.validateValues().isEmpty());
-			invBean.setQuantity(1.0f);
-			invBean.setAuxValue1("-9999");
-			
-			Inventory inv = new Inventory(invBean);
-			inv.setOrgID("IMD");
-			inv.setCreatedBy(new User("KASHIF"));
-			inv.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
-			inv.setUpdatedBy(new User("KASHIF"));
-			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
-			
-			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
-			InventoryLoader loader = new InventoryLoader();
-			int result = loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU());
-			assertTrue(result >= 0);
-			assertEquals(1,loader.addSemenInventoryUsage(inv));
-	
-			assertEquals(1,loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU()));
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Inventory processing Failed.");
-		}
-	}
+//
+//	@Test
+//	void testInsertSemenInv() {
+//		try {
+//			InventoryBean invBean = new InventoryBean();
+//			invBean.setItemSKU("-999");
+//			invBean.setItemType("Y");
+//			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+//			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+//			invBean.setInventoryAddDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+//			
+//			assertFalse(invBean.validateValues().isEmpty());
+//			invBean.setPrice(1000.0f);
+//			invBean.setDiscount(10.0f);
+//			invBean.setQuantity(5.0f);
+//			
+//			Inventory inv = new Inventory(invBean);
+//			inv.setOrgID("IMD");
+//			inv.setCreatedBy(new User("KASHIF"));
+//			inv.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+//			inv.setUpdatedBy(new User("KASHIF"));
+//			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+//			
+//			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
+//			InventoryLoader loader = new InventoryLoader();
+//			int result = loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType());
+//			assertTrue(result >= 0);
+//			assertEquals(1,loader.insertSemenInventory(inv));
+//	
+//			assertEquals(1,loader.deleteSemenInventory(inv.getOrgID(),inv.getItemSKU(), inv.getItemType()));
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			fail("Inventory processing Failed.");
+//		}
+//	}
+//	
+//	@Test
+//	void testInsertSemenUsageInv() {
+//		try {
+//			InventoryBean invBean = new InventoryBean();
+//			invBean.setItemSKU("-999");
+//			invBean.setItemType("Y");
+//			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+//			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+//			invBean.setInventoryAddDttm(new DateTime(2019,1,1,0,0,0,IMDProperties.getServerTimeZone()));
+//			
+//			assertFalse(invBean.validateValues().isEmpty());
+//			invBean.setQuantity(1.0f);
+//			invBean.setAuxValue1("-9999");
+//			
+//			Inventory inv = new Inventory(invBean);
+//			inv.setOrgID("IMD");
+//			inv.setCreatedBy(new User("KASHIF"));
+//			inv.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+//			inv.setUpdatedBy(new User("KASHIF"));
+//			inv.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+//			
+//			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
+//			InventoryLoader loader = new InventoryLoader();
+//			int result = loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU());
+//			assertTrue(result >= 0);
+//			assertEquals(1,loader.addSemenInventoryUsage(inv));
+//	
+//			assertEquals(1,loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU()));
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			fail("Inventory processing Failed.");
+//		}
+//	}
 	@Test
 	void testSemenQtyUpdate() {
 		try {			
