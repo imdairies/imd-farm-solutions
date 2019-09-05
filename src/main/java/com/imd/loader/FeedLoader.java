@@ -305,9 +305,13 @@ public class FeedLoader {
 		feedItem.setDailyFrequency(rs.getString("DAILY_FREQUENCY"));
 		feedItem.setComments(rs.getString("COMMENTS"));
 		feedItem.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
+		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
+//		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
 		feedItem.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
+		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));		
+//		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
+		
+		
 		FeedItemNutritionalStats itemNutritionalValues = new FeedItemNutritionalStats();
 		itemNutritionalValues.setDryMatter(0f);
 		itemNutritionalValues.setCrudeProtein(0f);
