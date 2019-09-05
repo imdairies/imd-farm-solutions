@@ -17,6 +17,7 @@ import com.imd.dto.User;
 import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class LookupValuesLoader {
@@ -167,9 +168,9 @@ public class LookupValuesLoader {
 		luValue.setAdditionalField2(rs.getString("ADDITIONAL_FLD2"));
 		luValue.setAdditionalField3(rs.getString("ADDITIONAL_FLD3"));
 		luValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		luValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		luValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		luValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		luValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		luValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return luValue;
 	}
 

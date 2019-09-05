@@ -25,6 +25,7 @@ import com.imd.services.bean.MilkingDetailBean;
 import com.imd.services.bean.TagVolumeCommentTriplet;
 import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class MilkingDetailLoader {
@@ -529,9 +530,9 @@ public class MilkingDetailLoader {
 		milkDetail.setHumidity(rs.getString("HUMIDITY") == null || rs.getString("HUMIDITY").isEmpty() ? null : rs.getFloat("HUMIDITY"));
 		milkDetail.setComments(rs.getString("COMMENTS"));
 		milkDetail.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		milkDetail.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		milkDetail.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		milkDetail.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		milkDetail.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		milkDetail.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		try {
 			milkDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE, (rs.getString("AVERAGE_VOL") == null || rs.getString("AVERAGE_VOL").isEmpty() ? 0f :Float.parseFloat(rs.getString("AVERAGE_VOL"))));
 		} catch (SQLException ex) {

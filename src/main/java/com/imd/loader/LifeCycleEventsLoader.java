@@ -23,6 +23,7 @@ import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class LifeCycleEventsLoader {
@@ -149,11 +150,11 @@ public class LifeCycleEventsLoader {
 	private LifecycleEvent getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
 		LifecycleEvent event;
 		event = new LifecycleEvent(rs.getString("ORG_ID"),rs.getInt("ID"),rs.getString("ANIMAL_TAG"), rs.getString("EVENT_CD"),
-				new User(rs.getString("CREATED_BY")),new DateTime(rs.getTimestamp("CREATED_DTTM")),
-				new User(rs.getString("UPDATED_BY")),new DateTime(rs.getTimestamp("UPDATED_DTTM"))
+				new User(rs.getString("CREATED_BY")),new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()),
+				new User(rs.getString("UPDATED_BY")),new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone())
 				);
 		event.getEventType().setEventShortDescription(rs.getString("EVENT_SHORT_DESCR"));
-		event.setEventTimeStamp(new DateTime(rs.getTimestamp("EVENT_DTTM")));
+		event.setEventTimeStamp(new DateTime(rs.getTimestamp("EVENT_DTTM"),IMDProperties.getServerTimeZone()));
 		event.setEventNote(rs.getString("COMMENTS"));
 		event.setEventOperator(new Person(rs.getString("OPERATOR"),rs.getString("OPERATOR_SHORT_DESCR"),"",""));
 		event.setAuxField1Value(rs.getString("AUX_FL1_VALUE"));

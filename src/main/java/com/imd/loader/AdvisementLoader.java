@@ -14,6 +14,7 @@ import com.imd.dto.User;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class AdvisementLoader {
@@ -97,9 +98,9 @@ public class AdvisementLoader {
 		advRule.setSMSInd(rs.getString("SMS_IND"));
 		advRule.setWebInd(rs.getString("WEB_IND"));
 		advRule.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		advRule.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		advRule.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		advRule.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		advRule.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		advRule.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return advRule;
 	}
 

@@ -18,6 +18,7 @@ import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class LVLifeCycleEventLoader {
@@ -202,9 +203,9 @@ public class LVLifeCycleEventLoader {
 		event.setInventoryUpdateLabel(rs.getString("INV_UPDATE_LABEL"));
 		
 		event.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		event.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		event.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		event.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		event.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return event;
 	}
 	public boolean doesLifecycleEventExist(LifeCycleEventCode event) {

@@ -19,6 +19,7 @@ import com.imd.dto.User;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class InventoryLoader {
@@ -327,9 +328,9 @@ public class InventoryLoader {
 		animalValue.setNotes(rmngQty);
 		
 		animalValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		animalValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return animalValue;
 	}
 	private Inventory getInventoryFromSQLRecord(ResultSet rs) throws SQLException, IMDException {
@@ -340,14 +341,14 @@ public class InventoryLoader {
 		inv.setPrice(rs.getFloat("PRICE"));
 		inv.setDiscount(rs.getFloat("DISCOUNT"));
 		inv.setQuantity(rs.getFloat("QUANTITY"));
-		inv.setOrderDttm((new DateTime(rs.getTimestamp("ORDER_DTTM"))));
-		inv.setReceivedDttm((new DateTime(rs.getTimestamp("RCVD_DTTM"))));
-		inv.setInventoryAddDttm((new DateTime(rs.getTimestamp("INV_ADDED_DTTM"))));
+		inv.setOrderDttm((new DateTime(rs.getTimestamp("ORDER_DTTM"),IMDProperties.getServerTimeZone())));
+		inv.setReceivedDttm((new DateTime(rs.getTimestamp("RCVD_DTTM"),IMDProperties.getServerTimeZone())));
+		inv.setInventoryAddDttm((new DateTime(rs.getTimestamp("INV_ADDED_DTTM"),IMDProperties.getServerTimeZone())));
 		
 		inv.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		inv.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		inv.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		inv.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		inv.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		inv.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return inv;
 	}
 	

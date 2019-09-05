@@ -22,6 +22,7 @@ import com.imd.services.bean.SireBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class AnimalLoader {
@@ -406,8 +407,8 @@ public class AnimalLoader {
 	private Animal getAnimalFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
 		String ind = rs.getString("DOB_ACCURACY_IND");
 		DateTime dob = (rs.getTimestamp("DOB") != null ? new DateTime(rs.getTimestamp("DOB")) : null);
-		DateTime herdJoiningDttm =  (rs.getTimestamp("HERD_JOINING_DTTM") != null ? new DateTime(rs.getTimestamp("HERD_JOINING_DTTM")) : null);
-		DateTime herdLeavingDttm =  (rs.getTimestamp("HERD_LEAVING_DTTM") != null ? new DateTime(rs.getTimestamp("HERD_LEAVING_DTTM")) : null);
+		DateTime herdJoiningDttm =  (rs.getTimestamp("HERD_JOINING_DTTM") != null ? new DateTime(rs.getTimestamp("HERD_JOINING_DTTM"),IMDProperties.getServerTimeZone()) : null);
+		DateTime herdLeavingDttm =  (rs.getTimestamp("HERD_LEAVING_DTTM") != null ? new DateTime(rs.getTimestamp("HERD_LEAVING_DTTM"),IMDProperties.getServerTimeZone()) : null);
 		String gender = rs.getString("GENDER");
 		String typeCD = rs.getString("TYPE_CD");
 		String typeDescr = rs.getString("ANIMAL_TYPE");
@@ -464,9 +465,9 @@ public class AnimalLoader {
 		animal.setHerdJoiningDate(herdJoiningDttm);
 		animal.setHerdLeavingDate(herdLeavingDttm);
 		animal.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		animal.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		animal.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		animal.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		animal.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		animal.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return animal;
 	}
 
@@ -919,9 +920,9 @@ public class AnimalLoader {
 		animalValue.setSemenTbdCount(semenTbdCount);
 		
 		animalValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		animalValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		animalValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return animalValue;
 	}
 	public int updateAnimalHerdLeavingDTTM(String orgID, String animalTag, String timeStamp, User user) {

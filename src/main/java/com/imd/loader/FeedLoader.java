@@ -279,9 +279,9 @@ public class FeedLoader {
 		cohortNeeds.setCrudeProtein(rs.getFloat("CP"));
 		cohortNeeds.setMetabloizableEnergy(rs.getFloat("ME"));
 		cohortNeeds.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		cohortNeeds.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		cohortNeeds.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		cohortNeeds.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		cohortNeeds.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		cohortNeeds.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return cohortNeeds;
 	}
 	
@@ -306,10 +306,8 @@ public class FeedLoader {
 		feedItem.setComments(rs.getString("COMMENTS"));
 		feedItem.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
-//		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
 		feedItem.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));		
-//		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
 		
 		
 		FeedItemNutritionalStats itemNutritionalValues = new FeedItemNutritionalStats();
