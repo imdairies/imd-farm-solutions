@@ -200,6 +200,7 @@ class InventoryLoaderTest {
 				if (sire.getAnimalTag().equalsIgnoreCase(inv.getItemSKU())) {
 					assertEquals(null,invLoader.getRemainingSemenInventory(inv.getOrgID(),"-NOTPRESENT",  inv.getItemType()));
 					Inventory invOutput = invLoader.getRemainingSemenInventory(inv.getOrgID(),sire.getAnimalTag(),  inv.getItemType());
+					assertTrue(invOutput != null);
 					assertTrue(invOutput.getQuantity() == 5.0f);
 					assertTrue(Float.parseFloat(invOutput.getAuxValue1()) == 3.0f);
 					assertTrue(Float.parseFloat(invOutput.getAuxValue2()) == 2.0f);
