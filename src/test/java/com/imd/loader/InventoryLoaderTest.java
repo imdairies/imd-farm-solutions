@@ -110,8 +110,8 @@ class InventoryLoaderTest {
 			InventoryBean invBean = new InventoryBean();
 			invBean.setItemSKU("-999");
 			invBean.setItemType("Y");
-			invBean.setOrderDttm(DateTime.now());
-			invBean.setReceivedDttm(DateTime.now());
+			invBean.setOrderDttm(DateTime.now(IMDProperties.getServerTimeZone()));
+			invBean.setReceivedDttm(DateTime.now(IMDProperties.getServerTimeZone()));
 			invBean.setInventoryAddDttm(new DateTime(2019,1,1,0,0,0));
 			
 			assertFalse(invBean.validateValues().isEmpty());
@@ -127,11 +127,11 @@ class InventoryLoaderTest {
 			
 			IMDLogger.log(inv.dtoToJson("   "), Util.INFO);
 			InventoryLoader loader = new InventoryLoader();
-			int result = loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU(), inv.getInventoryAddDttm());
+			int result = loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU());
 			assertTrue(result >= 0);
 			assertEquals(1,loader.addSemenInventoryUsage(inv));
 	
-			assertEquals(1,loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU(), inv.getInventoryAddDttm()));
+			assertEquals(1,loader.deleteSemenInventoryUsage(inv.getOrgID(),inv.getItemSKU()));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
