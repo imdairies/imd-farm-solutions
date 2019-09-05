@@ -113,13 +113,13 @@ public class InventoryLoader {
 		
 		int result = -1;
 		PreparedStatement preparedStatement = null;
-		IMDLogger.log(qryString, Util.INFO);
 		Connection conn = DBManager.getDBConnection();
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, orgID);
 			preparedStatement.setString(2, itemId);
 			preparedStatement.setTimestamp(3, new Timestamp(addedDTTM.getMillis()));
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			result = preparedStatement.executeUpdate();
 		} catch (Exception ex) {
 			ex.printStackTrace();
