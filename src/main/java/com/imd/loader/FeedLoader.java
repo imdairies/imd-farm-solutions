@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,6 +21,7 @@ import com.imd.dto.User;
 import com.imd.util.DBManager;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class FeedLoader {
@@ -303,9 +305,9 @@ public class FeedLoader {
 		feedItem.setDailyFrequency(rs.getString("DAILY_FREQUENCY"));
 		feedItem.setComments(rs.getString("COMMENTS"));
 		feedItem.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM")));
+		feedItem.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
 		feedItem.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM")));
+		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM",Calendar.getInstance(IMDProperties.getServerTimeZone().toTimeZone()))));
 		FeedItemNutritionalStats itemNutritionalValues = new FeedItemNutritionalStats();
 		itemNutritionalValues.setDryMatter(0f);
 		itemNutritionalValues.setCrudeProtein(0f);
