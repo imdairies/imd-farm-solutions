@@ -2,15 +2,12 @@ package com.imd.controller.feed;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -451,7 +448,7 @@ class FeedManagerTest {
 			
 			assertEquals(null,loader.retrieveFeedPlanItem(feedItem, 120f, 120f));
 			
-			float ageInDays = femaleCalf.getCurrentAgeInDays().getDays();
+			float ageInDays = femaleCalf.getCurrentAgeInDays();
 			FeedItem item = loader.retrieveFeedPlanItem(feedItem, ageInDays);
 
 			assertTrue(item != null);

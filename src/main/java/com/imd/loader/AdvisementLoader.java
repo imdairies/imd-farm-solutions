@@ -33,6 +33,11 @@ public class AdvisementLoader {
 				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
 				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
 				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+				" B.AUX_INFO1 AS AUX_INFO1, " + 
+				" B.AUX_INFO2 AS AUX_INFO2, " + 
+				" B.AUX_INFO3 AS AUX_INFO3, " + 
+				" B.AUX_INFO4 AS AUX_INFO4, " + 
+				" B.AUX_INFO5 AS AUX_INFO5, " + 
 				" B.EMAIL_IND AS EMAIL_IND, " + 
 				" B.SMS_IND AS SMS_IND, " + 
 				" B.WEB_IND AS WEB_IND, " + 
@@ -97,6 +102,11 @@ public class AdvisementLoader {
 		advRule.setEmailInd(rs.getString("EMAIL_IND"));
 		advRule.setSMSInd(rs.getString("SMS_IND"));
 		advRule.setWebInd(rs.getString("WEB_IND"));
+		advRule.setAuxInfo1(rs.getString("AUX_INFO1"));
+		advRule.setAuxInfo2(rs.getString("AUX_INFO2"));
+		advRule.setAuxInfo3(rs.getString("AUX_INFO3"));
+		advRule.setAuxInfo4(rs.getString("AUX_INFO4"));
+		advRule.setAuxInfo5(rs.getString("AUX_INFO5"));
 		advRule.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		advRule.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		advRule.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
@@ -118,6 +128,11 @@ public class AdvisementLoader {
 				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
 				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
 				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+				" B.AUX_INFO1 AS AUX_INFO1, " + 
+				" B.AUX_INFO2 AS AUX_INFO2, " + 
+				" B.AUX_INFO3 AS AUX_INFO3, " + 
+				" B.AUX_INFO4 AS AUX_INFO4, " + 
+				" B.AUX_INFO5 AS AUX_INFO5, " + 
 				" B.EMAIL_IND AS EMAIL_IND, " + 
 				" B.SMS_IND AS SMS_IND, " + 
 				" B.WEB_IND AS WEB_IND, " + 

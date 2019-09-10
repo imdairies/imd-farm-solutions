@@ -24,6 +24,60 @@ import com.imd.util.Util;;
 public class AdvisementSrvc {
 
 	
+	
+	@POST
+	@Path("/retrieveanimaladvisement")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveAnimalAdvisement(AdvisementBean advBean){
+		AdvisementLoader loader = new AdvisementLoader();
+		IMDLogger.log("retrieveAnimalAdvisement Service Called with following input values", Util.INFO);
+		IMDLogger.log(advBean.toString(), Util.INFO);
+		String animalTag = advBean.getAnimalTag();
+		if (animalTag == null || animalTag.isEmpty())
+			return Response.status(200).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
+			
+		String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
+		List<Advisement> activeRules = loader.getAllActiveRules(orgId);
+		AdvisementRuleManager advManager = new AdvisementRuleManager();
+
+		List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,
+				advBean.isThreshold1Violated(),advBean.isThreshold2Violated(),advBean.isThreshold3Violated());			
+
+		String mapKey = "";
+		HashMap<String, AnimalAdvisement> advJson = new HashMap<String, AnimalAdvisement>();
+		Iterator<AnimalAdvisement> it = advResults.iterator();
+		while (it.hasNext()) {
+			AnimalAdvisement populationAnimal = it.next();
+			if (populationAnimal.getAnimalTag().equalsIgnoreCase(animalTag)) {
+				mapKey = populationAnimal.getAppliedAdvisementRule() + "-" + populationAnimal.getSeverityLevel();
+				AnimalAdvisement mapEntry = advJson.get(mapKey);
+				if (mapEntry == null) {
+					mapEntry = new AnimalAdvisement(populationAnimal);
+					advJson.put(mapKey, mapEntry);
+//				} else {
+//					mapEntry.setAnimalTag(mapEntry.getAnimalTag() + ", " + populationAnimal.getAnimalTag());
+				}
+			}
+		}
+		
+		String returnJson = "";
+		Iterator<String> mapKeysIt = advJson.keySet().iterator();
+		int size = advJson.size();
+		int count = 0;
+		while (mapKeysIt.hasNext()) {
+			String key = mapKeysIt.next();
+			AnimalAdvisement value = advJson.get(key);
+			returnJson += "{\n" + 
+					"\"advisementRule\":\"" + value.getAppliedAdvisementRule() + "\"," +
+					"\"severityThreshold\":\"" + value.getSeverityLevel() + "\"," +
+					"\"ruleOutcomeMessage\":\"" + value.getAnimalSpecificMessage() + "\"," +
+					"\"animalTags\":\"" + value.getAnimalTag() + "\"\n}"+ (++count == size ? "\n" : ",\n");
+		}
+		returnJson = "[\n" + returnJson + "]";
+		return Response.status(400).entity(returnJson).build();
+	}	
+	
+	
 	@POST
 	@Path("/retrievealladvisement")
 	@Consumes (MediaType.APPLICATION_JSON)

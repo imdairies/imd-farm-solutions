@@ -1,9 +1,6 @@
 package com.imd.advisement;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +38,7 @@ public class DewormingAdvisement extends AdvisementRule {
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
-			IMDLogger.log("Retreiving animals that should be dewormed: " + getAdvisementID(), Util.INFO);
+			IMDLogger.log("Retrieving animals that should be dewormed: " + getAdvisementID(), Util.INFO);
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
 			if (ruleDto == null) {
 				return null;
@@ -59,7 +56,7 @@ public class DewormingAdvisement extends AdvisementRule {
 								null,
 								Util.LifeCycleEvents.DEWORM, null,null,null,null,null);
 						String ruleNote = "";
-						String animalNote = animal.getAnimalTag() + " has never been dewormed.";							
+						String animalNote = animal.getAnimalTag() + " has never been dewormed. Please deworm it immediately";							
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							int daysSinceDewormed= Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceDewormed >= ruleDto.getThirdThreshold()) {

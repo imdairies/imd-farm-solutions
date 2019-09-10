@@ -33,15 +33,22 @@ public class IMDLogger {
 				ex.printStackTrace();
 				loggingMode = Util.INFO;
 			}
+			System.out.println("============== \n LOGGING MODE SET TO: " + (loggingMode == Util.INFO ? "INFO" : loggingMode == Util.WARNING ? "WARNING" : loggingMode == Util.ERROR ? "ERROR" : "UNKNOWN") + "\n ================");
 		}
+		
 		if (messageSeverity >= loggingMode) {
 			String messageColor = "";
-			if (loggingMode == Util.INFO)
-				messageColor = "[" + ANSI_INFO_BLUE + "INFO" +  ANSI_RESET + "]";
-			else if (loggingMode == Util.WARNING)
-				messageColor = "[" + ANSI_WARN_YELLOW + "WARNING" +  ANSI_RESET + "]";
-			else if (loggingMode == Util.ERROR)
-				messageColor = "[" + ANSI_ERROR_RED + "ERROR" +  ANSI_RESET + "]";
+//			if (loggingMode == Util.INFO) {
+//				messageColor = "[" + ANSI_INFO_BLUE;
+//			} else if (loggingMode == Util.WARNING) {
+//				messageColor = "[" + ANSI_WARN_YELLOW;
+//			} else if (loggingMode == Util.ERROR) {
+//				messageColor = "[" + ANSI_ERROR_RED;
+//			}
+			messageColor = "[" + 
+				(messageSeverity == Util.INFO ? ANSI_INFO_BLUE + "INFO" : messageSeverity == Util.WARNING ? ANSI_WARN_YELLOW + "WARNING" : messageSeverity == Util.ERROR ? ANSI_ERROR_RED + "ERROR" : ANSI_ERROR_RED + "UNKNOWN")
+				+  ANSI_RESET + "]";
+
 			System.out.println(messageColor + currentDTTMStr + ": " + message);
 		}		
 	}

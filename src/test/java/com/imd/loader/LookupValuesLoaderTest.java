@@ -85,7 +85,7 @@ class LookupValuesLoaderTest {
 			searchBean.setLookupValueCode("%" + luValue.getLookupValueCode().substring(2) + "%");
 			searchBean.setCategoryCode("%" + luValue.getCategoryCode().substring(2) + "%");
 			records = loader.retrieveMatchingLookupValues(searchBean);
-			int size = records.size();
+//			int size = records.size();
 			assertEquals("DUMMY",records.get(0).getLookupValueCode(),"Retrieved Record should have the correct Lookup Value Code");
 			assertEquals("BREED",records.get(0).getCategoryCode(),"Retrieved Record should have the correct Lookup Value Category");
 			

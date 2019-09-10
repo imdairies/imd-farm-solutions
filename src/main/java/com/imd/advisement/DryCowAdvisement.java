@@ -1,7 +1,6 @@
 package com.imd.advisement;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 
@@ -73,17 +72,21 @@ public class DryCowAdvisement extends AdvisementRule {
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceInseminated= getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							String ruleNote = "";
-							String animalNote = "This cow was successfully inseminated " + daysSinceInseminated + " days ago.";							
+							String animalNote = "This cow was successfully inseminated " + daysSinceInseminated + " days ago. ";							
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceInseminated >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
+								animalNote += "You should immediately dry off this cow.";
 							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceInseminated >= ruleDto.getSecondThreshold()) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
+								animalNote += "You should dry off this cow soon.";								
 							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceInseminated >= ruleDto.getFirstThreshold()) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
+								animalNote += "You should plan to dry off this cow with-in next week or two.";
 							}
+														
 							if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 								// This cow has not yet been dried off
 								animal.addLifecycleEvent(lifeEvents.get(0));

@@ -3,9 +3,6 @@ package com.imd.advisement;
 import java.util.HashMap;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
 
 import com.imd.dto.Animal;
 

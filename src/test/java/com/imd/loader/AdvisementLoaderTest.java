@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.imd.advisement.AdvisementRuleManager;
+import com.imd.advisement.CalvingPrepFeedAdvisement;
 import com.imd.advisement.DehorningAdvisement;
 import com.imd.advisement.DelayedHeatCowAdvisement;
 import com.imd.advisement.DelayedHeatHeiferAdvisement;
@@ -21,6 +22,7 @@ import com.imd.advisement.DewormingAdvisement;
 import com.imd.advisement.DryCowAdvisement;
 import com.imd.advisement.FMDVaccinationAdvisement;
 import com.imd.advisement.HeatWarningAdvisement;
+import com.imd.advisement.HeiferWeightAdvisement;
 import com.imd.advisement.PregnancyTestAdvisement;
 import com.imd.advisement.WeanOffAdvisement;
 import com.imd.advisement.WeightMeasurementAdvisement;
@@ -208,9 +210,9 @@ class AdvisementLoaderTest {
 			///////////////////
 
 			Animal oldAnimal = createTestAnimal("-999");
-			oldAnimal.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
+			oldAnimal.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(24));
 			oldAnimal.setHerdLeavingDate(null);
-			oldAnimal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(210));
+			oldAnimal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(24));
 			oldAnimal.setAnimalType(Util.AnimalTypes.HEIFER);
 			int transOldAnimal = animalLoader.insertAnimal(oldAnimal);
 			assertEquals(1,transOldAnimal, "Exactly one record -999 should have been inserted");
@@ -343,7 +345,181 @@ class AdvisementLoaderTest {
 		}
 	}	
 		
-	
+	@Test
+	void testHeiferWeightAdvisement() {
+
+		try {
+			HeiferWeightAdvisement weightMeasurementAdvisement = new HeiferWeightAdvisement();
+			AnimalLoader animalLoader = new AnimalLoader();
+			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
+			
+			///// clean up /////
+			animalLoader.deleteAnimal("IMD", "-999"); // Older than 365 days no violation
+			animalLoader.deleteAnimal("IMD", "-998"); // Younger than 365 days no violation
+			animalLoader.deleteAnimal("IMD", "-997"); // Older than 365 days Th1 violated
+			animalLoader.deleteAnimal("IMD", "-996"); // Older than 365 days Th2 violated
+			animalLoader.deleteAnimal("IMD", "-995"); // Older than 365 days Th3 violated
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			///////////////////
+
+			Animal oldAnimalNoViolation = createTestAnimal("-999");
+			oldAnimalNoViolation.setHerdLeavingDate(null);
+			oldAnimalNoViolation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(14));
+			oldAnimalNoViolation.setHerdJoiningDate(oldAnimalNoViolation.getDateOfBirth());
+			oldAnimalNoViolation.setAnimalType(Util.AnimalTypes.HEIFER);
+			int transOldAnimalNoViolation = animalLoader.insertAnimal(oldAnimalNoViolation);
+			assertEquals(1,transOldAnimalNoViolation, "Exactly one record -999 should have been inserted");
+			LifeCycleEventBean oldNoViolationBean = new LifeCycleEventBean();
+			oldNoViolationBean.setAnimalTag(oldAnimalNoViolation.getAnimalTag());
+			oldNoViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
+			oldNoViolationBean.setEventComments("Test  Event - does not violate any threshold");
+			oldNoViolationBean.setOrgID("IMD");
+			oldNoViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10)));
+			LifecycleEvent oldNoViolationEvent = new LifecycleEvent(oldNoViolationBean);
+			oldNoViolationEvent.setAuxField1Value(Util.DefaultValues.HEIFER_TARGET_WEIGHT + 5 + "");
+			oldNoViolationEvent.setCreatedBy(new User("KASHIF"));
+			oldNoViolationEvent.setUpdatedBy(new User("KASHIF"));
+			oldNoViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			oldNoViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			assertTrue(eventsLoader.insertLifeCycleEvent(oldNoViolationEvent)>0);	
+			
+			
+			Animal youngNoViolation = createTestAnimal("-998");
+			youngNoViolation.setAnimalType(Util.AnimalTypes.HEIFER);
+			youngNoViolation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(180));
+			LifeCycleEventBean younNoViolationBean = new LifeCycleEventBean();
+			younNoViolationBean.setAnimalTag(youngNoViolation.getAnimalTag());
+			younNoViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
+			younNoViolationBean.setEventComments("Test  Event - does not violate any threshold");
+			younNoViolationBean.setOrgID("IMD");
+			younNoViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10)));
+			LifecycleEvent youngNoViolationEvent = new LifecycleEvent(younNoViolationBean);
+			youngNoViolationEvent.setAuxField1Value("50.0");
+			youngNoViolationEvent.setCreatedBy(new User("KASHIF"));
+			youngNoViolationEvent.setUpdatedBy(new User("KASHIF"));
+			youngNoViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			youngNoViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			int transYoungNoViolation = animalLoader.insertAnimal(youngNoViolation);
+			assertEquals(1,transYoungNoViolation, "Exactly one record -998 should have been inserted");
+			assertTrue(eventsLoader.insertLifeCycleEvent(youngNoViolationEvent)>0);	
+						
+			Animal th1Violation = createTestAnimal("-997");
+			th1Violation.setAnimalType(Util.AnimalTypes.HEIFER);
+			th1Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(370));
+			LifeCycleEventBean th1ViolationBean = new LifeCycleEventBean();
+			th1ViolationBean.setAnimalTag(th1Violation.getAnimalTag());
+			th1ViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
+			th1ViolationBean.setEventComments("Test  Event - Violates Threshold 1");
+			th1ViolationBean.setOrgID("IMD");
+			th1ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(16)));
+			LifecycleEvent th1ViolationEvent = new LifecycleEvent(th1ViolationBean);
+			th1ViolationEvent.setAuxField1Value(Util.DefaultValues.HEIFER_TARGET_WEIGHT-1 + "");
+			th1ViolationEvent.setCreatedBy(new User("KASHIF"));
+			th1ViolationEvent.setUpdatedBy(new User("KASHIF"));
+			th1ViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th1ViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			int transTh1Violation = animalLoader.insertAnimal(th1Violation);
+			assertEquals(1,transTh1Violation, "Exactly one record -997 should have been inserted");				
+			assertTrue(eventsLoader.insertLifeCycleEvent(th1ViolationEvent)>0);	
+						
+			Animal th2Violation = createTestAnimal("-996");
+			th2Violation.setAnimalType(Util.AnimalTypes.HEIFER);
+			th2Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(426));
+			LifeCycleEventBean th2ViolationBean = new LifeCycleEventBean();
+			th2ViolationBean.setAnimalTag(th2Violation.getAnimalTag());
+			th2ViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
+			th2ViolationBean.setEventComments("Test  Event -  Violates Threshold 2");
+			th2ViolationBean.setOrgID("IMD");
+			th2ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(22)));
+			LifecycleEvent th2ViolationEvent = new LifecycleEvent(th2ViolationBean);
+			th2ViolationEvent.setAuxField1Value(Util.DefaultValues.HEIFER_TARGET_WEIGHT-1 + "");
+			th2ViolationEvent.setCreatedBy(new User("KASHIF"));
+			th2ViolationEvent.setUpdatedBy(new User("KASHIF"));
+			th2ViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th2ViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			int transTh2Violation = animalLoader.insertAnimal(th2Violation);
+			assertEquals(1,transTh2Violation, "Exactly one record -996 should have been inserted");				
+			assertTrue(eventsLoader.insertLifeCycleEvent(th2ViolationEvent)>0);	
+
+			
+			Animal th3Violation = createTestAnimal("-995");
+			th3Violation.setAnimalType(Util.AnimalTypes.HEIFER);
+			th3Violation.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(550));
+			LifeCycleEventBean th3ViolationBean = new LifeCycleEventBean();
+			th3ViolationBean.setAnimalTag(th3Violation.getAnimalTag());
+			th3ViolationBean.setEventCode(Util.LifeCycleEvents.WEIGHT);
+			th3ViolationBean.setEventComments("Test  Event -  Violates Threshold 3");
+			th3ViolationBean.setOrgID("IMD");
+			th3ViolationBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(29)));
+			LifecycleEvent th3ViolationEvent = new LifecycleEvent(th3ViolationBean);
+			th3ViolationEvent.setAuxField1Value(Util.DefaultValues.HEIFER_TARGET_WEIGHT-1 + "");
+			th3ViolationEvent.setCreatedBy(new User("KASHIF"));
+			th3ViolationEvent.setUpdatedBy(new User("KASHIF"));
+			th3ViolationEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			th3ViolationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			int transTh3Violation = animalLoader.insertAnimal(th3Violation);
+			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
+			assertTrue(eventsLoader.insertLifeCycleEvent(th3ViolationEvent)>0);	
+
+			List<Animal> animalPop = weightMeasurementAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			boolean th3Found = false;
+			boolean th2Found = false;
+			boolean th1Found = false;
+			
+			if (animalPop != null && !animalPop.isEmpty()) {
+				Iterator<Animal> it = animalPop.iterator();
+				while (it.hasNext()) {
+					Animal populationAnimal = it.next();
+					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
+					if (populationAnimal.getAnimalTag().equalsIgnoreCase(oldAnimalNoViolation.getAnimalTag())) {
+						fail(oldAnimalNoViolation.getAnimalTag() +  "("+ oldAnimalNoViolation.getAnimalType() + ") should not be flagged by this advisement.");
+					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(youngNoViolation.getAnimalTag())) {
+						fail(youngNoViolation.getAnimalTag() +  "("+ youngNoViolation.getAnimalType() + ") should not have been flagged by this advisement.");
+					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(th1Violation.getAnimalTag())) {
+						assertTrue(populationAnimal.isThreshold1Violated() ,"This animal should have violated first threshold.");
+						assertFalse(populationAnimal.isThreshold2Violated(),"This animal should have violated first threshold.");
+						assertFalse(populationAnimal.isThreshold3Violated(),"This animal should have violated first threshold.");
+						th1Found = true;
+					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(th2Violation.getAnimalTag())) {
+						assertFalse(populationAnimal.isThreshold1Violated(),"This animal should have violated second threshold");
+						assertTrue(populationAnimal.isThreshold2Violated() ,"This animal should have violated second threshold");
+						assertFalse(populationAnimal.isThreshold3Violated(),"This animal should have violated second threshold.");
+						th2Found = true;
+					} else if (populationAnimal.getAnimalTag().equalsIgnoreCase(th3Violation.getAnimalTag())) {
+						assertFalse(populationAnimal.isThreshold1Violated(),"This animal should have violated third threshold. " + th3Violation.getAnimalTag());
+						assertFalse(populationAnimal.isThreshold2Violated(),"This animal should have violated third threshold. " + th3Violation.getAnimalTag());
+						assertTrue(populationAnimal.isThreshold3Violated() ,"This animal should have violated third threshold. " + th3Violation.getAnimalTag());
+						th3Found = true;
+					}
+				}
+			}
+			assertTrue(th1Found,th1Violation.getAnimalTag() +  "("+ th1Violation.getAnimalType() + ") should have been included in the Threshold1 Violation Advisement population");
+			assertTrue(th2Found,th2Violation.getAnimalTag() +  "("+ th2Violation.getAnimalType() + ") should have been included in the Threshold2 Violation Advisement population");
+			assertTrue(th3Found,th3Violation.getAnimalTag() +  "("+ th3Violation.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
+			
+			///// clean up /////
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			animalLoader.deleteAnimal("IMD", "-997");
+			animalLoader.deleteAnimal("IMD", "-996");
+			animalLoader.deleteAnimal("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			///////////////////
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Exception occurred " + ex.getMessage());
+		}
+	}	
+			
 	
 	@Test
 	void testDelayedHeatCowAdvisementRule() {
@@ -1524,6 +1700,188 @@ class AdvisementLoaderTest {
 		}
 	}
 
+	@Test
+	void testPreCalvingFeedPopulationRetrieval() {
+
+		try {
+			IMDLogger.loggingMode = Util.INFO;
+			CalvingPrepFeedAdvisement preCalveFeedAdv = new CalvingPrepFeedAdvisement();
+			AnimalLoader animalLoader = new AnimalLoader();
+			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
+			
+			///// clean up /////
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
+			///////////////////
+			
+			Animal dryPregnant = createTestAnimal("-999");
+			dryPregnant.setAnimalType(Util.AnimalTypes.DRYPREG);
+
+			Animal lactatingPregnantThreshold3 = createTestAnimal("-998");
+			lactatingPregnantThreshold3.setAnimalType("LCTPRGNT");
+			
+			
+			LifeCycleEventBean eventBean1 = new LifeCycleEventBean();
+			eventBean1.setAnimalTag(dryPregnant.getAnimalTag());
+			eventBean1.setEventCode(Util.LifeCycleEvents.INSEMINATE);
+			eventBean1.setEventComments("Test Insemination Event");
+			eventBean1.setOrgID("IMD");
+			eventBean1.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(265)));
+			LifecycleEvent inseminationEvent1 = new LifecycleEvent(eventBean1);
+			inseminationEvent1.setEventNote("Test Insemination Event. This cow has NOT yet been give pre-calving feed. So Pre Calving Feed advisement THRESHOLD3 SHOULD be triggered for this cow.");
+			inseminationEvent1.setAnimalTag(dryPregnant.getAnimalTag());
+			inseminationEvent1.setCreatedBy(new User("KASHIF"));
+			inseminationEvent1.setUpdatedBy(new User("KASHIF"));
+			inseminationEvent1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(265));
+			inseminationEvent1.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+
+			LifeCycleEventBean eventBean2 = new LifeCycleEventBean();
+			eventBean2.setAnimalTag(dryPregnant.getAnimalTag());
+			eventBean2.setEventCode(Util.LifeCycleEvents.PRECAVNGFD);
+			eventBean2.setEventComments("Pre-Calving Feed GLUCOSA Event");
+			eventBean2.setOrgID("IMD");
+			eventBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(31)));
+			LifecycleEvent inseminationEvent2 = new LifecycleEvent(eventBean2);
+			inseminationEvent2.setAuxField1Value(Util.FeedItems.GLUCOSA);
+			inseminationEvent2.setAuxField2Value(Util.YES);
+			inseminationEvent2.setCreatedBy(new User("KASHIF"));
+			inseminationEvent2.setUpdatedBy(new User("KASHIF"));
+			inseminationEvent2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+
+			int transactionID1 = animalLoader.insertAnimal(dryPregnant);
+			assertEquals(1,transactionID1);
+			eventsLoader.insertLifeCycleEvent(inseminationEvent1);
+			
+			List<Animal> animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+
+			boolean th3Found = false;
+//			boolean th1Found = false;
+			if (animalPop != null && !animalPop.isEmpty()) {
+				Iterator<Animal> it = animalPop.iterator();
+				while (it.hasNext()) {
+					Animal populationAnimal = it.next();
+					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
+					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
+						assertFalse(populationAnimal.isThreshold1Violated(),"This cow should have violated third threshold");
+						assertFalse(populationAnimal.isThreshold2Violated(),"This cow should have violated third threshold");
+						assertTrue(populationAnimal.isThreshold3Violated(),"This cow should have violated third threshold");
+						th3Found = true;
+					}
+				}
+			}
+			assertTrue(th3Found,dryPregnant.getAnimalTag() +  "("+ dryPregnant.getAnimalType() + ") cow should have been included in the Pre Calving Feed Threshold3 Advisement population");
+			
+			
+			// now we add the feed event and the threshold violation should go away.
+			eventsLoader.insertLifeCycleEvent(inseminationEvent2);
+			animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+
+			th3Found = false;
+			if (animalPop != null && !animalPop.isEmpty()) {
+				Iterator<Animal> it = animalPop.iterator();
+				while (it.hasNext()) {
+					Animal populationAnimal = it.next();
+					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
+					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.VANDA) > 0);
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) > 0);
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.GLUCOSA) < 0);
+						th3Found = true;
+					}
+				}
+			}
+			assertTrue(th3Found,dryPregnant.getAnimalTag() +  "("+ dryPregnant.getAnimalType() + ") cow should have been included in the Pre Calving Feed Threshold3 Advisement population");
+			
+			
+			
+			eventBean2 = new LifeCycleEventBean();
+			eventBean2.setAnimalTag(dryPregnant.getAnimalTag());
+			eventBean2.setEventCode(Util.LifeCycleEvents.PRECAVNGFD);
+			eventBean2.setEventComments("Pre-Calving Feed VANDA Event");
+			eventBean2.setOrgID("IMD");
+			eventBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(50)));
+			inseminationEvent2 = new LifecycleEvent(eventBean2);
+			inseminationEvent2.setAuxField1Value(Util.FeedItems.VANDA);
+			inseminationEvent2.setAuxField2Value(Util.YES);
+			inseminationEvent2.setCreatedBy(new User("KASHIF"));
+			inseminationEvent2.setUpdatedBy(new User("KASHIF"));
+			inseminationEvent2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+
+			assertTrue(eventsLoader.insertLifeCycleEvent(inseminationEvent2)>0);
+
+			animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+			th3Found = false;
+			if (animalPop != null && !animalPop.isEmpty()) {
+				Iterator<Animal> it = animalPop.iterator();
+				while (it.hasNext()) {
+					Animal populationAnimal = it.next();
+					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
+					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) > 0);
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.GLUCOSA) < 0);
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.VANDA) < 0);
+						th3Found = true;
+					}
+				}
+			}
+			assertTrue(th3Found,dryPregnant.getAnimalTag() +  "("+ dryPregnant.getAnimalType() + ") cow should have been included in the Pre Calving Feed Threshold3 Advisement population");
+			
+			
+			
+			
+			eventBean2 = new LifeCycleEventBean();
+			eventBean2.setAnimalTag(dryPregnant.getAnimalTag());
+			eventBean2.setEventCode(Util.LifeCycleEvents.PRECAVNGFD);
+			eventBean2.setEventComments("Pre-Calving Feed OIL Event");
+			eventBean2.setOrgID("IMD");
+			eventBean2.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(51)));
+			inseminationEvent2 = new LifecycleEvent(eventBean2);
+			inseminationEvent2.setAuxField1Value(Util.FeedItems.OIL);
+			inseminationEvent2.setAuxField2Value(Util.YES);
+			inseminationEvent2.setCreatedBy(new User("KASHIF"));
+			inseminationEvent2.setUpdatedBy(new User("KASHIF"));
+			inseminationEvent2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			inseminationEvent2.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+
+			assertTrue(eventsLoader.insertLifeCycleEvent(inseminationEvent2)>0);
+			
+			
+			
+			animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+
+			th3Found = false;
+			if (animalPop != null && !animalPop.isEmpty()) {
+				Iterator<Animal> it = animalPop.iterator();
+				while (it.hasNext()) {
+					Animal populationAnimal = it.next();
+					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
+					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
+						th3Found = true;
+					}
+				}
+			}
+			assertFalse(th3Found,dryPregnant.getAnimalTag() +  "("+ dryPregnant.getAnimalType() + ") cow should NOT have been included in the Pre Calving Feed Threshold3 Advisement population");
+			
+			
+			
+			
+			
+			///// clean up /////
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
+			///////////////////
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Exception occurred " + ex.getMessage());
+		}
+	}
 	@Test
 	void testDeWormingAdvisementRule() {
 		//IMDLogger.loggingMode = Util.ERROR;

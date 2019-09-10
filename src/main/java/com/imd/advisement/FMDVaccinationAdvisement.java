@@ -43,7 +43,7 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
-			IMDLogger.log("Retreiving cows that have not been given FMD vaccination: " + getAdvisementID(), Util.INFO);
+			IMDLogger.log("Retrieving cows that have not been given FMD vaccination: " + getAdvisementID(), Util.INFO);
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
 			if (ruleDto == null) {
 				return null;
@@ -54,7 +54,6 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
-						String message = "";
 						Animal animal = it.next();
 						LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays((int)ruleDto.getThirdThreshold());
 						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);
@@ -68,21 +67,25 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							IMDLogger.log("Latest Vaccination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceVaccinated= getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
-							animalNote = "This animal was given vaccination " + daysSinceVaccinated + " days ago.";
+							animalNote = "This animal was given FMD vaccination " + daysSinceVaccinated + " days ago. ";
 								if (ruleDto.getThirdThreshold() > 0 && daysSinceVaccinated >= ruleDto.getThirdThreshold()) {
 									ruleNote = ruleDto.getThirdThresholdMessage();
 									animal.setThreshold3Violated(true);
+									animalNote += "You should adminster FMD vaccination as it is now over-due";
 								} else if (ruleDto.getSecondThreshold() > 0 && daysSinceVaccinated >= ruleDto.getSecondThreshold()) {
 									ruleNote = ruleDto.getSecondThresholdMessage();
 									animal.setThreshold2Violated(true);
+									animalNote += "You should adminster FMD vaccination soon.";
 								} else if (ruleDto.getFirstThreshold() > 0 && daysSinceVaccinated >= ruleDto.getFirstThreshold()) {
 									ruleNote = ruleDto.getFirstThresholdMessage();
 									animal.setThreshold1Violated(true);
+									animalNote += "You should plan to adminster FMD vaccination with in a week or two.";
 								}
 						} else {
 							// the cow was not vaccinated with in the last THRESHOLD3 days
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
+							animalNote = "This animal's FMD vaccination is long over due. Please administer FMD vaccination immediately.";
 						}
 						if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 							if (lifeEvents != null && !lifeEvents.isEmpty())

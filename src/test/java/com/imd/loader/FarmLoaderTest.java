@@ -2,14 +2,8 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,11 +12,8 @@ import org.junit.jupiter.api.Test;
 
 import com.imd.dto.Animal;
 import com.imd.dto.Dam;
-import com.imd.dto.LookupValues;
 import com.imd.dto.Note;
 import com.imd.dto.User;
-import com.imd.services.bean.LookupValuesBean;
-import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 

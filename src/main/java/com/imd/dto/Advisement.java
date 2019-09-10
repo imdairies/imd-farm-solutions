@@ -19,6 +19,11 @@ public class Advisement extends IMDairiesDTO {
 	private String emailInd;
 	private String smsInd;
 	private String webInd;
+	private String auxInfo1;
+	private String auxInfo2;
+	private String auxInfo3;
+	private String auxInfo4;
+	private String auxInfo5;
 	
 	public String getOrgId() {
 		return orgId;
@@ -87,22 +92,7 @@ public class Advisement extends IMDairiesDTO {
 		this.webInd = webInd;
 	}
 	public String toString() {
-		return 	"ORG_ID=" + orgId + "\n" +
-				"ADVISEMENT_ID=" + advisementID + "\n" +
-				"SHORT_DESCR=" + getShortDescription() + "\n" +
-				"LONG_DESCR=" + getLongDescription() + "\n" +
-				"ENABLED_IND=" + isEnabled + "\n" +
-				"ORG_ENABLED_IND=" + isEnabledForOrg + "\n" +				
-				"THRESHOLD1=" + firstThreshold + "\n" +
-				"THRESHOLD2=" + secondThreshold + "\n" +
-				"THRESHOLD3=" + thirdThreshold + "\n" +
-				"THRESHOLD1_MSG=" + firstThresholdMessage + "\n" +
-				"THRESHOLD2_MSG=" + secondThresholdMessage + "\n" +
-				"THRESHOLD3_MSG=" + thirdThresholdMessage + "\n" +
-				"EMAIL_IND=" + emailInd + "\n" +
-				"SMS_IND=" + smsInd + "\n" +
-				"WEB_IND=" + webInd + "\n" + 
-				"advisementRuleOutcomeMessage=" + advisementRuleOutcomeMessage + "\n";
+		return 	stringify(" ");
 	}
 	public float getThirdThreshold() {
 		return thirdThreshold;
@@ -143,6 +133,11 @@ public class Advisement extends IMDairiesDTO {
 				prefix + fieldToJson("secondThresholdMessage", this.secondThresholdMessage) + ",\n" +				
 				prefix + fieldToJson("thirdThresholdMessage", this.thirdThresholdMessage) + ",\n" + 
 				prefix + fieldToJson("advisementRuleOutcomeMessage", this.advisementRuleOutcomeMessage) + ",\n" + 
+				prefix + fieldToJson("auxInfo1", this.auxInfo1) + ",\n" +
+				prefix + fieldToJson("auxInfo2", this.auxInfo2) + ",\n" +
+				prefix + fieldToJson("auxInfo3", this.auxInfo3) + ",\n" +
+				prefix + fieldToJson("auxInfo4", this.auxInfo4) + ",\n" +
+				prefix + fieldToJson("auxInfo5", this.auxInfo5) + ",\n" +
 				prefix + fieldToJson("emailInd", this.emailInd) + ",\n" +
 				prefix + fieldToJson("smsInd", this.smsInd) + ",\n" +
 				prefix + fieldToJson("webInd", this.webInd) + ",\n";
@@ -161,5 +156,35 @@ public class Advisement extends IMDairiesDTO {
 	}
 	public void setAdvisementRuleOutcomeMessage(String advisementRuleOutcomeMessage) {
 		this.advisementRuleOutcomeMessage = advisementRuleOutcomeMessage;
+	}
+	public String getAuxInfo1() {
+		return auxInfo1;
+	}
+	public void setAuxInfo1(String auxInfo1) {
+		this.auxInfo1 = auxInfo1;
+	}
+	public String getAuxInfo2() {
+		return auxInfo2;
+	}
+	public void setAuxInfo2(String auxInfo2) {
+		this.auxInfo2 = auxInfo2;
+	}
+	public String getAuxInfo3() {
+		return auxInfo3;
+	}
+	public void setAuxInfo3(String auxInfo3) {
+		this.auxInfo3 = auxInfo3;
+	}
+	public String getAuxInfo4() {
+		return auxInfo4;
+	}
+	public void setAuxInfo4(String auxInfo4) {
+		this.auxInfo4 = auxInfo4;
+	}
+	public String getAuxInfo5() {
+		return auxInfo5;
+	}
+	public void setAuxInfo5(String auxInfo5) {
+		this.auxInfo5 = auxInfo5;
 	}
 }

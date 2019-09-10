@@ -28,8 +28,6 @@ import com.imd.util.Util;
  */
 public class WeightMeasurementAdvisement extends AdvisementRule {
 	
-	private static final int YOUNG_ANIMAL_AGE_LIMIT = 180;
-
 	public WeightMeasurementAdvisement(){
 		setAdvisementID(Util.AdvisementRules.WEIGHTMEASUREMENT);
 	}
@@ -40,7 +38,7 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
-			IMDLogger.log("Retrieve animals who are younger than " + YOUNG_ANIMAL_AGE_LIMIT + " days. " +  getAdvisementID(), Util.INFO);
+			IMDLogger.log("Retrieve animals who are younger than " + Util.DefaultValues.YOUNG_ANIMAL_AGE_LIMIT + " days. " +  getAdvisementID(), Util.INFO);
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
 			int thirdThreshold  =  (int) ruleDto.getThirdThreshold();
 			int secondThreshold = (int)ruleDto.getSecondThreshold();
@@ -49,7 +47,7 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 			if (ruleDto != null) {
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
-				animalPopulation = animalLoader.retrieveAnimalsYoungerThanSpecifiedDays(orgId, LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(YOUNG_ANIMAL_AGE_LIMIT));
+				animalPopulation = animalLoader.retrieveAnimalsYoungerThanSpecifiedDays(orgId, LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(Util.DefaultValues.YOUNG_ANIMAL_AGE_LIMIT.intValue()));
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
@@ -65,7 +63,7 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 						String animalNote = "";
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No weight event found - indicates that the animal was not weighed in the last Threshold3 days.
-							animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days";	
+							animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days. You should immediately weigh this animal.";	
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
 						} else {
@@ -73,9 +71,12 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 							if (daysSinceLatestWeightEvent > secondThreshold) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
+								animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days. You should weigh this animal.";	
+								
 							} else if (daysSinceLatestWeightEvent > firstThreshold) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
+								animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days. You should plan to weigh this animal.";	
 							} else {
 								//the young animal was weighed recently
 								IMDLogger.log("Animal " + animal.getAnimalTag() + " was weighed recently i.e. " + daysSinceLatestWeightEvent + " days ago. No Weight Measurement advisement necessary", Util.INFO);

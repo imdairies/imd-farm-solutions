@@ -3,7 +3,6 @@ package com.imd.util;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
@@ -23,6 +22,9 @@ import com.imd.services.bean.TagVolumeCommentTriplet;
 public class Util {
 	
 	private static ConfigurationManager imdConfigurations;
+	
+	public static final int LACTATION_DURATION = 270;
+
 	
 	public static String COW_FRONT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/1.png";
 	public static String COW_BACK_IMAGE_PHOTO_URL = "/assets/img/cow-photos/2.png";
@@ -78,12 +80,16 @@ public class Util {
 	public static final double DAILY_WEIGHT_GAIN_YEAR5 = 0.0625d;
 	public static final double MAX_BODY_WEIGHT = 650d;
 
+	
+	
 	public static final class DefaultValues {
 
 		public static final Double THREE_DAY_MILKING_AVERAGE = new Double(18.0d);
 		public static final Double DEFAULT_FAT_PCT = new Double(3.7d);
 		public static final Double DEFAULT_PROTEIN_PCT = new Double(3.4d);
 		public static final Double ADULT_COW_WEIGHT = new Double(500d);
+		public static final Double HEIFER_TARGET_WEIGHT = new Double(300d);
+		public static final Double YOUNG_ANIMAL_AGE_LIMIT = new Double(400d);
 		
 	}
 
@@ -93,6 +99,8 @@ public class Util {
 		public static final String WATER = "WATER";
 		public static final String MILK = "MILK";
 		public static final String CORNSILAGE = "CORNSILAGE";
+		public static final String GLUCOSA = "GLUCOSA";
+		public static final String OIL = "OIL";
 		
 	}
 
@@ -152,6 +160,7 @@ public class Util {
 		public static final String CULLED = "CULLED";
 		public static final String DEATH = "DEATH";
 		public static final String SOLD = "SOLD";
+		public static final String PRECAVNGFD = "PRECAVNGFD";
 	}
 
 	public static final class AdvisementRules {
@@ -166,6 +175,7 @@ public class Util {
 		public static final String HEIFERWEIGHT = "HEIFERWEIGHT";
 		public static final String WEANOFF = "WEANOFF";
 		public static final String DEWORM = "DEWORM";
+		public static final String CALVINGPREPFEED = "CALVINGPREPFEED";
 	}
 	
 	

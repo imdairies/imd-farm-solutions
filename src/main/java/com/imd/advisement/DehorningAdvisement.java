@@ -41,7 +41,7 @@ public class DehorningAdvisement extends AdvisementRule {
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
-			IMDLogger.log("Retreiving calves that should be dehorned: " + getAdvisementID(), Util.INFO);
+			IMDLogger.log("Retrieving calves that should be dehorned: " + getAdvisementID(), Util.INFO);
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
 			if (ruleDto == null) {
 				return null;
@@ -63,7 +63,7 @@ public class DehorningAdvisement extends AdvisementRule {
 							IMDLogger.log("Birth Date: " + animal.getDateOfBirth(), Util.INFO);
 							int daysSinceBirth= Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), animal.getDateOfBirth());
 							String ruleNote = "";
-							String animalNote = animal.getAnimalTag() + " was born " + daysSinceBirth + " days ago and it hasn't been dehorned yet.";							
+							String animalNote = animal.getAnimalTag() + " was born " + daysSinceBirth + " days ago and it hasn't been dehorned yet. Please de-horn the animal.";							
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceBirth >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);

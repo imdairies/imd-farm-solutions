@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -357,23 +356,23 @@ public class InventoryLoader {
 		animalValue.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		return animalValue;
 	}
-	private Inventory getInventoryFromSQLRecord(ResultSet rs) throws SQLException, IMDException {
-		Inventory inv = new Inventory();
-		inv.setOrgID(rs.getString("ORG_ID"));
-		inv.setItemSKU(rs.getString("ITEM_ID"));
-		inv.setItemType(rs.getString("SEXED"));
-		inv.setPrice(rs.getFloat("PRICE"));
-		inv.setDiscount(rs.getFloat("DISCOUNT"));
-		inv.setQuantity(rs.getFloat("QUANTITY"));
-		inv.setOrderDttm((new DateTime(rs.getTimestamp("ORDER_DTTM"),IMDProperties.getServerTimeZone())));
-		inv.setReceivedDttm((new DateTime(rs.getTimestamp("RCVD_DTTM"),IMDProperties.getServerTimeZone())));
-		inv.setInventoryAddDttm((new DateTime(rs.getTimestamp("INV_ADDED_DTTM"),IMDProperties.getServerTimeZone())));
-		
-		inv.setCreatedBy(new User(rs.getString("CREATED_BY")));
-		inv.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
-		inv.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
-		inv.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
-		return inv;
-	}
+//	private Inventory getInventoryFromSQLRecord(ResultSet rs) throws SQLException, IMDException {
+//		Inventory inv = new Inventory();
+//		inv.setOrgID(rs.getString("ORG_ID"));
+//		inv.setItemSKU(rs.getString("ITEM_ID"));
+//		inv.setItemType(rs.getString("SEXED"));
+//		inv.setPrice(rs.getFloat("PRICE"));
+//		inv.setDiscount(rs.getFloat("DISCOUNT"));
+//		inv.setQuantity(rs.getFloat("QUANTITY"));
+//		inv.setOrderDttm((new DateTime(rs.getTimestamp("ORDER_DTTM"),IMDProperties.getServerTimeZone())));
+//		inv.setReceivedDttm((new DateTime(rs.getTimestamp("RCVD_DTTM"),IMDProperties.getServerTimeZone())));
+//		inv.setInventoryAddDttm((new DateTime(rs.getTimestamp("INV_ADDED_DTTM"),IMDProperties.getServerTimeZone())));
+//		
+//		inv.setCreatedBy(new User(rs.getString("CREATED_BY")));
+//		inv.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
+//		inv.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
+//		inv.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
+//		return inv;
+//	}
 	
 }

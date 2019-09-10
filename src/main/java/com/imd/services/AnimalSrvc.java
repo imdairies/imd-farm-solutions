@@ -148,7 +148,7 @@ public class AnimalSrvc {
     		double daysInCategory = 0;
     		double largestYAxisValue = 0;
     		double idealWtAtAge = 0;
-			for (int i=0; i<= animalValue.getCurrentAgeInDays().getDays(); i++) {
+			for (int i=0; i<= animalValue.getCurrentAgeInDays(); i++) {
 				days += i;
 				if (i == 0) {
 					dailyWeightGain = Util.DAILY_WEIGHT_GAIN_YEAR1;
@@ -191,7 +191,7 @@ public class AnimalSrvc {
 					animalWeight += Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(lastMeasuredWeight), 1);;
 				}	
 				
-				if (i < animalValue.getCurrentAgeInDays().getDays()) {
+				if (i < animalValue.getCurrentAgeInDays()) {
 					days += ",";
 					idealWeight += ",";
 					animalWeight += ",";
@@ -376,13 +376,13 @@ public class AnimalSrvc {
 		String alias  = animalBean.getAlias();
 		String typeCD = animalBean.getAnimalType();
 		String dob = animalBean.getDateOfBirthStr();
-		String breed = animalBean.getBreed();
-		String gender = "" + animalBean.getGender();
-		String damTag = animalBean.getDam();
-		String sireTag = animalBean.getSire();
-		String dobAccuracyInd = animalBean.getDobAccuracyInd();
-		String herdJoiningDate = animalBean.getHerdJoiningDttmStr();
-		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
+//		String breed = animalBean.getBreed();
+//		String gender = "" + animalBean.getGender();
+//		String damTag = animalBean.getDam();
+//		String sireTag = animalBean.getSire();
+//		String dobAccuracyInd = animalBean.getDobAccuracyInd();
+//		String herdJoiningDate = animalBean.getHerdJoiningDttmStr();
+//		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
 		IMDLogger.log("Update Animal Called with following input values", Util.INFO);
 		IMDLogger.log(animalBean.toString(), Util.INFO);
 		
@@ -413,10 +413,6 @@ public class AnimalSrvc {
 		
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
-		String frontPose = animalBean.getFrontPoseImage() == null || animalBean.getFrontPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/1.png": animalBean.getFrontPoseImage();
-		String backPose =  animalBean.getBackPoseImage() == null || animalBean.getBackPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/2.png": animalBean.getBackPoseImage();
-		String rightPose = animalBean.getRightPoseImage() == null || animalBean.getRightPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/3.png": animalBean.getRightPoseImage();
-		String leftPose =  animalBean.getLeftPoseImage() == null || animalBean.getLeftPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/4.png": animalBean.getLeftPoseImage();
 
 		try {
 			AnimalLoader loader = new AnimalLoader();

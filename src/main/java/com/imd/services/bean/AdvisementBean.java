@@ -1,6 +1,7 @@
 package com.imd.services.bean;
 
 public class AdvisementBean {
+	private String animalTag;
 	private String advisementID;
 	private boolean threshold1Violated;
 	private boolean threshold2Violated;
@@ -39,9 +40,18 @@ public class AdvisementBean {
 		this.threshold3Violated = threshold3Violated;
 	}
 	public String toString() {
-		return  "advisementID: " + advisementID + "\n" +
+		return  "animalTag: " + animalTag + "\n" +
+				"advisementID: " + advisementID + "\n" +
 				"threshold1Violated: " + threshold1Violated + "\n" +
 				"threshold2Violated: " + threshold2Violated + "\n" +
 				"threshold3Violated: " + threshold3Violated + "\n";
+	}
+
+	public String getAnimalTag() {
+		return animalTag;
+	}
+
+	public void setAnimalTag(String animalTag) {
+		this.animalTag = animalTag;
 	}
 }

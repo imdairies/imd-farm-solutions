@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
 
 import com.imd.dto.Animal;
 import com.imd.dto.LifeCycleEventCode;

@@ -3,8 +3,6 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,7 +24,6 @@ import com.imd.dto.Person;
 import com.imd.dto.User;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.DBManager;
-import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;

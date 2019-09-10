@@ -4,8 +4,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.imd.util.IMDLogger;
-import com.imd.util.Util;
 
 public class InventoryBean {
 	private String itemSKU;

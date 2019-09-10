@@ -5,19 +5,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import com.imd.dto.Animal;
 import com.imd.dto.BankDetails;
 import com.imd.dto.Contact;
 import com.imd.dto.Dam;
-import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Sire;
 import com.imd.util.IMDException;
@@ -49,22 +44,6 @@ public class IMDManager {
 		c026.setAnimalDam(null);
 		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", DateTime.now(IMDProperties.getServerTimeZone()));		
 		c026.addNote(newNote);
-		setMilkingRecord(c026);
-		//System.out.println(c026.convertToJason());
-	}
-
-	private void setMilkingRecord(Dam c026) throws IMDException {
-		MilkingDetail dailyMilking;
-		short milkFreq = 3;
-		int milkingHr = 5;
-		int milkingMin = 0;
-		int milkingSec = 0;
-		LocalTime milkingTime = LocalTime.of(milkingHr,milkingMin,milkingSec);
-		LocalDate milkingDate = LocalDate.of(2018,2,14);
-		float milkingVol = 7.0f;
-		boolean isMachineMilked = true;		
-//		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
-//		c026.addToMilkingRecord(dailyMilking);
 	}
 
 	private void setSireInformation(Animal c026) throws IMDException {

@@ -68,19 +68,22 @@ public class HeatWarningAdvisement extends AdvisementRule {
 								
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceInseminated= getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
-							String animalNote = "This cow (" + animal.getAnimalTag() + ") was inseminated " + daysSinceInseminated + " days ago.";	
+							String animalNote = "This cow (" + animal.getAnimalTag() + ") was inseminated " + daysSinceInseminated + " days ago. ";	
 							String ruleNote = "";
 							int remainder = (daysSinceInseminated % thirdThreshold);
 							if (daysSinceInseminated >= (thirdThreshold - firstThreshold)) {
 								if (remainder == 0) {
 									ruleNote = ruleDto.getThirdThresholdMessage();
 									animal.setThreshold3Violated(true);
+									animalNote += "Keep a close eye on this animal. If it didn't conceive then it would be coming back in heat right about now.";
 								} else if ( remainder >= (thirdThreshold - secondThreshold) || remainder <= secondThreshold) {
 									ruleNote = ruleDto.getSecondThresholdMessage();
 									animal.setThreshold2Violated(true);
+									animalNote += "Keep a close eye on this animal. If it didn't conceive then it would be coming back in heat with-in a day or two.";
 								} else if ( remainder >= (thirdThreshold - firstThreshold) || remainder <= firstThreshold) {
 									ruleNote = ruleDto.getFirstThresholdMessage();
 									animal.setThreshold1Violated(true);
+									animalNote += "Keep a close eye on this animal. If it didn't conceive then it would be coming back in heat with-in 3-4 days.";
 								}
 								if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 									animal.addLifecycleEvent(lifeEvents.get(0));

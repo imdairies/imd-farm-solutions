@@ -34,7 +34,7 @@ public class FeedSrvc {
 	public Response retrieveFeedPlan(AnimalBean animalBean){
     	IMDLogger.log(animalBean.toString(), Util.INFO);
 		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
+//		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
 		String feedCohortCD = animalBean.getAnimalType();
 		String prefix = "  ";
@@ -71,7 +71,7 @@ public class FeedSrvc {
 	public Response determineAnimalFeed(AnimalBean animalBean){
     	IMDLogger.log(animalBean.toString(), Util.INFO);
 		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
+//		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
 		if (animalBean.getAnimalTag() == null || animalBean.getAnimalTag().isEmpty())
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
@@ -100,9 +100,9 @@ public class FeedSrvc {
 	public Response retrieveActiveAnimalFeedListing(AnimalBean animalBean){
     	IMDLogger.log(animalBean.toString(), Util.INFO);
 		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
+//		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
-		String feedItems = "";
+//		String feedItems = "";
 		HashMap<String,Float> intakeQuantity = new HashMap<String, Float>();
 
     	try {

@@ -5,9 +5,9 @@ import java.util.Properties;
 import com.imd.util.IMDException;
 
 public final class MessageManager {
-	private static HashMap <String,Properties> messageMap = new HashMap();
+	private static HashMap <String,Properties> messageMap = new HashMap<String,Properties>();
 	
-	public void MessageManager() {
+	public MessageManager() {
 		// load all the messages from a configuration file.
 	}
 	

@@ -3,8 +3,6 @@ package com.imd.services;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.net.URI;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -46,7 +44,7 @@ class ServiceControllerTest {
 
 	@AfterEach
 	void tearDown() throws Exception {
-        server.stop();
+        server.shutdown();
 	}
 
 	@Test

@@ -2,20 +2,11 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,7 +18,6 @@ import com.imd.dto.BankDetails;
 import com.imd.dto.Contact;
 import com.imd.dto.Dam;
 import com.imd.dto.LifecycleEvent;
-import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Person;
 import com.imd.dto.Sire;
@@ -35,9 +25,7 @@ import com.imd.dto.User;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
-import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
-import com.imd.util.MessageManager;
 import com.imd.util.Util;
 
 class AnimalLoaderTest {
@@ -126,20 +114,20 @@ class AnimalLoaderTest {
 		c000.setPurchaseFrom(contact);
 	}
 	
-	private void loadMessagesForAllSupportedLanguages() {
-		String rootPath = "resources" + File.separatorChar + "IMDMessages_UR.properties";
-		Properties appProps = new Properties();
-		try {
-			appProps.load(new FileInputStream(rootPath));
-			MessageManager.loadMessages("UR", appProps);
-			rootPath = "resources" + File.separatorChar + "IMDMessages_EN.properties";
-			appProps = new Properties();	
-			appProps.load(new FileInputStream(rootPath));
-			MessageManager.loadMessages("EN", appProps);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	private void loadMessagesForAllSupportedLanguages() {
+//		String rootPath = "resources" + File.separatorChar + "IMDMessages_UR.properties";
+//		Properties appProps = new Properties();
+//		try {
+//			appProps.load(new FileInputStream(rootPath));
+//			MessageManager.loadMessages("UR", appProps);
+//			rootPath = "resources" + File.separatorChar + "IMDMessages_EN.properties";
+//			appProps = new Properties();	
+//			appProps.load(new FileInputStream(rootPath));
+//			MessageManager.loadMessages("EN", appProps);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	 
 	@Test
 	void testAnimalProcessing() {

@@ -321,7 +321,7 @@ public class MilkingInformationSrvc {
 	public Response uploadFarmMilkingEventRecord(InputDelimitedFileBean inputInformation) {
 		String prefix = "   ";
     	String orgID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
-    	String userID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.USER_ID);
+//    	String userID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.USER_ID);
     	IMDLogger.log(inputInformation.toString(), Util.INFO);
     	try {
     		if (inputInformation == null || inputInformation.getInputDelimitedFileContents() == null) {
@@ -515,7 +515,7 @@ public class MilkingInformationSrvc {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-    	IMDLogger.log(milkingInformation, Util.ERROR);
+//    	IMDLogger.log(milkingInformation, Util.ERROR);
 		return Response.status(200).entity(milkingInformation).build();
     }	
 	
@@ -551,7 +551,7 @@ public class MilkingInformationSrvc {
 
 	private String formatMilkingEventJson(LocalDate recDate, String prefix, MilkingDetail recValue, int postFix, String commaOrBracket) {
 		String json = "";
-		IMDLogger.log("[" + recDate + "] milkVol" + postFix + " = " + (recValue == null ? "" : recValue.getMilkVolume()), Util.ERROR);
+//		IMDLogger.log("[" + recDate + "] milkVol" + postFix + " = " + (recValue == null ? "" : recValue.getMilkVolume()), Util.ERROR);
 
 		json += prefix + "\"milkVol"+ postFix + "\":" + 
 						(recValue == null || recValue.getMilkVolume() == null ? "\"\"" : recValue.getMilkVolume()) + ",\n";

@@ -66,7 +66,7 @@ public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// No heat event found - indicates that the animal has never come in heat since its birth.
 							int currentAgeInDays = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), animal.getDateOfBirth());
-							String animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has never come in heat.";	
+							String animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has never come in heat. This could be because of nutritional deficiency or some uterus related issue. Please get it checked by the vet.";	
 							String ruleNote = "";
 							if (thirdThreshold > 0 && currentAgeInDays >= (thirdThreshold)) {
 									ruleNote = ruleDto.getThirdThresholdMessage();
@@ -90,12 +90,12 @@ public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 							// Heat event found - indicates that the animal did come in heat, but since it has not been inseminated and neither is it pregnant
 							// we need to flag this problem. A heifer that comes in heat should be inseminated as soon as its weight is 300kg+.
 							int daysSinceHeat = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
-							String animalNote = "This animal (" + animal.getAnimalTag() + ") came in heat " + daysSinceHeat + " days ago on " + lifeEvents.get(0).getEventTimeStampSQLFormat();
+							String animalNote = "This animal (" + animal.getAnimalTag() + ") came in heat " + daysSinceHeat + " days ago on " + lifeEvents.get(0).getEventTimeStampSQLFormat() + ". It seems that it was neither inseminated back then nor is it currently pregnant. This could either be a data entry issue or you may have chosen to skip the heat. Please evaluate the reason for this and take remedial action as needed.";
 							String ruleNote = "";
 							if (daysSinceHeat > HEAT_FREQUENCY_THRESHOLD) {
 									ruleNote = HEAT_FREQUENCY_THRESHOLD_MESSAGE;
 									animal.setThreshold3Violated(true);
-							} 
+							}
 							if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 								animal.addLifecycleEvent(lifeEvents.get(0));
 								ArrayList<Note> notesList = new ArrayList<Note>();
@@ -109,7 +109,6 @@ public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 				}
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return eligiblePopulation;

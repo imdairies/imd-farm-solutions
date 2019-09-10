@@ -65,7 +65,7 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 								null,
 								Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION,null,null,null,null);
 						if (parturitionEvents == null || parturitionEvents.isEmpty()) {
-							IMDLogger.log("This animal (" + animal.getAnimalTag() + ") is lactating cow which is neither inseminated nor pregnant. "
+							IMDLogger.log("Animal (" + animal.getAnimalTag() + ") is a lactating cow which is neither inseminated nor pregnant. "
 									+ "It must have had a parturition or abortion event in the past - we did not find any. "
 									+ "Either the animal's Type is incorrectly set or a parturition/abortion event has not been entered. Please fix the erroneous data ", Util.ERROR);
 						} else {
@@ -77,7 +77,7 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 							if (heatEvents == null || heatEvents.isEmpty()) {
 								// This animal never came into heat since its last parturition.
 								int daysSinceParturition = getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), parturitionEvents.get(0).getEventTimeStamp());
-								animalNote = "This animal (" + animal.getAnimalTag() + ") parturated " + daysSinceParturition + " days ago and hasn't come into heat since then.";	
+								animalNote = "This animal (" + animal.getAnimalTag() + ") parturated " + daysSinceParturition + " days ago and hasn't come into heat since then. The delayed heat could be because of nutritional deficiency or it could be uterus problem.";	
 								if (thirdThreshold > 0 && daysSinceParturition >= (thirdThreshold)) {
 									ruleNote = ruleDto.getThirdThresholdMessage();
 									animal.setThreshold3Violated(true);

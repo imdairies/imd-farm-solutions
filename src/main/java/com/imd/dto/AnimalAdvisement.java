@@ -7,15 +7,17 @@ public class AnimalAdvisement extends IMDairiesDTO {
 	private String severityLevel;
 	private String ruleOutcomeLongMessage;
 	private String appliedAdvisementRule;
+	private String animalSpecificMessage;
 	
-	public AnimalAdvisement(String animalTag2, String severityThreshold1, String longNote, String advisementRule) {
+	public AnimalAdvisement(String animalTag2, String severityThreshold1, String longNote, String animalSpecificMessage, String advisementRule) {
 		this.animalTag = animalTag2;
 		this.severityLevel = severityThreshold1;
 		this.ruleOutcomeLongMessage = longNote;
 		this.appliedAdvisementRule = advisementRule;
+		this.animalSpecificMessage = animalSpecificMessage;
 	}
 	public AnimalAdvisement(AnimalAdvisement cloneFrom) {
-		 this(cloneFrom.getAnimalTag(),cloneFrom.getSeverityLevel(),cloneFrom.getRuleOutcomeLongMessage(),cloneFrom.getAppliedAdvisementRule());
+		 this(cloneFrom.getAnimalTag(),cloneFrom.getSeverityLevel(),cloneFrom.getRuleOutcomeLongMessage(),cloneFrom.getAnimalSpecificMessage(),cloneFrom.getAppliedAdvisementRule());
 	}
 	public String getAnimalTag() {
 		return animalTag;
@@ -63,6 +65,12 @@ public class AnimalAdvisement extends IMDairiesDTO {
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
 //		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
 		return stringify(prefix);
+	}
+	public String getAnimalSpecificMessage() {
+		return animalSpecificMessage;
+	}
+	public void setAnimalSpecificMessage(String animalSpecificMessage) {
+		this.animalSpecificMessage = animalSpecificMessage;
 	}	
 	
 }

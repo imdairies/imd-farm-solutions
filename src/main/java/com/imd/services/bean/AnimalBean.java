@@ -4,10 +4,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.imd.dto.LifeCycleEventCode;
-import com.imd.dto.Person;
-import com.imd.util.Util;
-
 public class AnimalBean {
 	private String orgID;
 	private String animalTag;

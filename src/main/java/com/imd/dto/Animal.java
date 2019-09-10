@@ -13,6 +13,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.loader.AnimalLoader;
 import com.imd.util.IMDException;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class Animal extends IMDairiesDTO{
@@ -146,11 +147,11 @@ public class Animal extends IMDairiesDTO{
 		LocalDate birthdate =  new LocalDate(dateOfBirth.getYear(), dateOfBirth.getMonthOfYear(), dateOfBirth.getDayOfMonth());
 		return new Period(birthdate, now, PeriodType.yearMonthDay());
 	}
-	public Period getCurrentAgeInDays() {
-		LocalDate now = new LocalDate();
-		if (this.dateOfBirth == null ) return new Period(now, now, PeriodType.yearMonthDay());
-		LocalDate birthdate =  new LocalDate(dateOfBirth.getYear(), dateOfBirth.getMonthOfYear(), dateOfBirth.getDayOfMonth());
-		return new Period(birthdate, now, PeriodType.days());
+	public int getCurrentAgeInDays() {
+		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
+		if (this.dateOfBirth == null ) 
+			return 0;
+		return Util.getDaysBetween(now, dateOfBirth);
 	}
 	public double getPurchasePrice() {
 		return purchasePrice;

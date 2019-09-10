@@ -1,7 +1,6 @@
 package com.imd.controller.feed;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,7 +26,6 @@ import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
-import com.imd.util.Util.NutritionalStats;
 
 public class FeedManager {
 	
@@ -377,7 +375,7 @@ public class FeedManager {
 			e.printStackTrace();
 		}
 		if (milkAverage == null) {
-			IMDLogger.log("Milking Average could not be determined for the animal: " + animalTag + ". Will use the famr default value of: " + Util.DefaultValues.THREE_DAY_MILKING_AVERAGE, Util.WARNING);
+			IMDLogger.log("Milking Average could not be determined for the animal: " + animalTag + ". Porbably because the milk information has not been added for the last " + pastNumOfDaysToAverage + " days. We will use the farm default value of: " + Util.DefaultValues.THREE_DAY_MILKING_AVERAGE + " liters/day.", Util.WARNING);
 			milkAverage = Util.DefaultValues.THREE_DAY_MILKING_AVERAGE.floatValue();		
 		}
 		return milkAverage;
@@ -419,7 +417,7 @@ public class FeedManager {
 		now = new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(),0,0);
 		DateTime latestInseminationOrMatingEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
 		DateTime latestParturationEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.PARTURATE,Util.LifeCycleEvents.ABORTION);
-		int ageInDays = animal.getCurrentAgeInDays().getDays();
+		int ageInDays = animal.getCurrentAgeInDays();
 		if (isMale && ageInDays >= MATURITY_AGE_IN_DAYS) {
 			animalFeedCohortCD = Util.FeedCohortType.BULL;
 			duplicateCheck += animalFeedCohortCD + " ";
@@ -598,9 +596,6 @@ public class FeedManager {
 		}
 		else
 			return null;
-	}
-	private DateTime getLatestEventTimeStamp(Animal animal, String targetEventType) {
-		return getLatestEventTimeStamp(animal,targetEventType,null);
 	}
 
 	private boolean isWeanedOff(Animal animal) throws IMDException{
