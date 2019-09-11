@@ -12,6 +12,15 @@ public class CohortNutritionalNeeds extends IMDairiesDTO {
 	private Float nutritionalNeedsCrudeProtein;
 	private Float nutritionalNeedsMetabloizableEnergy;
 	private Float nutritionalNeedsTDN;
+	
+	
+	public CohortNutritionalNeeds() {
+		this.nutritionalNeedsDryMatter = 0f;
+		this.nutritionalNeedsCrudeProtein = 0f;
+		this.nutritionalNeedsMetabloizableEnergy = 0f;
+		this.nutritionalNeedsTDN = 0f;
+	}
+	
 	public String getFeedCohortCD() {
 		return nutritionalNeedsFeedCohortCD;
 	}

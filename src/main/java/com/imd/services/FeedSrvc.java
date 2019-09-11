@@ -155,7 +155,7 @@ public class FeedSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.retrieveActiveAnimalFeedListing() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"An error occurred while analyzing the farm feed needs: " +  e.getClass().getName() + "-" + e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(responseJson, Util.INFO);
 		return Response.status(200).entity(responseJson).build();

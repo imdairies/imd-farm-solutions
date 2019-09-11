@@ -185,16 +185,21 @@ public class FeedManager {
 	
 	public CohortNutritionalNeeds getAnimalNutritionalNeeds(Animal animal) {
 		CohortNutritionalNeeds animalNeeds = new CohortNutritionalNeeds();
-		Float dm = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getDryMatter();
-		Float cp = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getCrudeProtein();
-		Float me = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getMetabloizableEnergy();
-		Float animalDM = dm * (animal.getWeight() == null ? 0 : animal.getWeight());
-		Float animalCP = animalDM * cp;
-		Float animalME = me;// ME measured in daily ME requirements
-		animalNeeds.setDryMatter(animalDM);
-		animalNeeds.setCrudeProtein(animalCP);
-		animalNeeds.setMetabloizableEnergy(animalME);
-		animalNeeds.setFeedCohortCD(animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
+		try {
+			Float dm = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getDryMatter();
+			Float cp = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getCrudeProtein();
+			Float me = animal.getFeedCohortInformation().getCohortNutritionalNeeds().getMetabloizableEnergy();
+			Float animalDM = dm * (animal.getWeight() == null ? 0 : animal.getWeight());
+			Float animalCP = animalDM * cp;
+			Float animalME = me;// ME measured in daily ME requirements
+			animalNeeds.setDryMatter(animalDM);
+			animalNeeds.setCrudeProtein(animalCP);
+			animalNeeds.setMetabloizableEnergy(animalME);
+			animalNeeds.setFeedCohortCD(animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
+		} catch (Exception ex) {
+			IMDLogger.log("Error occurred while trying to retrieve nutritional needs for " + animal.getAnimalTag() + " Possible reason could be that the animal's needs have not been configured properly.", Util.ERROR);
+			ex.printStackTrace();
+		}
 		return animalNeeds;
 	}
 
