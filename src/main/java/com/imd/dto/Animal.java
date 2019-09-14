@@ -142,7 +142,7 @@ public class Animal extends IMDairiesDTO{
 	}
 	
 	public Period getCurrentAge() {
-		LocalDate now = new LocalDate();
+		LocalDate now = new LocalDate(IMDProperties.getServerTimeZone());
 		if (this.dateOfBirth == null ) return new Period(now, now, PeriodType.yearMonthDay());
 		LocalDate birthdate =  new LocalDate(dateOfBirth.getYear(), dateOfBirth.getMonthOfYear(), dateOfBirth.getDayOfMonth());
 		return new Period(birthdate, now, PeriodType.yearMonthDay());
