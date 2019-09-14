@@ -419,7 +419,7 @@ public class FeedManager {
 		String animalFeedCohortDeterminationCriteria = null;
 		boolean isMale = animal.getClass().getSimpleName().equals(Sire.class.getSimpleName());
 		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
-		now = new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(),0,0);
+		now = new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(),0,0,IMDProperties.getServerTimeZone());
 		DateTime latestInseminationOrMatingEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
 		DateTime latestParturationEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.PARTURATE,Util.LifeCycleEvents.ABORTION);
 		int ageInDays = animal.getCurrentAgeInDays();
