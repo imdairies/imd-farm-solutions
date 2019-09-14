@@ -186,7 +186,7 @@ class AnimalLoaderTest {
 			animal.setDateOfBirth(now.minusDays(1));
 			assertEquals(0,animal.getCurrentAge().getYears(), " The current age should be less than a year");
 			assertEquals(0,animal.getCurrentAge().getMonths(), " The current age should be less than a month");
-			assertEquals(1,animal.getCurrentAge().getDays(), " The current age should be one day");
+			assertEquals(1,animal.getCurrentAgeInDays(), " The current age should be one day but it was " + animal.getCurrentAgeInDays());
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
 			List <Animal>  animals = loader.retrieveActiveAnimals("IMD");
