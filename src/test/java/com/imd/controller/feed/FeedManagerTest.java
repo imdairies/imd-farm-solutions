@@ -203,9 +203,9 @@ class FeedManagerTest {
 			eventLoader.insertLifeCycleEvent(midParturationEvent);
 			eventLoader.insertLifeCycleEvent(oldParturationEvent);
 
-			assertEquals(Util.FeedCohortType.LCTEARLY,manager.getAnimalFeedCohort(orgID, freshLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(Util.FeedCohortType.LCTMID,manager.getAnimalFeedCohort(orgID, midLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(Util.FeedCohortType.LCTOLD,manager.getAnimalFeedCohort(orgID, oldLactationTag).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.LCTEARLY,manager.getAnimalFeedCohort(orgID, freshLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			
 			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(orgID, freshLactationTag));
 			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(orgID, midLactationTag));
