@@ -47,7 +47,7 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 			if (ruleDto != null) {
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
-				animalPopulation = animalLoader.retrieveAnimalsYoungerThanSpecifiedDays(orgId, LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(Util.DefaultValues.YOUNG_ANIMAL_AGE_LIMIT.intValue()));
+				animalPopulation = animalLoader.retrieveAnimalsBornOnOrAfterSpecifiedDate(orgId, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Util.DefaultValues.YOUNG_ANIMAL_AGE_LIMIT.intValue()));
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {

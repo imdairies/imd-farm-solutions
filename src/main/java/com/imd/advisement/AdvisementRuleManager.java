@@ -31,6 +31,7 @@ public class AdvisementRuleManager {
 		advisementRulesMap.put(Util.AdvisementRules.WEANOFF, new WeanOffAdvisement());
 		advisementRulesMap.put(Util.AdvisementRules.DEWORM, new DewormingAdvisement());
 		advisementRulesMap.put(Util.AdvisementRules.CALVINGPREPFEED, new CalvingPrepFeedAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.CALFWEIGHT, new CalfWeightAdvisement());
 	}
 
 	public List<AnimalAdvisement> executeAllRules(List<Advisement> activeRules, boolean includeThreshold1, boolean includeThreshold2, boolean includeThreshold3) {

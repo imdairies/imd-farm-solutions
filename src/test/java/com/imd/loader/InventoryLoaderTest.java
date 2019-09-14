@@ -223,7 +223,7 @@ class InventoryLoaderTest {
 			sireBean.setSemenInd("N");
 			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), DateTime.now(IMDProperties.getServerTimeZone()), user.getUserId(), DateTime.now(IMDProperties.getServerTimeZone())));
 			assertEquals(1,animalLoader.insertAnimal(createTestSire(sireBean.getAnimalTag())));
-			assertEquals(1,animalLoader.updateAnimalHerdLeavingDTTM(sireBean.getOrgID(), sireBean.getAnimalTag(), Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(2)), user));
+			assertEquals(1,animalLoader.updateAnimalHerdLeavingDTTM(sireBean.getOrgID(), sireBean.getAnimalTag(), Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(2)), user));
 			sires = invLoader.getSiresWithAvailableInventory(inv.getOrgID());
 			it = sires.iterator();
 			found = false;

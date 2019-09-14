@@ -186,7 +186,7 @@ class LifeCycleEventLoaderTest {
 			pregTestEventBean.setAuxField2Value(Util.YES.toUpperCase()); // Update last insemination outcome = YES
 			pregTestEventBean.setAuxField3Value(null);
 			pregTestEventBean.setAuxField4Value(null);
-			pregTestEventBean.setEventTimeStamp(Util.getDateInSQLFormart(pregTestTS));
+			pregTestEventBean.setEventTimeStamp(Util.getDateTimeInSQLFormart(pregTestTS));
 			pregTestEventBean.setEventComments("test");
 			pregTestEventBean.setEventCode(pregTestCD.getEventCode());
 			pregTestEventBean.setOperatorID(user.getUserId());
@@ -204,7 +204,7 @@ class LifeCycleEventLoaderTest {
 			heatEventBean.setAuxField2Value(null);
 			heatEventBean.setAuxField3Value(null);
 			heatEventBean.setAuxField4Value(null);
-			heatEventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now()));
+			heatEventBean.setEventTimeStamp(Util.getDateTimeInSQLFormart(DateTime.now()));
 			heatEventBean.setEventComments("test");
 			heatEventBean.setEventCode(heatCD.getEventCode());
 			heatEventBean.setOperatorID(user.getUserId());
@@ -228,7 +228,7 @@ class LifeCycleEventLoaderTest {
 			pregTestEvent.setAuxField1Value(Util.YES.toUpperCase()); // pregnant = YES
 			//loader.insertLifeCycleEvent(pregTestEvent);
 
-			pregTestEventBean.setEventTimeStamp(Util.getDateInSQLFormart(DateTime.now()));
+			pregTestEventBean.setEventTimeStamp(Util.getDateTimeInSQLFormart(DateTime.now()));
 			pregTestEventBean.setAuxField1Value(Util.YES.toUpperCase()); // pregnant = YES			
 			assertTrue(loader.performPostEventAdditionEventUpdate(pregTestEvent, animal, user).contains("" + matingEventID));
 			
@@ -255,15 +255,15 @@ class LifeCycleEventLoaderTest {
 			assertEquals(0,loader.performPostEventAdditionEventUpdate(cullingEvent, animal, user).indexOf(". The animal's herd leaving date has been set to :"));
 
 			Animal retAnimal = animalLoader.getAnimalRawInfo(animal).get(0);
-			assertEquals(Util.getDateInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateInSQLFormart(cullingEvent.getEventTimeStamp()));
+			assertEquals(Util.getDateTimeInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateTimeInSQLFormart(cullingEvent.getEventTimeStamp()));
 
 			assertEquals(0,loader.performPostEventAdditionEventUpdate(deathEvent, animal, user).indexOf(". The animal's herd leaving date has been set to :"));
 			retAnimal = animalLoader.getAnimalRawInfo(animal).get(0);
-			assertEquals(Util.getDateInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateInSQLFormart(deathEvent.getEventTimeStamp()));
+			assertEquals(Util.getDateTimeInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateTimeInSQLFormart(deathEvent.getEventTimeStamp()));
 
 			assertEquals(0,loader.performPostEventAdditionEventUpdate(soldEvent, animal, user).indexOf(". The animal's herd leaving date has been set to :"));
 			retAnimal = animalLoader.getAnimalRawInfo(animal).get(0);
-			assertEquals(Util.getDateInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateInSQLFormart(soldEvent.getEventTimeStamp()));
+			assertEquals(Util.getDateTimeInSQLFormart(retAnimal.getHerdLeavingDate()), Util.getDateTimeInSQLFormart(soldEvent.getEventTimeStamp()));
 			
 			assertTrue(loader.insertLifeCycleEvent(parturitionEvent)>0);
 			assertTrue(loader.insertLifeCycleEvent(inseminationEvent)>0);

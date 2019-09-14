@@ -46,12 +46,12 @@ public class InventoryLoader {
 			preparedStatement.setString(1, inventory.getOrgID());
 			preparedStatement.setString(2, inventory.getItemSKU());
 			preparedStatement.setString(3, inventory.getItemType());
-			preparedStatement.setString(4,  Util.getDateInSQLFormart(inventory.getOrderDttm()));
+			preparedStatement.setString(4,  Util.getDateTimeInSQLFormart(inventory.getOrderDttm()));
 			preparedStatement.setFloat(5, inventory.getPrice());
 			preparedStatement.setFloat(6, inventory.getDiscount());
 			preparedStatement.setFloat(7, inventory.getQuantity());
-			preparedStatement.setString(8,  (inventory.getReceivedDttm() == null ? null : Util.getDateInSQLFormart(inventory.getReceivedDttm())));
-			preparedStatement.setString(9,  (inventory.getInventoryAddDttmStr() == null ? null : Util.getDateInSQLFormart(inventory.getInventoryAddDttm())));
+			preparedStatement.setString(8,  (inventory.getReceivedDttm() == null ? null : Util.getDateTimeInSQLFormart(inventory.getReceivedDttm())));
+			preparedStatement.setString(9,  (inventory.getInventoryAddDttmStr() == null ? null : Util.getDateTimeInSQLFormart(inventory.getInventoryAddDttm())));
 			preparedStatement.setString(10, (inventory.getCreatedBy() == null ? null : inventory.getCreatedBy().getUserId()));
 			preparedStatement.setString(11, (inventory.getCreatedDTTM() == null ? null :inventory.getCreatedDTTMSQLFormat()));
 			preparedStatement.setString(12,(inventory.getUpdatedBy() == null ? null : inventory.getUpdatedBy().getUserId()));
@@ -117,7 +117,7 @@ public class InventoryLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, orgID);
 			preparedStatement.setString(2, itemId);
-			preparedStatement.setString(3, Util.getDateInSQLFormart(addedDTTM));
+			preparedStatement.setString(3, Util.getDateTimeInSQLFormart(addedDTTM));
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			result = preparedStatement.executeUpdate();
 		} catch (Exception ex) {
@@ -178,7 +178,7 @@ public class InventoryLoader {
 			preparedStatement.setString(2, inventory.getItemSKU());
 			preparedStatement.setString(3, inventory.getItemType());
 			preparedStatement.setFloat(4,  inventory.getQuantity());
-			preparedStatement.setString(5, (inventory.getInventoryAddDttmStr() == null ? null : Util.getDateInSQLFormart(inventory.getInventoryAddDttm())));
+			preparedStatement.setString(5, (inventory.getInventoryAddDttmStr() == null ? null : Util.getDateTimeInSQLFormart(inventory.getInventoryAddDttm())));
 			preparedStatement.setString(6,  inventory.getAuxValue1());
 			preparedStatement.setString(7, (inventory.getCreatedBy() == null ? null : inventory.getCreatedBy().getUserId()));
 			preparedStatement.setString(8, (inventory.getCreatedDTTM() == null ? null :inventory.getCreatedDTTMSQLFormat()));

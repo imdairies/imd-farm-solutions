@@ -525,11 +525,12 @@ public class AnimalSrvc {
 		eventBean.setOrgID(animalDto.getOrgID());
 		eventBean.setAnimalTag(animalDto.getAnimalTag());
 		eventBean.setEventComments("This birth event was automatically created during creation of the new animal");
-		eventBean.setEventCode("BIRTH");
-		eventBean.setEventTimeStamp(Util.getDateInSQLFormart(animalDto.getDateOfBirth()));
+		eventBean.setEventCode(Util.LifeCycleEvents.BIRTH);
+		eventBean.setEventTimeStamp(Util.getDateTimeInSQLFormart(animalDto.getDateOfBirth()));
+		eventBean.setAuxField1Value(animalDto.getAnimalSire() == null ? "UNKNOWN" : animalDto.getAnimalSire().getAnimalTag());
+		eventBean.setAuxField2Value(animalDto.getAnimalDam() == null ? "" : animalDto.getAnimalDam().getAnimalTag());
 		//TODO: May be also add a parturition event automatically for the Dam ?
 		
-		IMDLogger.log("Add Event Called with following input values", Util.INFO);
 		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		LifecycleEvent event;
@@ -670,7 +671,20 @@ public class AnimalSrvc {
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveMatchingAnimals(searchBean);
+    		List<Animal> animalValues = null;
+    		if (searchBean.getAnimalTag() != null && !searchBean.getAnimalTag().isEmpty()) {
+    			
+    			String[] tags = searchBean.getAnimalTag().split(",");
+    			String tagInClause = "";
+    			for (int i=0; i<tags.length; i++) {
+    				tagInClause += (i==0 ? "'" : ",'") + tags[i].trim() + "'";
+    			}
+    			tagInClause = "(" + tagInClause + ")";
+    			
+       			animalValues = loader.retrieveSpecifiedAnimalTags(searchBean.getOrgID(), tagInClause);   			
+    		} else {
+    			animalValues = loader.retrieveMatchingAnimals(searchBean);
+    		}
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -1047,7 +1061,7 @@ public class AnimalSrvc {
 			IMDLogger.log("Exception in AnimalSrvc.retrieveMonthlyMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-    	IMDLogger.log(milkingInformation, Util.ERROR);
+    	IMDLogger.log(milkingInformation, Util.INFO);
 		return Response.status(200).entity(milkingInformation).build();
     }	
 	
@@ -1084,7 +1098,7 @@ public class AnimalSrvc {
 
 	private String formatMilkingEventJson(LocalDate recDate, String prefix, MilkingDetail recValue, int postFix, String commaOrBracket) {
 		String json = "";
-		IMDLogger.log("[" + recDate + "] milkVol" + postFix + " = " + (recValue == null ? "" : recValue.getMilkVolume()), Util.ERROR);
+		IMDLogger.log("[" + recDate + "] milkVol" + postFix + " = " + (recValue == null ? "" : recValue.getMilkVolume()), Util.INFO);
 
 		json += prefix + "\"milkVol"+ postFix + "\":" + 
 						(recValue == null || recValue.getMilkVolume() == null ? "\"\"" : recValue.getMilkVolume()) + ",\n";
@@ -1170,5 +1184,48 @@ public class AnimalSrvc {
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
 		return Response.status(200).entity(sireValueResult).build();
+    }
+
+	
+	@POST
+	@Path("/retrieveprogney")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveProgney(AnimalBean searchBean){
+    	String animalValueResult = "";
+    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	try {
+    		if (searchBean.getAnimalTag() == null || searchBean.getAnimalTag().isEmpty())
+    			return Response.status(400).entity("{ \"error\": true, \"message\":\"Please specify the animal tag\"}").build();
+
+    		
+    		AnimalLoader loader = new AnimalLoader();
+    		List<Animal> animalValues = loader.retrieveSpecifiedAnimalProgney(searchBean.getOrgID(), searchBean.getAnimalTag());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(200).entity("{ \"error\": true, \"message\":\"Our farm does not have any progney of this animal\"}").build();
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveProgney() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"Error occurred while retrieving animal progney: (" +  e.getMessage() + ")\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(200).entity(animalValueResult).build();
     }	
+	
+	
+	
 }
+
+
+

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.imd.dto.Advisement;
 import com.imd.dto.Animal;
 import com.imd.dto.BankDetails;
 import com.imd.dto.Contact;
@@ -114,20 +115,64 @@ class AnimalLoaderTest {
 		c000.setPurchaseFrom(contact);
 	}
 	
-//	private void loadMessagesForAllSupportedLanguages() {
-//		String rootPath = "resources" + File.separatorChar + "IMDMessages_UR.properties";
-//		Properties appProps = new Properties();
-//		try {
-//			appProps.load(new FileInputStream(rootPath));
-//			MessageManager.loadMessages("UR", appProps);
-//			rootPath = "resources" + File.separatorChar + "IMDMessages_EN.properties";
-//			appProps = new Properties();	
-//			appProps.load(new FileInputStream(rootPath));
-//			MessageManager.loadMessages("EN", appProps);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
+	@Test
+	void testAnimalBornAfter() {
+		try {
+			Animal youngAnimal = this.createTestAnimal("-999");
+			Animal oldAnimal = this.createTestAnimal("-998");
+			Animal borderLineAnimal = this.createTestAnimal("-997");
+			AdvisementLoader advLdr =  new AdvisementLoader();
+			List<Advisement> rules = advLdr.getSpecifiedActiveAdvisementRules("IMD", Util.AdvisementRules.CALFWEIGHT);
+			assertTrue(rules != null && !rules.isEmpty() && rules.size() == 1,"Exactly one " + Util.AdvisementRules.CALFWEIGHT + " active advisement rule should have been found");
+			assertTrue(rules.get(0).getAuxInfo1() != null && !rules.get(0).getAuxInfo1().isEmpty(), Util.AdvisementRules.CALFWEIGHT + " rule should have an AUX_INFO1 value that contains the age in days of the calves that we will consider for this advisement");
+			
+			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
+			DateTime dob = now.minusDays(Integer.parseInt(rules.get(0).getAuxInfo1()));
+			AnimalLoader ldr = new AnimalLoader();
+			
+			assertTrue(ldr.deleteAnimal(youngAnimal.getOrgID(), youngAnimal.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgID(), oldAnimal.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(borderLineAnimal.getOrgID(), borderLineAnimal.getAnimalTag()) >= 0);
+
+			youngAnimal.setDateOfBirth(dob.plusDays(10));
+			oldAnimal.setDateOfBirth(dob.minusDays(100));
+			borderLineAnimal.setDateOfBirth(dob);
+			
+			ldr.insertAnimal(youngAnimal);
+			ldr.insertAnimal(oldAnimal);
+			ldr.insertAnimal(borderLineAnimal);
+			
+			
+			boolean youngFound = false;
+			boolean borderLineFound = false;
+			List <Animal> animals = ldr.retrieveAnimalsBornOnOrAfterSpecifiedDate(youngAnimal.getOrgID(), dob);
+			assertTrue(animals != null && animals.size() >= 2, " At least two animals should have been retrieved");
+			Iterator<Animal> it = animals.iterator();
+			while (it.hasNext()) {
+				Animal anml = it.next();
+				String tag = anml.getAnimalTag();
+				if (tag.equals(oldAnimal.getAnimalTag())) {
+					fail("The animal " + oldAnimal.getAnimalTag() + " should not have been found as it is " + oldAnimal.getCurrentAgeInDays() + " days old which is older than " + borderLineAnimal.getCurrentAgeInDays() + " days");
+				} else if (tag.equals(youngAnimal.getAnimalTag())) {
+					youngFound = true;					
+				} else if (tag.equals(borderLineAnimal.getAnimalTag())) {
+					borderLineFound = true;
+				}
+			}
+			
+			assertTrue(youngFound,youngAnimal.getAnimalTag() + " should have been retrieved as it is younger than " + borderLineAnimal.getCurrentAgeInDays() + " days");
+			assertTrue(borderLineFound,borderLineAnimal.getAnimalTag() + " should have been retrieved as it is " + borderLineAnimal.getCurrentAgeInDays() + " days in age");
+			
+			assertTrue(ldr.deleteAnimal(youngAnimal.getOrgID(), youngAnimal.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgID(), oldAnimal.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(borderLineAnimal.getOrgID(), borderLineAnimal.getAnimalTag()) == 1);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception occurred "+ e.getMessage());
+		}
+		
+	}
 	 
 	@Test
 	void testAnimalProcessing() {
@@ -137,7 +182,7 @@ class AnimalLoaderTest {
 			animal = createTestAnimal(animalTag);
 			AnimalLoader loader = new AnimalLoader();
 			loader.deleteAnimal("IMD", animalTag);
-			DateTime now = DateTime.now();
+			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 			animal.setDateOfBirth(now.minusDays(1));
 			assertEquals(0,animal.getCurrentAge().getYears(), " The current age should be less than a year");
 			assertEquals(0,animal.getCurrentAge().getMonths(), " The current age should be less than a month");
@@ -476,10 +521,10 @@ class AnimalLoaderTest {
 			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
 			User user = new User("KASHIF");
 
-			loader.deleteAnimal("IMD", animal1.getAnimalTag());
-			loader.deleteAnimal("IMD", animal2.getAnimalTag());
-			eventLoader.deleteAnimalLifecycleEvents("IMD", "000");
-			eventLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag());
+			loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents(animal1.getOrgID(), animal1.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents(animal2.getOrgID(), animal2.getAnimalTag());
 
 			animal1.setAnimalType(Util.AnimalTypes.HFRPREGN);
 			animal2.setAnimalType(Util.AnimalTypes.HEIFER);
@@ -489,7 +534,7 @@ class AnimalLoaderTest {
 			assertTrue(loader.insertAnimal(animal2) > 0, animal1.getAnimalTag() + " should have been successfully inserted");
 			
 			
-			LifecycleEvent event3 = new LifecycleEvent("IMD", 0, "000","PARTURATE",user,DateTime.now(),user,DateTime.now());
+			LifecycleEvent event3 = new LifecycleEvent("IMD", 0, "000",Util.LifeCycleEvents.PARTURATE,user,DateTime.now(),user,DateTime.now());
 			event3.setEventTimeStamp(DateTime.now());
 			event3.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event3.setCreatedBy(new User("KASHIF"));
@@ -499,7 +544,7 @@ class AnimalLoaderTest {
 			event3.setEventNote("Parturition");
 			eventLoader.insertLifeCycleEvent(event3);
 
-			LifecycleEvent event1 = new LifecycleEvent("IMD", 0, "000","ABORTION",user,DateTime.now(),user,DateTime.now());
+			LifecycleEvent event1 = new LifecycleEvent("IMD", 0, "000",Util.LifeCycleEvents.ABORTION,user,DateTime.now(),user,DateTime.now());
 			event1.setEventTimeStamp(DateTime.now());
 			event1.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event1.setCreatedBy(new User("KASHIF"));
@@ -540,10 +585,9 @@ class AnimalLoaderTest {
 	@Test
 	void testHeifersRetrieval() {
 		try {
-			Animal animal;
-			animal = createTestAnimal("000");
+			Animal animal = createTestAnimal("-999");
 			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
 			animal.setAnimalType(Util.AnimalTypes.HEIFER);
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
@@ -551,46 +595,85 @@ class AnimalLoaderTest {
 			Iterator<Animal> it = animals.iterator();
 			boolean found = false;
 			while (it.hasNext()) {
-				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				Animal anml = it.next();
+				if (anml.getOrgID().equalsIgnoreCase(animal.getOrgID()) && anml.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
 					found = true;
 					break;
 				}
 			}
-			assertTrue(found, "Tag 000 should have been found");
-			int transactionId  = loader.deleteAnimal("IMD", "000");
+			assertTrue(found, animal.getAnimalTag()+ " should have been found");
+			int transactionId  = loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
 			assertEquals(1,transactionId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
 		}
-	}		
+	}
 	@Test
 	void testFemaleCalvesRetrieval() {
 		try {
-			Animal animal;
-			animal = createTestAnimal("000");
+			Animal animal = createTestAnimal("-999");
 			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal("IMD", animal.getAnimalTag());
+			loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
 			animal.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
-			List <Animal>  animals = loader.retrieveActiveFemaleCalves("IMD");
+			List <Animal>  animals = loader.retrieveActiveFemaleCalves(animal.getOrgID());
 			Iterator<Animal> it = animals.iterator();
 			boolean found = false;
 			while (it.hasNext()) {
-				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				Animal animal1 = it.next();
+				if (animal1.getOrgID().equalsIgnoreCase(animal.getOrgID()) && animal1.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
 					found = true;
 					break;
 				}
 			}
-			assertTrue(found, "Tag 000 should have been found");
-			int transactionId  = loader.deleteAnimal("IMD", "000");
+			assertTrue(found, animal.getAnimalTag() + " should have been found");
+			int transactionId  = loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
 			assertEquals(1,transactionId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
 		}
 	}	
+	
+	@Test
+	void testRetrieveAnimalProgney() {
+		try {
+			Animal animal1 = createTestAnimal("-999");
+			Animal animal2 = createTestAnimal("-998");
+			Dam animalDam = (Dam)createTestAnimal("-997");
+			animal1.setAnimalDam(animalDam);
+			animal2.setAnimalDam(animalDam);
+			AnimalLoader loader = new AnimalLoader();
+			loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag());
+			loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag());
+			loader.deleteAnimal(animalDam.getOrgID(), animalDam.getAnimalTag());
+			animal1.setAnimalType(Util.AnimalTypes.FEMALECALF);
+			animal2.setAnimalType(Util.AnimalTypes.MALECALF);
+			animal1.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(24));
+			animal2.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(12));
+			animalDam.setAnimalType(Util.AnimalTypes.LCTPOSTPAR);
+			animalDam.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(55));
+			assertTrue(loader.insertAnimal(animalDam) > 0);
+			assertTrue(loader.insertAnimal(animal1) > 0);
+			assertTrue(loader.insertAnimal(animal2) > 0);
+			List <Animal>  animals = loader.retrieveSpecifiedAnimalProgney(animalDam.getOrgID(), animalDam.getAnimalTag());
+			assertEquals(2,animals.size());
+			assertEquals(animal2.getAnimalTag(),animals.get(0).getAnimalTag());
+			assertEquals(animal1.getAnimalTag(),animals.get(1).getAnimalTag());
+
+			assertEquals(1,loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animalDam.getOrgID(), animalDam.getAnimalTag()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		}
+	}		
+	
 }
+
+
+
+

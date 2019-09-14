@@ -74,9 +74,9 @@ public class MilkingDetailLoader {
 			preparedStatement.setString(12,  (milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
 			preparedStatement.setString(13, milkingRecord.getComments());
 			preparedStatement.setString(14, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(15, Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(15, Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
 			preparedStatement.setString(16, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(17, Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(17, Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
@@ -132,7 +132,7 @@ public class MilkingDetailLoader {
 			preparedStatement.setString(8,  (milkingRecord.getMilkVolume() == null || milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
 			preparedStatement.setString(9, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getComments());
 			preparedStatement.setString(10, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(11, Util.getDateInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(11, Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
 			preparedStatement.setString(12, (milkingRecord.getOrgID() == null ? null : milkingRecord.getOrgID()));
 			preparedStatement.setString(13, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
 			preparedStatement.setString(14, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormart(milkingRecord.getRecordDate())));
@@ -644,7 +644,7 @@ public class MilkingDetailLoader {
 						List<String> values = new ArrayList<String> ();
 						values.add(orgID);
 						values.add(animalTag);
-						values.add(Util.getDateInSQLFormart(dimWindowStart));
+						values.add(Util.getDateTimeInSQLFormart(dimWindowStart));
 						ArrayList <MilkingDetail> milkRecords = readRecords(qryString, values);
 						if (milkRecords == null || milkRecords.isEmpty())
 							dim = NO_MILK_RECORD_FOUND_AFTER_PARTURATION;

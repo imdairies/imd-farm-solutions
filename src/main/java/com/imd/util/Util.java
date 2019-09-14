@@ -90,6 +90,7 @@ public class Util {
 		public static final Double ADULT_COW_WEIGHT = new Double(500d);
 		public static final Double HEIFER_TARGET_WEIGHT = new Double(300d);
 		public static final Double YOUNG_ANIMAL_AGE_LIMIT = new Double(400d);
+		public static final int CALFWEIGHT_ADVISEMENT_AGE = 180;
 		
 	}
 
@@ -176,6 +177,7 @@ public class Util {
 		public static final String WEANOFF = "WEANOFF";
 		public static final String DEWORM = "DEWORM";
 		public static final String CALVINGPREPFEED = "CALVINGPREPFEED";
+		public static final String CALFWEIGHT = "CALFWEIGHT";
 	}
 	
 	
@@ -267,13 +269,16 @@ public class Util {
 		return originalValue.replaceAll(escapeSequence, "");
 	}
 	
-	public static String getDateInSQLFormart(DateTime dttm) {
+	public static String getDateTimeInSQLFormart(DateTime dttm) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 		return fmt.print(dttm);
 	}
 	public static String getDateInSQLFormart(LocalDate dt) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
 		return fmt.print(dt);
+	}
+	public static String getDateInSQLFormart(DateTime dttm) {
+		return getDateInSpecifiedFormart(dttm,"yyyy-MM-dd");
 	}
 	public static String getDateInSpecifiedFormart(DateTime dttm, String format) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);

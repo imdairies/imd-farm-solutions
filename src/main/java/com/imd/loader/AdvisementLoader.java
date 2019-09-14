@@ -177,4 +177,71 @@ public class AdvisementLoader {
 		}
 	    return advRules;
 	}
+	public List<Advisement> getSpecifiedActiveAdvisementRules(String orgId, String advisementID) {
+		String qryString = " SELECT  B.ORG_ID AS ORG_ID, " + 
+				" A.ADVISEMENT_ID AS ADVISEMENT_ID, " +
+				" B.ADVISEMENT_ID AS ORG_ADVISEMENT_ID, " + 
+				" A.ENABLE_IND AS RULE_ENABLED, " + 
+				" B.ENABLE_IND AS RULE_ENABLED_FOR_ORG, " + 
+				" A.short_descr AS SHORT_DESCR, " + 
+				" A.LONG_DESCR AS LONG_DESCR, " + 
+				" B.THRESHOLD1 AS THRESHOLD1, " + 
+				" B.THRESHOLD2 AS THRESHOLD2, " + 
+				" B.THRESHOLD3 AS THRESHOLD3, " + 
+				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
+				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
+				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+				" B.AUX_INFO1 AS AUX_INFO1, " + 
+				" B.AUX_INFO2 AS AUX_INFO2, " + 
+				" B.AUX_INFO3 AS AUX_INFO3, " + 
+				" B.AUX_INFO4 AS AUX_INFO4, " + 
+				" B.AUX_INFO5 AS AUX_INFO5, " + 
+				" B.EMAIL_IND AS EMAIL_IND, " + 
+				" B.SMS_IND AS SMS_IND, " + 
+				" B.WEB_IND AS WEB_IND, " + 
+				" A.CREATED_BY AS TEMPLATE_CREATED_BY, " + 
+				" A.CREATED_DTTM AS TEMPLATE_CREATED_DTTM, " + 
+				" A.UPDATED_BY AS TEMPLATE_UPDATED_BY, " + 
+				" A.UPDATED_DTTM AS TEMPLATE_UPDATED_DTTM, " + 
+				" B.CREATED_BY AS CREATED_BY, " + 
+				" B.CREATED_DTTM AS CREATED_DTTM, " + 
+				" B.UPDATED_BY AS UPDATED_BY, " + 
+				" B.UPDATED_DTTM AS UPDATED_DTTM " +			    
+				" FROM " +   
+				" imd.ADVISEMENT_RULE_TEMPLATE A, imd.ADVISEMENT_RULES B " + 
+			    " where " +   
+				" A.ADVISEMENT_ID = B.ADVISEMENT_ID AND B.ORG_ID=? AND A.ADVISEMENT_ID = ? AND A.ENABLE_IND='Y' and B.ENABLE_IND='Y'";
+		
+		List<Advisement> advRules = new ArrayList<Advisement>();
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+		try {
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, orgId);
+			preparedStatement.setString(2, advisementID);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		    	advRules.add(getAdvisementRuleFromSQLRecord(rs));
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();	
+				}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return advRules;
+	}
+
+
+
 }
