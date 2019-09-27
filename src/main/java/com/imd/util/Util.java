@@ -273,6 +273,10 @@ public class Util {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 		return fmt.print(dttm);
 	}
+	public static String getDateTimeInSpecifiedFormart(DateTime dttm, String format) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+		return fmt.print(dttm);
+	}
 	public static String getDateInSQLFormart(LocalDate dt) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
 		return fmt.print(dt);
@@ -314,6 +318,9 @@ public class Util {
 	
 	public static int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
+	}
+	public static int getHoursBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
+		return (new Period(startTimeStamp, endTimeStamp, PeriodType.hours()).getHours());
 	}
 	public static int getDaysBetween(LocalDate endDate, LocalDate startDate) {
 		return (new Period(startDate, endDate, PeriodType.days()).getDays());

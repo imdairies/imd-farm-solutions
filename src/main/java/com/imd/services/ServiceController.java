@@ -39,10 +39,11 @@ public class ServiceController {
      */
     public static void main(String[] args) throws IOException {
     	IMDProperties.loadProperties();
-    	IMDLogger.log("Starting IMD API Server", Util.ERROR);
+    	IMDLogger.logFancy("Starting IMD API Server", Util.WARNING);
         final HttpServer server = startServer();
-        IMDLogger.log(String.format("IMD Farm Management Grizzly Server/Jersey app started with WADL available at "
+        IMDLogger.logFancy(String.format("IMD Farm Management Grizzly Server/Jersey app started with WADL available at "
                 + "%sapplication.wadl\nHit enter to stop it...", IMDProperties.getProperty(Util.PROPERTIES.IMD_SERVICES_URL)), Util.WARNING);
+        IMDLogger.loadLoggingMode();
         System.in.read();
         server.shutdown();
     }

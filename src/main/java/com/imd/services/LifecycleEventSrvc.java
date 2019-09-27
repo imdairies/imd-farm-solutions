@@ -356,9 +356,22 @@ public class LifecycleEventSrvc {
 		String additionalMessage = performPostEventAdditionLifecycleStageUpdate(eventBean, animal, user);
 		additionalMessage += performPostEventAdditionInventoryUpdate(eventBean, animal, user);
 		additionalMessage += (new LifeCycleEventsLoader()).performPostEventAdditionEventUpdate(event, animal, user);
+		additionalMessage += performPostEventAdditionInfomationProcessing(event, animal, user);
 		
 		return additionalMessage;
 	}
+
+	private String performPostEventAdditionInfomationProcessing(LifecycleEvent event, Animal animal, User user) {
+		String message = "";
+		if (event.getEventType().getEventCode().equals(Util.LifeCycleEvents.HEAT)) {
+			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormart(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd HH:mm a") +
+					" - " + Util.getDateTimeInSpecifiedFormart(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd HH:mm a")
+					+ " (i.e. 12-18 hours after the standing heat)";			
+		}
+		return message;
+	}
+
+
 
 	private String performPostEventAdditionLifecycleStageUpdate(LifeCycleEventBean eventBean, Animal animal, User user) {
 		String additionalMessage = "";

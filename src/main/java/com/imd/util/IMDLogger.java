@@ -22,29 +22,11 @@ public class IMDLogger {
 		DateTimeFormatter currentDTTMFmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 		String currentDTTMStr = currentDTTMFmt.print(DateTime.now(IMDProperties.getServerTimeZone()));
 
-		if (loggingMode < 0) {
-			// we haven't yet loaded the logging mode value from the properties file.
-			try {
-				if (IMDProperties.getProperty(Util.PROPERTIES.APPLICATION_LOGGING_MODE) != null && !IMDProperties.getProperty(Util.PROPERTIES.APPLICATION_LOGGING_MODE).isEmpty())
-					loggingMode = Integer.parseInt(IMDProperties.getProperty(Util.PROPERTIES.APPLICATION_LOGGING_MODE));
-				else 
-					loggingMode = Util.INFO;
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				loggingMode = Util.INFO;
-			}
-			System.out.println("============== \n LOGGING MODE SET TO: " + (loggingMode == Util.INFO ? "INFO" : loggingMode == Util.WARNING ? "WARNING" : loggingMode == Util.ERROR ? "ERROR" : "UNKNOWN") + "\n ================");
-		}
+		if (loggingMode < 0)
+			loadLoggingMode();
 		
 		if (messageSeverity >= loggingMode) {
 			String messageColor = "";
-//			if (loggingMode == Util.INFO) {
-//				messageColor = "[" + ANSI_INFO_BLUE;
-//			} else if (loggingMode == Util.WARNING) {
-//				messageColor = "[" + ANSI_WARN_YELLOW;
-//			} else if (loggingMode == Util.ERROR) {
-//				messageColor = "[" + ANSI_ERROR_RED;
-//			}
 			messageColor = "[" + 
 				(messageSeverity == Util.INFO ? ANSI_INFO_BLUE + "INFO" : messageSeverity == Util.WARNING ? ANSI_WARN_YELLOW + "WARNING" : messageSeverity == Util.ERROR ? ANSI_ERROR_RED + "ERROR" : ANSI_ERROR_RED + "UNKNOWN")
 				+  ANSI_RESET + "]";
@@ -52,4 +34,44 @@ public class IMDLogger {
 			System.out.println(messageColor + currentDTTMStr + ": " + message);
 		}		
 	}
+	public static void logFancy(String message, int messageColorCode) {
+		DateTimeFormatter currentDTTMFmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+		String currentDTTMStr = currentDTTMFmt.print(DateTime.now(IMDProperties.getServerTimeZone()));
+		String messageColor = "";
+		if (messageColorCode == Util.INFO) {
+			messageColor = ANSI_INFO_BLUE;
+		} else if (messageColorCode == Util.WARNING) {
+			messageColor = ANSI_WARN_YELLOW;
+		} else if (messageColorCode == Util.ERROR) {
+				messageColor = ANSI_ERROR_RED;
+		}
+		System.out.println(messageColor + currentDTTMStr + ": " + message + ANSI_RESET);
+	}
+	public static String getLoggingModeString() {
+		if (loggingMode == Util.INFO) {
+			return "INFO ("  + loggingMode + ")";
+		} else if (loggingMode == Util.WARNING) {
+			return "WARNING ("  + loggingMode + ")";
+		} else if (loggingMode == Util.ERROR) {
+			return "ERROR (" + loggingMode + ")";
+		} else
+			return "UNKNOWN MODE (" + loggingMode + ")";
+	}
+	public static void loadLoggingMode() {
+		// we haven't yet loaded the logging mode value from the properties file.
+		try {
+			if (IMDProperties.getProperty(Util.PROPERTIES.APPLICATION_LOGGING_MODE) != null && !IMDProperties.getProperty(Util.PROPERTIES.APPLICATION_LOGGING_MODE).isEmpty())
+				loggingMode = Integer.parseInt(IMDProperties.getProperty(Util.PROPERTIES.APPLICATION_LOGGING_MODE));
+			else 
+				loggingMode = Util.INFO;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			loggingMode = Util.INFO;
+		}
+		System.out.println("========================================================\n"
+				+ "LOGGING MODE SET TO: " + getLoggingModeString()+ 
+				"\n========================================================\n");
+	}
 }
+
+

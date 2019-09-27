@@ -576,7 +576,8 @@ public class AnimalSrvc {
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
-    		int largestInseminatedDays = -999;
+    		double largestInseminatedDays = -999;
+    		double largestInseminatedHours = -999999;
     		String additionalInfo = "";
 	    	while (animalValueIt.hasNext()) {
 	    		additionalInfo = "";
@@ -587,8 +588,11 @@ public class AnimalSrvc {
 	    					animalValue.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
-		    			int daysSinceInseminated = Util.getDaysBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
-	    				if (animalEvents.get(0).getEventTimeStamp().getHourOfDay() == 0 && 
+		    			double daysSinceInseminated = Util.getDaysBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
+		    			double hoursSinceInseminated = Util.getHoursBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
+	    				
+		    			IMDLogger.log(animalValue.getAnimalTag() + " hours since Inseminated: " + hoursSinceInseminated, Util.ERROR);
+		    			if (animalEvents.get(0).getEventTimeStamp().getHourOfDay() == 0 && 
 	    						animalEvents.get(0).getEventTimeStamp().getMinuteOfDay() == 0)
 	    					fmt = DateTimeFormat.forPattern("d MMM yyyy");
 	    				else
@@ -607,22 +611,31 @@ public class AnimalSrvc {
 						strInseminationTimeInfo += ",\n" + prefix + "\"sexed\":\"" + sexedIndicator + "\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"inseminationAttempts\":\"" + inseminationAttempts +"\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"daysSinceInsemination\":\"" + daysSinceInseminated +"\"";
+	    				strInseminationTimeInfo += ",\n" + prefix + "\"hoursSinceInsemination\":\"" + hoursSinceInseminated +"\"";
 			    		animalValueResult = "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + strInseminationTimeInfo + "\n},\n";
 			    		//IMDLogger.log("Previous oldest " + largestInseminatedDays + " current value " + daysSinceInseminated, Util.ERROR);
-			    		if (daysSinceInseminated > largestInseminatedDays) {
+			    		if (hoursSinceInseminated > largestInseminatedHours /*daysSinceInseminated > largestInseminatedDays*/) {
 			    			//IMDLogger.log("New oldest found. Will simply Add", Util.ERROR);
 							sortedJsonArray.add(animalValueResult);
-							largestInseminatedDays = daysSinceInseminated;
+							//largestInseminatedDays = daysSinceInseminated;
+							largestInseminatedHours = hoursSinceInseminated;
 						} else {
 			    			//IMDLogger.log("New value is smaller. Will swap", Util.ERROR);
 							//sortedJsonArray.add(sortedJsonArray.size()-1,animalValueResult);
 			    			int j = sortedJsonArray.size()-1;
 							for (;j>=0; j--){
-								String days = sortedJsonArray.get(j);
-								days = days.substring(days.indexOf("daysSinceInsemination\":") + "daysSinceInsemination\":\"".length(),days.lastIndexOf('"'));		
+								//String days = sortedJsonArray.get(j);
+								String hours = sortedJsonArray.get(j);
+//								days = days.substring(days.indexOf("daysSinceInsemination\":") + "daysSinceInsemination\":\"".length(),days.lastIndexOf('"'));		
+								hours = hours.substring(hours.indexOf("hoursSinceInsemination\":") + "hoursSinceInsemination\":\"".length(),hours.lastIndexOf('"'));		
 								//IMDLogger.log("Previous days value: " + days, Util.ERROR);
-								int iDays = Integer.parseInt(days);
-								if (daysSinceInseminated >= iDays) {
+								//int iDays = Integer.parseInt(days);
+								double iHours = Double.parseDouble(hours);
+//								if (daysSinceInseminated >= iDays) {
+//									sortedJsonArray.add(j+1,animalValueResult);
+//									break;
+//								}	
+								if (hoursSinceInseminated >= iHours) {
 									sortedJsonArray.add(j+1,animalValueResult);
 									break;
 								}	
