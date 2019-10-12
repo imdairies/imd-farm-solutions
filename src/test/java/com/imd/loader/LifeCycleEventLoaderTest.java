@@ -3,10 +3,13 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.AfterAll;
@@ -27,6 +30,7 @@ import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
+import com.imd.util.Util.LifeCycleEvents;
 
 class LifeCycleEventLoaderTest {
 
@@ -436,6 +440,67 @@ class LifeCycleEventLoaderTest {
 			fail("LifeCycleEvent Creation and/or insertion Failed.");
 		}
 		
+	}
+	
+	@Test
+	void testBreedingWidgetQueries() {
+		String orgID = "IMD";
+		DateTime startDate = new DateTime(2019,9,1,0,0,0,Util.FARM_TIMEZONE);
+		DateTime endDate = startDate.plusMonths(1).minusDays(1);
+		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+		AnimalLoader animalLoader = new AnimalLoader();
+		LifecycleEvent event;
+		User user = new User("KASHIF");
+		Person person = new Person("EMP000'", "Kashif", "", "Manzoor");
+		try {
+			Animal animal999 = createTestAnimal("-999");
+			
+			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
+
+			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.BIRTH,user,
+					startDate.plusDays(3),user,DateTime.now());			
+			event.setEventTimeStamp(endDate.minusDays(10));
+			event.setAuxField1Value(Util.GENDER.FEMALE + "");
+			event.setAuxField2Value(Util.YES);
+			event.setAuxField2Value(null);
+			event.setAuxField3Value(null);			
+			event.setAuxField4Value(null);
+			event.setEventOperator(person);
+			event.setEventNote("");
+			int recordCount = animalLoader.insertAnimal(animal999);
+			assertTrue(recordCount == 1,"Exactly one animal should have been added successfully");
+			int transactionID = eventLoader.insertLifeCycleEvent(event);
+			assertTrue(transactionID > 0,"Event should have been added successfully");
+			event.setEventType(new LifeCycleEventCode(Util.LifeCycleEvents.ABORTION,"",""));
+			event.setEventTimeStamp(startDate);
+			transactionID = eventLoader.insertLifeCycleEvent(event);
+			assertTrue(transactionID > 0,"Event should have been added successfully");
+			event.setEventTimeStamp(startDate.minusDays(1));
+			transactionID = eventLoader.insertLifeCycleEvent(event);
+			assertTrue(transactionID > 0,"Event should have been added successfully");
+			List<LifecycleEvent> resultEvents = eventLoader.getBirthsInSpecificDateRange(orgID, startDate, endDate);
+			assertTrue(resultEvents.size()>=1, "The birth events should have been retrieved");
+			
+			List<LifecycleEvent> calved = eventLoader.getBirthsInSpecificDateRange(orgID,startDate, endDate);
+			Iterator<LifecycleEvent> it = calved.iterator();
+			boolean found = false;
+			while (it.hasNext()) {
+				LifecycleEvent event1 = it.next();
+				if (event1.getAnimalTag().equals(animal999.getAnimalTag())) {
+					found = true;
+					assertEquals(Util.LifeCycleEvents.BIRTH,event1.getEventType().getEventCode());
+				}
+			}
+			assertTrue(found);
+			assertEquals(Util.LifeCycleEvents.BIRTH,resultEvents.get(0).getEventType().getEventCode());
+			assertEquals(3,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgID(), animal999.getAnimalTag()),"Three records should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("LifeCycleEvent Creation and/or insertion Failed.");
+		}		
 	}
 	
 	@Test

@@ -27,7 +27,6 @@ import com.imd.util.Util;
  */
 public class WeanOffAdvisement extends AdvisementRule {
 	
-	private static final int YOUNG_ANIMAL_AGE_LIMIT = 180;
 
 	public WeanOffAdvisement(){
 		setAdvisementID(Util.AdvisementRules.WEANOFF);
@@ -39,7 +38,7 @@ public class WeanOffAdvisement extends AdvisementRule {
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
-			IMDLogger.log("Retrieve animals who are younger than " + YOUNG_ANIMAL_AGE_LIMIT + " days. " +  getAdvisementID(), Util.INFO);
+			IMDLogger.log("Retrieve animals who are younger than " + Util.YOUNG_ANIMAL_AGE_LIMIT + " days. " +  getAdvisementID(), Util.INFO);
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
 			int thirdThreshold  =  (int) ruleDto.getThirdThreshold();
 			int secondThreshold = (int)ruleDto.getSecondThreshold();
@@ -48,7 +47,7 @@ public class WeanOffAdvisement extends AdvisementRule {
 			if (ruleDto != null) {
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
-				animalPopulation = animalLoader.retrieveAnimalsBornOnOrAfterSpecifiedDate(orgId, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(YOUNG_ANIMAL_AGE_LIMIT));
+				animalPopulation = animalLoader.retrieveAnimalsBornOnOrAfterSpecifiedDate(orgId, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Util.YOUNG_ANIMAL_AGE_LIMIT));
 				if (animalPopulation != null && !animalPopulation.isEmpty()) {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {

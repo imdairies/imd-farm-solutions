@@ -30,7 +30,7 @@ import com.imd.util.Util;
 public class DelayedHeatHeiferAdvisement extends AdvisementRule {
 	
 	private static final int HEAT_FREQUENCY_THRESHOLD = 60;
-	private static final String HEAT_FREQUENCY_THRESHOLD_MESSAGE = "The following animals came in heat more than two months ago. They should have come in heat again by now. Please get them checked by a vet";
+	private static final String HEAT_FREQUENCY_THRESHOLD_MESSAGE = "The following animals came in heat more than " + HEAT_FREQUENCY_THRESHOLD + " days ago. They should have come in heat again by now. Please get them checked by a vet";
 
 	public DelayedHeatHeiferAdvisement(){
 		setAdvisementID(Util.AdvisementRules.DELAYEDHEATHEIFER);

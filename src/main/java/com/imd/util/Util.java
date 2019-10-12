@@ -23,7 +23,9 @@ public class Util {
 	
 	private static ConfigurationManager imdConfigurations;
 	
-	public static final int LACTATION_DURATION = 270;
+	public static final int LACTATION_DURATION = 275;
+	public static final int YOUNG_ANIMAL_AGE_LIMIT = 180;
+
 
 	
 	public static String COW_FRONT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/1.png";

@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1034,6 +1035,33 @@ public class AnimalLoader {
 		values.add(animalTag);
 		return retrieveAnimalTypes(values, qryString);
 	}
+	
+	public HashMap<String,String> retrieveCalvingsInDateRange(String orgID, DateTime startDate, DateTime endDate) throws Exception {
+		String qryString = "SELECT CONCAT(YEAR(DOB) ,'-', MONTH(DOB)) as CALVING_YYYY_MM, "
+				+ "count(*) as CALVING_COUNT from ANIMALS where ORG_ID=? AND DOB>=? and DOB<=? "
+				+ " group by CALVING_YYYY_MM ORDER BY CALVING_YYYY_MM";
+		
+		List<String> values = new ArrayList<String>();
+		values.add(orgID);
+		values.add(Util.getDateTimeInSQLFormart(startDate));
+		values.add(Util.getDateTimeInSQLFormart(endDate));
+		
+		HashMap<String,String> monthAndCount = new HashMap<String,String>();
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		preparedStatement = conn.prepareStatement(qryString);
+		Iterator<String> it = values.iterator();
+		int i=1;
+		while (it.hasNext())
+			preparedStatement.setString(i++,it.next());
+	    rs = preparedStatement.executeQuery();
+	    IMDLogger.log(preparedStatement.toString(), Util.INFO);
+	    while (rs.next()) {
+	    	monthAndCount.put(rs.getString("CALVING_YYYY_MM"), rs.getString("CALVING_COUNT"));
+	    }
+		return monthAndCount;
+	}	
 }
 
 

@@ -3,6 +3,7 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import com.imd.dto.User;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
+import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
@@ -114,6 +116,59 @@ class AnimalLoaderTest {
 		contact.setBankAccountInformation(bankDetails);		
 		c000.setPurchaseFrom(contact);
 	}
+	
+	
+	@Test
+	void testRetrieveCalvingsInDateRange() {
+		try {
+			int originalLogginMode = IMDLogger.loggingMode;
+			IMDLogger.loggingMode = Util.INFO;
+			Animal animalInRange = this.createTestAnimal("-999");
+			Animal animalOutOfRange = this.createTestAnimal("-998");
+			
+			DateTime referenceDate = new DateTime(2019,10,1,0,0,IMDProperties.getServerTimeZone());
+			AnimalLoader animalLoader = new AnimalLoader();
+			
+			assertTrue(animalLoader.deleteAnimal(animalInRange.getOrgID(), animalInRange.getAnimalTag()) >= 0);
+			assertTrue(animalLoader.deleteAnimal(animalOutOfRange.getOrgID(), animalOutOfRange.getAnimalTag()) >= 0);
+
+			animalInRange.setDateOfBirth(referenceDate);
+			animalOutOfRange.setDateOfBirth(referenceDate.minusMonths(1));
+			
+			HashMap<String,String> values = animalLoader.retrieveCalvingsInDateRange(animalInRange.getOrgID(), 
+					new DateTime(2019,1,1,0,0,IMDProperties.getServerTimeZone()),
+					new DateTime(2019,12,31,23,59,IMDProperties.getServerTimeZone()));
+			String referenceMonthCalvingsCountStr = values.get(referenceDate.getYear() + "-" + referenceDate.getMonthOfYear());
+			String referencePreviousMonthCalvingsCountStr = values.get(referenceDate.minusMonths(1).getYear() + "-" + referenceDate.minusMonths(1).getMonthOfYear());
+			int referenceMonthCalvingsCount = 0;
+			int referencePreviousMonthCalvingsCount = 0;
+			if (referenceMonthCalvingsCountStr != null)
+				referenceMonthCalvingsCount = Integer.parseInt(referenceMonthCalvingsCountStr);
+				
+			if (referencePreviousMonthCalvingsCountStr != null)
+				referencePreviousMonthCalvingsCount = Integer.parseInt(referencePreviousMonthCalvingsCountStr);
+			
+			animalLoader.insertAnimal(animalInRange);
+			animalLoader.insertAnimal(animalOutOfRange);
+
+			values = animalLoader.retrieveCalvingsInDateRange(animalInRange.getOrgID(), 
+					new DateTime(2019,1,1,0,0,IMDProperties.getServerTimeZone()),
+					new DateTime(2019,12,31,23,59,IMDProperties.getServerTimeZone()));
+			referenceMonthCalvingsCountStr = values.get(referenceDate.getYear()  + "-" + referenceDate.getMonthOfYear());
+			referencePreviousMonthCalvingsCountStr = values.get(referenceDate.minusMonths(1).getYear()+ "-" +referenceDate.minusMonths(1).getMonthOfYear());
+			assertTrue(referenceMonthCalvingsCountStr != null);
+			assertTrue(referencePreviousMonthCalvingsCountStr != null);
+			assertEquals(referenceMonthCalvingsCount+1, Integer.parseInt(referenceMonthCalvingsCountStr));
+			assertEquals(referencePreviousMonthCalvingsCount+1, Integer.parseInt(referencePreviousMonthCalvingsCountStr));
+			
+			assertTrue(animalLoader.deleteAnimal(animalInRange.getOrgID(), animalInRange.getAnimalTag()) == 1);
+			assertTrue(animalLoader.deleteAnimal(animalOutOfRange.getOrgID(), animalOutOfRange.getAnimalTag()) == 1);
+			IMDLogger.loggingMode = originalLogginMode;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception occurred "+ e.getMessage());
+		}	}
 	
 	@Test
 	void testAnimalBornAfter() {

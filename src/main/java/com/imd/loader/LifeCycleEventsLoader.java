@@ -226,7 +226,6 @@ public class LifeCycleEventsLoader {
 		return retrieveSpecificLifeCycleEventsForAnimal(orgId,animalTag,null,null,eventCD, null, null, null, null, null);
 	}
 
-
 	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
 		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
@@ -311,7 +310,89 @@ public class LifeCycleEventsLoader {
 	    return allAnimalEvents;
 	}	
 	
-	
+	public List<LifecycleEvent> retrieveSpecificLifeCycleEvents(String orgId, DateTime fromDate, DateTime toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
+		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
+		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
+							+ " B.FIELD1_LABEL, B.FIELD1_TYPE, B.FIELD1_UNIT, "
+							+ " B.FIELD2_LABEL, B.FIELD2_TYPE, B.FIELD2_UNIT, "
+							+ " B.FIELD3_LABEL, B.FIELD3_TYPE, B.FIELD3_UNIT, "
+							+ " B.FIELD4_LABEL, B.FIELD4_TYPE, B.FIELD4_UNIT  " 
+							+ " from LIFECYCLE_EVENTS A  "
+							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  " 
+							+ "  ON	A.EVENT_CD = B.EVENT_CD  " 
+							+ "  LEFT OUTER JOIN LOOKUP_VALUES C "
+							+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
+							+ " where A.ORG_ID=?  ";
+		String event1Str = "";
+		String event2Str = "";
+		if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty()) {
+			event1Str = " A.EVENT_CD=? ";
+		}
+		if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty()) {
+			event2Str = " A.EVENT_CD=? ";
+		}
+	    
+		if (event1Str.isEmpty() && event2Str.isEmpty()) {
+			;
+		} else if (event1Str.isEmpty() || event2Str.isEmpty()) {
+			qryString += " AND " + event1Str + event2Str;
+		} else if (!event1Str.isEmpty() && !event2Str.isEmpty()) {
+			qryString += " AND (" + event1Str +  " OR " + event2Str + ") ";
+		}
+		qryString += (auxField1Value != null ? " AND AUX_FL1_VALUE=? " : "") + 
+				(auxField2Value != null ? " AND AUX_FL2_VALUE=? "  :  "") + 
+				(auxField3Value != null ? " AND AUX_FL3_VALUE=? " : "") + 
+				(auxField4Value != null ? " AND AUX_FL4_VALUE=? " : "") + 
+				(fromDate != null ? " AND A.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND A.EVENT_DTTM <=? " : "" ) +  " ORDER BY A.EVENT_DTTM DESC";		
+		LifecycleEvent event = null;
+		Statement st = null;
+		ResultSet rs = null;
+		int index = 1;
+		try {
+			PreparedStatement preparedStatement = null;
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, orgId);
+			if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty())
+				preparedStatement.setString(index++, eventTypeCD1);
+			if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty())
+				preparedStatement.setString(index++, eventTypeCD2);
+			if (auxField1Value != null)
+				preparedStatement.setString(index++, auxField1Value);
+			if (auxField2Value != null)
+				preparedStatement.setString(index++, auxField2Value);
+			if (auxField3Value != null)
+				preparedStatement.setString(index++, auxField3Value);
+			if (auxField4Value != null)
+				preparedStatement.setString(index++, auxField4Value);
+			if (fromDate != null) 
+				preparedStatement.setString(index++, Util.getDateTimeInSQLFormart(fromDate));
+			if (toDate != null) 
+				preparedStatement.setString(index++, Util.getDateTimeInSQLFormart(toDate));
+				
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		        event = getLifeCycleEventFromSQLRecord(rs);
+		        allAnimalEvents.add(event);
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();	
+				}
+				if (st != null && !st.isClosed()) {
+					st.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return allAnimalEvents;
+	}	
+		
 	public List<LifecycleEvent> retrieveAllLifeCycleEventsForAnimal(String orgId, String tagNumber) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
 		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
@@ -666,6 +747,17 @@ public class LifeCycleEventsLoader {
 					event.getAuxField1Value() != null && 
 					event.getAuxField1Value().equalsIgnoreCase(Util.YES))
 				);
+	}
+
+	public List<LifecycleEvent> getBirthsInSpecificDateRange(String orgID, DateTime startDate, DateTime endDate) {
+		return retrieveSpecificLifeCycleEvents(orgID, startDate, endDate, Util.LifeCycleEvents.BIRTH,
+				null, 
+				null, null, null, null);
+	}
+	public List<LifecycleEvent> getInseminationsOrMatingInSpecificDateRange(String orgID, DateTime startDate, DateTime endDate) {
+		return retrieveSpecificLifeCycleEvents(orgID, startDate, endDate, Util.LifeCycleEvents.INSEMINATE,
+				Util.LifeCycleEvents.INSEMINATE, 
+				null, null, null, null);
 	}
 }
 

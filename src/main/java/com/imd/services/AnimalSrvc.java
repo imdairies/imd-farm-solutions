@@ -576,7 +576,6 @@ public class AnimalSrvc {
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
-    		double largestInseminatedDays = -999;
     		double largestInseminatedHours = -999999;
     		String additionalInfo = "";
 	    	while (animalValueIt.hasNext()) {
@@ -591,14 +590,13 @@ public class AnimalSrvc {
 		    			double daysSinceInseminated = Util.getDaysBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
 		    			double hoursSinceInseminated = Util.getHoursBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
 	    				
-		    			IMDLogger.log(animalValue.getAnimalTag() + " hours since Inseminated: " + hoursSinceInseminated, Util.ERROR);
 		    			if (animalEvents.get(0).getEventTimeStamp().getHourOfDay() == 0 && 
 	    						animalEvents.get(0).getEventTimeStamp().getMinuteOfDay() == 0)
 	    					fmt = DateTimeFormat.forPattern("d MMM yyyy");
 	    				else
 	    					fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
 	    				String inseminationSireCode = animalEvents.get(0).getAuxField1Value();
-	    				String sexedIndicator = animalEvents.get(0).getAuxField2Value();
+	    				String sexedIndicator = animalEvents.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING) ? "N" : animalEvents.get(0).getAuxField2Value();
 	    				Sire sireInfo = null;
 	    				if (inseminationSireCode != null && !inseminationSireCode.isEmpty()) {
 	    					sireInfo = animalLoader.retrieveSire(inseminationSireCode);
