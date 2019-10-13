@@ -85,11 +85,11 @@ public class FeedSrvc {
 			return Response.status(200).entity(responseJson).build(); 
 		} catch (IMDException e) {
 			e.printStackTrace();
-			IMDLogger.log("Exception in FeedSrvc.determineAnimalFeed() service method: " + e.getMessage(),  Util.ERROR);
+			IMDLogger.log("Exception in FeedSrvc.determineAnimalFeed() service method while processing " + animalBean.getAnimalTag() + ": " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + e.getMessage() + "\"}").build();
 		} catch (Exception e) {
 			e.printStackTrace();
-			IMDLogger.log("Exception in FeedSrvc.determineAnimalFeed() service method: " + e.getMessage(),  Util.ERROR);
+			IMDLogger.log("Exception in FeedSrvc.determineAnimalFeed() service method while processing " + animalBean.getAnimalTag() + ": " + e.getMessage(),  Util.ERROR);
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"Following error was encountered in processing animal feed analysis: " + e.getMessage() + "\"}").build();
 		}
 	}

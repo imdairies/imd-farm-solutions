@@ -53,7 +53,7 @@ public class LifecycleEventSrvc {
 		animalBean.setAnimalTag(animalEventBean.getAnimalTag());
 		animalBean.setOrgID(animalEventBean.getOrgID());
 		try {
-			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null);
+			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null,null);
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"The animal " + Util.encodeJson(animalEventBean.getAnimalTag()) + " does not exist\"}").build();
@@ -254,7 +254,7 @@ public class LifecycleEventSrvc {
 		int result = -1;
 		String additionalMessage = "";
 		try {
-			List<Animal> animals = animalLoader.retrieveMatchingAnimals(animalBean, false, null);
+			List<Animal> animals = animalLoader.retrieveMatchingAnimals(animalBean, false, null, null);
 			if (animals == null || animals.isEmpty()) { 
 				additionalMessage = Util.ERROR_POSTFIX + animalBean.getAnimalTag() + " does not exist";
 			} else {
@@ -316,7 +316,7 @@ public class LifecycleEventSrvc {
 			int result = -1;
 			String additionalMessage = "";
 			try {
-				List<Animal> animals = animalLoader.retrieveMatchingAnimals(animalBean, false, null);
+				List<Animal> animals = animalLoader.retrieveMatchingAnimals(animalBean, false, null, null);
 				if (animals == null || animals.isEmpty() || animals.size() > 1) { 
 					result = Util.ERROR_CODE.DOES_NOT_EXIST;
 					// exactly one animal should exist for the specified animal tag.

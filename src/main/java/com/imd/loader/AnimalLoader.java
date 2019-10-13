@@ -285,11 +285,13 @@ public class AnimalLoader {
 	}		
 	
 	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean) throws Exception {
-		return retrieveMatchingAnimals(animalBean,true,null);
+		return retrieveMatchingAnimals(animalBean,true,null,null);
 	}
 	
-	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean, boolean isWildCardSearch, String additionalQuery) throws Exception {		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
-
+	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean, boolean isWildCardSearch, String additionalQuery, String orderByClause) throws Exception {
+		
+		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
+		String orderBy = orderByClause == null || orderByClause.isEmpty() ? " ORDER BY DOB DESC " : orderByClause;
 		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
@@ -314,15 +316,27 @@ public class AnimalLoader {
 			values.add(animalBean.getAnimalType());
 		}
 		if (animalBean.getGender() == 'M' || animalBean.getGender() == 'F') {
-			qryString +=  " AND GENDER='" + animalBean.getGender() + "' " ;
+			qryString +=  " AND GENDER ='" + animalBean.getGender() + "' " ;
+			
+		}
+		if (animalBean.getDam() != null && !animalBean.getDam().isEmpty()) {
+			qryString +=  " AND DAM_TAG ='" + animalBean.getDam() + "' " ;
+			
+		}
+		if (animalBean.getSire() != null && !animalBean.getSire().isEmpty()) {
+			qryString +=  " AND SIRE_TAG ='" + animalBean.getSire() + "' " ;
+			
+		}
+		if (animalBean.getDateOfBirthStr() != null && !animalBean.getDateOfBirthStr().isEmpty()) {
+			qryString +=  " AND DOB >= '" + animalBean.getDateOfBirthStr() + "' " ;
 			
 		}
 		if (additionalQuery != null && !additionalQuery.trim().isEmpty()) 
 			qryString += " AND " + additionalQuery;
 		if (animalBean.getActiveOnly()) {
-			qryString +=  " AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL)) ORDER BY ANIMAL_TAG";
+			qryString +=  " AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL)) " + orderBy;
 		} else {
-			qryString += ") ORDER BY ANIMAL_TAG";
+			qryString += ") " + orderBy;
 		}
 		Animal animalValue = null;
 		ResultSet rs = null;
@@ -388,7 +402,7 @@ public class AnimalLoader {
 		animalBean.setActiveOnly(true);
 		animalBean.setGender('F');
 		String additionalQuery = " TYPE_CD NOT IN ('FEMALECALF', 'HEIFER') ";
-		return retrieveMatchingAnimals(animalBean, false, additionalQuery);
+		return retrieveMatchingAnimals(animalBean, false, additionalQuery, " ORDER BY ANIMAL_TAG");
 	}	
 	
 	
