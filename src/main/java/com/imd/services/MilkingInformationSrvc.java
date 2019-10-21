@@ -120,6 +120,7 @@ public class MilkingInformationSrvc {
 	public Response retrieveMilkingRecordOfSpecifiedMonth(MilkingDetailBean searchBean){
 		String milkDayList = "";
 		String dailyVolList = "";
+		String dailyLactatingAnimalsList = "";
 		String dailyAverageList = "";
 		String milkingRecordInformation = "";
 		String prefix = "   ";
@@ -135,6 +136,8 @@ public class MilkingInformationSrvc {
 				milkRec = it.next();
 				milkDayList += milkRec.getRecordDate().getDayOfMonth() + ",";
 				dailyVolList += milkRec.getMilkVolume() + ",";
+//				dailyLactatingAnimalsList += milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT) + ",";
+				dailyLactatingAnimalsList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT) == null ? 0.0 : milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT))+ ",";
 				dailyAverageList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE) == null ? 0.0 : Math.round(((float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE))*10))/10 + ",";
 			}
 			if (dailyAverageList != null) {
@@ -149,7 +152,11 @@ public class MilkingInformationSrvc {
 				int commatoremove = dailyVolList.lastIndexOf(",");
 				dailyVolList = dailyVolList.substring(0,commatoremove);
 			}
-			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n"  + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
+			if (dailyLactatingAnimalsList != null) {
+				int commatoremove = dailyLactatingAnimalsList.lastIndexOf(",");
+				dailyLactatingAnimalsList = dailyLactatingAnimalsList.substring(0,commatoremove);
+			}
+			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n"  + prefix + prefix + "\"volumes\":[" + dailyVolList + "],\n" + prefix + prefix + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "]\n" + prefix + "}\n]";
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
@@ -207,6 +214,8 @@ public class MilkingInformationSrvc {
 		String dailyVolList = "";
 		String dateList = "";
 		String milkingRecordInformation = "";
+		String dailyLactatingAnimalsList = "";
+		String dailyAverageList = "";
 		String prefix = "   ";
     	
 		MilkingDetailLoader loader = new MilkingDetailLoader();
@@ -219,7 +228,13 @@ public class MilkingInformationSrvc {
 				milkRec = milkRecords[i];
 				milkDayList += milkRec.getRecordDate().getDayOfYear() + ",";
 				dailyVolList += milkRec.getMilkVolume() + ",";
+				dailyLactatingAnimalsList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT) == null ? 0.0 : milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT))+ ",";
+				dailyAverageList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE) == null ? 0.0 : Math.round(((float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE))*10))/10 + ",";
 				dateList += "\"" + Util.getDateInSpecifiedFormart(milkRec.getRecordDate(),"dd-MMM") + "\",";
+			}
+			if (dailyAverageList != null) {
+				int commatoremove = dailyAverageList.lastIndexOf(",");
+				dailyAverageList = dailyAverageList.substring(0,commatoremove);
 			}
 			if (dateList != null) {
 				int commatoremove = dateList.lastIndexOf(",");
@@ -233,7 +248,12 @@ public class MilkingInformationSrvc {
 				int commatoremove = dailyVolList.lastIndexOf(",");
 				dailyVolList = dailyVolList.substring(0,commatoremove);
 			}
-			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix + "\"dates\":[" + dateList + "],\n"  + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
+			if (dailyLactatingAnimalsList != null) {
+				int commatoremove = dailyLactatingAnimalsList.lastIndexOf(",");
+				dailyLactatingAnimalsList = dailyLactatingAnimalsList.substring(0,commatoremove);
+			}
+//			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n"  + prefix + prefix + "\"volumes\":[" + dailyVolList + "],\n" + prefix + prefix + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "]\n" + prefix + "}\n]";
+			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"   + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n" + prefix + prefix +  "\"dates\":[" + dateList + "],\n"  + prefix + prefix  + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "],\n" + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();

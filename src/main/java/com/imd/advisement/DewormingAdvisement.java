@@ -56,23 +56,27 @@ public class DewormingAdvisement extends AdvisementRule {
 								null,
 								Util.LifeCycleEvents.DEWORM, null,null,null,null,null);
 						String ruleNote = "";
-						String animalNote = animal.getAnimalTag() + " has never been dewormed. Please deworm it immediately";							
+						String animalNote = "";
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							int daysSinceDewormed= Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceDewormed >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
+								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it immediately.";	
 							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceDewormed >= ruleDto.getSecondThreshold()) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
+								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it soon.";	
 							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceDewormed >= ruleDto.getFirstThreshold()) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
+								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it soon.";	
 							} 
 						} else {
 							// No deworming event found - the animal was never dewormed.
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
+							animalNote = animal.getAnimalTag() + " has never been dewormed. Please deworm it immediately.";	
 						}
 						if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 							ArrayList<Note> notesList = new ArrayList<Note>();

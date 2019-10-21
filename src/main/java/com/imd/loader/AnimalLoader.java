@@ -1075,6 +1075,18 @@ public class AnimalLoader {
 	    	monthAndCount.put(rs.getString("CALVING_YYYY_MM"), rs.getString("CALVING_COUNT"));
 	    }
 		return monthAndCount;
+	}
+	public List<Animal> retrieveActiveDryAnimals(String orgID) throws Exception {
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%'  ORDER BY ANIMAL_TAG";
+		List<String> values = new ArrayList<String>();
+		values.add(orgID);
+		return retrieveAnimalTypes(values, qryString);
 	}	
 }
 

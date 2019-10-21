@@ -144,6 +144,7 @@ public class Util {
 		public static final String SEQ_NBR_MONTHLY_AVERAGE = "SEQ_NBR_MONTHLY_AVERAGE";
 		public static final String YESTERDAY_SEQ_NBR_VOL = "YESTERDAY_SEQ_NBR_VOL";
 		public static final String DAYS_IN_MILKING = "DAYS_IN_MILKING";
+		public static final String LACTATING_ANIMALS_COUNT = "LACTATING_ANIMALS";
 	}
 
 	public static final class LifeCycleEvents {

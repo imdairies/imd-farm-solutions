@@ -694,7 +694,7 @@ public class LifeCycleEventsLoader {
 				List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(sourceEvent.getOrgID(), sourceEvent.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
 				outcome = ". We could not update the last insemination event outcome because no past Insemination or Mating event exists for this animal. This either indicates data entry problem or it could be that this is the first time this animal has come into heat. "
 						+ "If this is the first time this animal has come into heat then you can ignore this warning; else "
-						+ "make sure you have added an insemination or mating event for this animal and manually set the \"Insemination Successful?\" to \"NO\".";
+						+ "make sure you have added an insemination or mating event for this animal and manually set the \"Insemination Successful?\" to \"NO\"";
 				if (inseminationEvents != null && !inseminationEvents.isEmpty()) {
 					Iterator<LifecycleEvent> it = inseminationEvents.iterator();
 					String pregnancyTestResult = determineInseminationOutcomeValue(sourceEvent);
@@ -757,6 +757,12 @@ public class LifeCycleEventsLoader {
 	public List<LifecycleEvent> getInseminationsOrMatingInSpecificDateRange(String orgID, DateTime startDate, DateTime endDate) {
 		return retrieveSpecificLifeCycleEvents(orgID, startDate, endDate, Util.LifeCycleEvents.INSEMINATE,
 				Util.LifeCycleEvents.INSEMINATE, 
+				null, null, null, null);
+	}
+
+	public List<LifecycleEvent> getAbortionsInSpecificDateRange(String orgID, DateTime startDate, DateTime endDate) {
+		return retrieveSpecificLifeCycleEvents(orgID, startDate, endDate, Util.LifeCycleEvents.ABORTION,
+				null, 
 				null, null, null, null);
 	}
 }

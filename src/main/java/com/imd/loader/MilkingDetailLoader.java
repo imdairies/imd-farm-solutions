@@ -272,6 +272,8 @@ public class MilkingDetailLoader {
 				MilkingDetail emptyRecord = new MilkingDetail();
 				emptyRecord.setRecordDate(milkDetail.getRecordDate().minusDays(dateDiffInDays));
 				emptyRecord.setMilkVolume(0.0f);
+				emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0.0f);
+				emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0.0f);
 				dailyRecordofTheYear[dayIndex-1] = emptyRecord;
 				lastInsertedRecordDate = emptyRecord.getRecordDate();
 			}
@@ -284,6 +286,8 @@ public class MilkingDetailLoader {
 			lastInsertedRecordDate = lastInsertedRecordDate.plusDays(1);
 			emptyRecord.setRecordDate(lastInsertedRecordDate);
 			emptyRecord.setMilkVolume(0.0f);
+			emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0.0f);
+			emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0.0f);
 			dailyRecordofTheYear[dayIndex-1] = emptyRecord;
 			dayIndex++;
 		}
@@ -414,6 +418,7 @@ public class MilkingDetailLoader {
 			milkDetail.setLrValue(rs.getFloat("AVG_LR"));
 			milkDetail.setFatValue(rs.getFloat("AVG_FAT"));
 			milkDetail.setTemperatureInCentigrade(rs.getFloat("AVG_TEMPERATURE"));
+			milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT,rs.getFloat("MILKED_ANIMALS"));
 			milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, new Float(milkDetail.getMilkVolume()/rs.getInt("MILKED_ANIMALS")));
 			if (shouldIncludeMissingDays) {
 				while (dateInProcess.isBefore(milkDetail.getRecordDate())) {
@@ -421,6 +426,7 @@ public class MilkingDetailLoader {
 					noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
 					noRecord.setMilkVolume(0f);
 					noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
+					noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0f);
 					allMatchingValues.add(noRecord);
 					dateInProcess = dateInProcess.plusDays(1);
 					IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
@@ -436,6 +442,8 @@ public class MilkingDetailLoader {
 				MilkingDetail noRecord = new MilkingDetail();
 				noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
 				noRecord.setMilkVolume(0f);
+				noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0f);
+				noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
 				allMatchingValues.add(noRecord);
 				IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
 				dateInProcess = dateInProcess.plusDays(1);

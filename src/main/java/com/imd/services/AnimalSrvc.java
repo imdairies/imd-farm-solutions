@@ -76,39 +76,39 @@ public class AnimalSrvc {
 		return Response.status(200).entity(animalsJson).build(); 
     }
 
-	/**
-	 * Retrieves ALL the active animals in a farm
-	 * @return
-	 */
-	@GET
-	@Path("/animalpopulationdistribution")
-	@Produces(MediaType.APPLICATION_JSON)
-    public Response getAnimalPopulationDistribution() {
-
-		String animalsJson = "";
-    	try {
-			AnimalLoader loader = new AnimalLoader();
-		 	List<Animal> animals = loader.retrieveActiveAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    		
-			if (animals == null || animals.size() == 0)
-			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found\"}").build();
-			}
-	    	Iterator<Animal> animalIt = animals.iterator();
-	    	while (animalIt.hasNext()) {
-	    		Animal aimal = animalIt.next();
-	    		animalsJson += "{\n" + aimal.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
-	    	}
-	    	animalsJson = "[" + animalsJson.substring(0,animalsJson.lastIndexOf(",\n")) + "]";
-	    	IMDLogger.log(animalsJson, Util.INFO);
-		} catch (Exception e) {
-			e.printStackTrace();
-			IMDLogger.log("Exception in AnimalSrvc.getAnimalPopulationDistribution() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
-		}
-		return Response.status(200).entity(animalsJson).build(); 
-    }
-	
+//	/**
+//	 * Retrieves ALL the active animals in a farm
+//	 * @return
+//	 */
+//	@GET
+//	@Path("/animalpopulationdistribution")
+//	@Produces(MediaType.APPLICATION_JSON)
+//    public Response getAnimalPopulationDistribution() {
+//
+//		String animalsJson = "";
+//    	try {
+//			AnimalLoader loader = new AnimalLoader();
+//		 	List<Animal> animals = loader.retrieveActiveAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+//    		
+//			if (animals == null || animals.size() == 0)
+//			{
+//				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found\"}").build();
+//			}
+//	    	Iterator<Animal> animalIt = animals.iterator();
+//	    	while (animalIt.hasNext()) {
+//	    		Animal aimal = animalIt.next();
+//	    		animalsJson += "{\n" + aimal.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+//	    	}
+//	    	animalsJson = "[" + animalsJson.substring(0,animalsJson.lastIndexOf(",\n")) + "]";
+//	    	IMDLogger.log(animalsJson, Util.INFO);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			IMDLogger.log("Exception in AnimalSrvc.getAnimalPopulationDistribution() service method: " + e.getMessage(),  Util.ERROR);
+//			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+//		}
+//		return Response.status(200).entity(animalsJson).build(); 
+//    }
+//	
 	
 	
 	@POST
@@ -788,15 +788,15 @@ public class AnimalSrvc {
 		return Response.status(200).entity(animalValueResult).build();
     }	
 	@POST
-	@Path("/heifers")
+	@Path("/drycows")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response retrieveHeifers(AnimalBean searchBean){
+	public Response retrieveDryCows(AnimalBean searchBean){
     	String animalValueResult = "";
     	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveHeifers(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveDryAnimals(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();

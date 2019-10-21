@@ -33,6 +33,10 @@ import com.imd.util.Util.LifeCycleEvents;
 @Path("/farm")
 public class FarmSrvc {
 	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 285;
+	private static final int EXPECTED_CALVING_THRESHOLD_DAYS = 35;
+	private static final int RECENT_INSEMINATION_THRESHOLD_DAYS = 35;
+	private static final int RECENT_ABORTION_THRESHOLD_DAYS = 35;
+	private static final int RECENT_CALVING_THRESHOLD_DAYS = 35;
 	
 	@POST
 	@Path("/herdsizehistory")
@@ -117,7 +121,7 @@ public class FarmSrvc {
 
 	
 	@GET
-	@Path("/breedingeventthismonth")
+	@Path("/recentbreedingevents")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveBreedingEventForThisMonth(){
 		IMDLogger.log("retrieveBreedingEventForThisMonth Called with following input values", Util.INFO);
@@ -128,29 +132,40 @@ public class FarmSrvc {
 		DateTime endDate = new DateTime(startDate.plusMonths(2).minusDays(1).getYear(),startDate.plusMonths(2).minusDays(1).getMonthOfYear(),
 				startDate.plusMonths(2).minusDays(1).getDayOfMonth(),23,59,59,IMDProperties.getServerTimeZone());
 
-		String calvedThisMonthList = "";
-		int calvedThisMonthCount = 0;
-		List<LifecycleEvent> calved = eventsLoader.getBirthsInSpecificDateRange(orgID,startDate, endDate);
+		String calvedInSpecifiedTimeWindowList = "";
+		int calvedInSpecifiedTimeWindowCount = 0;
+		List<LifecycleEvent> calved = eventsLoader.getBirthsInSpecificDateRange(orgID,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_CALVING_THRESHOLD_DAYS), endDate);
 		Iterator<LifecycleEvent> it = calved.iterator();
 		while (it.hasNext()) {
-			calvedThisMonthCount++;
-			calvedThisMonthList += it.next().getAnimalTag() + 
-			(calvedThisMonthCount == calved.size() ? "" : ",");
+			calvedInSpecifiedTimeWindowCount++;
+			calvedInSpecifiedTimeWindowList += it.next().getAnimalTag() + 
+			(calvedInSpecifiedTimeWindowCount == calved.size() ? "" : ",");
 		}
 		
 
-		String inseminatedOrMatedThisMonthList = "";
-		int inseminatedOrMatedThisMonthCount = 0;
-		List<LifecycleEvent> insemMateEvents = eventsLoader.getInseminationsOrMatingInSpecificDateRange(orgID,startDate, endDate);
+		String inseminatedOrMatedInSpecifiedTimeWindowList = "";
+		int inseminatedOrMatedInSpecifiedTimeWindowCount = 0;
+		List<LifecycleEvent> insemMateEvents = eventsLoader.getInseminationsOrMatingInSpecificDateRange(orgID,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_INSEMINATION_THRESHOLD_DAYS), endDate);
 		it = insemMateEvents.iterator();
 		while (it.hasNext()) {
-			inseminatedOrMatedThisMonthCount++;
-			inseminatedOrMatedThisMonthList += it.next().getAnimalTag() + 
-			(inseminatedOrMatedThisMonthCount == insemMateEvents.size() ? "" : ",");
+			inseminatedOrMatedInSpecifiedTimeWindowCount++;
+			inseminatedOrMatedInSpecifiedTimeWindowList += it.next().getAnimalTag() + 
+			(inseminatedOrMatedInSpecifiedTimeWindowCount == insemMateEvents.size() ? "" : ",");
 		}
+
+		String abortedInSpecifiedTimeWindowList = "";
+		int abortedInSpecifiedTimeWindowCount = 0;
+		List<LifecycleEvent> abortedEvents = eventsLoader.getAbortionsInSpecificDateRange(orgID,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_ABORTION_THRESHOLD_DAYS), endDate);
+		it = abortedEvents.iterator();
+		while (it.hasNext()) {
+			abortedInSpecifiedTimeWindowCount++;
+			abortedInSpecifiedTimeWindowList += it.next().getAnimalTag() + 
+			(abortedInSpecifiedTimeWindowCount == abortedEvents.size() ? "" : ",");
+		}		
 		
-		int expectedCalvingsThisMonthCount = 0;
-		String expectedCalvingsThisMonthList = "";
+		
+		int expectedCalvingsInSpecifiedTimeWindowCount = 0;
+		String expectedCalvingsInSpecifiedTimeWindowList = "";
 		String yearMonthCalvingCount = "";
 		String yearMonthCalving = "";
 		
@@ -167,15 +182,15 @@ public class FarmSrvc {
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
 		    			//double daysSinceInseminated = Util.getDaysBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
-		    			if (!inseminatedDate.plusDays(Util.LACTATION_DURATION).isAfter(endDate) && 
-	    					!inseminatedDate.plusDays(Util.LACTATION_DURATION).isBefore(startDate)) {
-		    				expectedCalvingsThisMonthCount++;
-		    				expectedCalvingsThisMonthList += "," + animalValue.getAnimalTag();
+		    			if (!inseminatedDate.plusDays(Util.LACTATION_DURATION).isAfter(DateTime.now(IMDProperties.getServerTimeZone()).plusDays(EXPECTED_CALVING_THRESHOLD_DAYS)) && 
+	    					!inseminatedDate.plusDays(Util.LACTATION_DURATION).isBefore(DateTime.now(IMDProperties.getServerTimeZone()))) {
+		    				expectedCalvingsInSpecifiedTimeWindowCount++;
+		    				expectedCalvingsInSpecifiedTimeWindowList += "," + animalValue.getAnimalTag();
 		    			}
 	    			}
 	    		}
 			}
-			expectedCalvingsThisMonthList = expectedCalvingsThisMonthList.replaceFirst(",","");
+			expectedCalvingsInSpecifiedTimeWindowList = expectedCalvingsInSpecifiedTimeWindowList.replaceFirst(",","");
 			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 			DateTime startFrom = new DateTime(now.minusMonths(25).getYear(),
 					now.minusMonths(25).getMonthOfYear(),
@@ -209,12 +224,14 @@ public class FarmSrvc {
 		}
 		
 		String outputJson = "{\n" + 
-				"\"expectedCalvingThisMonthCount\":" + expectedCalvingsThisMonthCount +",\n" +
-				"\"expectedCalvingThisMonthList\":\"" + expectedCalvingsThisMonthList +"\",\n" +
-				"\"calvedThisMonthCount\":" + calvedThisMonthCount +",\n" +
-				"\"calvedThisMonthList\":\"" + calvedThisMonthList +"\",\n" +
-				"\"inseminatedThisMonthCount\":" + inseminatedOrMatedThisMonthCount +",\n" +
-				"\"inseminatedThisMonthList\":\"" + inseminatedOrMatedThisMonthList +"\",\n" +
+				"\"expectedCalvingThisMonthCount\":" + expectedCalvingsInSpecifiedTimeWindowCount +",\n" +
+				"\"expectedCalvingThisMonthList\":\"" + expectedCalvingsInSpecifiedTimeWindowList +"\",\n" +
+				"\"calvedThisMonthCount\":" + calvedInSpecifiedTimeWindowCount +",\n" +
+				"\"calvedThisMonthList\":\"" + calvedInSpecifiedTimeWindowList +"\",\n" +
+				"\"abortedThisMonthCount\":" + abortedInSpecifiedTimeWindowCount +",\n" +
+				"\"abortedThisMonthList\":\"" + abortedInSpecifiedTimeWindowList +"\",\n" +
+				"\"inseminatedThisMonthCount\":" + inseminatedOrMatedInSpecifiedTimeWindowCount +",\n" +
+				"\"inseminatedThisMonthList\":\"" + inseminatedOrMatedInSpecifiedTimeWindowList +"\",\n" +
 				"\"yearMonthCalving\":" + yearMonthCalving +",\n" +
 				"\"yearMonthCalvingCount\":" + yearMonthCalvingCount +"\n" +
 				"}";
