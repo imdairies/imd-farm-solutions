@@ -24,6 +24,7 @@ import com.imd.advisement.DryCowAdvisement;
 import com.imd.advisement.FMDVaccinationAdvisement;
 import com.imd.advisement.HeatWarningAdvisement;
 import com.imd.advisement.HeiferWeightAdvisement;
+import com.imd.advisement.MastitisTestAdvisement;
 import com.imd.advisement.PregnancyTestAdvisement;
 import com.imd.advisement.WeanOffAdvisement;
 import com.imd.advisement.WeightMeasurementAdvisement;
@@ -1347,7 +1348,7 @@ class AdvisementLoaderTest {
 	void testPregnancyTestAdvisementRule() {
 
 		try {
-			PregnancyTestAdvisement fmd = new PregnancyTestAdvisement();
+			PregnancyTestAdvisement pregTestAdvisement = new PregnancyTestAdvisement();
 			AnimalLoader animalLoader = new AnimalLoader();
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
@@ -1419,7 +1420,7 @@ class AdvisementLoaderTest {
 			LifeCycleEventBean eventBeanTh0 = new LifeCycleEventBean();
 			eventBeanTh0.setAnimalTag(inseminationTh0.getAnimalTag());
 			eventBeanTh0.setEventCode(Util.LifeCycleEvents.INSEMINATE);
-			eventBeanTh0.setEventComments("Test FMD Vaccination Event - no violation");
+			eventBeanTh0.setEventComments("Test Pregrnancy Test Event - no violation");
 			eventBeanTh0.setOrgID("IMD");
 			eventBeanTh0.setEventTimeStamp(Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(30)));
 			LifecycleEvent inseminationEventTh0 = new LifecycleEvent(eventBeanTh0);
@@ -1458,7 +1459,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh2, "Exactly one record -996 should have been inserted");
 			assertEquals(1,transTh1, "Exactly one record -995 should have been inserted");
 
-			List<Animal> animalPop = fmd.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = pregTestAdvisement.getAdvisementRuleAddressablePopulation("IMD");
 			boolean inseminationTh3Found = false;
 			boolean inseminationTh2Found = false;
 			boolean inseminationTh1Found = false;
@@ -1733,7 +1734,147 @@ class AdvisementLoaderTest {
 		}
 	}
 	
-	
+	@Test
+	void testMastitisAdvisementRule() {
+
+		int originalLoggingMode = IMDLogger.loggingMode;
+		IMDLogger.loggingMode = Util.INFO;
+
+		try {
+			AnimalLoader animalLoader = new AnimalLoader();
+			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
+			
+			///// clean up /////
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			animalLoader.deleteAnimal("IMD", "-997");
+			animalLoader.deleteAnimal("IMD", "-996");
+			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
+			///////////////////
+			
+
+
+			Animal notLactating = createTestAnimal("-994");
+			notLactating.setAnimalType(Util.AnimalTypes.DRYPREG);
+						
+			Animal medTestOk = createTestAnimal("-998");
+			medTestOk.setAnimalType(Util.AnimalTypes.LCTPRGNT);
+			
+			
+			Animal medTestTh3 = createTestAnimal("-997");
+			medTestTh3.setAnimalType(Util.AnimalTypes.LCTINSEMIN);
+
+			Animal noMedTest = createTestAnimal("-999");
+			noMedTest.setAnimalType(Util.AnimalTypes.LACTATING);
+			
+			Animal medTestTh2 = createTestAnimal("-995");
+			medTestTh2.setAnimalType(Util.AnimalTypes.LCTAWTHEAT);			
+
+
+			User user = new User("KASHIF");
+			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
+
+			LifecycleEvent mastitisEventTh3Violated = new LifecycleEvent(medTestTh3.getOrgID(), 0, 
+					medTestTh3.getAnimalTag(), Util.LifeCycleEvents.MEDICALTST, user, now, 
+					user, now);
+			mastitisEventTh3Violated.setAuxField1Value(Util.AdvisementRules.MASTITIS);
+			mastitisEventTh3Violated.setEventNote("Very Old Mastitis Test.");
+			mastitisEventTh3Violated.setEventTimeStamp(now.minusDays(22));
+
+			
+			LifecycleEvent mastitisEventTh2Violated = new LifecycleEvent(medTestTh2.getOrgID(), 0, 
+					medTestTh2.getAnimalTag(), Util.LifeCycleEvents.MEDICALTST, user, now, 
+					user, now);
+			mastitisEventTh2Violated.setAuxField1Value(Util.AdvisementRules.MASTITIS);
+			mastitisEventTh2Violated.setEventNote("Older Mastitis Test.");
+			mastitisEventTh2Violated.setEventTimeStamp(now.minusDays(17));
+			
+			LifecycleEvent mastitisEventNoViolation = new LifecycleEvent(medTestOk.getOrgID(), 0, 
+					medTestOk.getAnimalTag(), Util.LifeCycleEvents.MEDICALTST, user, now, 
+					user, now);
+			mastitisEventNoViolation.setAuxField1Value(Util.AdvisementRules.MASTITIS);
+			mastitisEventNoViolation.setEventNote("Recent Mastitis test.");
+			mastitisEventNoViolation.setEventTimeStamp(now.minusDays(1));
+			
+
+			assertEquals(1,animalLoader.insertAnimal(medTestOk));
+			assertEquals(1,animalLoader.insertAnimal(notLactating));
+			assertEquals(1,animalLoader.insertAnimal(noMedTest));
+			assertEquals(1,animalLoader.insertAnimal(medTestTh2));
+			assertEquals(1,animalLoader.insertAnimal(medTestTh3));
+			assertTrue(eventsLoader.insertLifeCycleEvent(mastitisEventNoViolation) > 0);
+			assertTrue(eventsLoader.insertLifeCycleEvent(mastitisEventTh2Violated) > 0);
+			assertTrue(eventsLoader.insertLifeCycleEvent(mastitisEventTh3Violated) > 0);
+			
+			MastitisTestAdvisement adv = new MastitisTestAdvisement();
+			List<Animal> animalPop = adv.getAdvisementRuleAddressablePopulation(medTestOk.getOrgID());
+			
+			
+
+			boolean noMedTestFound = false;
+			boolean medTestTh2Found = false;
+			boolean medTestTh3Found = false;
+			
+			if (animalPop != null) {
+			
+				Iterator<Animal> it = animalPop.iterator();
+				while (it.hasNext()) {
+					Animal populationAnimal = it.next();
+					assertFalse(populationAnimal.getAnimalTag().equalsIgnoreCase(notLactating.getAnimalTag()), notLactating.getAnimalTag() + " was not lactating so it should not have been included in the advisement");
+					assertFalse(populationAnimal.getAnimalTag().equalsIgnoreCase(medTestOk.getAnimalTag()), medTestOk.getAnimalTag() + " was tested recently so it should not have been included in the advisement");
+					if (populationAnimal.getAnimalTag().equalsIgnoreCase(noMedTest.getAnimalTag())) {
+						assertFalse(populationAnimal.isThreshold1Violated(),noMedTest.getAnimalTag() + " should have violated third threshold. It was never tested for mastitis");
+						assertFalse(populationAnimal.isThreshold2Violated(),noMedTest.getAnimalTag() + " should have violated third threshold. It was never tested for mastitis");
+						assertTrue(populationAnimal.isThreshold3Violated(),noMedTest.getAnimalTag()  + " should have violated third threshold. It was never tested for mastitis");
+						noMedTestFound = true;
+					} else 	if (populationAnimal.getAnimalTag().equalsIgnoreCase(medTestTh2.getAnimalTag())) {
+						assertFalse(populationAnimal.isThreshold1Violated(),medTestTh2.getAnimalTag() + " should have violated second threshold. It was tested for mastitis between 16-20 days");
+						assertTrue(populationAnimal.isThreshold2Violated(),medTestTh2.getAnimalTag() + " should have violated second threshold. It was tested for mastitis between 16-20 days");
+						assertFalse(populationAnimal.isThreshold3Violated(),medTestTh2.getAnimalTag() + " should have violated second threshold. It was tested for mastitis between 16-20 days");
+						medTestTh2Found = true;
+					} else 	if (populationAnimal.getAnimalTag().equalsIgnoreCase(medTestTh3.getAnimalTag())) {
+						assertFalse(populationAnimal.isThreshold1Violated(),medTestTh3.getAnimalTag() + " should have violated third threshold. It was tested for mastitis more than 21 days ago");
+						assertFalse(populationAnimal.isThreshold2Violated(),medTestTh3.getAnimalTag() + " should have violated third threshold. It was tested for mastitis more than 21 days ago");
+						assertTrue(populationAnimal.isThreshold3Violated(),medTestTh3.getAnimalTag() + " should have violated third threshold. It was tested for mastitis more than 21 days ago");
+						medTestTh3Found = true;
+					}
+
+				}
+			}
+			assertTrue(noMedTestFound,noMedTest.getAnimalTag() +  "("+ noMedTest.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
+			assertTrue(medTestTh2Found,medTestTh2.getAnimalTag() +  "("+ medTestTh2.getAnimalType() + ") should have been included in the Threshold2 Violation Advisement population");
+			assertTrue(medTestTh3Found,medTestTh3.getAnimalTag() +  "("+ medTestTh3.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
+			
+				
+			///// clean up /////
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			animalLoader.deleteAnimal("IMD", "-997");
+			animalLoader.deleteAnimal("IMD", "-996");
+			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
+			///////////////////
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Exception occurred " + ex.getMessage());
+		} finally {
+			IMDLogger.loggingMode = originalLoggingMode;
+		}
+	}
 	
 	@Test
 	void testDryCowAdvisementRulePopulationRetrieval() {

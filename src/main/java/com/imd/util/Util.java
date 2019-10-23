@@ -165,6 +165,7 @@ public class Util {
 		public static final String DEATH = "DEATH";
 		public static final String SOLD = "SOLD";
 		public static final String PRECAVNGFD = "PRECAVNGFD";
+		public static final String MEDICALTST = "MEDICALTST";
 	}
 
 	public static final class AdvisementRules {
@@ -181,6 +182,7 @@ public class Util {
 		public static final String DEWORM = "DEWORM";
 		public static final String CALVINGPREPFEED = "CALVINGPREPFEED";
 		public static final String CALFWEIGHT = "CALFWEIGHT";
+		public static final String MASTITIS = "MASTITIS";
 	}
 	
 	
@@ -198,6 +200,7 @@ public class Util {
 		public static final String DRYPREG = "DRYPREG";
 		public static final String BULL = "BULL";
 		public static final String HFRAWTHEAT = "HFRAWTHEAT";
+		public static final String LCTAWTHEAT = "LCTAWTHEAT";
 	}
 	
 	public static final class FeedCohortType {
