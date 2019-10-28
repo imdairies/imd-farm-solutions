@@ -7,7 +7,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.joda.time.Chronology;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,11 +23,14 @@ import com.imd.dto.BankDetails;
 import com.imd.dto.Contact;
 import com.imd.dto.Dam;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Person;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
+import com.imd.services.AnimalSrvc;
 import com.imd.services.bean.AnimalBean;
+import com.imd.services.bean.MilkingDetailBean;
 import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
@@ -73,24 +79,26 @@ class AnimalLoaderTest {
 		c000.setAnimalDam(null);
 		Note newNote = new Note (1,"Had four adult teeth at purchase. Dark brown/red shade in the coat. Shy of people, docile, keeps away from humans, hangs out well with other cows, medium built.", DateTime.now(IMDProperties.getServerTimeZone()));		
 		c000.addNote(newNote);
-//		setMilkingRecord(c000);
 		return c000;
 	}
 
-//	private void setMilkingRecord(Dam c000) throws IMDException {
-//		MilkingDetail dailyMilking;
-//		short milkFreq = 3;
-//		int milkingHr = 5;
-//		int milkingMin = 0;
-//		int milkingSec = 0;
-//		LocalTime milkingTime = LocalTime.of(milkingHr,milkingMin,milkingSec);
-//		LocalDate milkingDate = LocalDate.of(2018,2,14);
-//		float milkingVol = 7.0f;
-//		boolean isMachineMilked = true;		
-//		dailyMilking =  new MilkingDetail(milkFreq,isMachineMilked,milkingDate,milkingTime,milkingVol,(short)1);
-//		c000.addToMilkingRecord(dailyMilking);
-//	}
-
+	private MilkingDetail createMilkingRecord(String tagNbr, LocalDate milkingDate, LocalTime milkingTime) throws IMDException {
+		short milkFreq = 3;
+		float milkingVol = 13.0f;
+		boolean isMachineMilked = true;	
+		MilkingDetail milkingRecord = new MilkingDetail("IMD", tagNbr, milkFreq, isMachineMilked, milkingDate, milkingTime, milkingVol,(short)1);
+		milkingRecord.setHumidity(50.0f);
+		milkingRecord.setTemperatureInCentigrade(19.3f);
+		milkingRecord.setLrValue(28.0f);
+		milkingRecord.setFatValue(3.80f);
+		milkingRecord.setToxinValue(0.11f);
+		milkingRecord.setCreatedBy(new User("KASHIF"));
+		milkingRecord.setCreatedDTTM(DateTime.now());
+		milkingRecord.setUpdatedBy(new User("KASHIF"));
+		milkingRecord.setUpdatedDTTM(DateTime.now());
+		return milkingRecord;
+	}
+	
 	private void setSireInformation(Animal c000) throws IMDException {
 		Sire sire = new Sire("IMD","NLDM000291306935", DateTime.parse("2000-02-10"), false, 0d, "PKR");
 		sire.setAlias("MANDERS MARIUS");
@@ -726,7 +734,102 @@ class AnimalLoaderTest {
 			fail("Animal Creation and/or insertion Failed.");
 		}
 	}		
-	
+	@Test
+	void testRetrieveAnimalsMilkedAtSpecificMilkingEvent() {
+		
+		int originalLoggingMode = IMDLogger.loggingMode;
+		
+		try {
+			
+			IMDLogger.loggingMode = Util.INFO;
+			Animal animal1 = createTestAnimal("-997");
+			Animal animal2 = createTestAnimal("-998");
+			Animal animal3 = createTestAnimal("-999");
+			animal1.setAnimalType(Util.AnimalTypes.DRYPREG);
+			animal2.setAnimalType(Util.AnimalTypes.DRYPREG);
+			animal3.setAnimalType(Util.AnimalTypes.DRYPREG);
+
+			AnimalLoader loader = new AnimalLoader();
+			
+			assertTrue(loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()) >=0);
+			assertTrue(loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag()) >=0);
+			assertTrue(loader.deleteAnimal(animal3.getOrgID(), animal3.getAnimalTag()) >=0);
+			
+			
+			LocalDate pastMilkDate = new LocalDate(1900,1,1, LocalDate.now(IMDProperties.getServerTimeZone()).getChronology());
+			
+			MilkingDetailLoader milkLoader = new MilkingDetailLoader();
+			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal1.getOrgID(), animal1.getAnimalTag(), pastMilkDate) >= 0);
+			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal2.getOrgID(), animal2.getAnimalTag(), pastMilkDate) >= 0);
+			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal3.getOrgID(), animal3.getAnimalTag(), pastMilkDate) >= 0);
+			AnimalSrvc anmlSrvc = new AnimalSrvc();
+			MilkingDetailBean milkBean = new MilkingDetailBean();
+			milkBean.setMilkingDateStr(pastMilkDate.toString());
+			milkBean.setMilkingTimeStr("4:00");
+			milkBean.setMilkingEventNumber((short)1);			
+			String responseStr = anmlSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
+
+			//assertFalse(responseStr.contains("\"message\":\"No matching record found\""));
+			
+			assertEquals(1,loader.insertAnimal(animal1));
+			assertEquals(1,loader.insertAnimal(animal2));
+			assertEquals(1,loader.insertAnimal(animal3));
+			
+
+			
+			MilkingDetail milkingRecord = createMilkingRecord(animal1.getAnimalTag(), pastMilkDate, new LocalTime(4,0,0));
+			milkingRecord.setComments("Morning Milking");
+			milkingRecord.setMilkingEventNumber((short) 1);
+
+			assertEquals(1,milkLoader.insertMilkRecord(milkingRecord.getMilkingDetailBean()));
+			List <Animal>  animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal1.getOrgID(),pastMilkDate,1);
+			assertEquals(1,animals.size());
+			assertEquals(animal1.getAnimalTag(),animals.get(0).getAnimalTag());
+			
+			milkingRecord.setAnimalTag(animal2.getAnimalTag());
+			assertEquals(1,milkLoader.insertMilkRecord(milkingRecord.getMilkingDetailBean()));
+			animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal2.getOrgID(),pastMilkDate,1);
+			assertEquals(2,animals.size());
+			assertEquals(animal1.getAnimalTag(),animals.get(0).getAnimalTag());
+			assertEquals(animal2.getAnimalTag(),animals.get(1).getAnimalTag());
+			
+			milkingRecord.setAnimalTag(animal3.getAnimalTag());
+			assertEquals(1,milkLoader.insertMilkRecord(milkingRecord.getMilkingDetailBean()));
+			animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal3.getOrgID(),pastMilkDate,1);
+			assertEquals(3,animals.size());
+			assertEquals(animal1.getAnimalTag(),animals.get(0).getAnimalTag());
+			assertEquals(animal2.getAnimalTag(),animals.get(1).getAnimalTag());
+			assertEquals(animal3.getAnimalTag(),animals.get(2).getAnimalTag());
+			
+			responseStr = anmlSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
+
+			milkBean.setMilkingDateStr(LocalDate.now(IMDProperties.getServerTimeZone()).toString());
+			responseStr = anmlSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
+			
+			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));
+			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));
+			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));
+			
+			
+
+			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal1.getOrgID(), animal1.getAnimalTag(), pastMilkDate));
+			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal2.getOrgID(), animal2.getAnimalTag(), pastMilkDate));
+			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal3.getOrgID(), animal3.getAnimalTag(), pastMilkDate));
+			
+			assertEquals(1,loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal3.getOrgID(), animal3.getAnimalTag()));
+			
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception in retrieveAnimalsMilkedAtSpecificMilkingEvent");
+		} finally {
+			IMDLogger.loggingMode = originalLoggingMode;
+		}
+		
+	}		
 }
 
 

@@ -65,7 +65,6 @@ public class HeatWarningAdvisement extends AdvisementRule {
 							// this rule has been mis-configured. It should have Th3 value greater than 0, ideally this value should be around 21.
 							IMDLogger.log("The " + Util.AdvisementRules.HEATWARNING + " seems to be mis-configured. The THRESHOLD3 should have a value greater than 0, ideally this value should be around 21.", Util.ERROR);
 						} else if (lifeEvents != null && !lifeEvents.isEmpty()) {
-								
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceInseminated= getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
 							String animalNote = "This cow (" + animal.getAnimalTag() + ") was inseminated " + daysSinceInseminated + " days ago. ";	
@@ -95,7 +94,10 @@ public class HeatWarningAdvisement extends AdvisementRule {
 								}
 							}
 						} else {
-							IMDLogger.log("This non-pregnant inseminated cow (" + animal.getAnimalTag() + ") does not have an insemination event in the last " + (ruleDto.getThirdThreshold()* 4) + " days. This indicates that the user has either forgotten to add inseimnation event or has set the wrong current status (" + animal.getAnimalType() + ") of the animal", Util.ERROR);
+							if (animal.isInseminated()) {
+								IMDLogger.log("This non-pregnant inseminated cow (" + animal.getAnimalTag() + ") has not come in heat since its insemination. Its current status is: " + animal.getAnimalType() + ". You may check pregnancy test advisement to see if this cow should be tested for pregnancy.", Util.WARNING);
+							} else
+								IMDLogger.log("This non-pregnant inseminated cow (" + animal.getAnimalTag() + ") does not have an insemination event in the last " + (ruleDto.getThirdThreshold()* 4) + " days. This indicates that either the user has forgotten to add an inseimnation event or the uset has set the wrong current status (" + animal.getAnimalType() + ") of the animal", Util.ERROR);
 						}
 					}
 				}

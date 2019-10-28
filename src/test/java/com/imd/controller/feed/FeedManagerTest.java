@@ -325,8 +325,10 @@ class FeedManagerTest {
 			boolean nutritionalNeedsFound = false;
 			while (it.hasNext()) {
 				Animal anml = it.next();
-				if (anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode().equals(Util.FeedCohortType.UNDETERMINED))
+				if (anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode().equals(Util.FeedCohortType.UNDETERMINED)) {
 					undeterminedCount++;
+					IMDLogger.log("Could not determine the feed cohort of: " + anml.getAnimalTag(), Util.INFO);
+				}
 				if (anml.getAnimalTag().equals(nonPregHeiferTag)) {
 					assertEquals(Util.FeedCohortType.HEIFER,anml.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode());
 					nonPregHeiferFound = true;

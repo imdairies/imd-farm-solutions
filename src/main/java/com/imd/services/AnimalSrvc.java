@@ -76,40 +76,7 @@ public class AnimalSrvc {
 		return Response.status(200).entity(animalsJson).build(); 
     }
 
-//	/**
-//	 * Retrieves ALL the active animals in a farm
-//	 * @return
-//	 */
-//	@GET
-//	@Path("/animalpopulationdistribution")
-//	@Produces(MediaType.APPLICATION_JSON)
-//    public Response getAnimalPopulationDistribution() {
-//
-//		String animalsJson = "";
-//    	try {
-//			AnimalLoader loader = new AnimalLoader();
-//		 	List<Animal> animals = loader.retrieveActiveAnimals((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-//    		
-//			if (animals == null || animals.size() == 0)
-//			{
-//				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found\"}").build();
-//			}
-//	    	Iterator<Animal> animalIt = animals.iterator();
-//	    	while (animalIt.hasNext()) {
-//	    		Animal aimal = animalIt.next();
-//	    		animalsJson += "{\n" + aimal.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
-//	    	}
-//	    	animalsJson = "[" + animalsJson.substring(0,animalsJson.lastIndexOf(",\n")) + "]";
-//	    	IMDLogger.log(animalsJson, Util.INFO);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			IMDLogger.log("Exception in AnimalSrvc.getAnimalPopulationDistribution() service method: " + e.getMessage(),  Util.ERROR);
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
-//		}
-//		return Response.status(200).entity(animalsJson).build(); 
-//    }
-//	
-	
+
 	
 	@POST
 	@Path("/getgrowthdata")
@@ -148,6 +115,8 @@ public class AnimalSrvc {
     		double daysInCategory = 0;
     		double largestYAxisValue = 0;
     		double idealWtAtAge = 0;
+			int ageAtWeightMeasurement = Util.getDaysBetween(weights.get(recProcessed).getEventTimeStamp(), animalValue.getDateOfBirth());
+    		
 			for (int i=0; i<= animalValue.getCurrentAgeInDays(); i++) {
 				days += i;
 				if (i == 0) {
@@ -176,8 +145,8 @@ public class AnimalSrvc {
 				idealWtAtAge = Math.min(( offset + (daysInCategory * dailyWeightGain)), Util.MAX_BODY_WEIGHT);
 
 				idealWeight += Util.formatToSpecifiedDecimalPlaces(idealWtAtAge,1);
-				int ageAtWeightMeasurement = Util.getDaysBetween(weights.get(recProcessed).getEventTimeStamp(), animalValue.getDateOfBirth());
 				Double extrapolatedWeight = getExtrapolatedWeight(weights, animalValue.getDateOfBirth(),i);
+
 				if (extrapolatedWeight == null)
 					extrapolatedWeight = Double.parseDouble(lastMeasuredWeight);
 				else
@@ -188,15 +157,16 @@ public class AnimalSrvc {
 					animalWeight += Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(lastMeasuredWeight), 1);
 					recProcessed = recProcessed == 0 ? 0 : recProcessed-1;
 				} else {
-					animalWeight += Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(lastMeasuredWeight), 1);;
+					animalWeight += lastMeasuredWeight.isEmpty() ? "" : Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(lastMeasuredWeight), 1);
 				}	
 				
 				if (i < animalValue.getCurrentAgeInDays()) {
 					days += ",";
 					idealWeight += ",";
-					animalWeight += ",";
+//					animalWeight +=  (i >= ageAtLastWeightMeasurement ? "" : ",");
+					animalWeight +=  ",";
 				}
-				if (largestYAxisValue < Math.max(Double.parseDouble(lastMeasuredWeight), idealWtAtAge))
+				if (!lastMeasuredWeight.isEmpty() && largestYAxisValue < Math.max(Double.parseDouble(lastMeasuredWeight), idealWtAtAge))
 					largestYAxisValue = Math.max(Double.parseDouble(lastMeasuredWeight), idealWtAtAge);				
 
 				daysInCategory++;
@@ -691,11 +661,14 @@ public class AnimalSrvc {
     				tagInClause += (i==0 ? "'" : ",'") + tags[i].trim() + "'";
     			}
     			tagInClause = "(" + tagInClause + ")";
+    			searchBean.setAnimalTag(tagInClause);
     			
-       			animalValues = loader.retrieveSpecifiedAnimalTags(searchBean.getOrgID(), tagInClause);   			
-    		} else {
-    			animalValues = loader.retrieveMatchingAnimals(searchBean);
-    		}
+       			//animalValues = loader.retrieveSpecifiedAnimalTags(searchBean, tagInClause);   			
+//    			animalValues = loader.retrieveMatchingAnimals(searchBean);
+    		} 
+//    		else {
+			animalValues = loader.retrieveMatchingAnimals(searchBean);
+//    		}
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -896,7 +869,17 @@ public class AnimalSrvc {
     	try {
     		AnimalLoader loader = new AnimalLoader();
     		MilkingDetailLoader milkingLoader = new MilkingDetailLoader();
-			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(selectedDateSearchBean.getOrgID());
+    		List<Animal> animalValues = null;
+    		if (selectedDateSearchBean.getRecordDate().isBefore(LocalDate.now(IMDProperties.getServerTimeZone()))) {
+    			// a past date has been selected so we bring all animals who had a milk record for that date 
+    			animalValues = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(selectedDateSearchBean.getOrgID(),selectedDateSearchBean.getRecordDate(),selectedDateSearchBean.getMilkingEventNumber());    			
+    		} 
+    		if (animalValues == null || animalValues.size() == 0) {
+    			// case when the date is current or future OR when a past date does not have any milking entry. In such cases 
+    			// we bring in all currently lactating animals. 
+    			animalValues = loader.retrieveActiveLactatingAnimals(selectedDateSearchBean.getOrgID());
+    		}
+    		
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();

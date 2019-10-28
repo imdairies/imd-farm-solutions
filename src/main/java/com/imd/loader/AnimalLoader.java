@@ -305,31 +305,28 @@ public class AnimalLoader {
 		values.add(Util.LookupValues.LCYCL);
 		values.add(animalBean.getOrgID());		
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
-			qryString +=  " AND ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
-			values.add(animalBean.getAnimalTag());
-			if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
-				qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
-				values.add(animalBean.getAnimalType());
-			}
-		} else if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
+			if (animalBean.getAnimalTag().contains("("))
+				qryString +=  " AND A.ANIMAL_TAG IN  " + animalBean.getAnimalTag();
+			else
+				qryString +=  " AND A.ANIMAL_TAG IN  ('" + animalBean.getAnimalTag() + "')";
+//			qryString +=  " AND ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
+			//values.add(animalBean.getAnimalTag());
+		} 
+		if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
 			qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 			values.add(animalBean.getAnimalType());
 		}
 		if (animalBean.getGender() == 'M' || animalBean.getGender() == 'F') {
 			qryString +=  " AND GENDER ='" + animalBean.getGender() + "' " ;
-			
 		}
 		if (animalBean.getDam() != null && !animalBean.getDam().isEmpty()) {
-			qryString +=  " AND DAM_TAG ='" + animalBean.getDam() + "' " ;
-			
+			qryString +=  " AND DAM_TAG ='" + animalBean.getDam() + "' " ;			
 		}
 		if (animalBean.getSire() != null && !animalBean.getSire().isEmpty()) {
 			qryString +=  " AND SIRE_TAG ='" + animalBean.getSire() + "' " ;
-			
 		}
 		if (animalBean.getDateOfBirthStr() != null && !animalBean.getDateOfBirthStr().isEmpty()) {
 			qryString +=  " AND DOB >= '" + animalBean.getDateOfBirthStr() + "' " ;
-			
 		}
 		if (additionalQuery != null && !additionalQuery.trim().isEmpty()) 
 			qryString += " AND " + additionalQuery;
@@ -571,6 +568,43 @@ public class AnimalLoader {
 	    }
 	    return allMatchingValues;
 	}
+	
+	
+	public List<Animal> retrieveAnimalsMilkedAtSpecificMilkingEvent(String orgID, LocalDate milkDate, int milkingEvent) throws Exception {
+		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
+		String qryString = "Select A.*," + 
+				" B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, " + 
+				" C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR, " + 
+				" M.MILK_DATE, M.SEQ_NBR, M.MILK_TIME, M.VOL, M.VOL_UNIT, M.LR, M.FAT, M.TOXIN, M.TEMP_C, M.HUMIDITY, M.COMMENTS" +
+				" from ANIMALS A " + 
+				" 	JOIN MILK_LOG M ON M.ANIMAL_TAG=A.ANIMAL_TAG AND M.ORG_ID=A.ORG_ID " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND M.MILK_DATE=? AND M.SEQ_NBR=? ORDER BY A.ANIMAL_TAG";
+		List<String> values = new ArrayList<String> ();
+		values.add(orgID);
+		values.add(Util.getDateInSQLFormart(milkDate));
+		values.add(milkingEvent + "");
+		Animal animalValue = null;
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		preparedStatement = conn.prepareStatement(qryString);
+		Iterator<String> it = values.iterator();
+		int i=1;
+		while (it.hasNext())
+			preparedStatement.setString(i++,it.next());
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
+	    rs = preparedStatement.executeQuery();
+	    while (rs.next()) {
+	    	animalValue = getAnimalFromSQLRecord(rs);
+	    	allMatchingValues.add(animalValue);
+	    }
+	    return allMatchingValues;
+	}	
+	
 
 	public List<Animal> retrieveActivePregnantAnimals(String orgID) throws Exception {
 		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
