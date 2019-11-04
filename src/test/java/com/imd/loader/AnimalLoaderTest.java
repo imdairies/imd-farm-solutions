@@ -453,17 +453,19 @@ class AnimalLoaderTest {
 			assertEquals(0, sire.getSemenTbdCount().intValue());
 			
 
-			LifecycleEvent inseminationEvent = new LifecycleEvent(controller,0,damTag,Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(),user,DateTime.now());
+			LifecycleEvent inseminationEvent = new LifecycleEvent(controller,0,damTag,Util.LifeCycleEvents.INSEMINATE,
+					user,DateTime.now(IMDProperties.getServerTimeZone()),
+					user,DateTime.now(IMDProperties.getServerTimeZone()));
 			inseminationEvent.setAuxField1Value(sireTag);
 			inseminationEvent.setAuxField2Value(Util.NO.toUpperCase());
 			inseminationEvent.setAuxField3Value(Util.TBD);
 			inseminationEvent.setAuxField4Value(null);
 			inseminationEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
 			inseminationEvent.setEventTimeStamp(DateTime.now().minusMonths(6));
-			inseminationEvent.setCreatedBy(user);
-			inseminationEvent.setUpdatedBy(user);
-			inseminationEvent.setCreatedDTTM(DateTime.now());
-			inseminationEvent.setUpdatedDTTM(DateTime.now());
+//			inseminationEvent.setCreatedBy(user);
+//			inseminationEvent.setUpdatedBy(user);
+//			inseminationEvent.setCreatedDTTM(DateTime.now());
+//			inseminationEvent.setUpdatedDTTM(DateTime.now());
 			
 			evtLoader.deleteAnimalLifecycleEvents("IMD", sireTag);
 			evtLoader.deleteAnimalLifecycleEvents("IMD", damTag);

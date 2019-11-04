@@ -178,12 +178,13 @@ public class FarmSrvc {
 	    		if (animalValue.isPregnant() || animalValue.isInseminated()) {
 	    			List<LifecycleEvent> animalEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
 	    					animalValue.getAnimalTag(), 
-	    					LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
+	    					/*LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(INSEMINATION_SEARCH_WINDOW_DAYS)*/null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
 		    			//double daysSinceInseminated = Util.getDaysBetween( DateTime.now(IMDProperties.getServerTimeZone()), inseminatedDate);
-		    			if (!inseminatedDate.plusDays(Util.LACTATION_DURATION).isAfter(DateTime.now(IMDProperties.getServerTimeZone()).plusDays(EXPECTED_CALVING_THRESHOLD_DAYS)) && 
-	    					!inseminatedDate.plusDays(Util.LACTATION_DURATION).isBefore(DateTime.now(IMDProperties.getServerTimeZone()))) {
+		    			if (!inseminatedDate.plusDays(Util.LACTATION_DURATION).isAfter(DateTime.now(IMDProperties.getServerTimeZone()).plusDays(EXPECTED_CALVING_THRESHOLD_DAYS)) 
+		    				/* && 
+	    					!inseminatedDate.plusDays(Util.LACTATION_DURATION).isBefore(DateTime.now(IMDProperties.getServerTimeZone()))*/) {
 		    				expectedCalvingsInSpecifiedTimeWindowCount++;
 		    				expectedCalvingsInSpecifiedTimeWindowList += "," + animalValue.getAnimalTag();
 		    			}
