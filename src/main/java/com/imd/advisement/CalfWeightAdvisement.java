@@ -99,8 +99,8 @@ public class CalfWeightAdvisement extends AdvisementRule {
 							double weightIncrease = (double)(animalWeight1 - animalWeight2);
 							double rateOfGrowth = daysBetween == 0 ? 0d : (double)((weightIncrease) / (double)daysBetween);
 							animalNote = "This animal is " + currentAgeInDays + " days old and its last two measured weights are: " +
-									+ animalWeight1 + " Kgs. as of " +  Util.getDateInSQLFormart(lifeEvents.get(0).getEventTimeStamp())  + " and "
-									+ animalWeight2 + " Kgs. as of " +  Util.getDateInSQLFormart(lifeEvents.get(1).getEventTimeStamp()) + ". It grew at an average of " + Util.formatTwoDecimalPlaces(rateOfGrowth) + " Kgs/day in the last " + daysBetween + " days. ";
+									+ animalWeight1 + " Kgs. as of " +  Util.getDateInSQLFormat(lifeEvents.get(0).getEventTimeStamp())  + " and "
+									+ animalWeight2 + " Kgs. as of " +  Util.getDateInSQLFormat(lifeEvents.get(1).getEventTimeStamp()) + ". It grew at an average of " + Util.formatTwoDecimalPlaces(rateOfGrowth) + " Kgs/day in the last " + daysBetween + " days. ";
 							
 							if (rateOfGrowth <= thirdThreshold) {
 								ruleNote = ruleDto.getThirdThresholdMessage();

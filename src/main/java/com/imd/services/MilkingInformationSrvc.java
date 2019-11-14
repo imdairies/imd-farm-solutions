@@ -498,7 +498,7 @@ public class MilkingInformationSrvc {
     		}
     		Animal animal = animals.get(0);
     		IMDLogger.log(animal.getAnimalType(), Util.INFO);
-    		if (animal.getGender() != Util.GENDER.FEMALE) {
+    		if (animal.getGender() != Util.GENDER_CHAR.FEMALE) {
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information only applies to female animals\"}").build();    			
     		}
     		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.FEMALECALF)) {

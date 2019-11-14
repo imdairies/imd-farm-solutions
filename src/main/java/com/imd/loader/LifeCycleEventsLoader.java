@@ -366,9 +366,9 @@ public class LifeCycleEventsLoader {
 			if (auxField4Value != null)
 				preparedStatement.setString(index++, auxField4Value);
 			if (fromDate != null) 
-				preparedStatement.setString(index++, Util.getDateTimeInSQLFormart(fromDate));
+				preparedStatement.setString(index++, Util.getDateTimeInSQLFormat(fromDate));
 			if (toDate != null) 
-				preparedStatement.setString(index++, Util.getDateTimeInSQLFormart(toDate));
+				preparedStatement.setString(index++, Util.getDateTimeInSQLFormat(toDate));
 				
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 		    rs = preparedStatement.executeQuery();
@@ -637,26 +637,38 @@ public class LifeCycleEventsLoader {
 					}
 				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				validationMessage = "An exception occurred while trying to apply event validations. " + e.getMessage();
+			}
+		} else if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PARTURATE) && eventBean.getAuxField3Value() != null && !eventBean.getAuxField3Value().trim().isEmpty()) {
+			try {
+				List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean.getOrgID(),eventBean.getAuxField3Value().trim());
+				if (animals != null && !animals.isEmpty())
+					validationMessage = "You have assigned tag# " + eventBean.getAuxField3Value().trim() + " to the new born calf. This tag# is already in use. Please assign another tag#. If you do not wish to add the calf to the herd at this moment, please remove the tag# and try again";
+					
+			} catch (Exception e) {
+				e.printStackTrace();
+				validationMessage = "An exception occurred while trying to apply " + Util.LifeCycleEvents.PARTURATE + " event validations. " + e.getMessage();
 			}
 		}
 		return validationMessage;
 	}
-	public String performPostEventAdditionEventUpdate(LifecycleEvent event, Animal animal, User user) {
+	public String performPostEventAdditionEventsUpdates(LifecycleEvent event, Animal animal, User user) {
 		String additionalMessage = "";
-		IMDLogger.log("Checking if a related event needs to be updated..." + event, Util.INFO);
+		IMDLogger.log("Checking if this event addition warrants additional record updates ..." + event, Util.INFO);
 		
 		additionalMessage = updateLastInseminationOutcome(event, user, additionalMessage);
 		additionalMessage += updateHerdLeavingDttm(event, animal, user);
 		IMDLogger.log(additionalMessage, Util.INFO);			
 
 		if (additionalMessage == null || additionalMessage.isEmpty())
-				IMDLogger.log("No related event needs to be updated.", Util.INFO);
+				IMDLogger.log("No additional cascaded updates required.", Util.INFO);
 		return additionalMessage;
 	}
 
+	
+	
+	
 	private String updateHerdLeavingDttm(LifecycleEvent event, Animal animal, User user) {
 		String outcome = "";
 		try {

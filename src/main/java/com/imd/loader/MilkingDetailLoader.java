@@ -62,7 +62,7 @@ public class MilkingDetailLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, (milkingRecord.getOrgID() == null ? null : milkingRecord.getOrgID()));
 			preparedStatement.setString(2, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
-			preparedStatement.setString(3, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormart(milkingRecord.getRecordDate())));
+			preparedStatement.setString(3, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingRecord.getRecordDate())));
 			preparedStatement.setShort(4, milkingRecord.getMilkingEventNumber());
 			preparedStatement.setString(5, (milkingRecord.getRecordTime() == null ? null : Util.getTimeInSQLFormart(milkingRecord.getRecordTime())));
 			preparedStatement.setString(6, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getMilkVolume().toString());
@@ -74,9 +74,9 @@ public class MilkingDetailLoader {
 			preparedStatement.setString(12,  (milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
 			preparedStatement.setString(13, milkingRecord.getComments());
 			preparedStatement.setString(14, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(15, Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(15, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
 			preparedStatement.setString(16, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(17, Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(17, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
@@ -132,10 +132,10 @@ public class MilkingDetailLoader {
 			preparedStatement.setString(8,  (milkingRecord.getMilkVolume() == null || milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
 			preparedStatement.setString(9, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getComments());
 			preparedStatement.setString(10, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(11, Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(11, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
 			preparedStatement.setString(12, (milkingRecord.getOrgID() == null ? null : milkingRecord.getOrgID()));
 			preparedStatement.setString(13, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
-			preparedStatement.setString(14, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormart(milkingRecord.getRecordDate())));
+			preparedStatement.setString(14, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingRecord.getRecordDate())));
 			preparedStatement.setShort(15, milkingRecord.getMilkingEventNumber());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
@@ -161,12 +161,12 @@ public class MilkingDetailLoader {
 	
 	
 	public int deleteMilkingRecordOfaDay(String orgID, String animalTag, LocalDate recordDate) {
-		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "' AND MILK_DATE='" + Util.getDateInSQLFormart(recordDate) + "'";
+		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "' AND MILK_DATE='" + Util.getDateInSQLFormat(recordDate) + "'";
 		return performDeletion(qryString);
 	}
 	public int deleteOneMilkingRecord(String orgID, String animalTag, LocalDate recordDate, int sequenceNbr) {
 		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + 
-				"' AND MILK_DATE='" + Util.getDateInSQLFormart(recordDate) + "' AND SEQ_NBR=" + sequenceNbr;
+				"' AND MILK_DATE='" + Util.getDateInSQLFormat(recordDate) + "' AND SEQ_NBR=" + sequenceNbr;
 		return performDeletion(qryString);
 	}
 	private int performDeletion(String qryString) {
@@ -252,7 +252,7 @@ public class MilkingDetailLoader {
 		List<String> values = new ArrayList<String> ();
 		values.add(milkingSearchParam.getOrgID());
 		values.add(milkingSearchParam.getAnimalTag());
-		values.add(Util.getDateInSQLFormart(milkingSearchParam.getRecordDate()));
+		values.add(Util.getDateInSQLFormat(milkingSearchParam.getRecordDate()));
 		values.add("" + milkingSearchParam.getMilkingEventNumber());
 		return readRecords(qryString, values);
 	}
@@ -652,7 +652,7 @@ public class MilkingDetailLoader {
 						List<String> values = new ArrayList<String> ();
 						values.add(orgID);
 						values.add(animalTag);
-						values.add(Util.getDateTimeInSQLFormart(dimWindowStart));
+						values.add(Util.getDateTimeInSQLFormat(dimWindowStart));
 						ArrayList <MilkingDetail> milkRecords = readRecords(qryString, values);
 						if (milkRecords == null || milkRecords.isEmpty())
 							dim = NO_MILK_RECORD_FOUND_AFTER_PARTURATION;

@@ -205,7 +205,7 @@ public class FarmSrvc {
 				value = values.get(startFrom.plusMonths(i).getYear() + "-" + startFrom.plusMonths(i).getMonthOfYear());
 				
 				//yearMonthCalving += ",\"" + startFrom.plusMonths(i).getYear() + "-" + startFrom.plusMonths(i).getMonthOfYear() + "\"";
-				yearMonthCalving += ",\"" + Util.getDateInSpecifiedFormart(new DateTime(startFrom.plusMonths(i).getYear(),
+				yearMonthCalving += ",\"" + Util.getDateInSpecifiedFormat(new DateTime(startFrom.plusMonths(i).getYear(),
 						startFrom.plusMonths(i).getMonthOfYear(),1,0,0,IMDProperties.getServerTimeZone()),"MMM yyyy") + "\"";
 				yearMonthCalvingCount += "," + (value == null ? "0" : value);
 			}

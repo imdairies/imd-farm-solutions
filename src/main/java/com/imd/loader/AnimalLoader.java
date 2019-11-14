@@ -69,10 +69,10 @@ public class AnimalLoader {
 			preparedStatement.setString(index++,  (animal.getAlias() == null ? null : animal.getAlias()));
 			preparedStatement.setString(index++,  (animal.getBreed() == null ? null : animal.getBreed()));
 			preparedStatement.setString(index++,  (animal.getAnimalTypeCD() == null ? (animal.getAnimalType() == null ? null : animal.getAnimalType()) : animal.getAnimalTypeCD()));
-			preparedStatement.setString(index++,  (animal.getDateOfBirth() == null ? null : Util.getDateTimeInSQLFormart(animal.getDateOfBirth())));
+			preparedStatement.setString(index++,  (animal.getDateOfBirth() == null ? null : Util.getDateTimeInSQLFormat(animal.getDateOfBirth())));
 			preparedStatement.setString(index++,  (animal.isDateOfBirthEstimated() ? "N" : "Y"));
-			preparedStatement.setString(index++,  (animal.getHerdJoiningDate() == null ? null :Util.getDateTimeInSQLFormart(animal.getHerdJoiningDate())));
-			preparedStatement.setString(index++,  (animal.getHerdLeavingDate() == null ? null :Util.getDateTimeInSQLFormart(animal.getHerdLeavingDate())));
+			preparedStatement.setString(index++,  (animal.getHerdJoiningDate() == null ? null :Util.getDateTimeInSQLFormat(animal.getHerdJoiningDate())));
+			preparedStatement.setString(index++,  (animal.getHerdLeavingDate() == null ? null :Util.getDateTimeInSQLFormat(animal.getHerdLeavingDate())));
 			preparedStatement.setString(index++, (animal.getGender() == ' ' ? null : animal.getGender() + ""));
 			preparedStatement.setString(index++, (animal.getAnimalDam() == null ? null : animal.getAnimalDam().getAnimalTag()));
 			preparedStatement.setString(index++, (animal.getAnimalSire() == null ? null : animal.getAnimalSire().getAnimalTag()));
@@ -148,9 +148,9 @@ public class AnimalLoader {
 			preparedStatement.setFloat(11, sireBean.getCurrentConventionalListPrice());
 			preparedStatement.setFloat(12, sireBean.getDiscountConventionalPercentage());
 			preparedStatement.setString(13, (createdByUser == null ? null : createdByUser));
-			preparedStatement.setString(14, (createdDttm == null ? null : Util.getDateTimeInSQLFormart(createdDttm)));
+			preparedStatement.setString(14, (createdDttm == null ? null : Util.getDateTimeInSQLFormat(createdDttm)));
 			preparedStatement.setString(15,(updatedByUser == null ? null : updatedByUser));
-			preparedStatement.setString(16,(updatedDttm == null ? null : Util.getDateTimeInSQLFormart(updatedDttm)));
+			preparedStatement.setString(16,(updatedDttm == null ? null : Util.getDateTimeInSQLFormat(updatedDttm)));
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
 			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
@@ -585,7 +585,7 @@ public class AnimalLoader {
 				" WHERE A.ORG_ID=? AND M.MILK_DATE=? AND M.SEQ_NBR=? ORDER BY A.ANIMAL_TAG";
 		List<String> values = new ArrayList<String> ();
 		values.add(orgID);
-		values.add(Util.getDateInSQLFormart(milkDate));
+		values.add(Util.getDateInSQLFormat(milkDate));
 		values.add(milkingEvent + "");
 		Animal animalValue = null;
 		ResultSet rs = null;
@@ -717,7 +717,7 @@ public class AnimalLoader {
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND A.DOB >=? ORDER BY DOB ASC";
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
-		values.add(Util.getDateInSQLFormart(bornAfterDate));
+		values.add(Util.getDateInSQLFormat(bornAfterDate));
 		return retrieveAnimalTypes(values, qryString);
 	}	
 	
@@ -855,7 +855,7 @@ public class AnimalLoader {
 		List<String> values = new ArrayList<String>();
 		values.add( Util.LookupValues.LCYCL);
 		values.add(orgId);
-		values.add(Util.getDateTimeInSQLFormart(dob));	
+		values.add(Util.getDateTimeInSQLFormat(dob));	
 		return retrieveAnimalTypes(values, qryString);
 	}
 
@@ -897,8 +897,8 @@ public class AnimalLoader {
 		try {
 			Connection conn = DBManager.getDBConnection();		
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, Util.getDateInSQLFormart(date));
-			preparedStatement.setString(2, Util.getDateInSQLFormart(date));
+			preparedStatement.setString(1, Util.getDateInSQLFormat(date));
+			preparedStatement.setString(2, Util.getDateInSQLFormat(date));
 			IMDLogger.log(preparedStatement.toString(),Util.INFO);		
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
@@ -1002,7 +1002,7 @@ public class AnimalLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(index++, timeStamp);
 			preparedStatement.setString(index++, user.getUserId());
-			preparedStatement.setString(index++, Util.getDateTimeInSQLFormart(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(index++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
 			preparedStatement.setString(index++, orgID);
 			preparedStatement.setString(index++, animalTag);
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
@@ -1091,8 +1091,8 @@ public class AnimalLoader {
 		
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
-		values.add(Util.getDateTimeInSQLFormart(startDate));
-		values.add(Util.getDateTimeInSQLFormart(endDate));
+		values.add(Util.getDateTimeInSQLFormat(startDate));
+		values.add(Util.getDateTimeInSQLFormat(endDate));
 		
 		HashMap<String,String> monthAndCount = new HashMap<String,String>();
 		ResultSet rs = null;

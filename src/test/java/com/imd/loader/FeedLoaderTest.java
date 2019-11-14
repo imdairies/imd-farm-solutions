@@ -230,9 +230,9 @@ class FeedLoaderTest {
 				assertEquals(req.getCrudeProtein(),dietReq.getCrudeProtein());
 				assertEquals(req.getMetabloizableEnergy(),dietReq.getMetabloizableEnergy());
 				assertEquals(req.getCreatedBy().getUserId(),dietReq.getCreatedBy().getUserId());
-				assertEquals(Util.getDateTimeInSQLFormart(req.getCreatedDTTM()),Util.getDateTimeInSQLFormart(dietReq.getCreatedDTTM()));
+				assertEquals(Util.getDateTimeInSQLFormat(req.getCreatedDTTM()),Util.getDateTimeInSQLFormat(dietReq.getCreatedDTTM()));
 				assertEquals(req.getUpdatedBy().getUserId(),dietReq.getUpdatedBy().getUserId());
-				assertEquals(Util.getDateTimeInSQLFormart(req.getUpdatedDTTM()),Util.getDateTimeInSQLFormart(dietReq.getUpdatedDTTM()));
+				assertEquals(Util.getDateTimeInSQLFormat(req.getUpdatedDTTM()),Util.getDateTimeInSQLFormat(dietReq.getUpdatedDTTM()));
 				break;
 			}
 			
@@ -250,9 +250,9 @@ class FeedLoaderTest {
 					assertEquals(req.getCrudeProtein(),dietReq.getCrudeProtein());
 					assertEquals(req.getMetabloizableEnergy(),dietReq.getMetabloizableEnergy());
 					assertEquals(req.getCreatedBy().getUserId(),dietReq.getCreatedBy().getUserId());
-					assertEquals(Util.getDateTimeInSQLFormart(req.getCreatedDTTM()),Util.getDateTimeInSQLFormart(dietReq.getCreatedDTTM()));
+					assertEquals(Util.getDateTimeInSQLFormat(req.getCreatedDTTM()),Util.getDateTimeInSQLFormat(dietReq.getCreatedDTTM()));
 					assertEquals(req.getUpdatedBy().getUserId(),dietReq.getUpdatedBy().getUserId());
-					assertEquals(Util.getDateTimeInSQLFormart(req.getUpdatedDTTM()),Util.getDateTimeInSQLFormart(dietReq.getUpdatedDTTM()));
+					assertEquals(Util.getDateTimeInSQLFormat(req.getUpdatedDTTM()),Util.getDateTimeInSQLFormat(dietReq.getUpdatedDTTM()));
 				}
 			}
 			dietReq.setFeedCohortCD("LAC_TST");

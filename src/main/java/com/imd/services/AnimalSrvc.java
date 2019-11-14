@@ -237,7 +237,7 @@ public class AnimalSrvc {
 	@Path("/addanimal")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addAnimal(AnimalBean animalBean){
-		Animal animal = null;			
+		Animal animal = null;
 		String tag = animalBean.getAnimalTag();
 		String alias  = animalBean.getAlias();
 		String typeCD = animalBean.getAnimalType();
@@ -496,7 +496,7 @@ public class AnimalSrvc {
 		eventBean.setAnimalTag(animalDto.getAnimalTag());
 		eventBean.setEventComments("This birth event was automatically created during creation of the new animal");
 		eventBean.setEventCode(Util.LifeCycleEvents.BIRTH);
-		eventBean.setEventTimeStamp(Util.getDateTimeInSQLFormart(animalDto.getDateOfBirth()));
+		eventBean.setEventTimeStamp(Util.getDateTimeInSQLFormat(animalDto.getDateOfBirth()));
 		eventBean.setAuxField1Value(animalDto.getAnimalSire() == null ? "UNKNOWN" : animalDto.getAnimalSire().getAnimalTag());
 		eventBean.setAuxField2Value(animalDto.getAnimalDam() == null ? "" : animalDto.getAnimalDam().getAnimalTag());
 		//TODO: May be also add a parturition event automatically for the Dam ?
@@ -1017,7 +1017,7 @@ public class AnimalSrvc {
     		}
     		Animal animal = animals.get(0);
     		IMDLogger.log(animal.getAnimalType(), Util.INFO);
-    		if (animal.getGender() != Util.GENDER.FEMALE) {
+    		if (animal.getGender() != Util.GENDER_CHAR.FEMALE) {
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information only applies to female animals\"}").build();    			
     		}
     		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.FEMALECALF)) {
@@ -1117,7 +1117,7 @@ public class AnimalSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveFarmSire(AnimalBean searchBean){
 		String sireValueResult = "";
-    	searchBean.setGender(Util.GENDER.MALE);
+    	searchBean.setGender(Util.GENDER_CHAR.MALE);
     	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	searchBean.setActiveOnly(true);
     	IMDLogger.log(searchBean.toString(), Util.INFO);

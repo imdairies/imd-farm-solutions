@@ -82,6 +82,12 @@ public class Util {
 	public static final double DAILY_WEIGHT_GAIN_YEAR5 = 0.0625d;
 	public static final double MAX_BODY_WEIGHT = 650d;
 
+	public static final class Gender {
+		public static final String FEMALE = "FEMALE";
+		public static final String MALE = "MALE";
+		
+	}
+
 	
 	
 	public static final class DefaultValues {
@@ -220,7 +226,7 @@ public class Util {
 		public static final String FARPRTRT = "FARPRTRT";
 	}
 
-	 public static final class GENDER {
+	 public static final class GENDER_CHAR {
 		public static final char MALE = 'M';
 		public static final char FEMALE = 'F';
 		public static final char UNKNOWN = 'U';
@@ -275,22 +281,22 @@ public class Util {
 		return originalValue.replaceAll(escapeSequence, "");
 	}
 	
-	public static String getDateTimeInSQLFormart(DateTime dttm) {
+	public static String getDateTimeInSQLFormat(DateTime dttm) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 		return fmt.print(dttm);
 	}
-	public static String getDateTimeInSpecifiedFormart(DateTime dttm, String format) {
+	public static String getDateTimeInSpecifiedFormat(DateTime dttm, String format) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
 		return fmt.print(dttm);
 	}
-	public static String getDateInSQLFormart(LocalDate dt) {
+	public static String getDateInSQLFormat(LocalDate dt) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
 		return fmt.print(dt);
 	}
-	public static String getDateInSQLFormart(DateTime dttm) {
-		return getDateInSpecifiedFormart(dttm,"yyyy-MM-dd");
+	public static String getDateInSQLFormat(DateTime dttm) {
+		return getDateInSpecifiedFormat(dttm,"yyyy-MM-dd");
 	}
-	public static String getDateInSpecifiedFormart(DateTime dttm, String format) {
+	public static String getDateInSpecifiedFormat(DateTime dttm, String format) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
 		return fmt.print(dttm);
 	}
@@ -450,7 +456,7 @@ public class Util {
 		}
 		try {
 			LocalDate milkingDate = new LocalDate(records[0].trim());
-			bean.setMilkingDateStr(Util.getDateInSQLFormart(milkingDate));
+			bean.setMilkingDateStr(Util.getDateInSQLFormat(milkingDate));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see milking date, milking time and event number (yyyy-mm-dd" + FILE_RECORD_SEPARATOR + "hh:mm" + FILE_RECORD_SEPARATOR + "n) but found (" + line + ") which does not comply with the expected format. Milking Date does not seem to be in correct format";

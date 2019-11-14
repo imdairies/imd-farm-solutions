@@ -348,24 +348,96 @@ public class LifecycleEventSrvc {
 			else 
 				return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
 		} else {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + Util.encodeJson(validationResult) + ". '" + Util.encodeJson(eventCode) + "' could not be added.\"}").build();			
+			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + Util.encodeJson(validationResult) + ". The event '" + Util.encodeJson(eventCode) + "' could not be added.\"}").build();			
 		}
 	}
 
 	private String performPostEventAdditionSteps(LifeCycleEventBean eventBean, LifecycleEvent event, Animal animal, User user) {
 		String additionalMessage = performPostEventAdditionLifecycleStageUpdate(eventBean, animal, user);
 		additionalMessage += performPostEventAdditionInventoryUpdate(eventBean, animal, user);
-		additionalMessage += (new LifeCycleEventsLoader()).performPostEventAdditionEventUpdate(event, animal, user);
+		additionalMessage += (new LifeCycleEventsLoader()).performPostEventAdditionEventsUpdates(event, animal, user);
+		additionalMessage += insertCalf(event, animal, user);
 		additionalMessage += performPostEventAdditionInfomationProcessing(event, animal, user);
 		
 		return additionalMessage;
 	}
+	
+	
+	private String insertCalf(LifecycleEvent event, Animal animal, User user) {
+		AnimalBean calfBean = new AnimalBean();
+		try {
+			if (!event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PARTURATE) || event.getAuxField3Value() == null || event.getAuxField3Value().trim().isEmpty())
+				return "";
+			calfBean.setAnimalTag(event.getAuxField3Value().trim());
+	
+			String gender = event.getAuxField1Value();
+			if (gender == null || !(gender.equalsIgnoreCase(Util.Gender.FEMALE) || gender.equalsIgnoreCase(Util.Gender.MALE)))
+					return ". " + Util.ERROR_POSTFIX + "The gender of the calf is invalid (" + gender + "). The calf will not be automatically added. Please add the calf manually";
+			if (gender.equalsIgnoreCase(Util.Gender.FEMALE)) {
+				calfBean.setGender(Util.GENDER_CHAR.FEMALE);
+				calfBean.setAnimalType(Util.AnimalTypes.FEMALECALF);
+			} else { 
+				calfBean.setGender(Util.GENDER_CHAR.MALE);
+				calfBean.setAnimalType(Util.AnimalTypes.MALECALF);
+			}
+			
+			if (event.getEventTimeStamp() == null)
+				return ". " + Util.ERROR_POSTFIX + "The calf date of birth has not been specified. The calf will not be automatically added. Please add the calf manually";
+			
+			calfBean.setDateOfBirthStr(Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp(),"MM/dd/yyyy, hh:mm:ss aa"));
+			calfBean.setBreed(animal.getBreed());
+			calfBean.setDam(animal.getAnimalTag());
+			calfBean.setOrgID(animal.getOrgID());
+			calfBean.setDobAccuracyInd(Util.YES);
+			calfBean.setHerdJoiningDttmStr(calfBean.getDateOfBirthStr());
+	
+			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+			List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
+			if (events == null || events.isEmpty())
+				return ". " + Util.ERROR_POSTFIX + "No insemination or mating event found for this animal. "
+						+ "This indicates that you have not added a corresponding mating/insemination event for the parturition. "
+						+ "The calf will not be automatically added. Please add the calf manually";
+			LifecycleEvent conceptionEvent = events.get(0);
+			DateTime inseminationOrMatingTS = conceptionEvent.getEventTimeStamp();
+			if (inseminationOrMatingTS == null)
+				return ". " + Util.ERROR_POSTFIX + "An invalid insemination or mating event was found for this animal. "
+				+ "Please view the latest insemination/mating event for this animal and fix the data discrepancy in that event. "
+				+ "The calf will not be automatically added. Please add the calf manually";
+			int daysBetweenCalvingAndInsemination = Util.getDaysBetween(event.getEventTimeStamp(), inseminationOrMatingTS);
+			if (daysBetweenCalvingAndInsemination < (Util.LACTATION_DURATION - 20) ||  
+				daysBetweenCalvingAndInsemination > (Util.LACTATION_DURATION + 20))
+				return ". " + Util.ERROR_POSTFIX + "An invalid insemination or mating event was found for this animal. It seems that the insemination/mating event was " + daysBetweenCalvingAndInsemination + " days ago, which doesn't seem to be correct. "
+				+ "Please view the latest insemination/mating event for this animal and fix the data discrepancy in that event. "
+				+ "The calf will not be automatically added. Please add the calf manually";
+	
+			if (conceptionEvent.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.INSEMINATE)) {
+				calfBean.setAiInd(Util.YES);
+				calfBean.setSire(conceptionEvent.getAuxField1Value());
+			} else {
+				calfBean.setAiInd(Util.NO);
+				calfBean.setSire(conceptionEvent.getAuxField1Value());
+			}
+			
+			AnimalSrvc animalSrvc = new AnimalSrvc();
+			String calfAdditionResponse = animalSrvc.addAnimal(calfBean).getEntity().toString();
+			if (calfAdditionResponse.indexOf("\"error\": false") >= 0)
+				return "The calf with the tag# " + calfBean.getAnimalTag() + " has been successfully added to the herd";
+			else 	
+				return ". " + Util.ERROR_POSTFIX + "Calf could not be added to the herd. Please add the calf manually. The AnimalSrvc returned the following response: {" + calfAdditionResponse + "}";
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return ". " + Util.ERROR_POSTFIX + "The calf could not be added automatically. Please add the calf manually using Add Animal feature (" + ex.getMessage() + ").";
+		}
+	}
+	
+	
 
 	private String performPostEventAdditionInfomationProcessing(LifecycleEvent event, Animal animal, User user) {
 		String message = "";
 		if (event.getEventType().getEventCode().equals(Util.LifeCycleEvents.HEAT)) {
-			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormart(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd HH:mm a") +
-					" - " + Util.getDateTimeInSpecifiedFormart(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd HH:mm a")
+			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd HH:mm a") +
+					" - " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd HH:mm a")
 					+ " (i.e. 12-18 hours after the standing heat)";			
 		}
 		return message;

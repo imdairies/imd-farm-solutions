@@ -52,7 +52,7 @@ class UtilTest {
 			assertEquals(null,farmBean.getLrValue());
 			assertEquals(null,farmBean.getToxinValue());
 			assertEquals(32.3f,farmBean.getTemperatureInCentigrade().floatValue());
-			assertEquals("2019-01-01",Util.getDateInSQLFormart(farmBean.getRecordDate()));
+			assertEquals("2019-01-01",Util.getDateInSQLFormat(farmBean.getRecordDate()));
 			assertEquals("2019-01-01",farmBean.getMilkingDateStr());
 			assertEquals("04:00",Util.getTimeInSQLFormart(farmBean.getRecordTime()));
 			assertEquals(1,farmBean.getMilkingEventNumber());
@@ -74,7 +74,7 @@ class UtilTest {
 			assertEquals(28.5,farmBean.getLrValue().floatValue());
 			assertEquals(null,farmBean.getToxinValue());
 			assertEquals(16f,farmBean.getTemperatureInCentigrade().floatValue());
-			assertEquals("2019-02-02",Util.getDateInSQLFormart(farmBean.getRecordDate()));
+			assertEquals("2019-02-02",Util.getDateInSQLFormat(farmBean.getRecordDate()));
 			assertEquals("2019-02-02",farmBean.getMilkingDateStr());
 			assertEquals("12:00",Util.getTimeInSQLFormart(farmBean.getRecordTime()));
 			assertEquals(2,farmBean.getMilkingEventNumber());
