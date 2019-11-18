@@ -28,7 +28,7 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 
 
 	@Override
-	public List<Animal> getAdvisementRuleAddressablePopulation(String orgId) {
+	public List<Animal> applyAdvisementRule(String orgId, String languageCd) {
 		List<Animal> eligiblePopulation = new ArrayList<Animal>();
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
@@ -219,17 +219,6 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 	}
 
 
-	@Override
-	public HashMap<Animal, String> applyAdvisementRule(List<Animal> addressablePopulation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HashMap<Animal, Integer> channelAdvisementRuleOutcome(List<Animal> addressablePopulation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	
 	private String getFeedItemCode(String auxInfo) {
 		String code = "";

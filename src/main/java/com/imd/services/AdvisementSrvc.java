@@ -37,11 +37,12 @@ public class AdvisementSrvc {
 			return Response.status(200).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
 			
 		String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
+		String langCd = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD);
 		List<Advisement> activeRules = loader.getAllActiveRules(orgId);
 		AdvisementRuleManager advManager = new AdvisementRuleManager();
 
 		List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,
-				advBean.isThreshold1Violated(),advBean.isThreshold2Violated(),advBean.isThreshold3Violated());			
+				advBean.isThreshold1Violated(),advBean.isThreshold2Violated(),advBean.isThreshold3Violated(), langCd);			
 
 		String mapKey = "";
 		HashMap<String, AnimalAdvisement> advJson = new HashMap<String, AnimalAdvisement>();
@@ -87,11 +88,12 @@ public class AdvisementSrvc {
 		IMDLogger.log(advBean.toString(), Util.INFO);
 //		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
+		String langCd = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD);
 		List<Advisement> activeRules = loader.getAllActiveRules(orgId);
 		AdvisementRuleManager advManager = new AdvisementRuleManager();
 
 		List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,
-				advBean.isThreshold1Violated(),advBean.isThreshold2Violated(),advBean.isThreshold3Violated());			
+				advBean.isThreshold1Violated(),advBean.isThreshold2Violated(),advBean.isThreshold3Violated(), langCd);			
 
 		String mapKey = "";
 		HashMap<String, AnimalAdvisement> advJson = new HashMap<String, AnimalAdvisement>();

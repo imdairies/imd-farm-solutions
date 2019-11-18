@@ -66,6 +66,10 @@ public class Util {
 	public static final String NO = "NO";
 	public static final String TBD = "TBD";
 	
+	public static final String Y = "Y";
+	public static final String N = "N";
+	
+	
 	public static final String FILE_NEW_LINE_SEPARATOR = "\n";
 	public static final String FILE_RECORD_SEPARATOR = "\t";
 	private static final String FILE_FIELD_ESCAPE_SEQUENCE = "\\";
@@ -81,6 +85,18 @@ public class Util {
 	public static final double DAILY_WEIGHT_GAIN_YEAR4 = 0.125d;
 	public static final double DAILY_WEIGHT_GAIN_YEAR5 = 0.0625d;
 	public static final double MAX_BODY_WEIGHT = 650d;
+
+	public static final class CurrencyCode {
+		public static final String PKR = "PKR";
+		public static final String USD = "USD";
+		
+	}
+
+	public static final class LanguageCode {
+		public static final String ENG = "ENG";
+		public static final String URD = "URD";
+		
+	}
 
 	public static final class Gender {
 		public static final String FEMALE = "FEMALE";
@@ -243,6 +259,8 @@ public class Util {
 			public static final String FIRST_MILKING_TIME = "FIRST_MILKING_TIME";
 			public static final String SECOND_MILKING_TIME = "SECOND_MILKING_TIME";
 			public static final String THIRD_MILKING_TIME = "THIRD_MILKING_TIME";
+			public static final String LANG_CD = "LANG_CD";
+			public static final String TOKEN_EXPIRY_MINUTES = "TOKEN_EXPIRY_MINUTES";
 		}
 
 	 

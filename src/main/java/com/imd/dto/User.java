@@ -9,6 +9,9 @@ public class User extends IMDairiesDTO {
 	private Person accountHolder;
 	private char gender;
 	private DateTime dateOfBirth;
+	private String personId;
+	private String preferredLanguage;
+	private String preferredCurrency;
 	public User(String userID) {
 		this.userId = userID;
 	}
@@ -47,6 +50,24 @@ public class User extends IMDairiesDTO {
 	}
 	public void setGender(char gender) {
 		this.gender = gender;
+	}
+	public String getPersonId() {
+		return personId;
+	}
+	public void setPersonId(String personId) {
+		this.personId = personId;
+	}
+	public String getPreferredLanguage() {
+		return preferredLanguage;
+	}
+	public void setPreferredLanguage(String preferredLanguage) {
+		this.preferredLanguage = preferredLanguage;
+	}
+	public String getPreferredCurrency() {
+		return preferredCurrency;
+	}
+	public void setPreferredCurrency(String preferredCurrency) {
+		this.preferredCurrency = preferredCurrency;
 	}
 	
 

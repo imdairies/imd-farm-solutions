@@ -3,7 +3,6 @@ package com.imd.dto;
 import org.joda.time.format.DateTimeFormatter;
 
 public class Advisement extends IMDairiesDTO {
-	private String orgId;
 	private String advisementID;
 	private String shortDescription;
 	private String longDescription;
@@ -12,6 +11,9 @@ public class Advisement extends IMDairiesDTO {
 	private float firstThreshold;
 	private float secondThreshold;
 	private float thirdThreshold;
+	private int firstThresholdMessageCode;
+	private int secondThresholdMessageCode;
+	private int thirdThresholdMessageCode;
 	private String firstThresholdMessage;
 	private String secondThresholdMessage;
 	private String thirdThresholdMessage;
@@ -25,12 +27,7 @@ public class Advisement extends IMDairiesDTO {
 	private String auxInfo4;
 	private String auxInfo5;
 	
-	public String getOrgId() {
-		return orgId;
-	}
-	public void setOrgId(String orgId) {
-		this.orgId = orgId;
-	}
+
 	public float getSecondThreshold() {
 		return secondThreshold;
 	}
@@ -186,5 +183,23 @@ public class Advisement extends IMDairiesDTO {
 	}
 	public void setAuxInfo5(String auxInfo5) {
 		this.auxInfo5 = auxInfo5;
+	}
+	public int getFirstThresholdMessageCode() {
+		return firstThresholdMessageCode;
+	}
+	public void setFirstThresholdMessageCode(int firstThresholdMessageCode) {
+		this.firstThresholdMessageCode = firstThresholdMessageCode;
+	}
+	public int getSecondThresholdMessageCode() {
+		return secondThresholdMessageCode;
+	}
+	public void setSecondThresholdMessageCode(int secondThresholdMessageCode) {
+		this.secondThresholdMessageCode = secondThresholdMessageCode;
+	}
+	public int getThirdThresholdMessageCode() {
+		return thirdThresholdMessageCode;
+	}
+	public void setThirdThresholdMessageCode(int thirdThresholdMessageCode) {
+		this.thirdThresholdMessageCode = thirdThresholdMessageCode;
 	}
 }

@@ -35,7 +35,7 @@ public class AdvisementRuleManager {
 		advisementRulesMap.put(Util.AdvisementRules.MASTITIS, new MastitisTestAdvisement());
 	}
 
-	public List<AnimalAdvisement> executeAllRules(List<Advisement> activeRules, boolean includeThreshold1, boolean includeThreshold2, boolean includeThreshold3) {
+	public List<AnimalAdvisement> executeAllRules(List<Advisement> activeRules, boolean includeThreshold1, boolean includeThreshold2, boolean includeThreshold3, String languageCd) {
 		List<AnimalAdvisement> advisementOutcomes = new ArrayList<AnimalAdvisement> ();
 		if (activeRules != null && !activeRules.isEmpty()) {
 			Iterator<Advisement> advRuleIt = activeRules.iterator();
@@ -43,7 +43,7 @@ public class AdvisementRuleManager {
 				Advisement advConfig = advRuleIt.next();
 				AdvisementRule advRule = advisementRulesMap.get(advConfig.getAdvisementID());
 				if (advRule != null) {
-					List <Animal> animalsInViolation = advRule.getAdvisementRuleAddressablePopulation(advConfig.getOrgId());
+					List <Animal> animalsInViolation = advRule.applyAdvisementRule(advConfig.getOrgID(), languageCd);
 					if (animalsInViolation != null && !animalsInViolation.isEmpty()) {
 						Iterator<Animal> it = animalsInViolation.iterator();
 						while (it.hasNext()) {

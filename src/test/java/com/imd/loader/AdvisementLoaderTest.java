@@ -134,7 +134,7 @@ class AdvisementLoaderTest {
 			int transTh3Violation = animalLoader.insertAnimal(th3Violation);
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 
-			List<Animal> animalPop = weanOffHeatAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = weanOffHeatAdvisement.applyAdvisementRule("IMD", null);
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
@@ -239,7 +239,7 @@ class AdvisementLoaderTest {
 			
 			
 			CalfWeightAdvisement adv = new CalfWeightAdvisement();
-			List<Animal> advAnml = adv.getAdvisementRuleAddressablePopulation(youngAnimalOk.getOrgID());
+			List<Animal> advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgID(), null);
 			assertTrue(advAnml != null && advAnml.size() >= 3, " At least three animals should have been retrieved");
 			Iterator<Animal> it = advAnml.iterator();
 			while (it.hasNext()) {
@@ -305,7 +305,7 @@ class AdvisementLoaderTest {
 			evtLoader.insertLifeCycleEvent(weightEvent2);
 			evtLoader.insertLifeCycleEvent(weightEvent1);
 
-			advAnml = adv.getAdvisementRuleAddressablePopulation(youngAnimalOk.getOrgID());
+			advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgID(), null);
 			assertTrue(advAnml != null && advAnml.size() >= 3, "At least three animals should have been retrieved, but we got " + advAnml.size() + " instead");
 			it = advAnml.iterator();
 			while (it.hasNext()) {
@@ -448,7 +448,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 			assertTrue(eventsLoader.insertLifeCycleEvent(th3ViolationEvent)>0);	
 
-			List<Animal> animalPop = weightMeasurementAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = weightMeasurementAdvisement.applyAdvisementRule("IMD", null);
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
@@ -623,7 +623,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 			assertTrue(eventsLoader.insertLifeCycleEvent(th3ViolationEvent)>0);	
 
-			List<Animal> animalPop = weightMeasurementAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = weightMeasurementAdvisement.applyAdvisementRule("IMD", null);
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
@@ -837,7 +837,7 @@ class AdvisementLoaderTest {
 			eventsLoader.insertLifeCycleEvent(th1ViolatedEvent);
 			assertEquals(1,transTh1Violated, "Exactly one record -998 should have been inserted");
 
-			List<Animal> animalPop = delayedHeatCowAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = delayedHeatCowAdvisement.applyAdvisementRule("IMD", null);
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
@@ -994,7 +994,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh3WithHeatHeifer, "Exactly one record -995 should have been inserted");
 			assertEquals(1,transTh0WithHeatHeifer, "Exactly one record -994 should have been inserted");
 
-			List<Animal> animalPop = delayedHeatHeiferAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = delayedHeatHeiferAdvisement.applyAdvisementRule("IMD", null);
 			boolean th3WithHeatHeiferFound = false;
 			boolean th2HeiferFound = false;
 			boolean th1HeiferFound = false;
@@ -1162,7 +1162,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transactionID2, "Exactly one record -997 should have been inserted");
 			assertEquals(1,transactionID3, "Exactly one record -996 should have been inserted");
 
-			List<Animal> animalPop = heatWarnAdv.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = heatWarnAdv.applyAdvisementRule("IMD", null);
 			boolean th1Found = false;
 			boolean th2Found = false;
 			boolean th3Found = false;
@@ -1282,7 +1282,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transactionID3, "Exactly one record -997 should have been inserted");
 			assertEquals(1,transactionID4, "Exactly one record -996 should have been inserted");
 
-			List<Animal> animalPop = dehornAdv.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = dehornAdv.applyAdvisementRule("IMD", null);
 			boolean maleFound = false;
 			boolean femaleFound = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -1312,7 +1312,7 @@ class AdvisementLoaderTest {
 
 			// let us remove the dehorning event from the record. This animal should have now been picked up by the Dehorning Advisement
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", dehornedCalf.getAnimalTag());
-			animalPop = dehornAdv.getAdvisementRuleAddressablePopulation("IMD");
+			animalPop = dehornAdv.applyAdvisementRule("IMD", null);
 			boolean nowFound = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -1459,7 +1459,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh2, "Exactly one record -996 should have been inserted");
 			assertEquals(1,transTh1, "Exactly one record -995 should have been inserted");
 
-			List<Animal> animalPop = pregTestAdvisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = pregTestAdvisement.applyAdvisementRule("IMD", null);
 			boolean inseminationTh3Found = false;
 			boolean inseminationTh2Found = false;
 			boolean inseminationTh1Found = false;
@@ -1665,7 +1665,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transVaccineTh1, "Exactly one record -995 should have been inserted");
 			assertEquals(1,transNotFMD,     "Exactly one record -994 should have been inserted");
 
-			List<Animal> animalPop = fmd.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = fmd.applyAdvisementRule("IMD", null);
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;
@@ -1814,7 +1814,7 @@ class AdvisementLoaderTest {
 			assertTrue(eventsLoader.insertLifeCycleEvent(mastitisEventTh3Violated) > 0);
 			
 			MastitisTestAdvisement adv = new MastitisTestAdvisement();
-			List<Animal> animalPop = adv.getAdvisementRuleAddressablePopulation(medTestOk.getOrgID());
+			List<Animal> animalPop = adv.applyAdvisementRule(medTestOk.getOrgID(), null);
 			
 			
 
@@ -1953,7 +1953,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transactionID3, "Exactly one record -997 should have been inserted");
 			assertEquals(1,transactionID4, "Exactly one record -997 should have been inserted");
 
-			List<Animal> animalPop = dryAdv.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> animalPop = dryAdv.applyAdvisementRule("IMD", null);
 			boolean th3Found = false;
 			boolean th1Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -2053,7 +2053,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transactionID1);
 			eventsLoader.insertLifeCycleEvent(inseminationEvent1);
 			
-			List<Animal> animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+			List<Animal> animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
 
 			boolean th3Found = false;
 //			boolean th1Found = false;
@@ -2075,7 +2075,7 @@ class AdvisementLoaderTest {
 			
 			// now we add the feed event and the threshold violation should go away.
 			eventsLoader.insertLifeCycleEvent(glucosaEvent);
-			animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
 
 			th3Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -2111,7 +2111,7 @@ class AdvisementLoaderTest {
 
 			assertTrue(eventsLoader.insertLifeCycleEvent(glucosaEvent)>0);
 
-			animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
 			th3Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -2149,7 +2149,7 @@ class AdvisementLoaderTest {
 			
 			
 			
-			animalPop = preCalveFeedAdv.getAdvisementRuleAddressablePopulation(dryPregnant.getOrgID());
+			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
 
 			th3Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -2226,7 +2226,7 @@ class AdvisementLoaderTest {
 			boolean th2Found = false;
 			boolean th3Found = false;
 			DewormingAdvisement advisement = new DewormingAdvisement();
-			List<Animal> results = advisement.getAdvisementRuleAddressablePopulation("IMD");
+			List<Animal> results = advisement.applyAdvisementRule("IMD", null);
 			Iterator<Animal> it = results.iterator();
 			while (it.hasNext()) {
 				Animal populationAnimal = it.next();
@@ -2263,7 +2263,7 @@ class AdvisementLoaderTest {
 
 	@Test
 	void testAdvisementManager() {
-		IMDLogger.loggingMode = Util.ERROR;
+		IMDLogger.loggingMode = Util.INFO;
 
 		try {			
 			AnimalLoader animalLoader = new AnimalLoader();
@@ -2391,12 +2391,12 @@ class AdvisementLoaderTest {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Advisement> activeRules = advLoader.getAllActiveRules("IMD");
 			assertTrue(activeRules!=null && !activeRules.isEmpty(), "At least one rule should have been enabled");
-			assertTrue(activeRules.get(0).getOrgId()!=null && !activeRules.get(0).getOrgId().isEmpty(), "Org ID should have been set");
+			assertTrue(activeRules.get(0).getOrgID()!=null && !activeRules.get(0).getOrgID().isEmpty(), "Org ID should have been set");
 			AdvisementRuleManager advManager = new AdvisementRuleManager();
-			List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,false,false,false);			
+			List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,false,false,false, null);			
 			assertTrue(advResults == null || advResults.isEmpty(),"We had set all thresholds to false so nothing should have been returned");
 			
-			advResults = advManager.executeAllRules(activeRules,true,true,true);
+			advResults = advManager.executeAllRules(activeRules,true,true,true, null);
 			assertTrue(advResults != null && !advResults.isEmpty(),"We had set all thresholds to true so we should have received some values provided there were some enabled rules");
 
 			boolean lactatingNonDryPregnantFound = false;

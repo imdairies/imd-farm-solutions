@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale.LanguageRange;
 
 import org.joda.time.DateTime;
 
@@ -13,6 +14,7 @@ import com.imd.dto.LifecycleEvent;
 import com.imd.dto.Note;
 import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
+import com.imd.loader.LanguageLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
@@ -25,7 +27,7 @@ public class CalfWeightAdvisement extends AdvisementRule {
 	}
 
 	@Override
-	public List<Animal> getAdvisementRuleAddressablePopulation(String orgId) {
+	public List<Animal> applyAdvisementRule(String orgId, String languageCd) {
 		List<Animal> eligiblePopulation = new ArrayList<Animal>();
 		try {
 			AdvisementLoader advLoader = new AdvisementLoader();
@@ -45,6 +47,21 @@ public class CalfWeightAdvisement extends AdvisementRule {
 			DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusDays(calvesAgethreshold);
 
 			if (ruleDto != null) {
+				
+				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
+					LanguageLoader langLoader = new LanguageLoader();
+					String localizedMessage  = langLoader.retrieveMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					if (localizedMessage != null && !localizedMessage.isEmpty())
+						ruleDto.setFirstThresholdMessage(localizedMessage);
+					localizedMessage  = langLoader.retrieveMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
+					if (localizedMessage != null && !localizedMessage.isEmpty())
+						ruleDto.setSecondThresholdMessage(localizedMessage);
+					localizedMessage  = langLoader.retrieveMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
+					if (localizedMessage != null && !localizedMessage.isEmpty())
+						ruleDto.setThirdThresholdMessage(localizedMessage);
+				}
+				
+				
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 				animalPopulation = animalLoader.retrieveAnimalsBornOnOrAfterSpecifiedDate(orgId, dob);
@@ -127,21 +144,9 @@ public class CalfWeightAdvisement extends AdvisementRule {
 				}
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return eligiblePopulation;
-	}
-	@Override
-	public HashMap<Animal, String> applyAdvisementRule(List<Animal> addressablePopulation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HashMap<Animal, Integer> channelAdvisementRuleOutcome(List<Animal> addressablePopulation) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

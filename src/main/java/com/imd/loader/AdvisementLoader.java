@@ -33,6 +33,10 @@ public class AdvisementLoader {
 				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
 				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
 				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+				
+				" B.THRESHOLD1_MSG_CD AS THRESHOLD1_MSG_CD, " + 
+				" B.THRESHOLD2_MSG_CD AS THRESHOLD2_MSG_CD, " + 
+				" B.THRESHOLD3_MSG_CD AS THRESHOLD3_MSG_CD, " + 
 				" B.AUX_INFO1 AS AUX_INFO1, " + 
 				" B.AUX_INFO2 AS AUX_INFO2, " + 
 				" B.AUX_INFO3 AS AUX_INFO3, " + 
@@ -87,7 +91,7 @@ public class AdvisementLoader {
 
 	private Advisement getAdvisementRuleFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
 		Advisement advRule = new Advisement();
-		advRule.setOrgId(rs.getString("ORG_ID"));
+		advRule.setOrgID(rs.getString("ORG_ID"));
 		advRule.setAdvisementID(rs.getString("ADVISEMENT_ID"));
 		advRule.markEnabled(rs.getString("RULE_ENABLED").equalsIgnoreCase("Y") ? true : false);
 		advRule.markEnabledForOrg(rs.getString("RULE_ENABLED_FOR_ORG").equalsIgnoreCase("Y") ? true : false);
@@ -96,6 +100,9 @@ public class AdvisementLoader {
 		advRule.setFirstThreshold(rs.getString("THRESHOLD1") == null ? -999f : rs.getFloat("THRESHOLD1"));
 		advRule.setSecondThreshold(rs.getString("THRESHOLD2") == null ? -999f : rs.getFloat("THRESHOLD2"));
 		advRule.setThirdThreshold(rs.getString("THRESHOLD3") == null ? -999f : rs.getFloat("THRESHOLD3"));
+		advRule.setFirstThresholdMessageCode(rs.getString("THRESHOLD1_MSG_CD") == null ? 0 : rs.getInt("THRESHOLD1_MSG_CD"));
+		advRule.setSecondThresholdMessageCode(rs.getString("THRESHOLD2_MSG_CD") == null ? 0 : rs.getInt("THRESHOLD2_MSG_CD"));
+		advRule.setThirdThresholdMessageCode(rs.getString("THRESHOLD3_MSG_CD") == null ? 0 : rs.getInt("THRESHOLD3_MSG_CD"));
 		advRule.setFirstThresholdMessage(rs.getString("THRESHOLD1_MSG"));
 		advRule.setSecondThresholdMessage(rs.getString("THRESHOLD2_MSG"));
 		advRule.setThirdThresholdMessage(rs.getString("THRESHOLD3_MSG"));
@@ -128,6 +135,11 @@ public class AdvisementLoader {
 				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
 				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
 				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+				
+				" B.THRESHOLD1_MSG_CD AS THRESHOLD1_MSG_CD, " + 
+				" B.THRESHOLD2_MSG_CD AS THRESHOLD2_MSG_CD, " + 
+				" B.THRESHOLD3_MSG_CD AS THRESHOLD3_MSG_CD, " + 
+				
 				" B.AUX_INFO1 AS AUX_INFO1, " + 
 				" B.AUX_INFO2 AS AUX_INFO2, " + 
 				" B.AUX_INFO3 AS AUX_INFO3, " + 
@@ -191,6 +203,12 @@ public class AdvisementLoader {
 				" B.THRESHOLD1_MSG AS THRESHOLD1_MSG, " + 
 				" B.THRESHOLD2_MSG AS THRESHOLD2_MSG, " + 
 				" B.THRESHOLD3_MSG AS THRESHOLD3_MSG, " + 
+
+				" B.THRESHOLD1_MSG_CD AS THRESHOLD1_MSG_CD, " + 
+				" B.THRESHOLD2_MSG_CD AS THRESHOLD2_MSG_CD, " + 
+				" B.THRESHOLD3_MSG_CD AS THRESHOLD3_MSG_CD, " + 
+				
+				
 				" B.AUX_INFO1 AS AUX_INFO1, " + 
 				" B.AUX_INFO2 AS AUX_INFO2, " + 
 				" B.AUX_INFO3 AS AUX_INFO3, " + 

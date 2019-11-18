@@ -38,7 +38,8 @@ public class ConfigurationManager {
 		if (sessionConfigurations.isEmpty()) {
 			sessionConfigurations.put(Util.ConfigKeys.ORG_ID, "IMD");
 			sessionConfigurations.put(Util.ConfigKeys.USER_ID, "KASHIF");
-			sessionConfigurations.put(Util.ConfigKeys.USER_NAME, "Kashif Manzoor");					
+			sessionConfigurations.put(Util.ConfigKeys.USER_NAME, "Kashif Manzoor");
+			sessionConfigurations.put(Util.ConfigKeys.LANG_CD, "URD");
 		}
 	}
 	public void reLoadUserSessionConfigurations() {
@@ -67,12 +68,14 @@ public class ConfigurationManager {
 	private void loadOrganizationConfigurationsIfNeeded() {
 		if (orgConfigurations.isEmpty()) {
 			orgConfigurations.put(Util.ConfigKeys.ORG_ID, "IMD");
+			orgConfigurations.put(Util.ConfigKeys.LANG_CD, "URD");
 			orgConfigurations.put(Util.ConfigKeys.FARM_TIMEZONE, Util.FARM_TIMEZONE);
 			orgConfigurations.put(Util.ConfigKeys.VOL_UNIT, Util.VOL_UNIT);
 			orgConfigurations.put(Util.ConfigKeys.MILKING_FREQUENCY, new Short((short)3));
-			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(5,0,0));
-			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(13,0,0));
-			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(21,0,0));
+			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(4,0,0));
+			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(12,0,0));
+			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(20,0,0));
+			orgConfigurations.put(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES, new Integer(30));
 		}
 	}
 	public void reLoadOrganizationConfigurations() {
@@ -81,6 +84,9 @@ public class ConfigurationManager {
 		else
 			orgConfigurations.clear();
 		loadOrganizationConfigurationsIfNeeded();
+	}
+	public void setSessionConfigurationValue(String key, String value) {
+		sessionConfigurations.put(key, value);
 	}
 
 }

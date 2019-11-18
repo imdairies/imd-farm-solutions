@@ -726,7 +726,7 @@ public class LifeCycleEventsLoader {
 								outcome = ". " + Util.ERROR_POSTFIX + "The outcome of the latest insemination/mating event (" + affectedEvent.getEventTransactionID() + ") could NOT be updated successfully. Please update this event manually.";
 							break;									
 						} else {
-							outcome = ". We could not find any insemination or mating event for this animal since its latest parturition/abortion; therefore we can not update last insemination Outcome.";						
+							outcome = ". We could not find any insemination or mating event for this animal since its latest parturition/abortion; therefore we can not update last insemination outcome";						
 						}
 					}
 				}
