@@ -15,6 +15,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.util.BufferRecyclers;
+import com.imd.loader.UserLoader;
 import com.imd.services.bean.FarmMilkingDetailBean;
 import com.imd.services.bean.InputDelimitedFileBean;
 import com.imd.services.bean.TagVolumeCommentTriplet;
@@ -50,6 +51,7 @@ public class Util {
 		public static final String APPLICATION_LOGGING_MODE = "APPLICATION_LOGGING_MODE";
 		public static final String IMD_SERVICES_URL = "IMD_SERVICES_URL";
 		public static final String SERVER_TIMEZONE = "SERVER_TIMEZONE";
+//		public static final String TOKEN_EXPIRY_IN_MINUTES = "TOKEN_EXPIRY_IN_MINUTES";
 	}
 
 	public static final int INFO = 0;
@@ -85,6 +87,8 @@ public class Util {
 	public static final double DAILY_WEIGHT_GAIN_YEAR4 = 0.125d;
 	public static final double DAILY_WEIGHT_GAIN_YEAR5 = 0.0625d;
 	public static final double MAX_BODY_WEIGHT = 650d;
+
+	public static final String PROPERTIES_FILE_NAME = "IMDConfig.properties";
 
 	public static final class CurrencyCode {
 		public static final String PKR = "PKR";
@@ -589,7 +593,18 @@ public class Util {
 	public static String substituteEmptyForNull(Object val) {
 		return val == null ? "" : val.toString();
 	}
+	public static boolean verifyAccess(String string, String loginToken) {
+		return (new UserLoader()).isUserAuthenticated(loginToken) != null;
+	}
 	
 	
 }
+
+
+
+
+
+
+
+
 

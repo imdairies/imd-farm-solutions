@@ -23,6 +23,7 @@ public class AnimalBean {
 	private String rightPoseImage;
 	private String leftPoseImage;
 	private String herdJoiningDttmStr;
+	private String loginToken;
 
 	public String getAnimalTag() {
 		return animalTag;
@@ -55,6 +56,7 @@ public class AnimalBean {
 		return 	"\n orgID:" + orgID + 
 				"\n animalTag:" + animalTag + 
 				"\n animalType:" + animalType + 
+				"\n loginToken: " + loginToken + "\n" +
 				"\n alias:" + alias + 
 				"\n gender:" + gender + 
 				"\n dateOfBirthStr:" + dateOfBirthStr + 
@@ -165,5 +167,12 @@ public class AnimalBean {
 	}
 	public void setDateOfBirthStr(String dobStr) {
 		dateOfBirthStr = dobStr;
+	}
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
 	}
 }

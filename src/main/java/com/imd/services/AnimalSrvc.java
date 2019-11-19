@@ -735,6 +735,10 @@ public class AnimalSrvc {
     	String animalValueResult = "";
     	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(searchBean.toString(), Util.INFO);
+		if (!Util.verifyAccess("/animals/lactatingcows",searchBean.getLoginToken())) {
+			IMDLogger.log("User does not have a valid access token", Util.WARNING);
+			return Response.status(401).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgID());

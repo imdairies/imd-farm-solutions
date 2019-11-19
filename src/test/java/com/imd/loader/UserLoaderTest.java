@@ -76,7 +76,7 @@ class UserLoaderTest {
 	@Test
 	void testAuthenticateUser() {
 		int oldMode = IMDLogger.loggingMode;
-//		IMDLogger.loggingMode = Util.INFO;
+		IMDLogger.loggingMode = Util.INFO;
 		
 		try {
 			UserLoader loader = new UserLoader();
@@ -93,6 +93,8 @@ class UserLoaderTest {
 			newUser.setUpdatedBy(newUser.getCreatedBy());
 			newUser.setUpdatedDTTM(newUser.getCreatedDTTM());
 			
+			int cacheSize = loader.getSessionCache().size();
+			
 			assertTrue(loader.deleteUser(newUser.getOrgID(), newUser.getUserId())>=0);
 			assertEquals(null,loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword()));
 
@@ -100,20 +102,23 @@ class UserLoaderTest {
 			IMDLogger.loggingMode = Util.INFO;
 
 			assertEquals(null,loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),loader.encryptPassword("incorrectPassword")));
-			assertTrue(loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword()) !=  null);
-
-//			User addedUser = loader.retrieveUser(newUser.getOrgID(), newUser.getUserId());
-//			assertTrue(addedUser != null);
-//			assertEquals(addedUser.getUserId(),newUser.getUserId());
-//			assertEquals(addedUser.getPassword(),newUser.getPassword());
-//			assertEquals(addedUser.isActive(),newUser.isActive());
-//			assertEquals(addedUser.getPreferredLanguage(),newUser.getPreferredLanguage());
-//			assertEquals(addedUser.getPreferredCurrency(),newUser.getPreferredCurrency());
-//			assertEquals(Util.getDateInSQLFormat(addedUser.getCreatedDTTM()),Util.getDateInSQLFormat(newUser.getCreatedDTTM()));
+			User authenticatedUser = loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword());
+			assertTrue(authenticatedUser !=  null);
+			assertEquals(cacheSize + 1, loader.getSessionCache().size());
+			assertEquals(authenticatedUser.getUserId(), loader.isUserAuthenticated(authenticatedUser.getPassword()).getUserId(),authenticatedUser.toString());
+			
+			// simulate multiple logins by the same user
+			authenticatedUser = loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword());
+			assertTrue(authenticatedUser !=  null);
+			assertEquals(cacheSize + 1, loader.getSessionCache().size());						
+			
+			assertEquals(1,loader.logoutUser(authenticatedUser.getPassword()));
+			assertEquals(null,loader.isUserAuthenticated(authenticatedUser.getPassword()));			
 			
 			assertEquals(1,loader.deleteUser(newUser.getOrgID(), newUser.getUserId()));
 			
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			fail("Exception " + ex.getMessage());
 		} finally {
 			IMDLogger.loggingMode = oldMode;

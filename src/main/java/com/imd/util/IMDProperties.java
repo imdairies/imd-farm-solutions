@@ -31,8 +31,10 @@ public class IMDProperties {
 			}
 			String serverTimezone = getProperty(Util.PROPERTIES.SERVER_TIMEZONE);
 			try {
-				if (serverTimezone != null && DateTimeZone.forID("Asia/Karachi") != null)
+				if (serverTimezone != null /*&& DateTimeZone.forID("Asia/Karachi") != null*/)
 					timeZone = DateTimeZone.forID(serverTimezone);
+				else
+					timeZone = DateTimeZone.forID("Asia/Karachi");
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				timeZone = DateTimeZone.forID("Asia/Karachi");
@@ -52,7 +54,7 @@ public class IMDProperties {
 		imdProperties = new Properties();
 		InputStream input = null;
 		try {
-			input = new FileInputStream("IMDConfig.properties");
+			input = new FileInputStream(Util.PROPERTIES_FILE_NAME);
 			imdProperties.load(input);
 			} catch (IOException ex) {
 			ex.printStackTrace();

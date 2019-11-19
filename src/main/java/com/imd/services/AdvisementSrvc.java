@@ -32,6 +32,11 @@ public class AdvisementSrvc {
 		AdvisementLoader loader = new AdvisementLoader();
 		IMDLogger.log("retrieveAnimalAdvisement Service Called with following input values", Util.INFO);
 		IMDLogger.log(advBean.toString(), Util.INFO);
+		if (!Util.verifyAccess("/advisement/retrieveanimaladvisement",advBean.getLoginToken())) {
+			IMDLogger.log("User does not have a valid access token", Util.WARNING);
+			return Response.status(401).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+			
 		String animalTag = advBean.getAnimalTag();
 		if (animalTag == null || animalTag.isEmpty())
 			return Response.status(200).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
@@ -86,6 +91,10 @@ public class AdvisementSrvc {
 		AdvisementLoader loader = new AdvisementLoader();
 		IMDLogger.log("retrieveAllAdvisement Service Called with following input values", Util.INFO);
 		IMDLogger.log(advBean.toString(), Util.INFO);
+		if (!Util.verifyAccess("/advisement/retrievealladvisement",advBean.getLoginToken())) {
+			IMDLogger.log("User does not have a valid access token", Util.WARNING);
+			return Response.status(401).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
 //		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
 		String langCd = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD);

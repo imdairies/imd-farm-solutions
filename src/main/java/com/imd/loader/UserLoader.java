@@ -22,6 +22,7 @@ import com.imd.util.Util;
 public class UserLoader {
 	
 	private static HashMap <String, User> userCache = new HashMap <String, User>();
+	private static HashMap <String, User> sessionCache = new HashMap <String, User>();
 	
 	public User retrieveUser(String orgId, String userId) {
 		String qryString = " SELECT  " +
@@ -219,12 +220,8 @@ public class UserLoader {
 	private User loginUser(User user) {
 		
 		int recordUpdated = -1;
-//		RandomStringUtils.randomAlphanumeric(12);
-//		Long.toHexString(Double.doubleToLongBits(Math.random()));
 		
-		// mark the last session as expired if any.
 		User returnUser = null;
-		String inactivateQuery = "UPDATE imd.USER_LOGIN SET EXPIRED_IND=?, UPDATED_BY=?, UPDATED_DTTM=? WHERE ORG_ID=? AND USER_ID=? AND EXPIRED_IND <> ?";
 		String insertQuery 	= "insert into imd.USER_LOGIN (ORG_ID,"
 				+ "USER_ID,"
 				+ "LOGIN_TOKEN,"
@@ -235,22 +232,39 @@ public class UserLoader {
 				+ "CREATED_DTTM,"
 				+ "UPDATED_BY,"
 				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?)";
+		String inactivateQuery = "UPDATE imd.USER_LOGIN SET EXPIRED_IND=?, UPDATED_BY=?, UPDATED_DTTM=? WHERE LOGIN_TOKEN IN ";
+		String existingActiveSessions = "SELECT LOGIN_TOKEN from imd.USER_LOGIN WHERE ORG_ID=? AND USER_ID=? AND EXPIRED_IND <> ?";
+		PreparedStatement existingActivePreparedStatement = null;
 		PreparedStatement updatePreparedStatement = null;
 		PreparedStatement insertPreparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		int index = 1;
+		ResultSet rs = null;
 		try {
-			updatePreparedStatement = conn.prepareStatement(inactivateQuery);
-			updatePreparedStatement.setString(index++, Util.Y);
-			updatePreparedStatement.setString(index++, user.getUserId());
-			updatePreparedStatement.setString(index++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
-			updatePreparedStatement.setString(index++, user.getOrgID());
-			updatePreparedStatement.setString(index++, user.getUserId());
-			updatePreparedStatement.setString(index++, Util.Y);
-			IMDLogger.log(updatePreparedStatement.toString(), Util.INFO);
-			recordUpdated = updatePreparedStatement.executeUpdate();
-			if (recordUpdated > 0) {
-				IMDLogger.log(recordUpdated + " open login session(s) found for the user " + user.getUserId() + "(" + user.getOrgID() + ")", Util.WARNING);
+			existingActivePreparedStatement = conn.prepareStatement(existingActiveSessions);
+			existingActivePreparedStatement.setString(index++, user.getOrgID());
+			existingActivePreparedStatement.setString(index++, user.getUserId());
+			existingActivePreparedStatement.setString(index++, Util.Y);
+			IMDLogger.log(existingActivePreparedStatement.toString(), Util.INFO);
+			rs = existingActivePreparedStatement.executeQuery();
+			String tokenList = "";
+			while (rs.next()) {
+				String token = rs.getString("LOGIN_TOKEN");
+				tokenList = (!tokenList.isEmpty() ? "," : "") + "'" + token + "'";
+				sessionCache.remove(token);
+			}
+			index = 1;
+			if (!tokenList.isEmpty()) {
+				inactivateQuery += "(" + tokenList + ")";
+				updatePreparedStatement = conn.prepareStatement(inactivateQuery);
+				updatePreparedStatement.setString(index++, Util.Y);
+				updatePreparedStatement.setString(index++, user.getUserId());
+				updatePreparedStatement.setString(index++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
+				IMDLogger.log(updatePreparedStatement.toString(), Util.INFO);
+				recordUpdated = updatePreparedStatement.executeUpdate();
+				if (recordUpdated > 0) {
+					IMDLogger.log(recordUpdated + " open login session(s) found for the user " + user.getUserId() + "(" + user.getOrgID() + ")", Util.WARNING);
+				}
 			}
 			index = 1;
 			recordUpdated = -1;
@@ -275,6 +289,8 @@ public class UserLoader {
 			} else {
 				returnUser = user;
 				returnUser.setPassword(token);
+				returnUser.setCreatedDTTM(expiryDttm);
+				sessionCache.put(token, returnUser);
 			}
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			recordUpdated = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
@@ -311,7 +327,94 @@ public class UserLoader {
 			encryptedPassword += "" + encryptedValue;
 		}
 		return encryptedPassword;
+	}
+
+	public int logoutUser(String loginToken) {
+		String inactivateTokenQuery = "UPDATE imd.USER_LOGIN SET EXPIRED_IND='Y', UPDATED_BY=USER_ID, UPDATED_DTTM=? WHERE LOGIN_TOKEN=? AND EXPIRED_IND='N'";
+		PreparedStatement updatePreparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		int recordUpdated =-1;
+		try {
+			updatePreparedStatement = conn.prepareStatement(inactivateTokenQuery);
+			updatePreparedStatement.setString(index++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
+			updatePreparedStatement.setString(index++, loginToken);
+			IMDLogger.log(updatePreparedStatement.toString(), Util.INFO);
+			recordUpdated = updatePreparedStatement.executeUpdate();
+			sessionCache.remove(loginToken);
+			if (recordUpdated == 0) {
+				IMDLogger.log(loginToken + " not found in Login table or it was already inactivated. No inactivation necessary !", Util.WARNING);
+			} else if (recordUpdated > 1) {
+				
+				IMDLogger.log("Total of " + recordUpdated + " records found for the auth token " + loginToken + " in Login table. Either someone is trying to hack the system or there is a bug in the software", Util.WARNING);
+			} else {
+				IMDLogger.log("Auth Token successfully inactivated", Util.INFO);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			IMDLogger.log("Exception occurred while inactivating Auth Token " + loginToken, Util.ERROR);
+		} finally {
+		    try {
+				if (updatePreparedStatement != null && !updatePreparedStatement.isClosed()) {
+					updatePreparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordUpdated;
 	} 
+	
+	public int inactivateExpiredTokens(String orgID) {
+		String inactivateTokenQuery = "UPDATE imd.USER_LOGIN SET EXPIRED_IND='Y', UPDATED_BY=USER_ID, UPDATED_DTTM=? WHERE "
+				+ (orgID != null ? " ORG_ID=? AND " : "") + " TOKEN_EXPIRY_DTTM <= ? AND EXPIRED_IND='N'";
+		PreparedStatement updatePreparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		int recordUpdated =-1;
+		try {
+			updatePreparedStatement = conn.prepareStatement(inactivateTokenQuery);
+			updatePreparedStatement.setString(index++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
+			if (orgID != null) 
+				updatePreparedStatement.setString(index++, orgID);
+			updatePreparedStatement.setString(index++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
+
+			IMDLogger.log(updatePreparedStatement.toString(), Util.INFO);
+			recordUpdated = updatePreparedStatement.executeUpdate();
+			if (recordUpdated > 0) {
+				IMDLogger.log("Total of " + recordUpdated + " sessions were inactivated as their token expiry date had lapsed.", Util.INFO);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			IMDLogger.log("Exception occurred while inactivating expired Auth Tokens ", Util.ERROR);
+		} finally {
+		    try {
+				if (updatePreparedStatement != null && !updatePreparedStatement.isClosed()) {
+					updatePreparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordUpdated;
+	}
+
+	public User isUserAuthenticated(String authToken) {
+		User user = sessionCache.get(authToken);
+		if (user != null) {
+			if (user.getCreatedDTTM().isBefore(DateTime.now(IMDProperties.getServerTimeZone()))) {
+				// token has expired
+				logoutUser(authToken);
+				sessionCache.remove(authToken);
+				user = null;
+			}
+		}
+		return user;
+	}
+	public HashMap<String, User> getSessionCache(){
+		return sessionCache;
+	}
+
 }
 
 

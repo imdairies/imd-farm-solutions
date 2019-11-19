@@ -6,6 +6,7 @@ public class AdvisementBean {
 	private boolean threshold1Violated;
 	private boolean threshold2Violated;
 	private boolean threshold3Violated;
+	private String loginToken;
 
 	public String getAdvisementID() {
 		return advisementID;
@@ -42,6 +43,7 @@ public class AdvisementBean {
 	public String toString() {
 		return  "animalTag: " + animalTag + "\n" +
 				"advisementID: " + advisementID + "\n" +
+				"loginToken: " + loginToken + "\n" +
 				"threshold1Violated: " + threshold1Violated + "\n" +
 				"threshold2Violated: " + threshold2Violated + "\n" +
 				"threshold3Violated: " + threshold3Violated + "\n";
@@ -53,5 +55,13 @@ public class AdvisementBean {
 
 	public void setAnimalTag(String animalTag) {
 		this.animalTag = animalTag;
+	}
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
 	}
 }
