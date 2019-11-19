@@ -23,6 +23,7 @@ import com.imd.dto.User;
 import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.UserLoader;
 import com.imd.services.bean.AdvisementBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDLogger;
@@ -122,12 +123,18 @@ class AdvisementSrvcTest {
 			advBean.setThreshold3Violated(true);
 			
 			AdvisementSrvc srvc = new AdvisementSrvc();
+			UserLoader userLoader = new UserLoader();
+			User user = userLoader.authenticateUser("IMD", "KASHIF", "DUMMY");
+			assertTrue(user != null);
+			assertTrue(user.getPassword() != null);
+			advBean.setLoginToken(user.getPassword());
 			String serviceResponseJson = srvc.retrieveAllAdvisement(advBean).getEntity().toString();
 			assertEquals(Util.LanguageCode.URD,Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD));
-			assertTrue(serviceResponseJson.indexOf("ان جانوروں کا وزن آدھہ کلو یومیہ سے کم بڑھا ہے") > 0);
+			assertTrue(serviceResponseJson.indexOf("ان جانوروں کا وزن آدھہ کلو یومیہ سے کم بڑھا ہے") > 0,serviceResponseJson);
 			
 			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) == 2);
 			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) == 1);
+			assertEquals(1,userLoader.logoutUser(user.getPassword()));
 			
 		} catch (Exception e) {
 			e.printStackTrace();

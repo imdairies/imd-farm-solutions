@@ -104,6 +104,7 @@ class UserLoaderTest {
 			assertEquals(null,loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),loader.encryptPassword("incorrectPassword")));
 			User authenticatedUser = loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword());
 			assertTrue(authenticatedUser !=  null);
+			assertTrue(authenticatedUser.getPassword()!=null);
 			assertEquals(cacheSize + 1, loader.getSessionCache().size());
 			assertEquals(authenticatedUser.getUserId(), loader.isUserAuthenticated(authenticatedUser.getPassword()).getUserId(),authenticatedUser.toString());
 			

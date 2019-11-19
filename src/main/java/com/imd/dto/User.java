@@ -70,5 +70,16 @@ public class User extends IMDairiesDTO {
 		this.preferredCurrency = preferredCurrency;
 	}
 	
+	public String toString() {
+		return 
+			"userId : " + userId + "\n" +
+			"password : " + password + "\n" +
+			"accountHolder : " + accountHolder + "\n" +
+			"gender : " + gender + "\n" +
+			"personId : " + personId + "\n" +
+			"preferredLanguage : " + preferredLanguage + "\n" +
+			"preferredCurrency : " + preferredCurrency;
+	}
+	
 
 }
