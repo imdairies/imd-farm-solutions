@@ -57,8 +57,8 @@ public class MessageCatalogLoader {
 		String transformedMessage = getMessage( orgId,  languageCD,  messageCd) ;
 		if (transformedMessage != null && !transformedMessage.isEmpty() && dynamicValues != null && !dynamicValues.isEmpty() && 
 				transformedMessage.indexOf(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + "1") >= 0) {
-			for (int i=1; i < dynamicValues.size(); i++) {
-				transformedMessage = transformedMessage.replaceFirst(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + i, dynamicValues.get(i-1));
+			for (int i=0; i < dynamicValues.size(); i++) {
+				transformedMessage = transformedMessage.replaceFirst(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + (i+1), dynamicValues.get(i));
 			}
 			
 		}

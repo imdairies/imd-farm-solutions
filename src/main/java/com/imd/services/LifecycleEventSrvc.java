@@ -437,8 +437,8 @@ public class LifecycleEventSrvc {
 	private String performPostEventAdditionInfomationProcessing(LifecycleEvent event, Animal animal, User user) {
 		String message = "";
 		if (event.getEventType().getEventCode().equals(Util.LifeCycleEvents.HEAT)) {
-			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd HH:mm a") +
-					" - " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd HH:mm a")
+			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd K:mm a") +
+					" - " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd K:mm a")
 					+ " (i.e. 12-18 hours after the standing heat)";			
 		}
 		return message;

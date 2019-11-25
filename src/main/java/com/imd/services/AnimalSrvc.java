@@ -717,6 +717,10 @@ public class AnimalSrvc {
 	@Path("/search")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response searchAnimals(AnimalBean searchBean){
+		
+//		int originalMode = IMDLogger.loggingMode;
+//		IMDLogger.loggingMode = Util.INFO;
+		
 		IMDLogger.log("searchAnimals Called ", Util.INFO);
 		User user = Util.verifyAccess(this.getClass().getName() + ".searchAnimals",searchBean.getLoginToken());
 		if (user == null) {
@@ -729,6 +733,14 @@ public class AnimalSrvc {
 		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
+		if (isValueProvided(searchBean.getGender()) && !searchBean.getGender().trim().equalsIgnoreCase(Util.GENDER_CHAR.FEMALE + "") && 
+			!searchBean.getGender().trim().equalsIgnoreCase(Util.GENDER_CHAR.MALE + "")) {
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  
+			MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.INVALID_GENDER, "('M' or 'F')") +
+			"\"}").build();
+		}
+		
 		
     	String animalValueResult = "";
     	try {
@@ -770,10 +782,20 @@ public class AnimalSrvc {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
+    	
+//		IMDLogger.loggingMode = originalMode;
+
+    	
 		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
+
+
+
+	private boolean isValueProvided(String fieldValue) {
+		return fieldValue != null && !fieldValue.trim().isEmpty();
+	}
 	/**
-	 * 
+	 * Returns all the cows who have calved at least once at our farm and which are still in the farm
 	 * @param AnimalBean
 	 * @return
 	 */
@@ -819,6 +841,57 @@ public class AnimalSrvc {
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
+	
+	
+	
+	/**
+	 * Returns all the cows who have calved at least once at our farm irrespective of the cows current status (active or inactive)
+	 * @param AnimalBean
+	 * @return
+	 */
+	@POST
+	@Path("/getalldams")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response getAllDams(AnimalBean searchBean){
+		IMDLogger.log("getAllDams Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".getAllDams",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".getAllDams", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
+    	String animalValueResult = "";
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+			List<Animal> animalValues = loader.retrieveAllDams(searchBean.getOrgID());
+			if (animalValues == null || animalValues.size() == 0)
+			{
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
+			}
+	    	Iterator<Animal> animalValueIt = animalValues.iterator();
+	    	while (animalValueIt.hasNext()) {
+	    		Animal animalValue = animalValueIt.next();
+	    		animalValueResult += "{\n" + animalValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
+	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		animalValueResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.getActiveFemale() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(animalValueResult, Util.INFO);
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
+    }	
+	
 
 	@POST
 	@Path("/lactatingcows")

@@ -288,7 +288,7 @@ public class AnimalLoader {
 	}
 	
 	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean, boolean isWildCardSearch, String additionalQuery, String orderByClause) throws Exception {
-		
+		//TODO: This code is susceptible to SQL Injection !!!
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
 		String orderBy = orderByClause == null || orderByClause.isEmpty() ? " ORDER BY DOB DESC " : orderByClause;
 		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
@@ -308,9 +308,7 @@ public class AnimalLoader {
 				qryString +=  " AND A.ANIMAL_TAG IN  " + animalBean.getAnimalTag();
 			else
 				qryString +=  " AND A.ANIMAL_TAG IN  ('" + animalBean.getAnimalTag() + "')";
-//			qryString +=  " AND ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
-			//values.add(animalBean.getAnimalTag());
-		} 
+		}
 		if (animalBean.getAnimalType() != null && !animalBean.getAnimalType().trim().isEmpty()) {
 			qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 			values.add(animalBean.getAnimalType());
@@ -391,13 +389,19 @@ public class AnimalLoader {
 	    return allMatchingValues;
 	}	
 	
-	
 	public List<Animal> retrieveActiveDams(String orgID) throws Exception {
+		return retrieveDams(orgID,true);
+	}	
+	public List<Animal> retrieveAllDams(String orgID) throws Exception {
+		return retrieveDams(orgID,false);
+	}
+		
+	private List<Animal> retrieveDams(String orgID, boolean activeOnly) throws Exception {
 		AnimalBean animalBean = new AnimalBean();
 		animalBean.setOrgID(orgID);
-		animalBean.setActiveOnly(true);
-		animalBean.setGender('F');
-		String additionalQuery = " TYPE_CD NOT IN ('FEMALECALF', 'HEIFER') ";
+		animalBean.setActiveOnly(activeOnly);
+		animalBean.setGender(Util.GENDER_CHAR.FEMALE);
+		String additionalQuery = " DOB <= '" + Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Util.MINIMUM_AGE_AT_CALVING_IN_DAYS))+"'";
 		return retrieveMatchingAnimals(animalBean, false, additionalQuery, " ORDER BY ANIMAL_TAG");
 	}	
 	

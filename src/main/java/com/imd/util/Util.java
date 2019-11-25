@@ -13,6 +13,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
+import org.joda.time.ReadableDuration;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -93,6 +94,8 @@ public class Util {
 
 	public static final String PROPERTIES_FILE_NAME = "IMDConfig.properties";
 
+	public static final int MINIMUM_AGE_AT_CALVING_IN_DAYS = 550;
+
 	public static final class HTTPCodes {
 
 		public static final int UNAUTHORIZED = 401;
@@ -107,6 +110,7 @@ public class Util {
 		public static final int VERIFY_ACCESS_MESSAGE = 1;
 		public static final int USER_PROFILE_UPDATED = 2;
 		public static final int USER_PROFILE_NOT_UPDATED = 3;
+		public static final int INVALID_GENDER = 4;
 		public static final String DYNAMIC_VALUE_PLACEHOLDER = "%";
 		
 	}
