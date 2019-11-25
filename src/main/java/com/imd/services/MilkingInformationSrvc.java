@@ -44,7 +44,7 @@ public class MilkingInformationSrvc {
 			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -61,10 +61,10 @@ public class MilkingInformationSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	
 
@@ -108,10 +108,10 @@ public class MilkingInformationSrvc {
 			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkMonthList + "],\n" + prefix + prefix + "\"averages\":[" + monthlyAverageList + "],\n" +prefix + prefix + "\"volumes\":[" + monthlyVolList + "]\n" + prefix + "}\n]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(milkingRecordInformation, Util.INFO);
-		return Response.status(200).entity(milkingRecordInformation).build();
+		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
     }
 	
 	@POST
@@ -159,10 +159,10 @@ public class MilkingInformationSrvc {
 			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n"  + prefix + prefix + "\"volumes\":[" + dailyVolList + "],\n" + prefix + prefix + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "]\n" + prefix + "}\n]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(milkingRecordInformation, Util.INFO);
-		return Response.status(200).entity(milkingRecordInformation).build();
+		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
     }		
 
 	
@@ -200,10 +200,10 @@ public class MilkingInformationSrvc {
 			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"  + prefix + prefix +  "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(milkingRecordInformation, Util.INFO);
-		return Response.status(200).entity(milkingRecordInformation).build();
+		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
     }			
 	
 	@POST
@@ -256,10 +256,10 @@ public class MilkingInformationSrvc {
 			milkingRecordInformation += "[" + "\n" + prefix + "{" + "\n" + prefix + prefix + "\"days\":[" + milkDayList + "],\n"   + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n" + prefix + prefix +  "\"dates\":[" + dateList + "],\n"  + prefix + prefix  + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "],\n" + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(milkingRecordInformation, Util.INFO);
-		return Response.status(200).entity(milkingRecordInformation).build();
+		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
     }		
 		
 	
@@ -319,20 +319,20 @@ public class MilkingInformationSrvc {
         		outcomeString = "["+ outcomeString + "]";
     			
         	IMDLogger.log(outcomeString, Util.INFO);
-    		return Response.status(200).entity(outcomeString).build();
+    		return Response.status(Util.HTTPCodes.OK).entity(outcomeString).build();
 
 //    		responseCode = loader.insertMilkRecord(milkingRecord);
 //    		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
-//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
 //    		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
 //    		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
-//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
 //    		else
-//    			return Response.status(200).entity("{ \"error\": false, \"message\":\"" + responseCode + " milking records added" + "\"}").build();
+//    			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"" + responseCode + " milking records added" + "\"}").build();
     	} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
 		}
     }	
 	@POST
@@ -345,20 +345,20 @@ public class MilkingInformationSrvc {
     	IMDLogger.log(inputInformation.toString(), Util.INFO);
     	try {
     		if (inputInformation == null || inputInformation.getInputDelimitedFileContents() == null) {
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"Unable to parse the information. The service seemed to have been called with invalid or missing parameter (inputDelimitedFileContents)\"}").build();    			
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Unable to parse the information. The service seemed to have been called with invalid or missing parameter (inputDelimitedFileContents)\"}").build();    			
     		}
         	FarmMilkingDetailBean milkingEventRecord = Util.parseFarmMilkingDetailBean(inputInformation);
         	milkingEventRecord.setOrgID(orgID);
         	if (milkingEventRecord.getTemperatureInCentigrade() == null) {
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid Temperature \"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid Temperature \"}").build();
 			} else if (milkingEventRecord.getMilkingDateStr() == null) {
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid milking date \"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid milking date \"}").build();
 			} else if (milkingEventRecord.getMilkingTimeStr() == null) {
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid milking time \"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid milking time \"}").build();
 			} else if (milkingEventRecord.getMilkingEventNumber() <1) {
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
 			} else if (milkingEventRecord.getFarmMilkingEventRecords() == null || milkingEventRecord.getFarmMilkingEventRecords().isEmpty()) {
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify at least one milking record\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify at least one milking record\"}").build();
 			}
         	if (!inputInformation.getShouldAdd() ) {
 				// only parse and show the results
@@ -393,7 +393,7 @@ public class MilkingInformationSrvc {
 				
 				parseResult += milkRecords + "]\n}"; 
 				IMDLogger.log(parseResult, Util.INFO);
-				return Response.status(200).entity(parseResult).build();
+				return Response.status(Util.HTTPCodes.OK).entity(parseResult).build();
 			} else {
 	    		MilkingDetailLoader loader = new MilkingDetailLoader();
 	    		List<TagVolumeCommentTriplet> outcomeInfo = loader.addOrEditFarmMilkingEventRecord(milkingEventRecord);
@@ -415,24 +415,24 @@ public class MilkingInformationSrvc {
 	        		outcomeString = "["+ outcomeString + "]";
 	    			
 	        	IMDLogger.log(outcomeString, Util.INFO);
-	    		return Response.status(200).entity(outcomeString).build();
+	    		return Response.status(Util.HTTPCodes.OK).entity(outcomeString).build();
 			}
 
 //    		responseCode = loader.insertMilkRecord(milkingRecord);
 //    		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
-//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
 //    		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
 //    		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
-//    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
 //    		else
-//    			return Response.status(200).entity("{ \"error\": false, \"message\":\"" + responseCode + " milking records added" + "\"}").build();
+//    			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"" + responseCode + " milking records added" + "\"}").build();
     	} catch (IMDException e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(e.getMessage())) + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(e.getMessage())) + "\"}").build();
     	} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
 		}
     }	
 	
@@ -446,29 +446,29 @@ public class MilkingInformationSrvc {
     	try {
 			if (milkingRecord.getAnimalTag() == null || milkingRecord.getAnimalTag().isEmpty())
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
 			}
 			if (milkingRecord.getMilkingEventNumber() <1)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
 			}
 			if (!(milkingRecord.getMilkVolume() > 0))
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		responseCode = loader.insertMilkRecord(milkingRecord);
     		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
     		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
     		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
     		else
-    			return Response.status(200).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
+    			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
     	} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
 		}
     }	
 	
@@ -485,7 +485,7 @@ public class MilkingInformationSrvc {
     	try {
 			if (searchBean.getAnimalTag() == null || searchBean.getAnimalTag().isEmpty())
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		AnimalLoader animalLoader = new AnimalLoader();
@@ -494,23 +494,23 @@ public class MilkingInformationSrvc {
     		animalBean.setAnimalTag(searchBean.getAnimalTag());    		
     		List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean);
     		if (animals.size() != 1) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Unable to find the animal. foud " + animals.size() + " records\"}").build();    			    			
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Unable to find the animal. foud " + animals.size() + " records\"}").build();    			    			
     		}
     		Animal animal = animals.get(0);
     		IMDLogger.log(animal.getAnimalType(), Util.INFO);
-    		if (animal.getGender() != Util.GENDER_CHAR.FEMALE) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information only applies to female animals\"}").build();    			
+    		if (!animal.getGender().equalsIgnoreCase(Util.GENDER_CHAR.FEMALE+"")) {
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Milking information only applies to female animals\"}").build();    			
     		}
     		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.FEMALECALF)) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to female calves\"}").build();    			
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to female calves\"}").build();    			
     		}
     		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.HEIFER)) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to heifers\"}").build();    			
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to heifers\"}").build();    			
     		}    		
 			List<MilkingDetail> animalValues = loader.retrieveMonthlyMilkingRecordsOfCow(searchBean);
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 			}
 	    	Iterator<MilkingDetail> recValuesIt = animalValues.iterator();
 	    	while (recValuesIt.hasNext()) {
@@ -533,10 +533,10 @@ public class MilkingInformationSrvc {
 	    		milkingInformation = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
 //    	IMDLogger.log(milkingInformation, Util.ERROR);
-		return Response.status(200).entity(milkingInformation).build();
+		return Response.status(Util.HTTPCodes.OK).entity(milkingInformation).build();
     }	
 	
 	private String consolidateDailyMilkingRecord(List<MilkingDetail> dailyRecords) {

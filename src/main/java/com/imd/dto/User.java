@@ -12,6 +12,11 @@ public class User extends IMDairiesDTO {
 	private String personId;
 	private String preferredLanguage;
 	private String preferredCurrency;
+	private String preference1;
+	private String preference2;
+	private String preference3;
+	private String preference4;
+	private String preference5;
 	public User(String userID) {
 		this.userId = userID;
 	}
@@ -78,7 +83,42 @@ public class User extends IMDairiesDTO {
 			"gender : " + gender + "\n" +
 			"personId : " + personId + "\n" +
 			"preferredLanguage : " + preferredLanguage + "\n" +
-			"preferredCurrency : " + preferredCurrency;
+			"preferredCurrency : " + preferredCurrency + "\n" +
+			"preference1 : " + preference1 + "\n" +
+			"preference2 : " + preference2 + "\n" +
+			"preference3 : " + preference3 + "\n" +
+			"preference4 : " + preference4 + "\n" +
+			"preference5 : " + preference5;
+	}
+	public String getPreference5() {
+		return preference5;
+	}
+	public void setPreference5(String preferrence5) {
+		this.preference5 = preferrence5;
+	}
+	public String getPreference4() {
+		return preference4;
+	}
+	public void setPreference4(String preferrence4) {
+		this.preference4 = preferrence4;
+	}
+	public String getPreference3() {
+		return preference3;
+	}
+	public void setPreference3(String preferrence3) {
+		this.preference3 = preferrence3;
+	}
+	public String getPreference2() {
+		return preference2;
+	}
+	public void setPreference2(String preferrence2) {
+		this.preference2 = preferrence2;
+	}
+	public String getPreference1() {
+		return preference1;
+	}
+	public void setPreference1(String preferrence1) {
+		this.preference1 = preferrence1;
 	}
 	
 

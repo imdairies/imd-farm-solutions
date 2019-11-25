@@ -15,6 +15,15 @@ public class SireBean {
 	private Float discountSexPercentage;
 	private Float currentConventionalListPrice;
 	private Float discountConventionalPercentage;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 	
 	public String getOrgID() {
 		return orgID;

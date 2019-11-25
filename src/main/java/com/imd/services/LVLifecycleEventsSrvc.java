@@ -75,7 +75,7 @@ public class LVLifecycleEventsSrvc {
 			List<LifeCycleEventCode> events = loader.retrieveAllActiveLifeCycleEvents();
 			if (events == null || events.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No lifecycle event code found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No lifecycle event code found\"}").build();
 			}
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
@@ -86,9 +86,9 @@ public class LVLifecycleEventsSrvc {
 	    	IMDLogger.log(lvEvents, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(200).entity(lvEvents).build(); 
+		return Response.status(Util.HTTPCodes.OK).entity(lvEvents).build(); 
     }	
 	
 	/**
@@ -109,7 +109,7 @@ public class LVLifecycleEventsSrvc {
 			List<LifeCycleEventCode> events = loader.retrieveLifeCycleEvent(eventcode);
 			if (events == null || events.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No record found\"}").build();
 
 			}
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
@@ -120,9 +120,9 @@ public class LVLifecycleEventsSrvc {
 	    	lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(200).entity(lvEvents).build(); 
+		return Response.status(Util.HTTPCodes.OK).entity(lvEvents).build(); 
 	}
 	
 	/**
@@ -142,7 +142,7 @@ public class LVLifecycleEventsSrvc {
 			List<LifeCycleEventCode> events = loader.retrieveMatchingLifeCycleEvents(eventBean);
 			if (events == null || events.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 			}
 	    	Iterator<LifeCycleEventCode> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
@@ -155,9 +155,9 @@ public class LVLifecycleEventsSrvc {
 	    		lvEvents = "[" + lvEvents.substring(0,lvEvents.lastIndexOf(",\n")) + "]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(200).entity(lvEvents).build();
+		return Response.status(Util.HTTPCodes.OK).entity(lvEvents).build();
     }	
 	
 	/**
@@ -181,13 +181,13 @@ public class LVLifecycleEventsSrvc {
 		IMDLogger.log("isActive : " + isActive, Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {			
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
 		}
 		if (shortDescription == null || shortDescription.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
 		}
 		if (longDescription == null || longDescription.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
 		}
 		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
@@ -203,15 +203,15 @@ public class LVLifecycleEventsSrvc {
 			e.printStackTrace();
 		}
 		if (result == 1)
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully\"}").build();
 		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' already exists\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' already exists\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be added. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be added. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lifecycle Event '" + eventCode+ "' could not be added. Please submit a bug report.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lifecycle Event '" + eventCode+ "' could not be added. Please submit a bug report.\"}").build();
 		else 
-			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
 	}
 	/**
 	 * This API adds a new life cycle event.
@@ -236,7 +236,7 @@ public class LVLifecycleEventsSrvc {
 		IMDLogger.log("isActive : " + isActive, Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
 		}
 		LifeCycleEventCode 	event = new LifeCycleEventCode(eventBean);
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
@@ -252,15 +252,15 @@ public class LVLifecycleEventsSrvc {
 			e.printStackTrace();
 		}
 		if (result == 1)
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"The Lifecycle event has been edited successfully\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"The Lifecycle event has been edited successfully\"}").build();
 		else if (result == 0)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' may not exist\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' may not exist\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be updated. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be updated. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the syntax of the update string. This indicates a bug that we may have left in the code. Lifecycle Event '" + eventCode+ "' could not be edited. Please submit a bug report with IMDLabs.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the syntax of the update string. This indicates a bug that we may have left in the code. Lifecycle Event '" + eventCode+ "' could not be edited. Please submit a bug report with IMDLabs.\"}").build();
 		else 
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred while editing the lifecycle event\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An unknown error occurred while editing the lifecycle event\"}").build();
 	}
 	
 	@POST
@@ -273,7 +273,7 @@ public class LVLifecycleEventsSrvc {
 			List<Sire> sireValues = loader.retrieveAISire();
 			if (sireValues == null || sireValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
 			}
 	    	Iterator<Sire> sireValueIt = sireValues.iterator();
 	    	while (sireValueIt.hasNext()) {
@@ -286,10 +286,10 @@ public class LVLifecycleEventsSrvc {
 	    		sireValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
-		return Response.status(200).entity(sireValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(sireValueResult).build();
     }
 	
 	
@@ -304,7 +304,7 @@ public class LVLifecycleEventsSrvc {
 			List<Sire> sireValues = loader.getSiresWithAvailableInventory(orgID);
 			if (sireValues == null || sireValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
 			}
 	    	Iterator<Sire> sireValueIt = sireValues.iterator();
 	    	while (sireValueIt.hasNext()) {
@@ -320,10 +320,10 @@ public class LVLifecycleEventsSrvc {
 	    		sireValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
-		return Response.status(200).entity(sireValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(sireValueResult).build();
     }	
 	
 	@POST
@@ -338,7 +338,7 @@ public class LVLifecycleEventsSrvc {
 			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -351,10 +351,10 @@ public class LVLifecycleEventsSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	
 	@POST
@@ -369,7 +369,7 @@ public class LVLifecycleEventsSrvc {
 			List<Animal> animalValues = loader.retrieveActiveAnimals(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -382,10 +382,10 @@ public class LVLifecycleEventsSrvc {
 	    		animalValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }	
 	
 

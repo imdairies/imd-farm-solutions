@@ -3,6 +3,15 @@ package com.imd.services.bean;
 public class InputDelimitedFileBean {
 	private boolean shouldAdd;
 	private String inputDelimitedFileContents;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 
 	public String getInputDelimitedFileContents() {
 		return inputDelimitedFileContents;

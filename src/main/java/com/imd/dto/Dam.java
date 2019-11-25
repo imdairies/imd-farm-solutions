@@ -22,7 +22,7 @@ public class Dam extends Animal {
 	public Dam(String tagNumber) throws IMDException {
 		super(tagNumber);
 		milkingRecord = new HashMap <LocalDate, HashMap<Short,MilkingDetail>> ();
-		setGender('F');
+		setGender(Util.GENDER_CHAR.FEMALE);
 	}
 	public Dam(String orgID, String tag, DateTime dob, boolean isAgeEstimated, double purchasePrice, String currency) throws IMDException {
 		super(orgID, tag, dob, isAgeEstimated, purchasePrice, currency);

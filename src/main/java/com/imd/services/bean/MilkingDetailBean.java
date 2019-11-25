@@ -18,9 +18,17 @@ public class MilkingDetailBean {
 	private Float temperatureInCentigrade;
 	private Float humidity;
 	private String comments;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 
 	public MilkingDetailBean() {
-		// TODO Auto-generated constructor stub
 	}
 	public MilkingDetailBean(String animalTag2, String orgID2, String milkingDateStr2, String milkingTimeStr2, short milkingEventNumber2,
 			float milkVolume2, Float fatValue2, Float lrValue2, Float toxinValue2, Float temperatureInCentigrade2,

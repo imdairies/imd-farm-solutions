@@ -5,6 +5,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.Response.Status;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -15,6 +17,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.util.BufferRecyclers;
+import com.imd.dto.User;
 import com.imd.loader.UserLoader;
 import com.imd.services.bean.FarmMilkingDetailBean;
 import com.imd.services.bean.InputDelimitedFileBean;
@@ -89,6 +92,24 @@ public class Util {
 	public static final double MAX_BODY_WEIGHT = 650d;
 
 	public static final String PROPERTIES_FILE_NAME = "IMDConfig.properties";
+
+	public static final class HTTPCodes {
+
+		public static final int UNAUTHORIZED = 401;
+		public static final int BAD_REQUEST = 400;
+		public static final int NOT_IMPLEMENTED = 501;
+		public static final int OK = 200;
+	}
+
+	public static final class MessageCatalog {
+
+		public static final int GENERIC_UPDATE_FAILED_MESSAGE = 0;
+		public static final int VERIFY_ACCESS_MESSAGE = 1;
+		public static final int USER_PROFILE_UPDATED = 2;
+		public static final int USER_PROFILE_NOT_UPDATED = 3;
+		public static final String DYNAMIC_VALUE_PLACEHOLDER = "%";
+		
+	}
 
 	public static final class CurrencyCode {
 		public static final String PKR = "PKR";
@@ -593,8 +614,10 @@ public class Util {
 	public static String substituteEmptyForNull(Object val) {
 		return val == null ? "" : val.toString();
 	}
-	public static boolean verifyAccess(String string, String loginToken) {
-		return (new UserLoader()).isUserAuthenticated(loginToken) != null;
+	public static User verifyAccess(String restrictedObjectName, String loginToken) {
+		//TODO: As of now anyone who is authenticated can access everything. In future when we enhance our 
+		// user authorization security model we would update this method.
+		return (new UserLoader()).isUserAuthenticated(loginToken);
 	}
 	
 	

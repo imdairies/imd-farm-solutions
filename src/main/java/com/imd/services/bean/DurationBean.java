@@ -5,6 +5,15 @@ public class DurationBean {
 	private String start;
 	private String end;
 	private int steps;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 	
 	public String getStart() {
 		return start;

@@ -2220,7 +2220,7 @@ class AdvisementLoaderTest {
 			Animal dewormTh3 = createTestAnimal("-995");
 			dewormTh3.setAnimalType(Util.AnimalTypes.DRYINSEMIN);
 			assertEquals(1,animalLoader.insertAnimal(dewormTh3));
-			assertTrue(insertEvent(dewormTh3.getAnimalTag(), "Violates Threshold 3", Util.LifeCycleEvents.DEWORM, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(200)) >= 0);
+			assertTrue(insertEvent(dewormTh3.getAnimalTag(), "Violates Threshold 3", Util.LifeCycleEvents.DEWORM, DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Util.HTTPCodes.OK)) >= 0);
 			
 			boolean th1Found = false;
 			boolean th2Found = false;

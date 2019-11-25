@@ -19,6 +19,7 @@ public class FarmMilkingDetailBean {
 	private Float toxinValue;
 	private Float temperatureInCentigrade;
 	private Float humidity;
+	private String loginToken;
 	@JsonProperty("farmMilkingEventRecords")
     private List<TagVolumeCommentTriplet> farmMilkingEventRecords;
 //    private String tagVolume;
@@ -125,5 +126,12 @@ public class FarmMilkingDetailBean {
 	}
 	public void setHumidity(Float humidity) {
 		this.humidity = humidity;
+	}
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
 	}
 }

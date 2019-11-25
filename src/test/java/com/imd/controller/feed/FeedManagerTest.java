@@ -839,8 +839,8 @@ class FeedManagerTest {
 			assertEquals(8f,manager.getPregnancyEnergyRequirement(180).getMetabloizableEnergy().floatValue());
 			assertEquals(0.6f,manager.getPregnancyEnergyRequirement(180).getNutritionalNeedsTDN().floatValue());
 
-			assertEquals(10f,manager.getPregnancyEnergyRequirement(200).getMetabloizableEnergy().floatValue());
-			assertEquals(0.7f,manager.getPregnancyEnergyRequirement(200).getNutritionalNeedsTDN().floatValue());
+			assertEquals(10f,manager.getPregnancyEnergyRequirement(Util.HTTPCodes.OK).getMetabloizableEnergy().floatValue());
+			assertEquals(0.7f,manager.getPregnancyEnergyRequirement(Util.HTTPCodes.OK).getNutritionalNeedsTDN().floatValue());
 			
 			assertEquals(10f,manager.getPregnancyEnergyRequirement(210).getMetabloizableEnergy().floatValue());
 			assertEquals(0.7f,manager.getPregnancyEnergyRequirement(210).getNutritionalNeedsTDN().floatValue());

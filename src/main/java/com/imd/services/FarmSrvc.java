@@ -32,7 +32,6 @@ import com.imd.util.Util.LifeCycleEvents;
 
 @Path("/farm")
 public class FarmSrvc {
-	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 285;
 	private static final int EXPECTED_CALVING_THRESHOLD_DAYS = 35;
 	private static final int RECENT_INSEMINATION_THRESHOLD_DAYS = 35;
 	private static final int RECENT_ABORTION_THRESHOLD_DAYS = 35;
@@ -51,19 +50,19 @@ public class FarmSrvc {
 
     	try {
     		if (duration.getStart() == null || duration.getStart().isEmpty()) {
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify Herd Size trend start duration\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify Herd Size trend start duration\"}").build();
     		}
     		if (duration.getEnd() == null || duration.getEnd().isEmpty()) {
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify Herd Size trend end duration\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify Herd Size trend end duration\"}").build();
     		}
     		if (duration.getSteps() == 0) {
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify step size. Step size indicates the number of months between two herd counts.\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify step size. Step size indicates the number of months between two herd counts.\"}").build();
     		}
     		
     		LocalDate startDate = new LocalDate(duration.getStart());
     		LocalDate endDate = new LocalDate(duration.getEnd());
     		if (startDate.isAfter(endDate))
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"Start duration must be smaller than the end duration\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Start duration must be smaller than the end duration\"}").build();
     		LocalDate processingDate = startDate;
     		int count;
     		String comma = ",";
@@ -94,12 +93,12 @@ public class FarmSrvc {
     		IMDLogger.log(outputJson, Util.INFO);    		
     	} catch (java.lang.IllegalArgumentException ex) {
 			ex.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Invalid format of start and/or end duration. Allowed format is yyyy-MM-dd\"}").build();    			    		
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Invalid format of start and/or end duration. Allowed format is yyyy-MM-dd\"}").build();    			    		
     	} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(200).entity(outputJson).build();
+		return Response.status(Util.HTTPCodes.OK).entity(outputJson).build();
     }
 
 	/**
@@ -238,7 +237,7 @@ public class FarmSrvc {
 				"}";
 				
 		IMDLogger.log(outputJson, Util.INFO);
-		return Response.status(200).entity(outputJson).build();
+		return Response.status(Util.HTTPCodes.OK).entity(outputJson).build();
 	}	
 	
 	
@@ -260,16 +259,16 @@ public class FarmSrvc {
 		IMDLogger.log(luValueBean.toString() , Util.INFO);
 		
 		if (categoryCode == null || categoryCode.trim().isEmpty()) {			
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid category code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid category code.\"}").build();
 		}
 		if (lookupCode == null || lookupCode.trim().isEmpty()) {			
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid lookup code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid lookup code.\"}").build();
 		}
 		if (shortDescription == null || shortDescription.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
 		}
 		if (longDescription == null || longDescription.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
 		}
 		LookupValues luValue = new LookupValues(luValueBean);
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
@@ -285,15 +284,15 @@ public class FarmSrvc {
 			e.printStackTrace();
 		}
 		if (result == 1)
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"New lookup value has been created successfully\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New lookup value has been created successfully\"}").build();
 		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified catefory-lookup value '" + categoryCode + "-" + lookupCode + "' already exists\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified catefory-lookup value '" + categoryCode + "-" + lookupCode + "' already exists\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lookup '"  + categoryCode + "-" + lookupCode + "' could not be added. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lookup '"  + categoryCode + "-" + lookupCode + "' could not be added. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lookup '" + categoryCode + "-" + lookupCode +  "' could not be added. Please submit a bug report.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lookup '" + categoryCode + "-" + lookupCode +  "' could not be added. Please submit a bug report.\"}").build();
 		else 
-			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lookup code\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lookup code\"}").build();
 	}
 	
 
@@ -315,16 +314,16 @@ public class FarmSrvc {
 		IMDLogger.log(luValueBean.toString() , Util.INFO);
 		
 		if (categoryCode == null || categoryCode.trim().isEmpty()) {			
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid category code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid category code.\"}").build();
 		}
 		if (lookupCode == null || lookupCode.trim().isEmpty()) {			
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid lookup code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid lookup code.\"}").build();
 		}
 		if (shortDescription == null || shortDescription.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Short Description.\"}").build();
 		}
 		if (longDescription == null || longDescription.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Long Description.\"}").build();
 		}
 		LookupValues luValue = new LookupValues(luValueBean);
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
@@ -340,17 +339,17 @@ public class FarmSrvc {
 			e.printStackTrace();
 		}
 		if (result == 1)
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"Lookup value has been updated successfully\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Lookup value has been updated successfully\"}").build();
 		else if (result == 0)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Lookup value does not exist.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Lookup value does not exist.\"}").build();
 		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified catefory-lookup value '" + categoryCode + "-" + lookupCode + "' already exists\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified catefory-lookup value '" + categoryCode + "-" + lookupCode + "' already exists\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lookup '"  + categoryCode + "-" + lookupCode + "' could not be added. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lookup '"  + categoryCode + "-" + lookupCode + "' could not be added. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lookup '" + categoryCode + "-" + lookupCode +  "' could not be added. Please submit a bug report.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Lookup '" + categoryCode + "-" + lookupCode +  "' could not be added. Please submit a bug report.\"}").build();
 		else 
-			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lookup code\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lookup code\"}").build();
 	}  	
 	
 }

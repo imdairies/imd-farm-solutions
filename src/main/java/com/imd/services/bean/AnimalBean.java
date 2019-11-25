@@ -10,7 +10,7 @@ public class AnimalBean {
 	private String alias;
 	private boolean activeOnly;
 	private String animalType;
-	private char gender;
+	private String gender;
 	private String dateOfBirthStr;
 	private String dobAccuracyInd;
 	private String aiIndicator;
@@ -56,7 +56,7 @@ public class AnimalBean {
 		return 	"\n orgID:" + orgID + 
 				"\n animalTag:" + animalTag + 
 				"\n animalType:" + animalType + 
-				"\n loginToken: " + loginToken + "\n" +
+				"\n loginToken: " + loginToken +
 				"\n alias:" + alias + 
 				"\n gender:" + gender + 
 				"\n dateOfBirthStr:" + dateOfBirthStr + 
@@ -77,11 +77,14 @@ public class AnimalBean {
 	public void setOrgID(String orgID) {
 		this.orgID = orgID;
 	}
-	public char getGender() {
+	public String getGender() {
 		return gender;
 	}
-	public void setGender(char gender) {
+	public void setGender(String gender) {
 		this.gender = gender;
+	}
+	public void setGender(char gender) {
+		this.gender = gender + "";
 	}
 	public String getDobAccuracyInd() {
 		return dobAccuracyInd;

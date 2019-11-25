@@ -56,7 +56,7 @@ public class LifecycleEventSrvc {
 			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null,null);
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"The animal " + Util.encodeJson(animalEventBean.getAnimalTag()) + " does not exist\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"The animal " + Util.encodeJson(animalEventBean.getAnimalTag()) + " does not exist\"}").build();
 			}
 			String eventTypeCD = animalEventBean.getEventCode();
 			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
@@ -64,7 +64,7 @@ public class LifecycleEventSrvc {
 			List<LifecycleEvent> events = animalEventsloader.retrieveSpecificLifeCycleEventsForAnimal(animalBean.getOrgID(),animalValues.get(0).getAnimalTag(),eventTypeCD);
 			if (events == null || events.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No life events found for specified animal\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No life events found for specified animal\"}").build();
 
 			}
 	    	Iterator<LifecycleEvent> eventIt = events.iterator();
@@ -78,9 +78,9 @@ public class LifecycleEventSrvc {
 	    	IMDLogger.log(animalEvents, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(400).entity(animalEvents).build();
+		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity(animalEvents).build();
     }
     
 	
@@ -145,22 +145,22 @@ public class LifecycleEventSrvc {
 		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		if (eventTransactionID == null || eventTransactionID.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event transaction id.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event transaction id.\"}").build();
 		}
 		try {
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			LifecycleEvent event = loader.retrieveLifeCycleEvent(eventBean.getOrgID(),eventTransactionID);
 			if (event == null)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"The requested life event could not be found.\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"The requested life event could not be found.\"}").build();
 			}
 	    	animalEvent = "[\n{" + event.dtoToJson("   ") + "}\n]";
 	    	IMDLogger.log(animalEvent, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  Util.encodeJson(e.getMessage()) + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  Util.encodeJson(e.getMessage()) + "\"}").build();
 		}
-		return Response.status(400).entity(animalEvent).build();
+		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity(animalEvent).build();
 	}  
 	@POST
 	@Path("/deleteoneevent")
@@ -173,16 +173,16 @@ public class LifecycleEventSrvc {
 		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		if (eventTransactionID == null || eventTransactionID.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event transaction id.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event transaction id.\"}").build();
 		}
 		try {
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			deleteCount = loader.deleteLifeCycleEvent(eventBean.getOrgID(),eventTransactionID);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  Util.encodeJson(e.getMessage()) + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  Util.encodeJson(e.getMessage()) + "\"}").build();
 		}
-		return Response.status(200).entity("{ \"error\": false, \"message\":\"" + Util.encodeJson(deleteCount) + " life event was deleted. Please note that if at the time of creation of this event some related event was updated, then those updates were NOT reversed by the deletion. If you wish to reverse those updates, please do so manually.\"}").build();
+		return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"" + Util.encodeJson(deleteCount) + " life event was deleted. Please note that if at the time of creation of this event some related event was updated, then those updates were NOT reversed by the deletion. If you wish to reverse those updates, please do so manually.\"}").build();
 	}
 	
 	@POST
@@ -199,13 +199,13 @@ public class LifecycleEventSrvc {
 		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
 		}
 		if (animalTag == null || animalTag.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal Tag.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal Tag.\"}").build();
 		}
 		if (eventComments == null || eventComments.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
 		}
 		
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);		
@@ -240,11 +240,11 @@ public class LifecycleEventSrvc {
 		IMDLogger.log("Successful Additions: " + successfulAnimals, Util.INFO);
 		IMDLogger.log("Unsuccessful Additions: " + unsuccessfulAnimals, Util.INFO);
 		if (unsuccessfulAnimals.isEmpty())
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"The event was applied to the following animals successfully: " + Util.encodeJson(successfulAnimals) + "\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"The event was applied to the following animals successfully: " + Util.encodeJson(successfulAnimals) + "\"}").build();
 		else if (successfulAnimals.isEmpty())
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"The event could NOT be applied to the following animals: " +  Util.encodeJson(unsuccessfulAnimals) + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The event could NOT be applied to the following animals: " +  Util.encodeJson(unsuccessfulAnimals) + "\"}").build();
 		else
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + Util.ERROR_POSTFIX + " The event was applied to the to the following animals: " +  Util.encodeJson(successfulAnimals) + ". But the event could NOT be applied to the following animals: " + Util.encodeJson(unsuccessfulAnimals) + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + Util.ERROR_POSTFIX + " The event was applied to the to the following animals: " +  Util.encodeJson(successfulAnimals) + ". But the event could NOT be applied to the following animals: " + Util.encodeJson(unsuccessfulAnimals) + "\"}").build();
 	} 	
 	
 	private String addEventForSingleAnimal(LifeCycleEventBean eventBean, AnimalBean animalBean, String userID) {
@@ -292,13 +292,13 @@ public class LifecycleEventSrvc {
 		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
 		}
 		if (animalTag == null || animalTag.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal Tag.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal Tag.\"}").build();
 		}
 		if (eventComments == null || eventComments.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
 		}
 		LifecycleEvent event;
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
@@ -338,17 +338,17 @@ public class LifecycleEventSrvc {
 				e.printStackTrace();
 			}
 			if (result > 0)
-				return Response.status(200).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully. The Transaction Id is: " + Util.encodeJson(result + additionalMessage) + "\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully. The Transaction Id is: " + Util.encodeJson(result + additionalMessage) + "\"}").build();
 			else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + Util.encodeJson(eventCode)  + "' already exists\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + Util.encodeJson(eventCode)  + "' already exists\"}").build();
 			else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
 			else if (result == Util.ERROR_CODE.DOES_NOT_EXIST)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified animal does not exit. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please specify a correct Animal Tag.\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified animal does not exit. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please specify a correct Animal Tag.\"}").build();
 			else 
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
 		} else {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + Util.encodeJson(validationResult) + ". The event '" + Util.encodeJson(eventCode) + "' could not be added.\"}").build();			
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + Util.encodeJson(validationResult) + ". The event '" + Util.encodeJson(eventCode) + "' could not be added.\"}").build();			
 		}
 	}
 
@@ -356,16 +356,17 @@ public class LifecycleEventSrvc {
 		String additionalMessage = performPostEventAdditionLifecycleStageUpdate(eventBean, animal, user);
 		additionalMessage += performPostEventAdditionInventoryUpdate(eventBean, animal, user);
 		additionalMessage += (new LifeCycleEventsLoader()).performPostEventAdditionEventsUpdates(event, animal, user);
-		additionalMessage += insertCalf(event, animal, user);
+		additionalMessage += insertCalf(event, animal, user, eventBean.getLoginToken());
 		additionalMessage += performPostEventAdditionInfomationProcessing(event, animal, user);
 		
 		return additionalMessage;
 	}
 	
 	
-	private String insertCalf(LifecycleEvent event, Animal animal, User user) {
+	private String insertCalf(LifecycleEvent event, Animal animal, User user, String authToken) {
 		AnimalBean calfBean = new AnimalBean();
 		try {
+			calfBean.setLoginToken(authToken);
 			if (!event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PARTURATE) || event.getAuxField3Value() == null || event.getAuxField3Value().trim().isEmpty())
 				return "";
 			calfBean.setAnimalTag(event.getAuxField3Value().trim());
@@ -523,13 +524,13 @@ public class LifecycleEventSrvc {
 		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
 		}
 		if (animalTag == null || animalTag.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Transaction ID to update Tag.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Transaction ID to update Tag.\"}").build();
 		}
 		if (eventComments == null || eventComments.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
 		}
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
@@ -544,13 +545,13 @@ public class LifecycleEventSrvc {
 			e.printStackTrace();
 		}
 		if (result > 0)
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"Lifecycle event has been updated successfully.\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Lifecycle event has been updated successfully.\"}").build();
 		else if (result == 0)
-			return Response.status(200).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + Util.encodeJson(eventTransactionID) + "' does not exist.\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + Util.encodeJson(eventTransactionID) + "' does not exist.\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
 		else 
-			return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
 	} 	
 	
 	

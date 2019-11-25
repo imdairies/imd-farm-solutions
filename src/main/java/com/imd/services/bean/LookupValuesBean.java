@@ -11,6 +11,15 @@ public class LookupValuesBean {
 	private String additionalField1;
 	private String additionalField2;
 	private String additionalField3;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 	
 	
 	public LookupValuesBean() {

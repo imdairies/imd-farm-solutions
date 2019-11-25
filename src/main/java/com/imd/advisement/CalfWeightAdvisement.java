@@ -14,7 +14,7 @@ import com.imd.dto.LifecycleEvent;
 import com.imd.dto.Note;
 import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
-import com.imd.loader.LanguageLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
@@ -49,14 +49,14 @@ public class CalfWeightAdvisement extends AdvisementRule {
 			if (ruleDto != null) {
 				
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					LanguageLoader langLoader = new LanguageLoader();
-					String localizedMessage  = langLoader.retrieveMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					MessageCatalogLoader langLoader = new MessageCatalogLoader();
+					String localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setFirstThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.retrieveMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
+					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setSecondThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.retrieveMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
+					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setThirdThresholdMessage(localizedMessage);
 				}

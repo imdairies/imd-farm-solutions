@@ -55,6 +55,8 @@ public class ConfigurationManager {
 	private void loadGlobalConfigurationsIfNeeded() {
 		if (globalConfigurations.isEmpty()) {
 			globalConfigurations.put(Util.ConfigKeys.UTC_TIMEZONE, Util.UTC_TIMEZONE);
+			globalConfigurations.put(Util.ConfigKeys.LANG_CD, Util.LanguageCode.ENG);
+			globalConfigurations.put(Util.ConfigKeys.ORG_ID, "IMD");
 		}
 	}
 	public void reLoadGlobalConfigurations() {

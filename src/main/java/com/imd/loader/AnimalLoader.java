@@ -1,6 +1,5 @@
 package com.imd.loader;
 
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -64,16 +63,16 @@ public class AnimalLoader {
 		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(index++,  (animal.getOrgID() == null ? null : animal.getOrgID()));
-			preparedStatement.setString(index++,  (animal.getAnimalTag() == null ? null : animal.getAnimalTag()));
-			preparedStatement.setString(index++,  (animal.getAlias() == null ? null : animal.getAlias()));
-			preparedStatement.setString(index++,  (animal.getBreed() == null ? null : animal.getBreed()));
-			preparedStatement.setString(index++,  (animal.getAnimalTypeCD() == null ? (animal.getAnimalType() == null ? null : animal.getAnimalType()) : animal.getAnimalTypeCD()));
-			preparedStatement.setString(index++,  (animal.getDateOfBirth() == null ? null : Util.getDateTimeInSQLFormat(animal.getDateOfBirth())));
-			preparedStatement.setString(index++,  (animal.isDateOfBirthEstimated() ? "N" : "Y"));
-			preparedStatement.setString(index++,  (animal.getHerdJoiningDate() == null ? null :Util.getDateTimeInSQLFormat(animal.getHerdJoiningDate())));
-			preparedStatement.setString(index++,  (animal.getHerdLeavingDate() == null ? null :Util.getDateTimeInSQLFormat(animal.getHerdLeavingDate())));
-			preparedStatement.setString(index++, (animal.getGender() == ' ' ? null : animal.getGender() + ""));
+			preparedStatement.setString(index++, (animal.getOrgID() == null ? null : animal.getOrgID()));
+			preparedStatement.setString(index++, (animal.getAnimalTag() == null ? null : animal.getAnimalTag()));
+			preparedStatement.setString(index++, (animal.getAlias() == null ? null : animal.getAlias()));
+			preparedStatement.setString(index++, (animal.getBreed() == null ? null : animal.getBreed()));
+			preparedStatement.setString(index++, (animal.getAnimalTypeCD() == null ? (animal.getAnimalType() == null ? null : animal.getAnimalType()) : animal.getAnimalTypeCD()));
+			preparedStatement.setString(index++, (animal.getDateOfBirth() == null ? null : Util.getDateTimeInSQLFormat(animal.getDateOfBirth())));
+			preparedStatement.setString(index++, (animal.isDateOfBirthEstimated() ? "N" : "Y"));
+			preparedStatement.setString(index++, (animal.getHerdJoiningDate() == null ? null :Util.getDateTimeInSQLFormat(animal.getHerdJoiningDate())));
+			preparedStatement.setString(index++, (animal.getHerdLeavingDate() == null ? null :Util.getDateTimeInSQLFormat(animal.getHerdLeavingDate())));
+			preparedStatement.setString(index++, (animal.getGender() == null ? null : animal.getGender()));
 			preparedStatement.setString(index++, (animal.getAnimalDam() == null ? null : animal.getAnimalDam().getAnimalTag()));
 			preparedStatement.setString(index++, (animal.getAnimalSire() == null ? null : animal.getAnimalSire().getAnimalTag()));
 			preparedStatement.setString(index++, (animal.isBornThroughAI() ? "Y" : "N"));
@@ -316,7 +315,7 @@ public class AnimalLoader {
 			qryString +=  " AND TYPE_CD " + (isWildCardSearch ?  " LIKE ? " : " = ?");				
 			values.add(animalBean.getAnimalType());
 		}
-		if (animalBean.getGender() == 'M' || animalBean.getGender() == 'F') {
+		if (animalBean.getGender() != null && (animalBean.getGender().equalsIgnoreCase(Util.GENDER_CHAR.MALE+"") || animalBean.getGender().equalsIgnoreCase(Util.GENDER_CHAR.FEMALE+""))) {
 			qryString +=  " AND GENDER ='" + animalBean.getGender() + "' " ;
 		}
 		if (animalBean.getDam() != null && !animalBean.getDam().isEmpty()) {
@@ -765,6 +764,7 @@ public class AnimalLoader {
 	public int updateAnimal(Animal animalDto) {
 		int recordAdded = -1;
 		String qryString = "UPDATE ANIMALS SET " + 
+				(animalDto.getGender() == null ? "" : " GENDER=?,") +
 				(animalDto.getAnimalTypeCD() == null ? "" : " TYPE_CD=?,") +
 				(animalDto.getAlias() == null ? "" : " ALIAS=?,") + 
 				" UPDATED_BY=?, UPDATED_DTTM=? WHERE ORG_ID=? AND ANIMAL_TAG=?";
@@ -774,6 +774,8 @@ public class AnimalLoader {
 		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
+			if (animalDto.getGender() != null)
+				preparedStatement.setString(index++, animalDto.getGender());
 			if (animalDto.getAnimalTypeCD() != null)
 				preparedStatement.setString(index++, animalDto.getAnimalTypeCD());
 			if (animalDto.getAlias() != null)
@@ -1031,7 +1033,7 @@ public class AnimalLoader {
 	}
 	
 	public List<Animal> retrieveSpecifiedAnimalTags(String orgID, String animalTagList) {
-		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE " +
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " +
 				"from ANIMALS A " +
 				"	LEFT OUTER JOIN LV_SIRE B " +
 				"	ON A.SIRE_TAG=B.ID " +

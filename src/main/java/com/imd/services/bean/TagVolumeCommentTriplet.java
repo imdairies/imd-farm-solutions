@@ -9,6 +9,15 @@ public class TagVolumeCommentTriplet{
 	private String volume;
 	private String comments;
 	private String outcome;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 	
 	public String getTag() {
 		return tag;

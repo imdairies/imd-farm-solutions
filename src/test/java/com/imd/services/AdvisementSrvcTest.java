@@ -124,7 +124,7 @@ class AdvisementSrvcTest {
 			
 			AdvisementSrvc srvc = new AdvisementSrvc();
 			UserLoader userLoader = new UserLoader();
-			User user = userLoader.authenticateUser("IMD", "KASHIF", "DUMMY");
+			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
 			assertTrue(user != null);
 			assertTrue(user.getPassword() != null);
 			advBean.setLoginToken(user.getPassword());

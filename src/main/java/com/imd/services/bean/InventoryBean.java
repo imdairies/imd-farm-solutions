@@ -20,6 +20,15 @@ public class InventoryBean {
 	private String auxValue3;
 	private String auxValue4;
 	private String auxValue5;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 	public String getItemSKU() {
 		return itemSKU;
 	}

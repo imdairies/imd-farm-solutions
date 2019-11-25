@@ -115,12 +115,23 @@ public class IMDairiesDTO {
 	}
 	
 	public String fieldToJson(String fieldName, Period dateDifference) {
-		return ("\"" + fieldName + "\":\"" + (dateDifference == null ? "\"\"" : 
-				(dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") +
-				(dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") +
-				(dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "")) + "\"");	
+		String returnValue = "";
+		returnValue += getSingularOrPluralPostfix(dateDifference.getYears(),"yr");
+		returnValue += getSingularOrPluralPostfix(dateDifference.getMonths(),"mo");
+		returnValue += getSingularOrPluralPostfix(dateDifference.getDays(),"day");
+		returnValue += getSingularOrPluralPostfix(dateDifference.getHours(),"hr");
+		returnValue += getSingularOrPluralPostfix(dateDifference.getMinutes(),"min");
+		return ("\"" + fieldName + "\":\"" + returnValue +  "\"");	
 	}
 
+	private String getSingularOrPluralPostfix(int value, String singularPostfix) {
+		if (value <= 0)
+			return "";
+		else if (value == 1)
+			return value + " " + singularPostfix + " ";
+		else 
+			return value + " " + singularPostfix + "s ";
+	}
 	public String fieldToJson(String fieldName, LocalDate valueDt) {
 		return ("\"" + fieldName + "\":" + (valueDt == null ? "\"\"" : "\"" + this.getDateInSQLFormart(valueDt) + "\""));
 	}

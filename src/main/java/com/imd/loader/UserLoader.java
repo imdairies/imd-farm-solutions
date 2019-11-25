@@ -14,6 +14,7 @@ import org.joda.time.DateTime;
 
 import com.imd.dto.Animal;
 import com.imd.dto.User;
+import com.imd.services.bean.UserBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
@@ -33,6 +34,11 @@ public class UserLoader {
 				" A.PERSON_ID," +
 				" A.PREF_LANG," +
 				" A.PREF_CURR," +
+				" A.PREFERENCE1," +
+				" A.PREFERENCE2," +
+				" A.PREFERENCE3," +
+				" A.PREFERENCE4," +
+				" A.PREFERENCE5," +
 				" A.CREATED_BY," +
 				" A.CREATED_DTTM," +
 				" A.UPDATED_BY," +
@@ -78,6 +84,11 @@ public class UserLoader {
 		user.setPersonId(rs.getString("PERSON_ID"));
 		user.setPreferredLanguage(rs.getString("PREF_LANG"));
 		user.setPreferredCurrency(rs.getString("PREF_CURR"));
+		user.setPreference1(rs.getString("PREFERENCE1"));
+		user.setPreference2(rs.getString("PREFERENCE2"));
+		user.setPreference3(rs.getString("PREFERENCE3"));
+		user.setPreference4(rs.getString("PREFERENCE4"));
+		user.setPreference5(rs.getString("PREFERENCE5"));
 		user.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		user.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		user.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
@@ -96,6 +107,7 @@ public class UserLoader {
 			preparedStatement.setString(2, userId);
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 		    result = preparedStatement.executeUpdate();
+			userCache.remove(orgID + "-" + userId);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -179,6 +191,11 @@ public class UserLoader {
 				" A.PERSON_ID," +
 				" A.PREF_LANG," +
 				" A.PREF_CURR," +
+				" A.PREFERENCE1," +
+				" A.PREFERENCE2," +
+				" A.PREFERENCE3," +
+				" A.PREFERENCE4," +
+				" A.PREFERENCE5," +
 				" A.CREATED_BY," +
 				" A.CREATED_DTTM," +
 				" A.UPDATED_BY," +
@@ -186,6 +203,9 @@ public class UserLoader {
 				" FROM imd.USERS A " +
 				" WHERE A.ORG_ID=? AND A.USER_ID=? AND A.PASSWORD=?";
 		PreparedStatement preparedStatement = null;
+		
+		//IMDLogger.log(encryptedPassword, Util.ERROR);
+		
 		if (encryptedPassword != null && !encryptedPassword.isEmpty() && userId != null && !userId.isEmpty() && orgId != null && !orgId.isEmpty()) {
 			ResultSet rs = null;
 			try {
@@ -326,7 +346,8 @@ public class UserLoader {
 			int encryptedValue = (int) plainTextPassword.charAt(i);
 			encryptedPassword += "" + encryptedValue;
 		}
-		return encryptedPassword;
+		
+		return encryptedPassword.isEmpty() ?  encryptedPassword : encryptedPassword + plainTextPassword.hashCode();
 	}
 
 	public int logoutUser(String loginToken) {
@@ -413,6 +434,67 @@ public class UserLoader {
 	}
 	public HashMap<String, User> getSessionCache(){
 		return sessionCache;
+	}
+
+	public int updateUserProfile(UserBean userBean) {
+		String updateQuery = "UPDATE imd.USERS SET " + 
+				(userBean.getPreferredCurrency() == null ? "" : "PREF_CURR=?,    ") + 
+				(userBean.getPreferredLanguage() == null ? "" : "PREF_LANG=?,   ") +
+				(userBean.getUserPreference1() == null ? ""	  : "PREFERENCE1=?, ") +
+				(userBean.getUserPreference2() == null ? ""   : "PREFERENCE2=?, ") +
+				(userBean.getUserPreference3() == null ? ""   : "PREFERENCE3=?, ") +
+				(userBean.getUserPreference4() == null ? ""   : "PREFERENCE4=?, ") +
+				(userBean.getUserPreference5() == null ? ""   : "PREFERENCE5=?, ") +
+				" UPDATED_BY=?, UPDATED_DTTM=? " +
+				" WHERE ORG_ID=? AND USER_ID=?";
+
+		
+		
+		PreparedStatement updatePreparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		int recordUpdated =-1;
+		try {
+			updatePreparedStatement = conn.prepareStatement(updateQuery);
+
+			if (userBean.getPreferredCurrency() != null)
+				updatePreparedStatement.setString(index++, userBean.getPreferredCurrency());
+			if (userBean.getPreferredLanguage() != null)
+				updatePreparedStatement.setString(index++, userBean.getPreferredLanguage());
+			if (userBean.getUserPreference1() != null)
+				updatePreparedStatement.setString(index++, userBean.getUserPreference1());
+			if (userBean.getUserPreference2() != null)
+				updatePreparedStatement.setString(index++, userBean.getUserPreference2());
+			if (userBean.getUserPreference3() != null)
+				updatePreparedStatement.setString(index++, userBean.getUserPreference3());
+			if (userBean.getUserPreference4() != null)
+				updatePreparedStatement.setString(index++, userBean.getUserPreference4());
+			if (userBean.getUserPreference5() != null)
+				updatePreparedStatement.setString(index++, userBean.getUserPreference5());
+
+			updatePreparedStatement.setString(index++, userBean.getUserId());
+			updatePreparedStatement.setString(index++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
+
+			updatePreparedStatement.setString(index++, userBean.getOrgId());
+			updatePreparedStatement.setString(index++, userBean.getUserId());
+
+
+			IMDLogger.log(updatePreparedStatement.toString(), Util.INFO);
+			recordUpdated = updatePreparedStatement.executeUpdate();
+			userCache.remove(userBean.getOrgId() + "-" + userBean.getUserId());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			IMDLogger.log("Exception occurred updating user profile " + userBean, Util.ERROR);
+		} finally {
+		    try {
+				if (updatePreparedStatement != null && !updatePreparedStatement.isClosed()) {
+					updatePreparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordUpdated;	
 	}
 
 }

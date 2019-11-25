@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.imd.dto.User;
+import com.imd.services.bean.UserBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
@@ -33,6 +34,80 @@ class UserLoaderTest {
 	}
 
 	@Test
+	void testUpdateUserProfile() {
+		int oldMode = IMDLogger.loggingMode;
+		IMDLogger.loggingMode = Util.INFO;
+		
+		try {
+			UserLoader loader = new UserLoader();
+			
+			User newUser = new User("-999");
+			newUser.setOrgID("IMD");
+			newUser.setPassword(loader.encryptPassword("PASSWORD"));
+			newUser.setActive(true);
+			newUser.setPersonId("PERSON_ID");
+			newUser.setPreferredLanguage(Util.LanguageCode.URD);
+			newUser.setPreferredCurrency(Util.CurrencyCode.PKR);
+			newUser.setCreatedBy(new User("-999"));
+			newUser.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			newUser.setUpdatedBy(newUser.getCreatedBy());
+			newUser.setUpdatedDTTM(newUser.getCreatedDTTM());
+			
+			assertTrue(loader.deleteUser(newUser.getOrgID(), newUser.getUserId())>=0);
+
+			assertEquals(1,loader.insertUser(newUser));
+			User addedUser = loader.retrieveUser(newUser.getOrgID(), newUser.getUserId());
+			assertTrue(addedUser != null);
+			assertEquals(addedUser.getUserId(),newUser.getUserId());
+			assertEquals(addedUser.getPassword(),newUser.getPassword());
+			assertEquals(addedUser.isActive(),newUser.isActive());
+			assertEquals(addedUser.getPreferredLanguage(),newUser.getPreferredLanguage());
+			assertEquals(addedUser.getPreferredCurrency(),newUser.getPreferredCurrency());
+			assertEquals(Util.getDateInSQLFormat(addedUser.getCreatedDTTM()),Util.getDateInSQLFormat(newUser.getCreatedDTTM()));
+			
+			UserBean updateUserBean = new UserBean();
+			updateUserBean.setOrgId(newUser.getOrgID());
+			updateUserBean.setUserId(newUser.getUserId());
+			updateUserBean.setUserId(newUser.getUserId());
+			updateUserBean.setPreferredCurrency(Util.CurrencyCode.USD);
+			updateUserBean.setPreferredLanguage(Util.LanguageCode.ENG);
+			updateUserBean.setUserPreference1("userPreference1");
+			updateUserBean.setUserPreference2("userPreference2");
+			updateUserBean.setUserPreference3("userPreference3");
+			updateUserBean.setUserPreference4("userPreference4");
+			updateUserBean.setUserPreference5("userPreference5");
+			Thread.sleep(1000);// So that the updated DTTM can be at least a second after the original insertion.
+			assertEquals(1,loader.updateUserProfile(updateUserBean));
+			
+			User updatedUser = loader.retrieveUser(newUser.getOrgID(), newUser.getUserId());
+			assertTrue(updatedUser != null);
+			assertEquals(updateUserBean.getUserId(),updatedUser.getUserId());
+			assertEquals(addedUser.getPassword(),updatedUser.getPassword());
+			assertEquals(addedUser.isActive(),updatedUser.isActive());
+			assertEquals(updateUserBean.getPreferredLanguage(),updatedUser.getPreferredLanguage());
+			assertEquals(updateUserBean.getPreferredCurrency(),updatedUser.getPreferredCurrency());
+			assertEquals(updateUserBean.getUserPreference1(),updatedUser.getPreference1());
+			assertEquals(updateUserBean.getUserPreference2(),updatedUser.getPreference2());
+			assertEquals(updateUserBean.getUserPreference3(),updatedUser.getPreference3());
+			assertEquals(updateUserBean.getUserPreference4(),updatedUser.getPreference4());
+			assertEquals(updateUserBean.getUserPreference5(),updatedUser.getPreference5());
+			
+
+			assertTrue(addedUser.getUpdatedDTTM().isBefore(updatedUser.getUpdatedDTTM()), addedUser.getUpdatedDTTM() + " should be before " + updatedUser.getUpdatedDTTM());
+			assertTrue(addedUser.getCreatedDTTM().isEqual(updatedUser.getCreatedDTTM()));
+
+			
+			assertEquals(1,loader.deleteUser(newUser.getOrgID(), newUser.getUserId()));
+			
+		} catch (Exception ex) {
+			fail("Exception " + ex.getMessage());
+		} finally {
+			IMDLogger.loggingMode = oldMode;
+		}
+	}
+
+	
+	@Test
 	void testRetrieveUser() {
 		int oldMode = IMDLogger.loggingMode;
 		IMDLogger.loggingMode = Util.INFO;
@@ -42,7 +117,7 @@ class UserLoaderTest {
 			
 			User newUser = new User("-999");
 			newUser.setOrgID("IMD");
-			newUser.setPassword("PASSWORD");
+			newUser.setPassword(loader.encryptPassword("PASSWORD"));
 			newUser.setActive(true);
 			newUser.setPersonId("PERSON_ID");
 			newUser.setPreferredLanguage(Util.LanguageCode.URD);

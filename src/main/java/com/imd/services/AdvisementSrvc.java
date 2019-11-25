@@ -15,7 +15,9 @@ import javax.ws.rs.core.Response;
 import com.imd.advisement.AdvisementRuleManager;
 import com.imd.dto.Advisement;
 import com.imd.dto.AnimalAdvisement;
+import com.imd.dto.User;
 import com.imd.loader.AdvisementLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.services.bean.AdvisementBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;;
@@ -29,21 +31,25 @@ public class AdvisementSrvc {
 	@Path("/retrieveanimaladvisement")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAnimalAdvisement(AdvisementBean advBean){
-		AdvisementLoader loader = new AdvisementLoader();
-		IMDLogger.log("retrieveAnimalAdvisement Service Called with following input values", Util.INFO);
-		IMDLogger.log(advBean.toString(), Util.INFO);
-		if (!Util.verifyAccess("/advisement/retrieveanimaladvisement",advBean.getLoginToken())) {
-			IMDLogger.log("User does not have a valid access token", Util.WARNING);
-			return Response.status(401).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		IMDLogger.log("retrieveAnimalAdvisement Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveAnimalAdvisement",advBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveAnimalAdvisement", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		IMDLogger.log(advBean.toString(), Util.INFO);
+
 			
+		AdvisementLoader loader = new AdvisementLoader();
 		String animalTag = advBean.getAnimalTag();
 		if (animalTag == null || animalTag.isEmpty())
-			return Response.status(200).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
 			
-		String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
-		String langCd = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD);
-		List<Advisement> activeRules = loader.getAllActiveRules(orgId);
+		List<Advisement> activeRules = loader.getAllActiveRules(orgID);
 		AdvisementRuleManager advManager = new AdvisementRuleManager();
 
 		List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,
@@ -80,7 +86,7 @@ public class AdvisementSrvc {
 					"\"animalTags\":\"" + value.getAnimalTag() + "\"\n}"+ (++count == size ? "\n" : ",\n");
 		}
 		returnJson = "[\n" + returnJson + "]";
-		return Response.status(400).entity(returnJson).build();
+		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity(returnJson).build();
 	}	
 	
 	
@@ -88,17 +94,20 @@ public class AdvisementSrvc {
 	@Path("/retrievealladvisement")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAllAdvisement(AdvisementBean advBean){
-		AdvisementLoader loader = new AdvisementLoader();
-		IMDLogger.log("retrieveAllAdvisement Service Called with following input values", Util.INFO);
-		IMDLogger.log(advBean.toString(), Util.INFO);
-		if (!Util.verifyAccess("/advisement/retrievealladvisement",advBean.getLoginToken())) {
-			IMDLogger.log("User does not have a valid access token", Util.WARNING);
-			return Response.status(401).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		IMDLogger.log("retrieveAllAdvisement Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveAllAdvisement",advBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveAllAdvisement", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-//		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
-		String orgId = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);
-		String langCd = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD);
-		List<Advisement> activeRules = loader.getAllActiveRules(orgId);
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		IMDLogger.log(advBean.toString(), Util.INFO);
+
+		AdvisementLoader loader = new AdvisementLoader();
+		List<Advisement> activeRules = loader.getAllActiveRules(orgID);
 		AdvisementRuleManager advManager = new AdvisementRuleManager();
 
 		List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,
@@ -140,7 +149,7 @@ public class AdvisementSrvc {
 					"\"animalTags\":\"" + value.getAnimalTag() + "\"\n}"+ (++count == size ? "\n" : ",\n");
 		}
 		returnJson = "[\n" + returnJson + "]";
-		return Response.status(400).entity(returnJson).build();
+		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity(returnJson).build();
 	}
 }
 

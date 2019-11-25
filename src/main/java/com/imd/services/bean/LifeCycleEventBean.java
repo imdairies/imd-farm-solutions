@@ -14,6 +14,15 @@ public class LifeCycleEventBean {
 	private String auxField4Value;
 	private String shouldUpdateInventory;
 	private String nextLifeCycleStage;
+	private String loginToken;
+
+	public String getLoginToken() {
+		return loginToken;
+	}
+
+	public void setLoginToken(String loginToken) {
+		this.loginToken = loginToken;
+	}
 	
 	public LifeCycleEventBean() {
 		
@@ -85,6 +94,7 @@ public class LifeCycleEventBean {
 			"\neventCode : " + eventCode + 
 			"\neventTransactionID : " + eventTransactionID + 
 			"\nanimalTag : " + animalTag + 
+			"\nloginToken : " + this.loginToken + 
 			"\nshouldUpdateInventory : " + shouldUpdateInventory + 
 			"\nauxField1Value : " + auxField1Value + 
 			"\nauxField2Value : " + auxField2Value + 

@@ -3,6 +3,7 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -376,7 +377,7 @@ class AnimalLoaderTest {
 			}			
 		} catch (Exception e) {
 			e.printStackTrace();
-			fail("Animal Creation and/or insertion Failed.");
+			fail("Animal Creation and/or insertion Failed." + e.getMessage());
 		}
 	}
 	
@@ -549,7 +550,7 @@ class AnimalLoaderTest {
 				}
 			}
 			assertTrue(found, "Tag 000 should have been found");
-			assertTrue(animal.isPregnant(), "Tag 000 should have been considered inseminated");
+			assertTrue(animal.isPregnant(), "Tag 000 should have been considered pregnant");
 			int transactionId  = loader.deleteAnimal("IMD", "000");
 			assertEquals(1,transactionId);
 			
@@ -576,6 +577,76 @@ class AnimalLoaderTest {
 		}
 	}		
 
+	
+	@Test
+	void testUpdateAnimal() {
+		int originalLoggingMode = IMDLogger.loggingMode;
+		try {
+			IMDLogger.loggingMode = Util.INFO;
+			Animal animal;
+			animal = createTestAnimal("-999");
+			AnimalLoader loader = new AnimalLoader();
+			loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			animal.setAnimalTypeCD(Util.AnimalTypes.HFRPREGN);
+			int transactionID = loader.insertAnimal(animal);
+			assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			List <Animal>  animals = loader.retrieveSpecifiedAnimalTags(animal.getOrgID(),  "(" + animal.getAnimalTag() + ")");
+			Iterator<Animal> it = animals.iterator();
+			boolean found = false;
+			Animal retrievedAnimal = null;
+			while (it.hasNext()) {
+				retrievedAnimal = it.next();
+				if (retrievedAnimal.getOrgID().equalsIgnoreCase(animal.getOrgID()) && 
+						retrievedAnimal.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "Tag " + retrievedAnimal.getAnimalTag() + " should have been found");
+			assertTrue(retrievedAnimal.isPregnant(), "Tag " + retrievedAnimal.getAnimalTag() + " should have been considered pregnant");
+			assertEquals(animal.getAnimalTypeCD(),retrievedAnimal.getAnimalTypeCD());
+			assertEquals(animal.getAlias(),retrievedAnimal.getAlias());
+//			int transactionId  = loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+//			assertEquals(1,transactionId);
+			
+			
+			Animal updatedAnimal = new Sire(animal.getAnimalTag());
+			updatedAnimal.setOrgID(animal.getOrgID());
+			updatedAnimal.setAnimalTag(animal.getAnimalTag());
+			updatedAnimal.setDateOfBirth(animal.getDateOfBirth());
+			updatedAnimal.setDateOfBirthEstimated(animal.isDateOfBirthEstimated());
+			updatedAnimal.setPurchaseDate(animal.getPurchaseDate());
+			updatedAnimal.setPurchaseCurrency(animal.getPurchaseCurrency());
+			updatedAnimal.setPurchaseDate(animal.getPurchaseDate());
+			updatedAnimal.setAlias(animal.getAlias());
+			updatedAnimal.setAnimalSire(animal.getAnimalSire());
+			updatedAnimal.setAnimalDam(animal.getAnimalDam());
+			updatedAnimal.setWeight(animal.getWeight());
+			updatedAnimal.setAnimalTypeCD(Util.AnimalTypes.LCTPRGNT);
+			updatedAnimal.setUpdatedBy(animal.getUpdatedBy());
+			updatedAnimal.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			transactionID = loader.updateAnimal(updatedAnimal);
+			assertEquals(1,transactionID);
+			Animal finalUpdatedAnimal = loader.getAnimalRawInfo(updatedAnimal).get(0);
+
+			assertEquals(updatedAnimal.getAnimalTag(),finalUpdatedAnimal.getAnimalTag());
+			assertTrue(finalUpdatedAnimal.isPregnant(), "Tag " + finalUpdatedAnimal.getAnimalTag() + " should have been considered pregnant");
+			assertEquals(updatedAnimal.getAnimalTypeCD(),finalUpdatedAnimal.getAnimalTypeCD());
+			assertEquals(updatedAnimal.getAlias(),finalUpdatedAnimal.getAlias());
+			assertEquals(updatedAnimal.getGender(),finalUpdatedAnimal.getGender());
+			
+			int transactionId  = loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			assertEquals(1,transactionId);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Creation and/or insertion Failed.");
+		} finally {
+			IMDLogger.loggingMode = originalLoggingMode;
+		}
+	}		
+	
+	
 	@Test
 	void testAdultFemaleCowsRetrieval() {
 		try {

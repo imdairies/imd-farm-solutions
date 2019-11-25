@@ -39,13 +39,13 @@ public class FeedSrvc {
 		String feedCohortCD = animalBean.getAnimalType();
 		String prefix = "  ";
 		if ( feedCohortCD == null || feedCohortCD.isEmpty())
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Please specify a valid cohort type.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Please specify a valid cohort type.\"}").build();
 
     	try {
 			FeedLoader loader = new FeedLoader();
 			FeedPlan feedPlan = loader.retrieveFeedPlan(orgID, feedCohortCD);
 			if (feedPlan == null || feedPlan.getFeedPlan().isEmpty())
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"Could not find feed plan for the cohort: " + feedCohortCD + " .\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Could not find feed plan for the cohort: " + feedCohortCD + " .\"}").build();
 			Iterator<FeedItem> it = feedPlan.getFeedPlan().iterator();
 			while(it.hasNext()) {
 				FeedItem item = it.next();
@@ -53,15 +53,15 @@ public class FeedSrvc {
 			}	
 	    	responseJson = "[" + responseJson + "]";
 	    	IMDLogger.log(responseJson, Util.INFO);
-			return Response.status(200).entity(responseJson).build(); 
+			return Response.status(Util.HTTPCodes.OK).entity(responseJson).build(); 
 		} catch (IMDException e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.retrieveFeedPlan() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + e.getMessage() + "\"}").build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.retrieveFeedPlan() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Following error was encountered in retrieving cohort feed plan: " + e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Following error was encountered in retrieving cohort feed plan: " + e.getMessage() + "\"}").build();
 		}
 	}	
 	
@@ -74,7 +74,7 @@ public class FeedSrvc {
 //		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
 		if (animalBean.getAnimalTag() == null || animalBean.getAnimalTag().isEmpty())
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
 
     	try {
 			FeedManager mgr = new FeedManager();
@@ -82,15 +82,15 @@ public class FeedSrvc {
 			FeedPlan plan = mgr.getPersonalizedFeedPlan(feedCohortType, animalBean.getAnimalTag());
 	    	responseJson = "[\n" + "{\n" + feedCohortType.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + (plan != null ? ",\n" + plan.dtoToJson("  ") : "")+  "\n}\n" + "]";
 	    	IMDLogger.log(responseJson, Util.INFO);
-			return Response.status(200).entity(responseJson).build(); 
+			return Response.status(Util.HTTPCodes.OK).entity(responseJson).build(); 
 		} catch (IMDException e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.determineAnimalFeed() service method while processing " + animalBean.getAnimalTag() + ": " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + e.getMessage() + "\"}").build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.determineAnimalFeed() service method while processing " + animalBean.getAnimalTag() + ": " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Following error was encountered in processing animal feed analysis: " + e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Following error was encountered in processing animal feed analysis: " + e.getMessage() + "\"}").build();
 		}
 	}
 	
@@ -110,7 +110,7 @@ public class FeedSrvc {
 			List<Animal> herd = manager.getFeedCohortInformationForFarmActiveAnimals(orgID);
 			if (herd == null || herd.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found in the herd for the farm "+ orgID + "\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active animal found in the herd for the farm "+ orgID + "\"}").build();
 			}
 			String prefix = " ";
 			String feedItemsJson = "";
@@ -155,10 +155,10 @@ public class FeedSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.retrieveActiveAnimalFeedListing() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"An error occurred while analyzing the farm feed needs: " +  e.getClass().getName() + "-" + e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An error occurred while analyzing the farm feed needs: " +  e.getClass().getName() + "-" + e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(responseJson, Util.INFO);
-		return Response.status(200).entity(responseJson).build();
+		return Response.status(Util.HTTPCodes.OK).entity(responseJson).build();
 	}
 
 

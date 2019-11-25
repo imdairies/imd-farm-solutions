@@ -27,7 +27,9 @@ import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.loader.MilkingDetailLoader;
+import com.imd.loader.UserLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.services.bean.MilkingDetailBean;
@@ -51,7 +53,7 @@ public class AnimalSrvc {
 	@Path("/allactive")
 	@Produces(MediaType.APPLICATION_JSON)
     public Response getAllActiveAnimals() {
-
+		// TODO: Incorporate security in GET methods.
 		String animalsJson = "";
     	try {
 			AnimalLoader loader = new AnimalLoader();
@@ -59,7 +61,7 @@ public class AnimalSrvc {
     		
 			if (animals == null || animals.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active animal found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active animal found\"}").build();
 			}
 	    	Iterator<Animal> animalIt = animals.iterator();
 	    	while (animalIt.hasNext()) {
@@ -71,9 +73,9 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.getAllActiveAnimals() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
-		return Response.status(200).entity(animalsJson).build(); 
+		return Response.status(Util.HTTPCodes.OK).entity(animalsJson).build(); 
     }
 
 
@@ -82,18 +84,29 @@ public class AnimalSrvc {
 	@Path("/getgrowthdata")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getGrowthData(AnimalBean searchBean){
-    	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log("Inside AnimalSrvc.getGrowthData " + searchBean.toString(), Util.INFO);
+		IMDLogger.log("getGrowthData Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".getGrowthData",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".getGrowthData", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+
+		String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Animal> animalValues = loader.retrieveMatchingAnimals(searchBean);
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			} else if (animalValues.size() > 1) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Multiple matching records found for this animal. Please report a product bug\"}").build();				
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Multiple matching records found for this animal. Please report a product bug\"}").build();				
 			}
 						
     		Animal animalValue = animalValues.get(0);
@@ -101,7 +114,7 @@ public class AnimalSrvc {
     		List<LifecycleEvent> weights = evtLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(), animalValue.getAnimalTag(), Util.LifeCycleEvents.WEIGHT);
 
     		if (weights == null || weights.isEmpty()) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You have never measured the weight of this animal. Growth information can't be displayed.\"}").build();				
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You have never measured the weight of this animal. Growth information can't be displayed.\"}").build();				
 			}
     		
     		IMDLogger.log("Total Weight Events " + weights.size(), Util.INFO);
@@ -185,10 +198,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.getGrowthData() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Following exception occurred while processing AnimalSrvc.getGrowthData(): " +  e.getClass().getName() + " " + e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Following exception occurred while processing AnimalSrvc.getGrowthData(): " +  e.getClass().getName() + " " + e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	
 	public Double getExtrapolatedWeight(List<LifecycleEvent> reverseSortedWeightEvents, DateTime dateOfBirth, int age) {
@@ -237,6 +250,19 @@ public class AnimalSrvc {
 	@Path("/addanimal")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addAnimal(AnimalBean animalBean){
+		IMDLogger.log("addAnimal Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".addAnimal",animalBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".addAnimal", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgID(orgID);
+		IMDLogger.log(animalBean.toString(), Util.INFO);
+
 		Animal animal = null;
 		String tag = animalBean.getAnimalTag();
 		String alias  = animalBean.getAlias();
@@ -249,35 +275,32 @@ public class AnimalSrvc {
 		String dobAccuracyInd = animalBean.getDobAccuracyInd();
 		String herdJoiningDate = animalBean.getHerdJoiningDttmStr();
 		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
-		IMDLogger.log("Add Animal Called with following input values", Util.INFO);
-		IMDLogger.log(animalBean.toString(), Util.INFO);
 		
 		if (tag == null || tag.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
 		}
 		else if (typeCD == null || typeCD.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
 		}
 		else if (dob == null || dob.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
 		}
 		else if (gender == "" || gender.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal gender.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal gender.\"}").build();
 		}
 		else if (dobAccuracyInd == null || dobAccuracyInd.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
 		}
 		else if (breed == null || breed.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
 		}
 		else if (herdJoiningDate == null || herdJoiningDate.isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
 		}
 		else if (typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status at the time of animal addition. Instead, add an event that results in an inactive status.\"}").build();			
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status at the time of animal addition. Instead, add an event that results in an inactive status.\"}").build();			
 		}
 		
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		String frontPose = animalBean.getFrontPoseImage() == null || animalBean.getFrontPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/1.png": animalBean.getFrontPoseImage();
 		String backPose =  animalBean.getBackPoseImage() == null || animalBean.getBackPoseImage().trim().isEmpty() ? com.imd.util.Util.COW_PHOTOS_URI_PREFIX + tag + "/2.png": animalBean.getBackPoseImage();
@@ -294,7 +317,7 @@ public class AnimalSrvc {
 			animal.setBackSideImageURL(backPose);
 			animal.setRightSideImageURL(rightPose);
 			animal.setLeftSideImageURL(leftPose);
-			animal.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+			animal.setOrgID(orgID);
 			if (alias != null && !alias.trim().isEmpty())
 				animal.setAlias(animalBean.getAlias());
 			animal.setAnimalType(animalBean.getAnimalType());
@@ -311,9 +334,9 @@ public class AnimalSrvc {
 			animal.setBackSideImageURL(backPose);
 			animal.setRightSideImageURL(rightPose);
 			animal.setLeftSideImageURL(leftPose);
-			animal.setCreatedBy(new User(userID));
+			animal.setCreatedBy(user);
 			animal.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
-			animal.setUpdatedBy(new User(userID));
+			animal.setUpdatedBy(user);
 			animal.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.insertAnimal(animal);
 		} catch (Exception e) {
@@ -322,16 +345,16 @@ public class AnimalSrvc {
 		}
 		if (result == 1) {
 			String message = performPostInsertionSteps(animal);
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"New Animal has been created successfully. "+ message + "\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New Animal has been created successfully. "+ message + "\"}").build();
 		}
 		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Another animal with the same tag already exists. Please use a different tag number.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Another animal with the same tag already exists. Please use a different tag number.\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be added. Please submit a bug report.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be added. Please submit a bug report.\"}").build();
 		else
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred during animal addition\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An unknown error occurred during animal addition\"}").build();
 
 	}
 
@@ -341,11 +364,29 @@ public class AnimalSrvc {
 	@Path("/updateanimal")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateAnimal(AnimalBean animalBean){
+//		int originalMode = IMDLogger.loggingMode;
+//		IMDLogger.loggingMode = Util.INFO;
+
+		IMDLogger.log("updateAnimal Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".updateAnimal",animalBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".updateAnimal", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgID(orgID);
+		IMDLogger.log(animalBean.toString(), Util.INFO);
+		
+		
 		Animal animal = null;			
 		String tag = animalBean.getAnimalTag();
 		String alias  = animalBean.getAlias();
 		String typeCD = animalBean.getAnimalType();
 		String dob = animalBean.getDateOfBirthStr();
+		String gender = animalBean.getGender();
 //		String breed = animalBean.getBreed();
 //		String gender = "" + animalBean.getGender();
 //		String damTag = animalBean.getDam();
@@ -353,45 +394,48 @@ public class AnimalSrvc {
 //		String dobAccuracyInd = animalBean.getDobAccuracyInd();
 //		String herdJoiningDate = animalBean.getHerdJoiningDttmStr();
 //		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
-		IMDLogger.log("Update Animal Called with following input values", Util.INFO);
-		IMDLogger.log(animalBean.toString(), Util.INFO);
+		
 		
 		if (tag == null || tag.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
 		}
 		else if (typeCD == null || typeCD.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
 		}
 		else if (dob == null || dob.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
 		}
-//		else if (gender == "" || gender.trim().isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Animal gender.\"}").build();
-//		}
+		else if (!gender.trim().equalsIgnoreCase(Util.GENDER_CHAR.FEMALE + "") && 
+				!gender.trim().equalsIgnoreCase(Util.GENDER_CHAR.MALE + "")) {
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid value for Animal gender (M or F).\"}").build();
+		}
 //		else if (dobAccuracyInd == null || dobAccuracyInd.trim().isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
 //		}
 //		else if (breed == null || breed.trim().isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
 //		}
 //		else if (herdJoiningDate == null || herdJoiningDate.isEmpty()) {
-//			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
 //		}
 		else if (typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status. Instead, please add an event that results in an inactive status.\"}").build();			
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status. Instead, please add an event that results in an inactive status.\"}").build();			
 		}
 		
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 
 		try {
 			AnimalLoader loader = new AnimalLoader();
-			animal = new Animal(tag);
+			if (gender.equalsIgnoreCase(Util.GENDER_CHAR.FEMALE+""))
+				animal = new Dam(tag);
+			else
+				animal = new Sire(tag);
+//			animal = new Animal(tag);
 //			animal.setFrontSideImageURL(frontPose);
 //			animal.setBackSideImageURL(backPose);
 //			animal.setRightSideImageURL(rightPose);
 //			animal.setLeftSideImageURL(leftPose);
-			animal.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+			animal.setOrgID(orgID);
 			if (alias != null && !alias.trim().isEmpty())
 				animal.setAlias(alias);
 			animal.setAnimalTypeCD(typeCD);
@@ -408,23 +452,25 @@ public class AnimalSrvc {
 //			animal.setBackSideImageURL(backPose);
 //			animal.setRightSideImageURL(rightPose);
 //			animal.setLeftSideImageURL(leftPose);
-			animal.setUpdatedBy(new User(userID));
+			animal.setUpdatedBy(user);
 			animal.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.updateAnimal(animal);
+//			IMDLogger.loggingMode = originalMode;
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.addAnimal() service method: " + e.getMessage(),  Util.ERROR);
+//			IMDLogger.loggingMode = originalMode;
 		}
 		if (result == 1) {
 //			String message = performPostInsertionSteps(animal);
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"Animal has been updated successfully.\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Animal has been updated successfully.\"}").build();
 		}
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be updated. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be updated. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be updated. Please submit a bug report.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be updated. Please submit a bug report.\"}").build();
 		else
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred during animal update\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An unknown error occurred during animal update\"}").build();
 
 	}
 	
@@ -433,6 +479,23 @@ public class AnimalSrvc {
 	@Path("/addsire")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addSire(SireBean sireBean){
+
+		IMDLogger.log("addSire Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".addSire",sireBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".addSire", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		sireBean.setOrgID(orgID);
+		IMDLogger.log(sireBean.toString(), Util.INFO);
+		
+			
+		
+		
 		String tag = sireBean.getAnimalTag();
 		String alias  = sireBean.getAlias();
 		String breed = sireBean.getBreed();
@@ -442,52 +505,49 @@ public class AnimalSrvc {
 		String semenCompany = sireBean.getSemenCompany();
 
 
-		IMDLogger.log("Add Sire Called with following input values", Util.INFO);		
-		IMDLogger.log(sireBean.toString(), Util.INFO);
 		
 		if (tag == null || tag.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide a valid Sire Tag/Code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid Sire Tag/Code.\"}").build();
 		}
 		else if (alias == null || alias.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Sire Alias.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Sire Alias.\"}").build();
 		}
 		else if (breed == null || breed.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must provide Sire Breed .\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Sire Breed .\"}").build();
 		}
 		else if (semenInd == "" || semenInd.trim().isEmpty() || semenInd.trim().length() != 1) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must indicate whether this is a farm sire (semenInd=N) or a sire whose semens you are going to purchase (semenInd=Y).\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must indicate whether this is a farm sire (semenInd=N) or a sire whose semens you are going to purchase (semenInd=Y).\"}").build();
 		}
 		else if (recordUrl == null || recordUrl.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify Sire Data Sheet URL.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify Sire Data Sheet URL.\"}").build();
 		}
 		else if (controller == null || controller.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify controller.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify controller.\"}").build();
 		}
 		else if (semenCompany == null || semenCompany.trim().isEmpty()) {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"You must specify sire/semen marketing company.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify sire/semen marketing company.\"}").build();
 		}
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 
 		try {
 			result = 1;
 			AnimalLoader loader = new AnimalLoader();
-			result = loader.insertSire(sireBean,userID,DateTime.now(IMDProperties.getServerTimeZone()),userID,DateTime.now(IMDProperties.getServerTimeZone()));
+			result = loader.insertSire(sireBean,user.getUserId(),DateTime.now(IMDProperties.getServerTimeZone()),user.getUserId(),DateTime.now(IMDProperties.getServerTimeZone()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.addSire() service method: " + e.getMessage(),  Util.ERROR);
 		}
 		if (result == 1) {
-			return Response.status(200).entity("{ \"error\": false, \"message\":\"Sire has been added successfully.\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Sire has been added successfully.\"}").build();
 		}
 		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Sire with the same tag/code already exists. Please use a different tag/code.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Sire with the same tag/code already exists. Please use a different tag/code.\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Sire  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Sire  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Sire '" + tag + "' could not be added. Please submit a bug report.\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Sire '" + tag + "' could not be added. Please submit a bug report.\"}").build();
 		else
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"An unknown error occurred during Sire addition\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An unknown error occurred during Sire addition\"}").build();
 	}	
 	
 	private String performPostInsertionSteps(Animal animalDto) {
@@ -504,14 +564,13 @@ public class AnimalSrvc {
 		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		LifecycleEvent event;
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
 			event = new LifecycleEvent(eventBean, "yyyy-MM-dd HH:mm:ss");
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
-			event.setCreatedBy(new User(userID));
+			event.setCreatedBy(animalDto.getCreatedBy());
 			event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
-			event.setUpdatedBy(new User(userID));
+			event.setUpdatedBy(animalDto.getUpdatedBy());
 			event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			result = loader.insertLifeCycleEvent(event);
 		} catch (Exception e) {
@@ -529,13 +588,24 @@ public class AnimalSrvc {
 	@Path("/adultfemalecows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getAdultFemaleCows(AnimalBean searchBean){
+		IMDLogger.log("getAdultFemaleCows Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".getAdultFemaleCows",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".getAdultFemaleCows", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
     	String animalValueResult = "";
 		DateTimeFormatter fmt = null;
     	String prefix = "  ";
     	List<String> sortedJsonArray = new ArrayList<String>();
     	String noInseminationRecordJson = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader animalLoader = new AnimalLoader();
     		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
@@ -543,7 +613,7 @@ public class AnimalSrvc {
 			List<LifecycleEvent> animalEvents = null;
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
     		double largestInseminatedHours = -999999;
@@ -632,10 +702,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.getAdultFemaleCows() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 
 	/**
@@ -647,9 +717,20 @@ public class AnimalSrvc {
 	@Path("/search")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response searchAnimals(AnimalBean searchBean){
+		IMDLogger.log("searchAnimals Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".searchAnimals",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".searchAnimals", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
     	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
     		List<Animal> animalValues = null;
@@ -671,7 +752,7 @@ public class AnimalSrvc {
 //    		}
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -686,10 +767,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.searchAnimals() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	/**
 	 * 
@@ -700,15 +781,26 @@ public class AnimalSrvc {
 	@Path("/getactivedams")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getActiveFemale(AnimalBean searchBean){
+		IMDLogger.log("getActiveFemale Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".getActiveFemale",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".getActiveFemale", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
     	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -722,29 +814,36 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.getActiveFemale() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 
 	@POST
 	@Path("/lactatingcows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveLactatingAnimals(AnimalBean searchBean){
-    	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
-		if (!Util.verifyAccess("/animals/lactatingcows",searchBean.getLoginToken())) {
-			IMDLogger.log("User does not have a valid access token", Util.WARNING);
-			return Response.status(401).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		IMDLogger.log("retrieveLactatingAnimals Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveLactatingAnimals",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveLactatingAnimals", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
+		String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -759,24 +858,35 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveLactatingAnimals() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }	
 	@POST
 	@Path("/drycows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveDryCows(AnimalBean searchBean){
+		IMDLogger.log("retrieveDryCows Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveDryCows",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveDryCows", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
     	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Animal> animalValues = loader.retrieveActiveDryAnimals(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -791,24 +901,35 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveHeifers() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	@POST
 	@Path("/femalecalves")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveFemaleCalves(AnimalBean searchBean){
+		IMDLogger.log("retrieveFemaleCalves Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveFemaleCalves",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveFemaleCalves", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
     	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Animal> animalValues = loader.retrieveActiveFemaleCalves(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -823,24 +944,35 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveFemaleCalves() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	@POST
 	@Path("/pregnantcows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrievePregnantAnimals(AnimalBean searchBean){
-    	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
+		IMDLogger.log("retrievePregnantAnimals Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrievePregnantAnimals",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrievePregnantAnimals", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+
+		String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Animal> animalValues = loader.retrieveActivePregnantAnimals(searchBean.getOrgID());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -855,10 +987,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrievePregnantAnimals() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	@POST
 	@Path("/lactatingcowsmilkrecord")
@@ -867,9 +999,20 @@ public class AnimalSrvc {
 		//TODO: Improve the implementation of this service. It is inefficient and counter intuitive. 
 		// TODO: The monthly average averages across the month in all of the lifetime of the cow instead of only for one month i.e.
 		// Feb average will be for Febs of all the years, instead of only the Feb for a given year. This is not the right way to deduce monthly average.
-		String animalValueResult = "";
-    	selectedDateSearchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(selectedDateSearchBean.toString(), Util.INFO);
+		IMDLogger.log("retrieveLactatingAnimalsMilkRecord Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveLactatingAnimalsMilkRecord",selectedDateSearchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveLactatingAnimalsMilkRecord", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		selectedDateSearchBean.setOrgID(orgID);
+		IMDLogger.log(selectedDateSearchBean.toString(), Util.INFO);
+
+    	String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
     		MilkingDetailLoader milkingLoader = new MilkingDetailLoader();
@@ -886,7 +1029,7 @@ public class AnimalSrvc {
     		
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -912,10 +1055,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveLactatingAnimalsMilkRecord() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	private String appendMilkingDetails(List<MilkingDetail> selectedDaysMilkingRecords, List<MilkingDetail> previousDaysMilkingRecords, MilkingDetailBean searchBean) throws IMDException {
 		String milkingDetail = "";
@@ -963,36 +1106,47 @@ public class AnimalSrvc {
 	@Path("/addmilkingrecord")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addCowMilkingRecord(MilkingDetailBean milkingRecord){
+		IMDLogger.log("addCowMilkingRecord Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".addCowMilkingRecord",milkingRecord.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".addCowMilkingRecord", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		milkingRecord.setOrgID(orgID);
+		IMDLogger.log(milkingRecord.toString(), Util.INFO);
+
     	int responseCode = 0;
-    	milkingRecord.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(milkingRecord.toString(), Util.INFO);
     	try {
 			if (milkingRecord.getAnimalTag() == null || milkingRecord.getAnimalTag().isEmpty())
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
 			}
 			if (milkingRecord.getMilkingEventNumber() <1)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
 			}
 			if (!(milkingRecord.getMilkVolume() > 0))
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		responseCode = loader.insertMilkRecord(milkingRecord);
     		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
     		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
     		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
     		else
-    			return Response.status(200).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
+    			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
     	} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.addCowMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
 		}
     }	
 
@@ -1000,15 +1154,26 @@ public class AnimalSrvc {
 	@Path("/monthlymilkingrecord")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveMonthlyMilkingRecord(MilkingDetailBean searchBean){
+		IMDLogger.log("retrieveMonthlyMilkingRecord Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveMonthlyMilkingRecord",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveMonthlyMilkingRecord", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+
     	String milkingInformation = "";
     	List<MilkingDetail> dailyRecords = new ArrayList<MilkingDetail>(3);
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	LocalDate currentDate = null;
     	try {
 			if (searchBean.getAnimalTag() == null || searchBean.getAnimalTag().isEmpty())
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		AnimalLoader animalLoader = new AnimalLoader();
@@ -1017,23 +1182,23 @@ public class AnimalSrvc {
     		animalBean.setAnimalTag(searchBean.getAnimalTag());    		
     		List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean);
     		if (animals.size() != 1) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Unable to find the animal. foud " + animals.size() + " records\"}").build();    			    			
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Unable to find the animal. foud " + animals.size() + " records\"}").build();    			    			
     		}
     		Animal animal = animals.get(0);
     		IMDLogger.log(animal.getAnimalType(), Util.INFO);
-    		if (animal.getGender() != Util.GENDER_CHAR.FEMALE) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information only applies to female animals\"}").build();    			
+    		if (!animal.getGender().equalsIgnoreCase(Util.GENDER_CHAR.FEMALE + "")) {
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Milking information only applies to female animals\"}").build();    			
     		}
     		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.FEMALECALF)) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to female calves\"}").build();    			
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to female calves\"}").build();    			
     		}
     		if (animal.getAnimalType().equalsIgnoreCase(Util.AnimalTypes.HEIFER)) {
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to heifers\"}").build();    			
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Milking information applies to only female animals of age, it does not apply to heifers\"}").build();    			
     		}    		
 			List<MilkingDetail> animalValues = loader.retrieveMonthlyMilkingRecordsOfCow(searchBean);
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
 			}
 	    	Iterator<MilkingDetail> recValuesIt = animalValues.iterator();
 	    	while (recValuesIt.hasNext()) {
@@ -1057,10 +1222,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveMonthlyMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(milkingInformation, Util.INFO);
-		return Response.status(200).entity(milkingInformation).build();
+		return Response.status(Util.HTTPCodes.OK).entity(milkingInformation).build();
     }	
 	
 	private String consolidateDailyMilkingRecord(List<MilkingDetail> dailyRecords) {
@@ -1120,9 +1285,19 @@ public class AnimalSrvc {
 	@Path("/retrievefarmsire")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveFarmSire(AnimalBean searchBean){
+		IMDLogger.log("retrieveFarmSire Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveFarmSire",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveFarmSire", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
 		String sireValueResult = "";
     	searchBean.setGender(Util.GENDER_CHAR.MALE);
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	searchBean.setActiveOnly(true);
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
@@ -1130,7 +1305,7 @@ public class AnimalSrvc {
 			List<Animal> animalValues = loader.retrieveMatchingAnimals(searchBean);
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Farm doesn't have any Sire in its herd.\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Farm doesn't have any Sire in its herd.\"}").build();
 
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
@@ -1146,10 +1321,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveFarmSire() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
-		return Response.status(200).entity(sireValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(sireValueResult).build();
     }	
 	
 	
@@ -1157,13 +1332,25 @@ public class AnimalSrvc {
 	@Path("/retrieveaisire")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAISires(AnimalBean searchBean){
+		IMDLogger.log("retrieveAISires Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveAISires",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveAISires", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
 		String sireValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Sire> sireValues = loader.retrieveAISire();
 			if (sireValues == null || sireValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
 
 			}
 	    	Iterator<Sire> sireValueIt = sireValues.iterator();
@@ -1178,10 +1365,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveAISires() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
-		return Response.status(200).entity(sireValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(sireValueResult).build();
     }
 
 	
@@ -1189,19 +1376,29 @@ public class AnimalSrvc {
 	@Path("/retrieveprogney")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveProgney(AnimalBean searchBean){
+		IMDLogger.log("retrieveProgney Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveProgney",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveProgney", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
     	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
-    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		if (searchBean.getAnimalTag() == null || searchBean.getAnimalTag().isEmpty())
-    			return Response.status(400).entity("{ \"error\": true, \"message\":\"Please specify the animal tag\"}").build();
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Please specify the animal tag\"}").build();
 
     		
     		AnimalLoader loader = new AnimalLoader();
     		List<Animal> animalValues = loader.retrieveSpecifiedAnimalProgney(searchBean.getOrgID(), searchBean.getAnimalTag());
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"Our farm does not have any progney of this animal\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Our farm does not have any progney of this animal\"}").build();
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -1215,10 +1412,10 @@ public class AnimalSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in AnimalSrvc.retrieveProgney() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"Error occurred while retrieving animal progney: (" +  e.getMessage() + ")\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Error occurred while retrieving animal progney: (" +  e.getMessage() + ")\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-		return Response.status(200).entity(animalValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }	
 	
 	

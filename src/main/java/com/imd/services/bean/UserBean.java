@@ -2,12 +2,17 @@ package com.imd.services.bean;
 
 
 public class UserBean {
-	private String userId;
 	private String orgId;
+	private String userId;
 	private String loginToken;
-//	private DateTime tokenIssueDttm;
-//	private DateTime tokenExpiryDttm;
-//	private boolean isExpired;
+	private String preferredLanguage;
+	private String preferredCurrency;
+	private String password;
+	private String userPreference1;
+	private String userPreference2;
+	private String userPreference3;
+	private String userPreference4;
+	private String userPreference5;
 	
 	public String getUserId() {
 		return userId;
@@ -15,12 +20,6 @@ public class UserBean {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
-//	public boolean isActive() {
-//		return isExpired;
-//	}
-//	public void setActive(boolean isActive) {
-//		this.isExpired = isActive;
-//	}
 
 	public String getOrgId() {
 		return orgId;
@@ -34,21 +33,67 @@ public class UserBean {
 	public void setLoginToken(String loginToken) {
 		this.loginToken = loginToken;
 	}
-//	public DateTime getTokenIssueDttm() {
-//		return tokenIssueDttm;
-//	}
-//	public void setTokenIssueDttm(DateTime tokenIssueDttm) {
-//		this.tokenIssueDttm = tokenIssueDttm;
-//	}
-//	public DateTime getTokenExpiryDttm() {
-//		return tokenExpiryDttm;
-//	}
-//	public void setTokenExpiryDttm(DateTime tokenExpiryDttm) {
-//		this.tokenExpiryDttm = tokenExpiryDttm;
-//	}	
 	public String toString() {
-		return 	"\n orgID:" + this.orgId + 
-				"\n userId:" + userId + 
+		return 	"\n orgID:" + this.orgId +
+				"\n userId:" + userId +
+				"\n preferredLanguage:" + preferredLanguage +
+				"\n preferredCurrency:" + preferredCurrency +
+				"\n userPreference1:" + userPreference1 +
+				"\n userPreference2:" + userPreference2 +
+				"\n userPreference3:" + userPreference3 +
+				"\n userPreference4:" + userPreference4 +
+				"\n userPreference5:" + userPreference5 +
 				"\n loginToken:" + loginToken;
+	}
+	
+	public String getPreferredLanguage() {
+		return preferredLanguage;
+	}
+	public void setPreferredLanguage(String languageCode) {
+		this.preferredLanguage = languageCode;
+	}
+	
+	public String getPreferredCurrency() {
+		return preferredCurrency;
+	}
+	public void setPreferredCurrency(String currencyCode) {
+		this.preferredCurrency = currencyCode;
+	}
+	
+	public String getUserPreference1() {
+		return userPreference1;
+	}
+	public void setUserPreference1(String userPreference1) {
+		this.userPreference1 = userPreference1;
+	}
+	public String getUserPreference2() {
+		return userPreference2;
+	}
+	public void setUserPreference2(String userPreference2) {
+		this.userPreference2 = userPreference2;
+	}
+	public String getUserPreference5() {
+		return userPreference5;
+	}
+	public void setUserPreference5(String userPreference5) {
+		this.userPreference5 = userPreference5;
+	}
+	public String getUserPreference4() {
+		return userPreference4;
+	}
+	public void setUserPreference4(String userPreference4) {
+		this.userPreference4 = userPreference4;
+	}
+	public String getUserPreference3() {
+		return userPreference3;
+	}
+	public void setUserPreference3(String userPreference3) {
+		this.userPreference3 = userPreference3;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
 	}
 }

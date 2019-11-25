@@ -51,17 +51,17 @@ public class InventorySrvc {
 				IMDLogger.log("Exception in InventorySrvc.addSemenInventory() service method: " + e.getMessage(),  Util.ERROR);
 			}
 			if (result == 1)
-				return Response.status(200).entity("{ \"error\": false, \"message\":\"Semen inventory has been added\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Semen inventory has been added\"}").build();
 			else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"The specified semen record already exists\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified semen record already exists\"}").build();
 			else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Inventory could not be added. Please reduce the field length and try again.\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Inventory could not be added. Please reduce the field length and try again.\"}").build();
 			else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-				return Response.status(400).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Inventory could not be updated. Please submit a bug report.\"}").build();
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Inventory could not be updated. Please submit a bug report.\"}").build();
 			else 
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"An unknown error occurred during inventory update\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during inventory update\"}").build();
 		} else {
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" + validityMessage + "\"}").build();			
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + validityMessage + "\"}").build();			
 		}
 	}
 	
@@ -79,7 +79,7 @@ public class InventorySrvc {
 			List<Sire> sireValues = loader.retrieveAISire();
 			if (sireValues == null || sireValues.size() == 0)
 			{
-				return Response.status(200).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
 			}
 			Inventory invOutput = null;
 			Iterator<Sire> sireValueIt = sireValues.iterator();
@@ -104,10 +104,10 @@ public class InventorySrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in InventorySrvc.retrievallsiresinventory() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(400).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
-		return Response.status(200).entity(sireValueResult).build();
+		return Response.status(Util.HTTPCodes.OK).entity(sireValueResult).build();
     }		
 	
 

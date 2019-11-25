@@ -13,6 +13,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.loader.AnimalLoader;
 import com.imd.util.IMDException;
+import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
@@ -63,7 +64,7 @@ public class Animal extends IMDairiesDTO{
 	 * U: Unknown
 	 * 
 	 */
-	private char gender;
+	private String gender;
 	/** 
 	 * Holds any user entered text against this Animal.
 	 */
@@ -108,11 +109,14 @@ public class Animal extends IMDairiesDTO{
 	public void setDateOfBirthEstimated(boolean isDateOfBirthEstimated) {
 		this.isDateOfBirthEstimated = isDateOfBirthEstimated;
 	}
-	public char getGender() {
+	public String getGender() {
 		return gender;
 	}
-	protected void setGender(char gender) {
+	protected void setGender(String gender) {
 		this.gender = gender;
+	}
+	protected void setGender(char gender) {
+		this.gender = gender + "";
 	}
 	public Note getNote(int index) {
 		return notes.get(index);
@@ -142,10 +146,14 @@ public class Animal extends IMDairiesDTO{
 	}
 	
 	public Period getCurrentAge() {
-		LocalDate now = new LocalDate(IMDProperties.getServerTimeZone());
-		if (this.dateOfBirth == null ) return new Period(now, now, PeriodType.yearMonthDay());
-		LocalDate birthdate =  new LocalDate(dateOfBirth.getYear(), dateOfBirth.getMonthOfYear(), dateOfBirth.getDayOfMonth());
-		return new Period(birthdate, now, PeriodType.yearMonthDay());
+		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
+		if (this.dateOfBirth == null ) return new Period(now, now, PeriodType.yearMonthDayTime());
+		if (Util.getDaysBetween(now, dateOfBirth) <= 1) {
+//			IMDLogger.log("Less than one day old " + this.animalTag, Util.INFO);
+			return new Period(this.dateOfBirth, now, PeriodType.yearMonthDayTime());
+		}
+		else
+			return new Period(this.dateOfBirth, now, PeriodType.yearMonthDay());			
 	}
 	public int getCurrentAgeInDays() {
 		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
@@ -195,7 +203,7 @@ public class Animal extends IMDairiesDTO{
 		this.animalSire = animalSire;
 	}
 
-	public Animal getAnimalDam() {
+	public Dam getAnimalDam() {
 		return animalDam;
 	}
 

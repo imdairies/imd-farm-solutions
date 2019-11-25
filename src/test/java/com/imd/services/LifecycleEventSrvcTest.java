@@ -20,6 +20,7 @@ import com.imd.dto.Person;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.UserLoader;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
@@ -87,7 +88,7 @@ class LifecycleEventSrvcTest {
 			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
 			AnimalLoader animalLoader = new AnimalLoader();
 
-			User user = new User("TEST");
+			User user1 = new User("TEST");
 			Person kashif = new Person("KASHIF","KASHIF","KASHIF","KASHIF");
 			Animal animal = createTestAnimal(animalTag);			
 			
@@ -104,31 +105,31 @@ class LifecycleEventSrvcTest {
 //			matingEvent.setCreatedDTTM(inseminationTS);
 //			matingEvent.setUpdatedDTTM(inseminationTS);		
 			
-			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,animalTag,inseminateEventCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
+			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,animalTag,inseminateEventCD.getEventCode(),user1,DateTime.now(),user1,DateTime.now());
 			inseminationEvent.setAuxField1Value(sire);
 			inseminationEvent.setAuxField2Value(Util.YES /*isSexed*/);
 			inseminationEvent.setAuxField3Value(Util.YES /*isInseminationSuccessful*/);
 			inseminationEvent.setAuxField4Value(null);
 			inseminationEvent.setEventOperator(kashif);
 			inseminationEvent.setEventTimeStamp(inseminationTS);
-			inseminationEvent.setCreatedBy(user);
-			inseminationEvent.setUpdatedBy(user);
+			inseminationEvent.setCreatedBy(user1);
+			inseminationEvent.setUpdatedBy(user1);
 			inseminationEvent.setCreatedDTTM(inseminationTS);
 			inseminationEvent.setUpdatedDTTM(inseminationTS);
 			
-			LifecycleEvent pregTestEvent = new LifecycleEvent(orgID,0,animalTag,pregTestCD.getEventCode(),user,pregTestTS,user,pregTestTS);
+			LifecycleEvent pregTestEvent = new LifecycleEvent(orgID,0,animalTag,pregTestCD.getEventCode(),user1,pregTestTS,user1,pregTestTS);
 			pregTestEvent.setAuxField1Value(Util.YES.toUpperCase()); //  Pregnant = NO
 			pregTestEvent.setAuxField2Value(Util.YES.toUpperCase()); // Update last insemination outcome = YES
 			pregTestEvent.setAuxField3Value(null);
 			pregTestEvent.setAuxField4Value(null);
 			pregTestEvent.setEventTimeStamp(pregTestTS);
 			pregTestEvent.setEventNote("test");
-			pregTestEvent.setCreatedBy(user);
-			pregTestEvent.setUpdatedBy(user);
+			pregTestEvent.setCreatedBy(user1);
+			pregTestEvent.setUpdatedBy(user1);
 			pregTestEvent.setCreatedDTTM(pregTestTS);
 			pregTestEvent.setUpdatedDTTM(pregTestTS);
 
-			LifecycleEvent parturitionEvent = new LifecycleEvent(orgID,0,animalTag,parturitionCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
+			LifecycleEvent parturitionEvent = new LifecycleEvent(orgID,0,animalTag,parturitionCD.getEventCode(),user1,DateTime.now(),user1,DateTime.now());
 			parturitionEvent.setOrgID(orgID);
 			parturitionEvent.setAnimalTag(animalTag);
 			parturitionEvent.setAuxField1Value(Util.Gender.FEMALE); 
@@ -178,6 +179,15 @@ class LifecycleEventSrvcTest {
 			assertTrue(eventLoader.insertLifeCycleEvent(inseminationEvent) > 0);
 			assertTrue(eventLoader.insertLifeCycleEvent(pregTestEvent) > 0);
 			assertEquals(1,animalLoader.insertAnimal(animal));
+			
+			
+			UserLoader userLoader = new UserLoader();
+			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
+			assertTrue(user != null);
+			assertTrue(user.getPassword() != null);
+			parturitionEventBean.setLoginToken(user.getPassword());
+			
+			
 			
 			responseStr = lifecycleSrvc.addEvent(parturitionEventBean).getEntity().toString();
 			assertTrue(responseStr.indexOf("This tag# is already in use") < 0, "Since the calf tag# was the same as the parturating cow the service should have thrown an invalid tag# error");
