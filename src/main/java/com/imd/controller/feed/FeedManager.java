@@ -60,8 +60,14 @@ public class FeedManager {
 		FeedLoader feedLoader = new FeedLoader();
 		CohortNutritionalNeeds cohortNeed = null;
 		List<CohortNutritionalNeeds> needs = null;
+		Float start = null;
+		Float end = null;
+		if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FEMALECALF)) {
+			start = new Float(animal.getCurrentAgeInDays());
+			end = new Float(animal.getCurrentAgeInDays());
+		}
 		
-		needs = feedLoader.retrieveCohortNutritionalNeeds(feedCohort, 0f, 9999f);
+		needs = feedLoader.retrieveCohortNutritionalNeeds(feedCohort, start, end);
 		if (needs == null || needs.isEmpty()) {
 			IMDLogger.log("Nutritional Needs for the animal " + animal.getAnimalTag() + " could not be found. This indicates that nutritioanl needs for the cohort " + feedCohort.getFeedCohortLookupValue().getLookupValueCode() + " has not been configured", Util.ERROR);
 			cohortNeed =  null;

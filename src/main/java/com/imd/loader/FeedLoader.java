@@ -342,8 +342,8 @@ public class FeedLoader {
 	public List<CohortNutritionalNeeds> retrieveCohortNutritionalNeeds(FeedCohort cohort, Float start, Float end) {
 		List<CohortNutritionalNeeds> dietReq = new ArrayList<CohortNutritionalNeeds>();
 		String qryString = "SELECT * FROM imd.FEED_COHORT_NUTRITIONAL_NEEDS where ORG_ID = ? AND FEED_COHORT = ?  " + 
-				(start == null ? "" : " AND START >= ? ") + 
-				(end == null ? "" : " AND END <= ? ") + " ORDER BY FEED_COHORT, START, END ASC";
+				(start == null ? "" : " AND START <= ? ") + 
+				(end == null ? "" : " AND END >= ? ") + " ORDER BY FEED_COHORT, START, END ASC";
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
 		try {
