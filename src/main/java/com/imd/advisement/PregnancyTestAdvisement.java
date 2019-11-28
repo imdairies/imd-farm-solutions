@@ -46,17 +46,18 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 				return null;
 			} else {
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					MessageCatalogLoader langLoader = new MessageCatalogLoader();
-					String localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					String localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setFirstThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setSecondThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setThirdThresholdMessage(localizedMessage);
 				}
+				if (languageCd == null)
+					languageCd = Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD).toString();
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 				animalPopulation = animalLoader.retrieveActiveInseminatedNonPregnantAnimals(orgId);
@@ -74,20 +75,20 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 						if (lifeEvents != null && !lifeEvents.isEmpty()) {
 							IMDLogger.log("Insemination Date: " + lifeEvents.get(0).getEventTimeStamp(), Util.INFO);
 							int daysSinceInseminated= Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), lifeEvents.get(0).getEventTimeStamp());
-							String animalNote = "This cow (" + animal.getAnimalTag() + ") was successfully inseminated " + daysSinceInseminated + " days ago. ";							
+							String animalNote = "";
 							String ruleNote = "";
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceInseminated >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
-								animalNote += " You should immediately perform its pregnancy test.";
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH3,daysSinceInseminated);
 							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceInseminated >= ruleDto.getSecondThreshold()) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
-								animalNote += " You can safely perform its pregnancy test now.";
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH2,daysSinceInseminated);
 							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceInseminated >= ruleDto.getFirstThreshold()) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
-								animalNote += " You should prepare to perform its pregnancy test soon.";
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH1,daysSinceInseminated);
 							}
 							if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 								animal.addLifecycleEvent(lifeEvents.get(0));
@@ -104,7 +105,6 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 				}
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return eligiblePopulation;

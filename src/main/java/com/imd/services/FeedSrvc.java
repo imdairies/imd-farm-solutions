@@ -19,7 +19,9 @@ import com.imd.dto.Animal;
 import com.imd.dto.FeedCohort;
 import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
+import com.imd.dto.User;
 import com.imd.loader.FeedLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
@@ -32,9 +34,18 @@ public class FeedSrvc {
 	@Path("/retrievefeedplan")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveFeedPlan(AnimalBean animalBean){
+		IMDLogger.log("retrieveActiveAnimalFeedListing Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveActiveAnimalFeedListing",animalBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveActiveAnimalFeedListing", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgID(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
-		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
-//		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
 		String feedCohortCD = animalBean.getAnimalType();
 		String prefix = "  ";
@@ -69,9 +80,18 @@ public class FeedSrvc {
 	@Path("/determineanimalfeed")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response determineAnimalFeed(AnimalBean animalBean){
+		IMDLogger.log("retrieveActiveAnimalFeedListing Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveActiveAnimalFeedListing",animalBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveActiveAnimalFeedListing", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgID(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
-		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
-//		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
 		if (animalBean.getAnimalTag() == null || animalBean.getAnimalTag().isEmpty())
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Please specify a valid animal tag.\"}").build();
@@ -98,8 +118,18 @@ public class FeedSrvc {
 	@Path("/farmactiveanimalfeedlisting")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveActiveAnimalFeedListing(AnimalBean animalBean){
+		IMDLogger.log("retrieveActiveAnimalFeedListing Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveActiveAnimalFeedListing",animalBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveActiveAnimalFeedListing", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgID(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
-		String orgID = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.ORG_ID);    	
 //		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
 //		String feedItems = "";

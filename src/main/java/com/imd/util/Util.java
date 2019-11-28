@@ -112,6 +112,14 @@ public class Util {
 		public static final int USER_PROFILE_NOT_UPDATED = 3;
 		public static final int INVALID_GENDER = 4;
 		public static final String DYNAMIC_VALUE_PLACEHOLDER = "%";
+		public static final int PREGNANCY_TEST_ADVISEMENT_TH1 = 5;
+		public static final int PREGNANCY_TEST_ADVISEMENT_TH2 = 6;
+		public static final int PREGNANCY_TEST_ADVISEMENT_TH3 = 7;
+
+		public static final int DEWORMING_ADVISEMENT_TH1 = 8;
+		public static final int DEWORMING_ADVISEMENT_TH2 = 9;
+		public static final int DEWORMING_ADVISEMENT_TH3 = 10;
+		public static final int DEWORMING_ADVISEMENT_TH4 = 11;
 		
 	}
 

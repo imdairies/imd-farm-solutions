@@ -45,17 +45,18 @@ public class DewormingAdvisement extends AdvisementRule {
 				return null;
 			} else {
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					MessageCatalogLoader langLoader = new MessageCatalogLoader();
-					String localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					String localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setFirstThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setSecondThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
 					if (localizedMessage != null && !localizedMessage.isEmpty())
 						ruleDto.setThirdThresholdMessage(localizedMessage);
 				}
+				if (languageCd == null)
+					languageCd = Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD).toString();
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 				animalPopulation = animalLoader.retrieveActiveAnimals(orgId);
@@ -75,21 +76,24 @@ public class DewormingAdvisement extends AdvisementRule {
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceDewormed >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
-								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it immediately.";	
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.DEWORMING_ADVISEMENT_TH3, daysSinceDewormed);
+//								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it immediately.";	
 							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceDewormed >= ruleDto.getSecondThreshold()) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
-								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it soon.";	
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.DEWORMING_ADVISEMENT_TH2, daysSinceDewormed);
+//								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it soon.";	
 							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceDewormed >= ruleDto.getFirstThreshold()) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
-								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please deworm it soon.";	
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.DEWORMING_ADVISEMENT_TH1, daysSinceDewormed);
+//								animalNote = animal.getAnimalTag() + " has not been dewormed in " + daysSinceDewormed + " days. Please plan to deworm it soon.";	
 							} 
 						} else {
 							// No deworming event found - the animal was never dewormed.
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
-							animalNote = animal.getAnimalTag() + " has never been dewormed. Please deworm it immediately.";	
+							animalNote = MessageCatalogLoader.getMessage(orgId, languageCd, Util.MessageCatalog.DEWORMING_ADVISEMENT_TH4);	
 						}
 						if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 							ArrayList<Note> notesList = new ArrayList<Note>();
