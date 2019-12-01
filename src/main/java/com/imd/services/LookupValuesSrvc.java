@@ -16,6 +16,7 @@ import org.joda.time.format.DateTimeFormat;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
 import com.imd.loader.LookupValuesLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
@@ -34,7 +35,18 @@ public class LookupValuesSrvc {
 	@POST
 	@Path("/search")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response searchLookupValues(LookupValuesBean luValuesBean){
+	public Response searchLookupValues(LookupValuesBean luValuesBean) {
+		IMDLogger.log("searchLookupValues Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".searchLookupValues",luValuesBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".searchLookupValues", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		luValuesBean.setOrgID(orgID);
     	String luValueResult = "";
     	IMDLogger.log(luValuesBean.toString(), Util.INFO);
     	try {
@@ -43,11 +55,19 @@ public class LookupValuesSrvc {
 			if (luValues == null || luValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
 			}
 	    	Iterator<LookupValues> luValuesIt = luValues.iterator();
 	    	while (luValuesIt.hasNext()) {
 	    		LookupValues luValue = luValuesIt.next();
+	    		if (langCd != null && !langCd.isEmpty() && 
+	    				!langCd.equals(Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD))) {
+	    			if (luValue.getShortDescriptionMessageCd() != null && 
+	    					MessageCatalogLoader.getMessage(orgID, langCd, luValue.getShortDescriptionMessageCd()) != null)
+	    				luValue.setShortDescription(MessageCatalogLoader.getMessage(orgID, langCd, luValue.getShortDescriptionMessageCd()).getMessageText());
+	    			if (luValue.getLongDescriptionMessageCd() != null && 
+	    					MessageCatalogLoader.getMessage(orgID, langCd, luValue.getLongDescriptionMessageCd()) != null)
+		    			luValue.setLongDescription(MessageCatalogLoader.getMessage(orgID, langCd, luValue.getLongDescriptionMessageCd()).getMessageText());
+	    		}
 	    		luValueResult += "{\n" + luValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
 	    	if (luValueResult != null && !luValueResult.trim().isEmpty() )
@@ -72,12 +92,22 @@ public class LookupValuesSrvc {
 	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addLookupValues(LookupValuesBean luValueBean){
+		IMDLogger.log("addLookupValues Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".addLookupValues",luValueBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".addLookupValues", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		luValueBean.setOrgID(orgID);
 		String categoryCode = luValueBean.getCategoryCode();
 		String lookupCode = luValueBean.getLookupValueCode();
 		String shortDescription  = luValueBean.getShortDescription();
 		String longDescription  = luValueBean.getLongDescription();
-		IMDLogger.log("addLookupValues Called with following input values", Util.INFO);
-		IMDLogger.log(luValueBean.toString() , Util.INFO);
+		IMDLogger.log("addLookupValues Called with following input values\n" + luValueBean.toString() , Util.INFO);
 		
 		if (categoryCode == null || categoryCode.trim().isEmpty()) {			
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid category code.\"}").build();
@@ -127,6 +157,17 @@ public class LookupValuesSrvc {
 	@Path("/update")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateLookupValues(LookupValuesBean luValueBean){
+		IMDLogger.log("updateLookupValues Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".updateLookupValues",luValueBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".updateLookupValues", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		luValueBean.setOrgID(orgID);		
 		String categoryCode = luValueBean.getCategoryCode();
 		String lookupCode = luValueBean.getLookupValueCode();
 		String shortDescription  = luValueBean.getShortDescription();

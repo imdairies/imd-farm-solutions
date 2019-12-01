@@ -109,13 +109,7 @@ public class FeedManager {
 			CohortNutritionalNeeds calculation = this.getMetabolizableEnergyRequiremnt(new Double(wt), threeDaysMilkingAverage, daysIntoPregnancy, feedCohort.getFeedCohortLookupValue().getLookupValueCode(), null, null);
 			cohortNeed.setMetabloizableEnergy(calculation.getMetabloizableEnergy());
 			cohortNeed.setNutritionalNeedsTDN(calculation.getNutritionalNeedsTDN());
-//			cohortNeed.setDryMatter(cohortNeed.getDryMatter() * wt);
-//			cohortNeed.setCrudeProtein(cohortNeed.getCrudeProtein() * cohortNeed.getDryMatter());
 		}
-//		else if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.LCTMID))
-//		;
-//		else if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.LCTOLD))
-//		;
 		return cohortNeed;
 	}
 	
@@ -323,10 +317,6 @@ public class FeedManager {
 		
 		Float maxFulfillment = feedItem.getMaximumFulfillment();
 		Float minFulfillment = feedItem.getMinimumFulfillment();
-//		IMDLogger.log("**********************************************", Util.INFO);		
-//		IMDLogger.log(feedItem.getFeedItemLookupValue().getLookupValueCode() + " = " + dailyIntake, Util.INFO);
-//		IMDLogger.log(" MAX = " + maxFulfillment, Util.INFO);
-//		IMDLogger.log(" MIN = " + minFulfillment, Util.INFO);
 		
 		if (dailyIntake == null) {
 			dailyIntake = feedItem.getFulfillmentPct();
@@ -342,8 +332,6 @@ public class FeedManager {
 			dailyIntake = Math.min(dailyIntake, maxFulfillment);
 			dailyIntake = Math.max(dailyIntake, minFulfillment);
 		}
-//		IMDLogger.log(feedItem.getFeedItemLookupValue().getLookupValueCode() + " = " + dailyIntake, Util.INFO);
-//		IMDLogger.log("**********************************************", Util.INFO);		
 		
 		return dailyIntake;
 	}

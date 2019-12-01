@@ -8,6 +8,8 @@ public class LookupValues extends IMDairiesDTO{
 	private String categoryCode;
 	private String lookupValueCode;
 	private String shortDescription;
+	private String shortDescriptionMessageCd;
+	private String longDescriptionMessageCd;
 	private String longDescription;
 	private String activeIndicator;
 	private String additionalField1;
@@ -114,7 +116,9 @@ public class LookupValues extends IMDairiesDTO{
 				prefix + fieldToJson("lookupValueCode", this.lookupValueCode) + ",\n" + 
 				prefix + fieldToJson("isActive", this.isActive()) + ",\n" + 
 				prefix + fieldToJson("shortDescription", this.shortDescription) + ",\n" + 
+				prefix + fieldToJson("shortDescriptionMessageCd", this.shortDescriptionMessageCd) + ",\n" + 
 				prefix + fieldToJson("longDescription", this.longDescription) + ",\n" + 
+				prefix + fieldToJson("longDescriptionMessageCd", this.longDescriptionMessageCd) + ",\n" + 
 				prefix + fieldToJson("activeIndicator", this.activeIndicator) + ",\n" + 
 				prefix + fieldToJson("additionalField1", this.additionalField1) + ",\n" + 
 				prefix + fieldToJson("additionalField2", this.additionalField2) + ",\n" + 
@@ -127,6 +131,22 @@ public class LookupValues extends IMDairiesDTO{
 	
 	public String dtoToJson(String prefix, DateTimeFormatter fmt)  {
 		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
+	}
+
+	public String getShortDescriptionMessageCd() {
+		return shortDescriptionMessageCd;
+	}
+
+	public void setShortDescriptionMessageCd(String shortDescriptionMessageCd) {
+		this.shortDescriptionMessageCd = shortDescriptionMessageCd;
+	}
+
+	public String getLongDescriptionMessageCd() {
+		return longDescriptionMessageCd;
+	}
+
+	public void setLongDescriptionMessageCd(String longDescriptionMessageCd) {
+		this.longDescriptionMessageCd = longDescriptionMessageCd;
 	}
 
 }

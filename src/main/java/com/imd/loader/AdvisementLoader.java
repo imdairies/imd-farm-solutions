@@ -100,9 +100,9 @@ public class AdvisementLoader {
 		advRule.setFirstThreshold(rs.getString("THRESHOLD1") == null ? -999f : rs.getFloat("THRESHOLD1"));
 		advRule.setSecondThreshold(rs.getString("THRESHOLD2") == null ? -999f : rs.getFloat("THRESHOLD2"));
 		advRule.setThirdThreshold(rs.getString("THRESHOLD3") == null ? -999f : rs.getFloat("THRESHOLD3"));
-		advRule.setFirstThresholdMessageCode(rs.getString("THRESHOLD1_MSG_CD") == null ? 0 : rs.getInt("THRESHOLD1_MSG_CD"));
-		advRule.setSecondThresholdMessageCode(rs.getString("THRESHOLD2_MSG_CD") == null ? 0 : rs.getInt("THRESHOLD2_MSG_CD"));
-		advRule.setThirdThresholdMessageCode(rs.getString("THRESHOLD3_MSG_CD") == null ? 0 : rs.getInt("THRESHOLD3_MSG_CD"));
+		advRule.setFirstThresholdMessageCode(rs.getString("THRESHOLD1_MSG_CD"));
+		advRule.setSecondThresholdMessageCode(rs.getString("THRESHOLD2_MSG_CD"));
+		advRule.setThirdThresholdMessageCode(rs.getString("THRESHOLD3_MSG_CD"));
 		advRule.setFirstThresholdMessage(rs.getString("THRESHOLD1_MSG"));
 		advRule.setSecondThresholdMessage(rs.getString("THRESHOLD2_MSG"));
 		advRule.setThirdThresholdMessage(rs.getString("THRESHOLD3_MSG"));

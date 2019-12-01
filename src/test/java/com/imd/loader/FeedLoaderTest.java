@@ -19,7 +19,9 @@ import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LookupValues;
 import com.imd.dto.User;
+import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 class FeedLoaderTest {
@@ -40,6 +42,101 @@ class FeedLoaderTest {
 	void tearDown() throws Exception {
 	}
 	
+	@Test
+	void testFeedPlanEdit() {
+		int originalLoggingMode = IMDLogger.loggingMode;
+		try {
+			IMDLogger.loggingMode = Util.INFO;
+			String orgID = "IMD";
+			String feedCohortCD = Util.FeedCohortType.FEMALECALF;
+			FeedLoader feedLoader = new FeedLoader();
+			LookupValuesLoader lvLoader = new LookupValuesLoader();
+			LookupValuesBean searchBean = new LookupValuesBean();
+			searchBean.setActiveIndicator(Util.Y);
+			searchBean.setCategoryCode(Util.LookupValues.FEED);
+			
+			FeedPlan feedPlan = feedLoader.retrieveFeedPlan(orgID, feedCohortCD);
+			assertTrue(feedPlan != null && feedPlan.getFeedPlan() != null && !feedPlan.getFeedPlan().isEmpty(), "No Feed Plan exists for " + feedCohortCD + ". This unit test assumes that a feedplan exists for the cohort: "+ feedCohortCD);
+			
+			List<LookupValues> feedItemsMasterList = lvLoader.retrieveLookupValues(searchBean);
+			assertTrue(feedItemsMasterList != null && !feedItemsMasterList.isEmpty(),"This unit test assumes that we have some lookup values for the category " + Util.LookupValues.FEED);
+			
+			Iterator<LookupValues> itemMasterListIt = feedItemsMasterList.iterator();
+			LookupValues availableFeedItem = null;
+			while (itemMasterListIt.hasNext()) {
+				LookupValues feedItemLV = itemMasterListIt.next();
+				boolean found = false;
+				Iterator<FeedItem> itemIt = feedPlan.getFeedPlan().iterator();
+				while (itemIt.hasNext()) {
+					FeedItem item = itemIt.next();
+					if (item.getFeedItemLookupValue().getLookupValueCode().equals(feedItemLV.getLookupValueCode())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					availableFeedItem = feedItemLV;
+					break;
+				}
+			}
+			assertTrue(availableFeedItem != null, "The feedplan for the cohort " + feedCohortCD + 
+					" already contains ALL the available Feed Items listed in the lookup category " + Util.LookupValues.FEED + 
+					" the unit test needs at least one available unused feeditem in this cohort plan so "
+					+ "that it can use that value for testing addition, edit and deletion.");
+			
+			FeedItem feedItem1 = new FeedItem();
+			feedItem1.setOrgID(feedPlan.getOrgID());
+			feedItem1.setFeedCohortCD(lvLoader.retrieveLookupValue(Util.LookupValues.FEEDCOHORT,feedCohortCD));
+			feedItem1.setFeedItemLookupValue(availableFeedItem);
+			
+			feedItem1.setStart(0.0f);
+			feedItem1.setEnd(9999.0f);
+			feedItem1.setMinimumFulfillment(2.0f);
+			feedItem1.setFulfillmentPct(3.0f);
+			feedItem1.setMaximumFulfillment(10.0f);
+			feedItem1.setUnits("Kgs");
+			feedItem1.setFulFillmentTypeCD(Util.FulfillmentType.ABSOLUTE);
+			feedItem1.setDailyFrequency(1);
+			feedItem1.setComments("Give " + availableFeedItem.getLookupValueCode() + 
+					" to " + feedCohortCD + " once a day");
+			feedItem1.setCreatedBy(new User("KASHIF"));
+			feedItem1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			feedItem1.setUpdatedBy(feedItem1.getCreatedBy());
+			feedItem1.setUpdatedDTTM(feedItem1.getCreatedDTTM());
+			assertEquals(0,feedLoader.deleteFeedPlanItem(feedItem1));
+			assertEquals(1,feedLoader.insertFeedPlanItem(feedItem1));
+			
+			
+			feedPlan = feedLoader.retrieveFeedPlan(orgID, feedCohortCD);
+			assertTrue(feedPlan != null && feedPlan.getFeedPlan() != null && !feedPlan.getFeedPlan().isEmpty(), "No Feed Plan exists for " + feedCohortCD + ". This unit test assumes that a feedplan exists for the cohort: "+ feedCohortCD);
+			
+			boolean found = false;
+			Iterator<FeedItem> itemIt = feedPlan.getFeedPlan().iterator();
+			while (itemIt.hasNext()) {
+				FeedItem item = itemIt.next();
+				if (item.getFeedItemLookupValue().getLookupValueCode().equals(availableFeedItem.getLookupValueCode())) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found, "The added feed item: " + availableFeedItem.getLookupValueCode() + 
+					" in feed plan of the cohort: " + feedCohortCD + 
+					" was not found. It should have been added successfully.");			
+
+			
+			
+			assertEquals(1,feedLoader.deleteFeedPlanItem(feedItem1), "The added feed item: " + availableFeedItem.getLookupValueCode() + 
+					" in feed plan of the cohort: " + feedCohortCD + 
+					" was not found. It should have been deleted successfully.");
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Exception occurred");
+		} finally {
+			IMDLogger.loggingMode = originalLoggingMode;
+			
+		}
+	}
 
 	@Test
 	void testFeedPlanItemInsertionDeletion() {
@@ -63,7 +160,7 @@ class FeedLoaderTest {
 			feedItem.setDailyFrequency((Integer)null);
 			feedItem.setComments("Put alfaalfa hay infront of the calves and let them eat as much as they wish");
 			feedItem.setCreatedBy(new User("KASHIF"));
-			feedItem.setCreatedDTTM(DateTime.now());
+			feedItem.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			feedItem.setUpdatedBy(feedItem.getCreatedBy());
 			feedItem.setUpdatedDTTM(feedItem.getCreatedDTTM());
 			assertTrue(loader.deleteFeedPlanItem(feedItem) >= 0);
@@ -99,7 +196,7 @@ class FeedLoaderTest {
 			feedItem1.setDailyFrequency((Integer)null);
 			feedItem1.setComments("Put alfaalfa hay infront of the calves and let them eat as much as they wish");
 			feedItem1.setCreatedBy(new User("KASHIF"));
-			feedItem1.setCreatedDTTM(DateTime.now());
+			feedItem1.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			feedItem1.setUpdatedBy(feedItem1.getCreatedBy());
 			feedItem1.setUpdatedDTTM(feedItem1.getCreatedDTTM());
 
@@ -120,7 +217,7 @@ class FeedLoaderTest {
 			feedItem2.setFulFillmentTypeCD(Util.FulfillmentType.ABSOLUTE);
 			feedItem2.setDailyFrequency((Integer)1);
 			feedItem2.setCreatedBy(new User("KASHIF"));
-			feedItem2.setCreatedDTTM(DateTime.now());
+			feedItem2.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			feedItem2.setUpdatedBy(feedItem2.getCreatedBy());
 			feedItem2.setUpdatedDTTM(feedItem2.getCreatedDTTM());
 			
@@ -174,7 +271,7 @@ class FeedLoaderTest {
 			dietReq.setCrudeProtein(18f); //18% of DM
 			dietReq.setMetabloizableEnergy(3.1f);
 			dietReq.setCreatedBy(new User("KASHIF"));
-			dietReq.setCreatedDTTM(DateTime.now());
+			dietReq.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			dietReq.setUpdatedBy(dietReq.getCreatedBy());
 			dietReq.setUpdatedDTTM(dietReq.getCreatedDTTM());
 			assertTrue(loader.deleteCohortNutritionalNeeds(dietReq) >= 0);

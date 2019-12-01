@@ -53,6 +53,8 @@ class LookupValuesLoaderTest {
 			// 1: Now insert the test record without having to worry about whether it already exists or not.
 			luValue = new LookupValues("BREED","DUMMY", "Holstien-Sahiwal-Cross", "Holestien Cross Breed with Sahiwal \" ' %  - notice the special character in the description to test SQL escape functionality."); 			
 			luValue.markActive();
+			luValue.setShortDescriptionMessageCd("999999");
+			luValue.setLongDescriptionMessageCd(null);
 			luValue.setCreatedBy(new User("KASHIF"));
 			luValue.setCreatedDTTM(DateTime.now());
 			luValue.setUpdatedBy(luValue.getCreatedBy());
@@ -70,6 +72,8 @@ class LookupValuesLoaderTest {
 			searchBean = new LookupValuesBean("BREED","DUMMY");
 			searchBean.setActiveIndicator(null);
 			luValue = loader.retrieveLookupValues(searchBean).get(0);
+			assertEquals(null,luValue.getLongDescriptionMessageCd());
+			assertEquals("999999",luValue.getShortDescriptionMessageCd());
 			assertEquals("BREED-DUMMY",luValue.getCategoryCode()+"-"+luValue.getLookupValueCode(),"Retrieved Record should have the correct Lookup Value");
 			IMDLogger.log("BREED-DUMMY record has been successfully retrieved through retrieveLookupValues ", Util.INFO);
 			
@@ -94,6 +98,8 @@ class LookupValuesLoaderTest {
 			luValue.setCategoryCode("BREED");
 			luValue.setLookupValueCode("DUMMY");
 			luValue.setShortDescription("This is Test Short Description");
+			luValue.setShortDescriptionMessageCd("999988");
+			luValue.setLongDescriptionMessageCd("999989");
 			DateTime updatedDTTM = DateTime.now().plusDays(3);
 			luValue.setUpdatedDTTM(updatedDTTM);
 			luValue.markInActive();
@@ -111,6 +117,8 @@ class LookupValuesLoaderTest {
 			assertFalse(val.isActive(), "The event should have been marked inactive");
 			assertEquals("This is Test Short Description",val.getShortDescription(),"The short description should have been updated");
 			assertEquals(updatedDTTMStr,val.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
+			assertEquals("999988",luValue.getShortDescriptionMessageCd());
+			assertEquals("999989",luValue.getLongDescriptionMessageCd());
 			IMDLogger.log(luValue.getCategoryCode() + "-" + luValue.getLookupValueCode() + " record has been successfully updated and all new values have been verified", Util.INFO);
 
 		

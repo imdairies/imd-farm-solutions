@@ -11,6 +11,7 @@ import java.util.List;
 import com.imd.dto.Advisement;
 import com.imd.dto.Animal;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.Message;
 import com.imd.dto.Note;
 import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
@@ -46,15 +47,15 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 				return null;
 			} else {
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					String localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
-					if (localizedMessage != null && !localizedMessage.isEmpty())
-						ruleDto.setFirstThresholdMessage(localizedMessage);
+					Message localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					if (localizedMessage != null && localizedMessage.getMessageText() != null)
+						ruleDto.setFirstThresholdMessage(localizedMessage.getMessageText());
 					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
-					if (localizedMessage != null && !localizedMessage.isEmpty())
-						ruleDto.setSecondThresholdMessage(localizedMessage);
+					if (localizedMessage != null && localizedMessage.getMessageText() != null)
+						ruleDto.setSecondThresholdMessage(localizedMessage.getMessageText());
 					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
-					if (localizedMessage != null && !localizedMessage.isEmpty())
-						ruleDto.setThirdThresholdMessage(localizedMessage);
+					if (localizedMessage != null && localizedMessage.getMessageText() != null)
+						ruleDto.setThirdThresholdMessage(localizedMessage.getMessageText());
 				}
 				if (languageCd == null)
 					languageCd = Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD).toString();
@@ -80,15 +81,15 @@ public class PregnancyTestAdvisement extends AdvisementRule {
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceInseminated >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
-								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH3,daysSinceInseminated);
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH3,daysSinceInseminated) == null ? "" : MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH3,daysSinceInseminated).getMessageText();
 							} else if (ruleDto.getSecondThreshold() > 0 && daysSinceInseminated >= ruleDto.getSecondThreshold()) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
-								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH2,daysSinceInseminated);
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH2,daysSinceInseminated) == null ? "" : MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH2,daysSinceInseminated).getMessageText();
 							} else if (ruleDto.getFirstThreshold() > 0 && daysSinceInseminated >= ruleDto.getFirstThreshold()) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
-								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH1,daysSinceInseminated);
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH1,daysSinceInseminated) == null ? "" : MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.PREGNANCY_TEST_ADVISEMENT_TH1,daysSinceInseminated).getMessageText();
 							}
 							if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 								animal.addLifecycleEvent(lifeEvents.get(0));

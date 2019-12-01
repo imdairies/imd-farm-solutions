@@ -3,6 +3,7 @@ package com.imd.services.bean;
 
 public class LookupValuesBean {
 
+	private String orgID;
 	private String categoryCode;
 	private String lookupValueCode;
 	private String shortDescription;
@@ -26,6 +27,12 @@ public class LookupValuesBean {
 		
 	}
 	
+	public String getOrgID() {
+		return orgID;
+	}
+	public void setOrgID(String orgID) {
+		this.orgID = orgID;
+	}
 	public LookupValuesBean(String ctgryCd, String lookupCode) {
 		this.categoryCode = ctgryCd;
 		this.lookupValueCode = lookupCode;

@@ -103,10 +103,11 @@ public class AnimalSrvc {
 			List<Animal> animalValues = loader.retrieveMatchingAnimals(searchBean);
 			if (animalValues == null || animalValues.size() == 0)
 			{
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
+    			String message = MessageCatalogLoader.getMessage(orgID, langCd, Util.MessageCatalog.NO_MATCHING_RECORD_FOUND).getMessageText();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
 			} else if (animalValues.size() > 1) {
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Multiple matching records found for this animal. Please report a product bug\"}").build();				
+    			String message = MessageCatalogLoader.getMessage(orgID, langCd, Util.MessageCatalog.MULTIPLE_RECORDS_FOUND_ERROR).getMessageText();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
 			}
 						
     		Animal animalValue = animalValues.get(0);
@@ -114,7 +115,8 @@ public class AnimalSrvc {
     		List<LifecycleEvent> weights = evtLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(), animalValue.getAnimalTag(), Util.LifeCycleEvents.WEIGHT);
 
     		if (weights == null || weights.isEmpty()) {
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You have never measured the weight of this animal. Growth information can't be displayed.\"}").build();				
+    			String message = MessageCatalogLoader.getMessage(orgID, langCd, Util.MessageCatalog.WEIGHT_NEVER_MEASURED).getMessageText();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
 			}
     		
     		IMDLogger.log("Total Weight Events " + weights.size(), Util.INFO);
@@ -277,28 +279,37 @@ public class AnimalSrvc {
 		String aiInd = (animalBean.getAiInd() == null || animalBean.getAiInd().trim().isEmpty()? "N" : "" + animalBean.getAiInd().charAt(0));
 		
 		if (tag == null || tag.trim().isEmpty()) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
-		}
-		else if (typeCD == null || typeCD.trim().isEmpty()) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
-		}
-		else if (dob == null || dob.trim().isEmpty()) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
-		}
-		else if (gender == "" || gender.trim().isEmpty()) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal gender.\"}").build();
-		}
-		else if (dobAccuracyInd == null || dobAccuracyInd.trim().isEmpty()) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
-		}
-		else if (breed == null || breed.trim().isEmpty()) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
-		}
-		else if (herdJoiningDate == null || herdJoiningDate.isEmpty()) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
-		}
-		else if (typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")) {
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status at the time of animal addition. Instead, add an event that results in an inactive status.\"}").build();			
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.SPECIFIC_VALUE_MISSING,"Animal Tag").getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid Animal Tag.\"}").build();
+		} else if (typeCD == null || typeCD.trim().isEmpty()) {
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.SPECIFIC_VALUE_MISSING,"Animal Type").getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal Type.\"}").build();
+		} else if (dob == null || dob.trim().isEmpty()) {
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.SPECIFIC_VALUE_MISSING,"Date of Birth").getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal date of birth. If you do not know the date of birth then provide an estimated date and set the date of birth accuracy indicator to \"N\".\"}").build();
+		} else if (gender == "" || gender.trim().isEmpty()) {
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.SPECIFIC_VALUE_MISSING,"Gender").getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide Animal gender.\"}").build();
+		} else if (dobAccuracyInd == null || dobAccuracyInd.trim().isEmpty()) {
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.SPECIFIC_VALUE_MISSING,"Date of Birth Accuracy").getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify if Date of Birth is accurate or not.\"}").build();
+		} else if (breed == null || breed.trim().isEmpty()) {
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.SPECIFIC_VALUE_MISSING,"Breed").getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify animal breed.\"}").build();
+		} else if (herdJoiningDate == null || herdJoiningDate.isEmpty()) {
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.SPECIFIC_VALUE_MISSING,"Herd Joining Date").getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify herd joining date.\"}").build();
+		} else if (typeCD.equalsIgnoreCase("CULLED") || typeCD.equalsIgnoreCase("DEAD")) {
+			String message = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgID, langCd, Util.MessageCatalog.CANT_SET_CULL_STATUS,typeCD).getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + typeCD + " indcates an inactive animal status. You can not set an inacitve animal status at the time of animal addition. Instead, add an event that results in an inactive status.\"}").build();			
 		}
 		
 		int result = -1;
@@ -347,9 +358,11 @@ public class AnimalSrvc {
 			String message = performPostInsertionSteps(animal);
 			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New Animal has been created successfully. "+ message + "\"}").build();
 		}
-		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Another animal with the same tag already exists. Please use a different tag number.\"}").build();
-		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+		else if (result == Util.ERROR_CODE.ALREADY_EXISTS) {
+			String message = MessageCatalogLoader.getMessage(orgID, langCd, Util.MessageCatalog.ALREADY_EXISTS).getMessageText();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Another animal with the same tag already exists. Please use a different tag number.\"}").build();
+		} else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
 		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be added. Please submit a bug report.\"}").build();
@@ -465,11 +478,11 @@ public class AnimalSrvc {
 //			String message = performPostInsertionSteps(animal);
 			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Animal has been updated successfully.\"}").build();
 		}
-		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
+		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Animal  '" + tag+ "' could not be updated. Please reduce the field length and try again.\"}").build();
-		else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+		} else if (result == Util.ERROR_CODE.SQL_SYNTAX_ERROR) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an error in the SQL format. This indicates a lapse on the developer's part. Animal '" + tag + "' could not be updated. Please submit a bug report.\"}").build();
-		else
+		} else
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An unknown error occurred during animal update\"}").build();
 
 	}

@@ -106,20 +106,31 @@ public class Util {
 
 	public static final class MessageCatalog {
 
-		public static final int GENERIC_UPDATE_FAILED_MESSAGE = 0;
-		public static final int VERIFY_ACCESS_MESSAGE = 1;
-		public static final int USER_PROFILE_UPDATED = 2;
-		public static final int USER_PROFILE_NOT_UPDATED = 3;
-		public static final int INVALID_GENDER = 4;
+		public static final String GENERIC_UPDATE_FAILED_MESSAGE = "0";
+		public static final String VERIFY_ACCESS_MESSAGE = "1";
+		public static final String USER_PROFILE_UPDATED = "2";
+		public static final String USER_PROFILE_NOT_UPDATED = "3";
+		public static final String INVALID_GENDER = "4";
 		public static final String DYNAMIC_VALUE_PLACEHOLDER = "%";
-		public static final int PREGNANCY_TEST_ADVISEMENT_TH1 = 5;
-		public static final int PREGNANCY_TEST_ADVISEMENT_TH2 = 6;
-		public static final int PREGNANCY_TEST_ADVISEMENT_TH3 = 7;
+		public static final String PREGNANCY_TEST_ADVISEMENT_TH1 = "5";
+		public static final String PREGNANCY_TEST_ADVISEMENT_TH2 = "6";
+		public static final String PREGNANCY_TEST_ADVISEMENT_TH3 = "7";
 
-		public static final int DEWORMING_ADVISEMENT_TH1 = 8;
-		public static final int DEWORMING_ADVISEMENT_TH2 = 9;
-		public static final int DEWORMING_ADVISEMENT_TH3 = 10;
-		public static final int DEWORMING_ADVISEMENT_TH4 = 11;
+		public static final String DEWORMING_ADVISEMENT_TH1 = "8";
+		public static final String DEWORMING_ADVISEMENT_TH2 = "9";
+		public static final String DEWORMING_ADVISEMENT_TH3 = "10";
+		public static final String DEWORMING_ADVISEMENT_TH4 = "11";
+		public static final String MISSING_VALUE = "12";
+		public static final String NO_MATCHING_RECORD_FOUND = "13";
+		public static final String X_RECORDS_FOUND = "14";
+		public static final String ALREADY_EXISTS = "15";
+		public static final String RECORD_SUCCESSFULLY_ADDED = "16";
+		public static final String GENERIC_ADDITION_FAILED_MESSAGE = "17";
+		public static final String RECORD_SUCCESSFULLY_UPDATED = "18";
+		public static final String MULTIPLE_RECORDS_FOUND_ERROR = "19";
+		public static final String WEIGHT_NEVER_MEASURED = "20";
+		public static final String SPECIFIC_VALUE_MISSING = "21";
+		public static final String CANT_SET_CULL_STATUS = "22";
 		
 	}
 

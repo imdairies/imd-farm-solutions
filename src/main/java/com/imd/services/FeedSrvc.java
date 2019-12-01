@@ -30,6 +30,10 @@ import com.imd.util.Util;
 @Path("/feed")
 public class FeedSrvc {
 
+	
+	
+	
+	
 	@POST
 	@Path("/retrievefeedplan")
 	@Consumes (MediaType.APPLICATION_JSON)
@@ -130,9 +134,7 @@ public class FeedSrvc {
 		String langCd = user.getPreferredLanguage();
 		animalBean.setOrgID(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
-//		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);	
 		String responseJson = "";
-//		String feedItems = "";
 		HashMap<String,Float> intakeQuantity = new HashMap<String, Float>();
 
     	try {
@@ -229,7 +231,6 @@ public class FeedSrvc {
 				prefix + animalValue.fieldToJson("weight", animalValue.getWeight()) + ",\n" + 
 				prefix + animalValue.fieldToJson("animalTag", animalValue.getAnimalTag()) + ",\n" +
 				(animalValue.getAnimalNutritionalNeeds() == null ? "" : animalValue.getAnimalNutritionalNeeds().dtoToJson(prefix,false)) + 
-//				(animalValue.getFeedCohortInformation() == null ? "" : animalValue.getFeedCohortInformation().dtoToJson(prefix,false)) +
 				prefix + animalValue.fieldToJson("feedCohortDeterminatationCriteria", animalValue.getFeedCohortInformation().getAnimalFeedCohortDeterminatationMessage()) + ",\n" +
 				prefix + animalValue.fieldToJson("feedCohortTypeShortDescr", animalValue.getFeedCohortInformation().getFeedCohortLookupValue().getShortDescription()) + ",\n" +
 				(feedPlan != null ? feedPlan.dtoToJson(prefix + prefix, false) : "");

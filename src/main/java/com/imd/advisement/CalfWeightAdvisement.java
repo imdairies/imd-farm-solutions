@@ -11,6 +11,7 @@ import org.joda.time.DateTime;
 import com.imd.dto.Advisement;
 import com.imd.dto.Animal;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.Message;
 import com.imd.dto.Note;
 import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
@@ -29,7 +30,10 @@ public class CalfWeightAdvisement extends AdvisementRule {
 	@Override
 	public List<Animal> applyAdvisementRule(String orgId, String languageCd) {
 		List<Animal> eligiblePopulation = new ArrayList<Animal>();
+//		int oldMode = IMDLogger.loggingMode;
 		try {
+//			IMDLogger.loggingMode = Util.INFO;
+
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Animal> animalPopulation = null;
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
@@ -47,20 +51,17 @@ public class CalfWeightAdvisement extends AdvisementRule {
 			DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusDays(calvesAgethreshold);
 
 			if (ruleDto != null) {
-				
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					MessageCatalogLoader langLoader = new MessageCatalogLoader();
-					String localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
-					if (localizedMessage != null && !localizedMessage.isEmpty())
-						ruleDto.setFirstThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
-					if (localizedMessage != null && !localizedMessage.isEmpty())
-						ruleDto.setSecondThresholdMessage(localizedMessage);
-					localizedMessage  = langLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
-					if (localizedMessage != null && !localizedMessage.isEmpty())
-						ruleDto.setThirdThresholdMessage(localizedMessage);
+					Message localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					if (localizedMessage != null && localizedMessage.getMessageText() != null)
+						ruleDto.setFirstThresholdMessage(localizedMessage.getMessageText());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
+					if (localizedMessage != null && localizedMessage.getMessageText() != null)
+						ruleDto.setSecondThresholdMessage(localizedMessage.getMessageText());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
+					if (localizedMessage != null && localizedMessage.getMessageText() != null)
+						ruleDto.setThirdThresholdMessage(localizedMessage.getMessageText());
 				}
-				
 				
 				AnimalLoader animalLoader = new AnimalLoader();
 				LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
@@ -145,6 +146,8 @@ public class CalfWeightAdvisement extends AdvisementRule {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+//		} finally {
+//			IMDLogger.loggingMode = oldMode;
 		}
 		return eligiblePopulation;
 	}

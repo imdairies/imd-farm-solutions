@@ -151,6 +151,9 @@ public class FeedItem extends IMDairiesDTO {
 			return stringify(prefix);
 	}
 	
+	public String toString() {
+		return stringify("");
+	}
 
 	public String dtoToJson(String prefix, boolean appendSuperJson, DateTimeFormatter fmt)  {		
 		if (appendSuperJson)

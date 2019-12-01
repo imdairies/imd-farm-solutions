@@ -26,24 +26,27 @@ public class LookupValuesLoader {
 	}
 	
 	public int insertLookupValues(LookupValues luValues) {
-		String qryString = "insert into LOOKUP_VALUES (CATEGORY_CD,LOOKUP_CD,ACTIVE_IND,SHORT_DESCR,LONG_DESCR,ADDITIONAL_FLD1,ADDITIONAL_FLD2,ADDITIONAL_FLD3,CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+		String qryString = "insert into LOOKUP_VALUES (CATEGORY_CD,LOOKUP_CD,ACTIVE_IND,SHORT_DESCR,SHORT_DESCR_MSG_CD,LONG_DESCR,LONG_DESCR_MSG_CD,ADDITIONAL_FLD1,ADDITIONAL_FLD2,ADDITIONAL_FLD3,CREATED_BY,CREATED_DTTM,UPDATED_BY,UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		int result = -1;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
+		int i=1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, luValues.getCategoryCode());
-			preparedStatement.setString(2, luValues.getLookupValueCode());
-			preparedStatement.setString(3, (luValues.isActive() ? "Y":"N"));		
-			preparedStatement.setString(4, luValues.getShortDescription());
-			preparedStatement.setString(5, luValues.getLongDescription());
-			preparedStatement.setString(6, luValues.getAdditionalField1());
-			preparedStatement.setString(7, luValues.getAdditionalField2());
-			preparedStatement.setString(8, luValues.getAdditionalField3());
-			preparedStatement.setString(9, luValues.getCreatedBy().getUserId());
-			preparedStatement.setString(10, luValues.getCreatedDTTMSQLFormat());
-			preparedStatement.setString(11, luValues.getUpdatedBy().getUserId());
-			preparedStatement.setString(12, luValues.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(i++, luValues.getCategoryCode());
+			preparedStatement.setString(i++, luValues.getLookupValueCode());
+			preparedStatement.setString(i++, (luValues.isActive() ? "Y":"N"));		
+			preparedStatement.setString(i++, luValues.getShortDescription());
+			preparedStatement.setString(i++, luValues.getShortDescriptionMessageCd() == null ? null : luValues.getShortDescriptionMessageCd().toString());
+			preparedStatement.setString(i++, luValues.getLongDescription());
+			preparedStatement.setString(i++, luValues.getLongDescriptionMessageCd() == null ? null : luValues.getLongDescriptionMessageCd().toString());
+			preparedStatement.setString(i++, luValues.getAdditionalField1());
+			preparedStatement.setString(i++, luValues.getAdditionalField2());
+			preparedStatement.setString(i++, luValues.getAdditionalField3());
+			preparedStatement.setString(i++, luValues.getCreatedBy().getUserId());
+			preparedStatement.setString(i++, luValues.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(i++, luValues.getUpdatedBy().getUserId());
+			preparedStatement.setString(i++, luValues.getUpdatedDTTMSQLFormat());
 			result = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
 			result = Util.ERROR_CODE.ALREADY_EXISTS;
@@ -121,8 +124,7 @@ public class LookupValuesLoader {
 				values.add(retrieveActiveOnlyInd);
 			}
 		}
-		qryString += " ORDER BY CATEGORY_CD,LOOKUP_CD" ;		
-		IMDLogger.log(qryString,Util.INFO);
+		qryString += " ORDER BY CATEGORY_CD,LOOKUP_CD" ;
 		LookupValues luValue = null;
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
@@ -133,6 +135,7 @@ public class LookupValuesLoader {
 			int i=1;
 			while (it.hasNext())
 				preparedStatement.setString(i++,it.next());
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
 		    	luValue = getDTOFromSQLRecord(rs);
@@ -166,6 +169,8 @@ public class LookupValuesLoader {
 		luValue.setAdditionalField1(rs.getString("ADDITIONAL_FLD1"));
 		luValue.setAdditionalField2(rs.getString("ADDITIONAL_FLD2"));
 		luValue.setAdditionalField3(rs.getString("ADDITIONAL_FLD3"));
+		luValue.setShortDescriptionMessageCd(rs.getString("SHORT_DESCR_MSG_CD"));
+		luValue.setLongDescriptionMessageCd(rs.getString("LONG_DESCR_MSG_CD"));
 		luValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		luValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		luValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
@@ -235,6 +240,14 @@ public class LookupValuesLoader {
 		if (luValue.getShortDescription() != null && !luValue.getShortDescription().isEmpty()) {
 			valuestoBeUpdated += ", SHORT_DESCR=?";
 			updateString.add(luValue.getShortDescription());
+		}
+		if (luValue.getShortDescriptionMessageCd() != null) {
+			valuestoBeUpdated += ", SHORT_DESCR_MSG_CD=?";
+			updateString.add(luValue.getShortDescriptionMessageCd().toString());
+		}
+		if (luValue.getLongDescriptionMessageCd() != null) {
+			valuestoBeUpdated += ", LONG_DESCR_MSG_CD=?";
+			updateString.add(luValue.getLongDescriptionMessageCd().toString());
 		}
 		if (luValue.getLongDescription() != null && !luValue.getLongDescription().isEmpty()) {			
 			valuestoBeUpdated += ", LONG_DESCR=?";

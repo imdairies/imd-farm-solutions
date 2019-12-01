@@ -11,9 +11,9 @@ public class Advisement extends IMDairiesDTO {
 	private float firstThreshold;
 	private float secondThreshold;
 	private float thirdThreshold;
-	private int firstThresholdMessageCode;
-	private int secondThresholdMessageCode;
-	private int thirdThresholdMessageCode;
+	private String firstThresholdMessageCode;
+	private String secondThresholdMessageCode;
+	private String thirdThresholdMessageCode;
 	private String firstThresholdMessage;
 	private String secondThresholdMessage;
 	private String thirdThresholdMessage;
@@ -184,22 +184,22 @@ public class Advisement extends IMDairiesDTO {
 	public void setAuxInfo5(String auxInfo5) {
 		this.auxInfo5 = auxInfo5;
 	}
-	public int getFirstThresholdMessageCode() {
+	public String getFirstThresholdMessageCode() {
 		return firstThresholdMessageCode;
 	}
-	public void setFirstThresholdMessageCode(int firstThresholdMessageCode) {
+	public void setFirstThresholdMessageCode(String firstThresholdMessageCode) {
 		this.firstThresholdMessageCode = firstThresholdMessageCode;
 	}
-	public int getSecondThresholdMessageCode() {
+	public String getSecondThresholdMessageCode() {
 		return secondThresholdMessageCode;
 	}
-	public void setSecondThresholdMessageCode(int secondThresholdMessageCode) {
+	public void setSecondThresholdMessageCode(String secondThresholdMessageCode) {
 		this.secondThresholdMessageCode = secondThresholdMessageCode;
 	}
-	public int getThirdThresholdMessageCode() {
+	public String getThirdThresholdMessageCode() {
 		return thirdThresholdMessageCode;
 	}
-	public void setThirdThresholdMessageCode(int thirdThresholdMessageCode) {
+	public void setThirdThresholdMessageCode(String thirdThresholdMessageCode) {
 		this.thirdThresholdMessageCode = thirdThresholdMessageCode;
 	}
 }
