@@ -75,19 +75,25 @@ public class WeanOffAdvisement extends AdvisementRule {
 						String animalNote = "";
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
 							// This calf doesn't have any weanoff event i.e. it is not weaned off yet.
-							animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weaned off. ";	
+//							animalNote = "This animal is " + currentAgeInDays + " days old and has not been weaned off. ";	
 							if (currentAgeInDays >= thirdThreshold) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
-								animalNote += "You should immediately wean it off. You are wasting money by not weaning it off.";
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEANOFF_ADVISEMENT_TH3, currentAgeInDays) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEANOFF_ADVISEMENT_TH3, currentAgeInDays).getMessageText();
+//								animalNote += "You should immediately wean it off. You are wasting money by not weaning it off.";
 							} else 	if (currentAgeInDays >= secondThreshold) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
-								animalNote += "You should wean it off.";
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEANOFF_ADVISEMENT_TH2, currentAgeInDays) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEANOFF_ADVISEMENT_TH2, currentAgeInDays).getMessageText();
+//								animalNote += "You should wean it off.";
 							} else if (currentAgeInDays >= firstThreshold) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
-								animalNote += "You should plan its weaning off.";
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEANOFF_ADVISEMENT_TH1, currentAgeInDays) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEANOFF_ADVISEMENT_TH1, currentAgeInDays).getMessageText();
+//								animalNote += "You should plan its weaning off.";
 							} else {
 								//the young animal should not be weanedoff yet
 								IMDLogger.log("Animal " + animal.getAnimalTag() + " is too young to be weaned off. Its just " +currentAgeInDays + " days old", Util.INFO);

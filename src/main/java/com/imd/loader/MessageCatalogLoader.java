@@ -77,7 +77,7 @@ public class MessageCatalogLoader {
 				dynamicValues != null && !dynamicValues.isEmpty() && 
 				transformedMessage.getMessageText().indexOf(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + "1") >= 0) {
 			for (int i=0; i < dynamicValues.size(); i++) {
-				transformedMessage.setMessageText(transformedMessage.getMessageText().replaceFirst(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + (i+1), dynamicValues.get(i)));
+				transformedMessage.setMessageText(transformedMessage.getMessageText().replaceAll(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + (i+1), dynamicValues.get(i)));
 			}
 		}
 		return transformedMessage;			
@@ -225,6 +225,12 @@ public class MessageCatalogLoader {
 
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			updatedRecord = preparedStatement.executeUpdate();
+			if (updatedRecord == 1) {
+				String key = messageBean.getOrgId() + "-" + messageBean.getLanguageCD() + "-" + messageBean.getMessageCD();
+				Message message = messageCache.get(key);
+				if (message != null)
+					messageCache.remove(key);
+			}
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			updatedRecord = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
 			ex.printStackTrace();

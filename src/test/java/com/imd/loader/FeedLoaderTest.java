@@ -144,10 +144,10 @@ class FeedLoaderTest {
 			FeedLoader loader = new FeedLoader();
 			FeedItem feedItem = new FeedItem();
 			feedItem.setOrgID("IMD");
-			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_ALFHAY", "","");
+			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_ALFHAY", "","","","");
 			feedItem.setFeedItemLookupValue(feedItemLV);		
 
-			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,"LAC_TST", "","");
+			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,"LAC_TST", "","","","");
 			feedItem.setFeedCohortCD(feedCohortLV);
 			
 			feedItem.setStart(0.0f);
@@ -180,10 +180,10 @@ class FeedLoaderTest {
 			FeedItem feedItem1 = new FeedItem();
 			FeedItem feedItem2 = new FeedItem();
 			feedItem1.setOrgID("IMD");
-			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_AHAY", "","");
+			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_AHAY", "","","","");
 			feedItem1.setFeedItemLookupValue(feedItemLV);
 
-			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,"LAC_TST", "","");
+			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,"LAC_TST", "","","","");
 			feedItem1.setFeedCohortCD(feedCohortLV);
 			
 			feedItem1.setStart(0.0f);
@@ -202,10 +202,10 @@ class FeedLoaderTest {
 
 			feedItem2.setOrgID("IMD");
 			
-			feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_MILK", "","");
+			feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_MILK", "","","","");
 			feedItem2.setFeedItemLookupValue(feedItemLV);
 
-			feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,"LAC_TST", "","");
+			feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,"LAC_TST", "","","","");
 			feedItem2.setFeedCohortCD(feedCohortLV);
 
 			feedItem2.setStart(0.0f);
@@ -311,8 +311,8 @@ class FeedLoaderTest {
 
 			List<FeedCohort> animalTypes = new ArrayList<FeedCohort> ();
 			
-			LookupValues cohortLV1 = new LookupValues(Util.LookupValues.FEEDCOHORT,dietReq.getFeedCohortCD(),"","");
-			LookupValues cohortLV2 = new LookupValues(Util.LookupValues.FEEDCOHORT,"HEIFER_TST","","");
+			LookupValues cohortLV1 = new LookupValues(Util.LookupValues.FEEDCOHORT,dietReq.getFeedCohortCD(),"","","","");
+			LookupValues cohortLV2 = new LookupValues(Util.LookupValues.FEEDCOHORT,"HEIFER_TST","","","","");
 			
 			
 			animalTypes.add(new FeedCohort(dietReq.getOrgID(),cohortLV1,""));

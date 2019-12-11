@@ -84,14 +84,21 @@ public class CalfWeightAdvisement extends AdvisementRule {
 							// No weight event found - indicates that the animal has never been weighed since its birth.
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
-							animalNote = "This animal is " + currentAgeInDays + " days old and has never been weighed. Please weigh it immediately so that the system can perform its analysis on this animal. By not "
-									+ "specifying its weight you are missing out on various useful analysis that the system could have performed on this animal.";
+							animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH5, currentAgeInDays) == null ? "":
+								MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH5, currentAgeInDays).getMessageText();
+//							animalNote = "This animal is " + currentAgeInDays + " days old and has never been weighed. Please weigh it immediately so that the system can perform its analysis on this animal. By not "
+//									+ "specifying its weight you are missing out on various useful analysis that the system could have performed on this animal.";
 						} else if (lifeEvents.size() < 2) {
 							if (animal.getCurrentAgeInDays() > ageThreshold /*Excludes those calves that were recently born and may not have two weight events.*/) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
-								animalNote = "This animal is " + currentAgeInDays + " days old and has only been weighed " + lifeEvents.size() +  " time(s). "
-										+ "Calf Weight Advisement can only be applied if an animal has been weighed at least twice in its lifetime";
+								List<String> values = new ArrayList<String>();
+								values.add("" + currentAgeInDays);
+								values.add("" + lifeEvents.size());
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH4, values) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH4, values).getMessageText();
+//								animalNote = "This animal is " + currentAgeInDays + " days old and has only been weighed " + lifeEvents.size() +  " time(s). "
+//										+ "Calf Weight Advisement can only be applied if an animal has been weighed at least twice in its lifetime";
 								IMDLogger.log(animalNote, Util.WARNING); 
 							} else {
 								IMDLogger.log("The Animal " + animal.getAnimalTag() + " seems to be too young to have been weighed more than once. " + this.getAdvisementID() + " advisement will not be applied to this animal", Util.WARNING); 
@@ -116,22 +123,57 @@ public class CalfWeightAdvisement extends AdvisementRule {
 							int daysBetween = Util.getDaysBetween(lifeEvents.get(0).getEventTimeStamp(), lifeEvents.get(1).getEventTimeStamp());
 							double weightIncrease = (double)(animalWeight1 - animalWeight2);
 							double rateOfGrowth = daysBetween == 0 ? 0d : (double)((weightIncrease) / (double)daysBetween);
-							animalNote = "This animal is " + currentAgeInDays + " days old and its last two measured weights are: " +
-									+ animalWeight1 + " Kgs. as of " +  Util.getDateInSQLFormat(lifeEvents.get(0).getEventTimeStamp())  + " and "
-									+ animalWeight2 + " Kgs. as of " +  Util.getDateInSQLFormat(lifeEvents.get(1).getEventTimeStamp()) + ". It grew at an average of " + Util.formatTwoDecimalPlaces(rateOfGrowth) + " Kgs/day in the last " + daysBetween + " days. ";
+//							animalNote = "This animal is " + currentAgeInDays + " days old and its last two measured weights are: " +
+//									+ animalWeight1 + " Kgs. as of " +  Util.getDateInSQLFormat(lifeEvents.get(0).getEventTimeStamp())  + " and "
+//									+ animalWeight2 + " Kgs. as of " +  Util.getDateInSQLFormat(lifeEvents.get(1).getEventTimeStamp()) + 
+//									". It grew at an average of " + Util.formatTwoDecimalPlaces(rateOfGrowth) + " Kgs/day in the last " + daysBetween + " days. ";
 							
 							if (rateOfGrowth <= thirdThreshold) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);
-								animalNote += "This animal has shown signs of stunted growth in the last " + daysBetween +  " days. You must immediately tend to it.";
+								List<String> values = new ArrayList<String>();
+								values.add("" + currentAgeInDays);
+								values.add("" + animalWeight1);
+								values.add(Util.getDateInSQLFormat(lifeEvents.get(0).getEventTimeStamp()));
+								values.add("" + animalWeight2);
+								values.add(Util.getDateInSQLFormat(lifeEvents.get(1).getEventTimeStamp()));
+								values.add("" + Util.formatTwoDecimalPlaces(rateOfGrowth));
+								values.add("" + daysBetween);
+//								values.add("" + daysBetween);
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH3, values) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH3, values).getMessageText();
+
+//								animalNote += "This animal has shown signs of stunted growth in the last " + daysBetween +  " days. You must immediately tend to it.";
 							} else if (rateOfGrowth <= secondThreshold) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
-								animalNote += "This animal should have grown more in the last " + daysBetween +  " days. You should improve its feed intake.";
+								List<String> values = new ArrayList<String>();
+								values.add("" + currentAgeInDays);
+								values.add("" + animalWeight1);
+								values.add(Util.getDateInSQLFormat(lifeEvents.get(0).getEventTimeStamp()));
+								values.add("" + animalWeight2);
+								values.add(Util.getDateInSQLFormat(lifeEvents.get(1).getEventTimeStamp()));
+								values.add("" + Util.formatTwoDecimalPlaces(rateOfGrowth));
+								values.add("" + daysBetween);
+//								values.add("" + daysBetween);
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH2, values) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH2, values).getMessageText();
+//								animalNote += "This animal should have grown more in the last " + daysBetween +  " days. You should improve its feed intake.";
 							} else if (rateOfGrowth <= firstThreshold) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
-								animalNote += "This animal grew at a barely acceptable level in the last " + daysBetween +  " days. Please improve its feed intake.";
+								List<String> values = new ArrayList<String>();
+								values.add("" + currentAgeInDays);
+								values.add("" + animalWeight1);
+								values.add(Util.getDateInSQLFormat(lifeEvents.get(0).getEventTimeStamp()));
+								values.add("" + animalWeight2);
+								values.add(Util.getDateInSQLFormat(lifeEvents.get(1).getEventTimeStamp()));
+								values.add("" + Util.formatTwoDecimalPlaces(rateOfGrowth));
+								values.add("" + daysBetween);
+//								values.add("" + daysBetween);
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH1, values) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.CALFWEIGHT_ADVISEMENT_TH1, values).getMessageText();
+//								animalNote += "This animal grew at a barely acceptable level in the last " + daysBetween +  " days. Please improve its feed intake.";
 							}
 						}
 						if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {

@@ -8,6 +8,8 @@ public class LookupValuesBean {
 	private String lookupValueCode;
 	private String shortDescription;
 	private String longDescription;
+	private String shortDescriptionMessageCd;
+	private String longDescriptionMessageCd;
 	private String activeIndicator;
 	private String additionalField1;
 	private String additionalField2;
@@ -109,8 +111,26 @@ public class LookupValuesBean {
 				"\n activeIndicator = " + this.activeIndicator +
 				"\n shortDescription = " + this.shortDescription +
 				"\n longDescription = " + this.longDescription +
+				"\n shortDescriptionMessageCd = " + this.shortDescriptionMessageCd +
+				"\n longDescriptionMessageCd = " + this.longDescriptionMessageCd +
 				"\n additionalField1 = " + this.additionalField1 +
 				"\n additionalField2 = " + this.additionalField2 +
 				"\n additionalField3 = " + this.additionalField3;
+	}
+
+	public String getShortDescriptionMessageCd() {
+		return shortDescriptionMessageCd;
+	}
+
+	public void setShortDescriptionMessageCd(String shortDescriptionMessageCd) {
+		this.shortDescriptionMessageCd = shortDescriptionMessageCd;
+	}
+
+	public String getLongDescriptionMessageCd() {
+		return longDescriptionMessageCd;
+	}
+
+	public void setLongDescriptionMessageCd(String longDescriptionMessageCd) {
+		this.longDescriptionMessageCd = longDescriptionMessageCd;
 	}
 }

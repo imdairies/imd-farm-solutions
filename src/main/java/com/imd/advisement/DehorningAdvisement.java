@@ -79,7 +79,9 @@ public class DehorningAdvisement extends AdvisementRule {
 							IMDLogger.log("Birth Date: " + animal.getDateOfBirth(), Util.INFO);
 							int daysSinceBirth= Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), animal.getDateOfBirth());
 							String ruleNote = "";
-							String animalNote = animal.getAnimalTag() + " was born " + daysSinceBirth + " days ago and it hasn't been dehorned yet. Please de-horn the animal.";							
+							String animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.DEHORNING_ADVISEMENT, daysSinceBirth) == null ? "":
+								MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.DEHORNING_ADVISEMENT, daysSinceBirth).getMessageText();
+//							String animalNote = animal.getAnimalTag() + " was born " + daysSinceBirth + " days ago and it hasn't been dehorned yet. Please de-horn the animal.";							
 							if (ruleDto.getThirdThreshold() > 0 && daysSinceBirth >= ruleDto.getThirdThreshold()) {
 								ruleNote = ruleDto.getThirdThresholdMessage();
 								animal.setThreshold3Violated(true);

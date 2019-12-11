@@ -53,17 +53,30 @@ public class FeedSrvc {
 		String responseJson = "";
 		String feedCohortCD = animalBean.getAnimalType();
 		String prefix = "  ";
+		boolean shouldTranslate = false;
 		if ( feedCohortCD == null || feedCohortCD.isEmpty())
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Please specify a valid cohort type.\"}").build();
 
     	try {
 			FeedLoader loader = new FeedLoader();
 			FeedPlan feedPlan = loader.retrieveFeedPlan(orgID, feedCohortCD);
+    		if (langCd != null && !langCd.isEmpty() && 
+    				!langCd.equals(Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD))) {
+    			shouldTranslate = true;
+    		}
 			if (feedPlan == null || feedPlan.getFeedPlan().isEmpty())
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Could not find feed plan for the cohort: " + feedCohortCD + " .\"}").build();
 			Iterator<FeedItem> it = feedPlan.getFeedPlan().iterator();
 			while(it.hasNext()) {
 				FeedItem item = it.next();
+				if (shouldTranslate) {
+					String shortDescrCd = item.getFeedItemLookupValue().getShortDescriptionMessageCd();
+					String longDescrCd = item.getFeedItemLookupValue().getLongDescriptionMessageCd();
+					if (MessageCatalogLoader.getMessage(orgID, langCd, shortDescrCd) != null)
+						item.getFeedItemLookupValue().setShortDescription(MessageCatalogLoader.getMessage(orgID, langCd, shortDescrCd).getMessageText());
+					if (MessageCatalogLoader.getMessage(orgID, langCd, longDescrCd) != null)
+						item.getFeedItemLookupValue().setLongDescription(MessageCatalogLoader.getMessage(orgID, langCd, longDescrCd).getMessageText());
+				}
 				responseJson += "{\n" +  item.dtoToJson(prefix) + "\n}" + (it.hasNext() ? ",\n" : "\n");
 			}	
 	    	responseJson = "[" + responseJson + "]";

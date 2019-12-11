@@ -131,6 +131,19 @@ public class Util {
 		public static final String WEIGHT_NEVER_MEASURED = "20";
 		public static final String SPECIFIC_VALUE_MISSING = "21";
 		public static final String CANT_SET_CULL_STATUS = "22";
+		public static final String FMD_ADVISEMENT_TH1 = "23";
+		public static final String FMD_ADVISEMENT_TH2 = "24";
+		public static final String FMD_ADVISEMENT_TH3 = "25";
+		public static final String FMD_ADVISEMENT_TH4 = "26";
+		public static final String DEHORNING_ADVISEMENT = "27";
+		public static final String CALFWEIGHT_ADVISEMENT_TH5 = "28";
+		public static final String CALFWEIGHT_ADVISEMENT_TH4 = "29";
+		public static final String CALFWEIGHT_ADVISEMENT_TH3 = "30";
+		public static final String CALFWEIGHT_ADVISEMENT_TH2 = "31";
+		public static final String CALFWEIGHT_ADVISEMENT_TH1 = "32";
+		public static final String WEANOFF_ADVISEMENT_TH3 = "33";
+		public static final String WEANOFF_ADVISEMENT_TH2 = "34";
+		public static final String WEANOFF_ADVISEMENT_TH1 = "35";
 		
 	}
 

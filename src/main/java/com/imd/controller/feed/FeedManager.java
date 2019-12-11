@@ -292,9 +292,9 @@ public class FeedManager {
 					milkAverage = 0f;
 				}
 				else {
-					feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces((float)(milkAverage/feedItem.getFulfillmentPct()),1) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
 					dailyIntake = (float)(milkAverage/feedItem.getFulfillmentPct());
 					dailyIntake = getAllowedDailyIntakeValue(feedItem,dailyIntake);
+					feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces(dailyIntake,1) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (numOfAdditionalDaysToAverage+1) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
 				}
 				FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
 				Float cp = itemStats.getCrudeProtein() * milkAverage;
@@ -543,7 +543,7 @@ public class FeedManager {
 		LookupValues cohortLV = null;
 		
 		if (animalFeedCohortCD == null) {
-			cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, "UNDETERMINED", "UNDETERMINED", "");
+			cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, "UNDETERMINED", "UNDETERMINED", "", "", "");
 			cohort = new FeedCohort(animal.getOrgID(),cohortLV, "");
 			cohort.setAnimalFeedCohortDeterminatationMessage("The animal " + animal.getAnimalTag() + " could not be mapped to any Feed Cohort.");
 			cohort.setFeedCohortDeterminationCriteria("None of the determination criteria matches the profle of this animal");
@@ -551,7 +551,7 @@ public class FeedManager {
 			LookupValuesLoader lvLoader = new LookupValuesLoader();
 			cohortLV = lvLoader.retrieveLookupValue(Util.LookupValues.FEEDCOHORT, animalFeedCohortCD);
 			if (cohortLV == null)
-				cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, animalFeedCohortCD, animalFeedCohortCD, "");
+				cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, animalFeedCohortCD, animalFeedCohortCD, "", "", "");
 			cohort = new FeedCohort(animal.getOrgID(),cohortLV, "");
 			if (duplicateCheck.trim().equals(animalFeedCohortCD)) {
 				cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage);

@@ -71,8 +71,11 @@ class AdvisementSrvcTest {
 
 	@Test
 	void testCalfWeightAdvisementInUrdu() {
-		int loggingMode = IMDLogger.loggingMode;
-		IMDLogger.loggingMode = Util.INFO;
+//		int loggingMode = IMDLogger.loggingMode;
+//		IMDLogger.loggingMode = Util.INFO;
+		UserLoader userLoader = new UserLoader();
+		String originalLangCd = null;
+		String token = null;
 		try {
 			Animal youngAnimalTh1 = this.createTestAnimal("-999", Util.AnimalTypes.FEMALECALF);
 //			Animal youngAnimalTh2 = this.createTestAnimal("-998", Util.AnimalTypes.MALECALF);
@@ -123,11 +126,14 @@ class AdvisementSrvcTest {
 			advBean.setThreshold3Violated(true);
 			
 			AdvisementSrvc srvc = new AdvisementSrvc();
-			UserLoader userLoader = new UserLoader();
 			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
 			assertTrue(user != null);
 			assertTrue(user.getPassword() != null);
 			advBean.setLoginToken(user.getPassword());
+			token = user.getPassword();
+			originalLangCd = userLoader.getSessionCache().get(user.getPassword()).getPreferredLanguage();
+
+			userLoader.getSessionCache().get(user.getPassword()).setPreferredLanguage(Util.LanguageCode.URD);
 			String serviceResponseJson = srvc.retrieveAllAdvisement(advBean).getEntity().toString();
 			assertEquals(Util.LanguageCode.URD,Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD));
 			assertTrue(serviceResponseJson.indexOf("ان جانوروں کا وزن آدھہ کلو یومیہ سے کم بڑھا ہے") > 0,serviceResponseJson);
@@ -140,7 +146,9 @@ class AdvisementSrvcTest {
 			e.printStackTrace();
 			fail("Exception in AdvisementSrvcTest.testCalfWeightAdvisement");
 		} finally {
-			IMDLogger.loggingMode = loggingMode;
+//			IMDLogger.loggingMode = loggingMode;
+			if (originalLangCd != null && token != null && userLoader.getSessionCache().get(token) != null)
+				userLoader.getSessionCache().get(token).setPreferredLanguage(originalLangCd);
 		}
 	}
 }

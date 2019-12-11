@@ -51,10 +51,8 @@ class LookupValuesLoaderTest {
 //				IMDLogger.log("BREED-DUMMY record already exists, have deleted it now", Util.ERROR);
 //			}
 			// 1: Now insert the test record without having to worry about whether it already exists or not.
-			luValue = new LookupValues("BREED","DUMMY", "Holstien-Sahiwal-Cross", "Holestien Cross Breed with Sahiwal \" ' %  - notice the special character in the description to test SQL escape functionality."); 			
+			luValue = new LookupValues("BREED","DUMMY", "Holstien-Sahiwal-Cross", "Holestien Cross Breed with Sahiwal \" ' %  - notice the special character in the description to test SQL escape functionality.","999999",null); 			
 			luValue.markActive();
-			luValue.setShortDescriptionMessageCd("999999");
-			luValue.setLongDescriptionMessageCd(null);
 			luValue.setCreatedBy(new User("KASHIF"));
 			luValue.setCreatedDTTM(DateTime.now());
 			luValue.setUpdatedBy(luValue.getCreatedBy());

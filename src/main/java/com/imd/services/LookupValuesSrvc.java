@@ -157,6 +157,8 @@ public class LookupValuesSrvc {
 	@Path("/update")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateLookupValues(LookupValuesBean luValueBean){
+//		int mode = IMDLogger.loggingMode;
+//		IMDLogger.loggingMode = Util.INFO;
 		IMDLogger.log("updateLookupValues Called ", Util.INFO);
 		User user = Util.verifyAccess(this.getClass().getName() + ".updateLookupValues",luValueBean.getLoginToken());
 		if (user == null) {
@@ -200,6 +202,8 @@ public class LookupValuesSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+//		IMDLogger.loggingMode = mode;
+
 		if (result == 1)
 			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Lookup value has been updated successfully\"}").build();
 		else if (result == 0)

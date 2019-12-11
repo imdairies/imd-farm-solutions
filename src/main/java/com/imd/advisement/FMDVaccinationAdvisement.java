@@ -84,21 +84,29 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 								if (ruleDto.getThirdThreshold() > 0 && daysSinceVaccinated >= ruleDto.getThirdThreshold()) {
 									ruleNote = ruleDto.getThirdThresholdMessage();
 									animal.setThreshold3Violated(true);
-									animalNote += "You should adminster FMD vaccination as it is now over-due";
+									animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH3, daysSinceVaccinated) == null ? "":
+										MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH3, daysSinceVaccinated).getMessageText();
+//									animalNote += "This animal was administered FMD vaccination " + daysSinceVaccinated + " days ago. You should administer FMD vaccination as it is now over-due";
 								} else if (ruleDto.getSecondThreshold() > 0 && daysSinceVaccinated >= ruleDto.getSecondThreshold()) {
 									ruleNote = ruleDto.getSecondThresholdMessage();
 									animal.setThreshold2Violated(true);
-									animalNote += "You should adminster FMD vaccination soon.";
+									animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH2, daysSinceVaccinated) == null ? "":
+										MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH2, daysSinceVaccinated).getMessageText();
+//									animalNote += "This animal was administered FMD vaccination " + daysSinceVaccinated + " days ago. You should adminster FMD vaccination soon.";
 								} else if (ruleDto.getFirstThreshold() > 0 && daysSinceVaccinated >= ruleDto.getFirstThreshold()) {
 									ruleNote = ruleDto.getFirstThresholdMessage();
 									animal.setThreshold1Violated(true);
-									animalNote += "You should plan to adminster FMD vaccination with in a week or two.";
+									animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH1, daysSinceVaccinated) == null ? "":
+										MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH1, daysSinceVaccinated).getMessageText();
+//									animalNote += "This animal was administered FMD vaccination " + daysSinceVaccinated + " days ago. You should plan to administer FMD vaccination with in a week or two.";
 								}
 						} else {
 							// the cow was not vaccinated with in the last THRESHOLD3 days
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
-							animalNote = "This animal's FMD vaccination is long over due. Please administer FMD vaccination immediately.";
+							animalNote = MessageCatalogLoader.getMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH4) == null ? "":
+								MessageCatalogLoader.getMessage(orgId, languageCd, Util.MessageCatalog.FMD_ADVISEMENT_TH4).getMessageText();
+//							animalNote = "This animal's FMD vaccination is long over due. Please administer FMD vaccination immediately.";
 						}
 						if (animal.isThreshold1Violated() || animal.isThreshold2Violated() || animal.isThreshold3Violated()) {
 							if (lifeEvents != null && !lifeEvents.isEmpty())

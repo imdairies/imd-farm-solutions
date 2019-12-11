@@ -161,7 +161,13 @@ public class LookupValuesLoader {
 	
 	private LookupValues getDTOFromSQLRecord(ResultSet rs) throws Exception {
 		LookupValues luValue;
-		luValue = new LookupValues(rs.getString("CATEGORY_CD"),rs.getString("LOOKUP_CD"),rs.getString("SHORT_DESCR"),rs.getString("LONG_DESCR"));
+		luValue = new LookupValues(rs.getString("CATEGORY_CD"),
+				rs.getString("LOOKUP_CD"),
+				rs.getString("SHORT_DESCR"),
+				rs.getString("LONG_DESCR"),
+				rs.getString("SHORT_DESCR_MSG_CD"),
+				rs.getString("LONG_DESCR_MSG_CD")
+				);
 		if (rs.getString("ACTIVE_IND").equalsIgnoreCase("Y")) {
 			luValue.markActive();
 		} else
@@ -169,8 +175,6 @@ public class LookupValuesLoader {
 		luValue.setAdditionalField1(rs.getString("ADDITIONAL_FLD1"));
 		luValue.setAdditionalField2(rs.getString("ADDITIONAL_FLD2"));
 		luValue.setAdditionalField3(rs.getString("ADDITIONAL_FLD3"));
-		luValue.setShortDescriptionMessageCd(rs.getString("SHORT_DESCR_MSG_CD"));
-		luValue.setLongDescriptionMessageCd(rs.getString("LONG_DESCR_MSG_CD"));
 		luValue.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		luValue.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		luValue.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
@@ -262,14 +266,13 @@ public class LookupValuesLoader {
 			updateString.add(luValue.getUpdatedDTTMSQLFormat());
 		}
 		
-		IMDLogger.log(valuestoBeUpdated, Util.INFO);
+//		IMDLogger.log(valuestoBeUpdated, Util.INFO);
 		
 		if (valuestoBeUpdated.isEmpty()) {
 			updatedRecordCount = 0;
 		} else {
 			qryString = qryString + "SET " + valuestoBeUpdated + " where CATEGORY_CD = ? AND LOOKUP_CD =? " ;
 			PreparedStatement st = null;
-			IMDLogger.log(qryString, Util.INFO);
 			Connection conn = DBManager.getDBConnection();
 			try {
 				preparedStatement = conn.prepareStatement(qryString);
@@ -280,6 +283,7 @@ public class LookupValuesLoader {
 				}
 				preparedStatement.setString(i++,luValue.getCategoryCode());
 				preparedStatement.setString(i,luValue.getLookupValueCode());
+				IMDLogger.log(preparedStatement.toString(), Util.INFO);
 				updatedRecordCount = preparedStatement.executeUpdate();
 				loaderCache.remove(luValue.getCategoryCode() + "-" + luValue.getLookupValueCode());
 			} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {

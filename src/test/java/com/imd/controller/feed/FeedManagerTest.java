@@ -426,10 +426,10 @@ class FeedManagerTest {
 			FeedLoader loader = new FeedLoader();
 			FeedItem feedItem = new FeedItem();
 			feedItem.setOrgID("IMD");
-			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_ALFHAY", "","");
+			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_ALFHAY", "","","","");
 			feedItem.setFeedItemLookupValue(feedItemLV);		
 			
-			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.FEMALECALF, "","");
+			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.FEMALECALF, "","","","");
 			feedItem.setFeedCohortCD(feedCohortLV);
 
 			feedItem.setStart(0.0f);
@@ -521,7 +521,7 @@ class FeedManagerTest {
 			femaleCalf.setWeight(50f);
 //			femaleCalf.setWeight(78f);
 			
-			LookupValues lv = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.FEMALECALF,Util.FeedCohortType.FEMALECALF,"");
+			LookupValues lv = new LookupValues(Util.LookupValues.FEEDCOHORT,Util.FeedCohortType.FEMALECALF,Util.FeedCohortType.FEMALECALF,"","","");
 			
 			FeedCohort feedCohort = new FeedCohort(orgID, lv,"");
 			CohortNutritionalNeeds nutritionalNeeds = setCohortNutritionalNeeds(Util.FeedCohortType.FEMALECALF, femaleCalf.getWeight());
@@ -614,7 +614,7 @@ class FeedManagerTest {
 		if (cohortCD.equalsIgnoreCase(Util.FeedCohortType.FEMALECALF)) {
 			FeedItem item1 = new FeedItem();
 			item1.setOrgID(animal.getOrgID());
-			item1.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.ALFAHAY,Util.FeedItems.ALFAHAY,""));
+			item1.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.ALFAHAY,Util.FeedItems.ALFAHAY,"","",""));
 			item1.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item1.setStart(4f);
 			item1.setEnd(90f);
@@ -632,7 +632,7 @@ class FeedManagerTest {
 
 			FeedItem item2 = new FeedItem();
 			item2.setOrgID(animal.getOrgID());
-			item2.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.MILK,Util.FeedItems.MILK,""));
+			item2.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.MILK,Util.FeedItems.MILK,"","",""));
 			item2.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item2.setStart(0f);
 			item2.setEnd(90f);
@@ -653,7 +653,7 @@ class FeedManagerTest {
 
 			FeedItem item3 = new FeedItem();
 			item3.setOrgID(animal.getOrgID());
-			item3.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.VANDA,Util.FeedItems.VANDA,""));
+			item3.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.VANDA,Util.FeedItems.VANDA,"","",""));
 			item3.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item3.setStart(0f);
 			item3.setEnd(90f);
@@ -671,7 +671,7 @@ class FeedManagerTest {
 			
 			FeedItem item4 = new FeedItem();
 			item4.setOrgID(animal.getOrgID());
-			item4.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.WATER,Util.FeedItems.WATER,""));
+			item4.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.WATER,Util.FeedItems.WATER,"","",""));
 			item4.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item4.setStart(0f);
 			item4.setEnd(9999f);

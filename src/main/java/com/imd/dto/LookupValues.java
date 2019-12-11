@@ -16,11 +16,13 @@ public class LookupValues extends IMDairiesDTO{
 	private String additionalField2;
 	private String additionalField3;
 	
-	public LookupValues(String categoryCd, String valueCD, String shortDescr, String longDescr) {
+	public LookupValues(String categoryCd, String valueCD, String shortDescr, String longDescr, String shortDescrCD, String longDescrCD) {
 		this.lookupValueCode = valueCD;
 		this.categoryCode = categoryCd;
 		this.shortDescription = shortDescr;
 		this.longDescription = longDescr;		
+		this.shortDescriptionMessageCd = shortDescrCD;
+		this.longDescriptionMessageCd = longDescrCD;
 	}
 	
 	public LookupValues(LookupValuesBean luValueBean) {
@@ -28,6 +30,8 @@ public class LookupValues extends IMDairiesDTO{
 		this.lookupValueCode  = luValueBean.getLookupValueCode();
 		this.shortDescription = luValueBean.getShortDescription();
 		this.longDescription = luValueBean.getLongDescription();
+		this.shortDescriptionMessageCd = luValueBean.getShortDescriptionMessageCd();
+		this.longDescriptionMessageCd = luValueBean.getLongDescriptionMessageCd();
 		this.activeIndicator = luValueBean.getActiveIndicator();
 		this.additionalField1 = luValueBean.getAdditionalField1();
 		this.additionalField2 = luValueBean.getAdditionalField2();
@@ -106,7 +110,9 @@ public class LookupValues extends IMDairiesDTO{
 				"LOOKUP_CD=" + getLookupValueCode() + "\n" +
 				"ACTIVE_IND=" + (isActive() ? "Y":"N") + "\n" +
 				"SHORT_DESCR=" + getShortDescription() + "\n" +
+				"SHORT_DESCR_CD=" + this.shortDescriptionMessageCd + "\n" +
 				"LONG_DESCR=" + getLongDescription() + "\n" +
+				"LONG_DESCR_CD=" + this.longDescriptionMessageCd + "\n" +
 				"ADDITIONAL_FLD1=" + getAdditionalField1() + "\n" +
 				"ADDITIONAL_FLD2=" + getAdditionalField2() + "\n" +
 				"ADDITIONAL_FLD3=" + getAdditionalField3() + "\n" +	super.toString();

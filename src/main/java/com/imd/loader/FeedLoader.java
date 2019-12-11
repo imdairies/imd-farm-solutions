@@ -289,10 +289,21 @@ public class FeedLoader {
 		FeedItem feedItem = new FeedItem();
 		feedItem.setOrgID(rs.getString("ORG_ID"));
 		
-		LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,rs.getString("FEED_COHORT"), rs.getString("FEED_COHORT_SHORT_DESCR"),rs.getString("FEED_COHORT_LONG_DESCR"));
+		LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,
+				rs.getString("FEED_COHORT"), 
+				rs.getString("FEED_COHORT_SHORT_DESCR"),
+				rs.getString("FEED_COHORT_LONG_DESCR"),
+				rs.getString("FEED_COHORT_SHORT_DESCR_MSG_CD"),
+				rs.getString("FEED_COHORT_LONG_DESCR_MSG_CD")
+				);
 		feedItem.setFeedCohortCD(feedCohortLV);		
 		
-		LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), rs.getString("ITEM_SHORT_DESCR"),rs.getString("ITEM_LONG_DESCR"));
+		LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), 
+				rs.getString("ITEM_SHORT_DESCR"),
+				rs.getString("ITEM_LONG_DESCR"),
+				rs.getString("FEED_ITEM_SHORT_DESCR_MSG_CD"),
+				rs.getString("FEED_ITEM_LONG_DESCR_MSG_CD")
+				);
 		feedItem.setFeedItemLookupValue(feedItemLV);		
 		feedItem.setStart(rs.getFloat("START"));
 		feedItem.setEnd(rs.getFloat("END"));
@@ -388,8 +399,15 @@ public class FeedLoader {
 	}
 	public FeedItem retrieveFeedPlanItem(FeedItem feedItem, Float gteStart, Float lteEnd) throws IMDException {
 		String qryString = " SELECT A.*, " +
-				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, B.long_descr as ITEM_LONG_DESCR,B.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
-				" IFNULL(C.short_descr,A.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, C.long_descr AS FEED_COHORT_LONG_DESCR,C.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
+				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, " +
+				" B.long_descr as ITEM_LONG_DESCR," +
+				" B.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
+				" IFNULL(C.short_descr,A.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, " +
+				" C.long_descr AS FEED_COHORT_LONG_DESCR,C.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1, " +
+				" B.SHORT_DESCR_MSG_CD AS FEED_ITEM_SHORT_DESCR_MSG_CD, " +
+				" B.LONG_DESCR_MSG_CD AS FEED_ITEM_LONG_DESCR_MSG_CD, " +
+				" C.SHORT_DESCR_MSG_CD AS FEED_COHORT_SHORT_DESCR_MSG_CD, " +
+				" C.LONG_DESCR_MSG_CD AS FEED_COHORT_LONG_DESCR_MSG_CD " +
 				" from  " +
 				" FEED_PLAN A " +
 				" left  outer join LOOKUP_VALUES B on (B.lookup_cd=A.feed_item AND B.category_cd=? )  " +
@@ -437,8 +455,16 @@ public class FeedLoader {
 	public FeedPlan retrieveFeedPlan(String orgID, String feedCohortCD) throws IMDException {
 		
 		String qryString = " SELECT A.*, " +
-				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, B.long_descr as ITEM_LONG_DESCR,B.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
-				" IFNULL(C.short_descr,A.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, C.long_descr AS FEED_COHORT_LONG_DESCR,C.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1 " +
+				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, " +
+				" B.long_descr as ITEM_LONG_DESCR," +
+				" B.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
+				" IFNULL(C.short_descr,A.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, " +
+				" C.long_descr AS FEED_COHORT_LONG_DESCR," +
+				" C.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1, " +
+				" C.SHORT_DESCR_MSG_CD AS FEED_COHORT_SHORT_DESCR_MSG_CD, " +
+				" C.LONG_DESCR_MSG_CD AS FEED_COHORT_LONG_DESCR_MSG_CD, " + 
+				" B.SHORT_DESCR_MSG_CD AS FEED_ITEM_SHORT_DESCR_MSG_CD, " +
+				" B.LONG_DESCR_MSG_CD AS FEED_ITEM_LONG_DESCR_MSG_CD" + 
 				" from  " +
 				" FEED_PLAN A " +
 				" left  outer join LOOKUP_VALUES B on (B.lookup_cd=A.feed_item AND B.category_cd=?   )  " +
@@ -483,7 +509,11 @@ public class FeedLoader {
 	}	
 	
 	public FeedPlan retrieveDistinctFeedItemsInFeedPlan(String orgID) throws IMDException {
-		String qryString = "SELECT distinct A.org_id, A.FEED_ITEM,A.units, IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, B.long_descr as ITEM_LONG_DESCR" +
+		String qryString = "SELECT distinct A.org_id, A.FEED_ITEM,A.units," +
+				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, " + 
+				" B.long_descr as ITEM_LONG_DESCR, " +
+				" B.SHORT_DESCR_MSG_CD as ITEM_SHORT_DESCR_MSG_CD, " +
+				" B.LONG_DESCR_MSG_CD as ITEM_LONG_DESCR_MSG_CD " +
 				" FROM FEED_PLAN A " +
 				" left  outer join LOOKUP_VALUES B on (B.lookup_cd=A.FEED_ITEM and B.category_cd=?) where A.ORG_ID=? " + 
 				" order by ITEM_SHORT_DESCR ";
@@ -501,7 +531,11 @@ public class FeedLoader {
 		    while (rs.next()) {
 				FeedItem feedItem = new FeedItem();
 				feedItem.setOrgID(rs.getString("ORG_ID"));				
-				LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), rs.getString("ITEM_SHORT_DESCR"),rs.getString("ITEM_LONG_DESCR"));
+				LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), 
+						rs.getString("ITEM_SHORT_DESCR"),
+						rs.getString("ITEM_LONG_DESCR"),
+						rs.getString("ITEM_SHORT_DESCR_MSG_CD"),
+						rs.getString("ITEM_LONG_DESCR_MSG_CD"));
 				feedItem.setFeedItemLookupValue(feedItemLV);	
 				feedItem.setUnits(rs.getString("UNITS"));
 		    	if (feedPlan == null) {
