@@ -153,6 +153,8 @@ class LifecycleEventSrvcTest {
 			//assertTrue(eventLoader.insertLifeCycleEvent(pregTestEvent) > 0);
 			//loader.insertLifeCycleEvent(pregTestEvent);
 			
+			
+			
 			LifecycleEventSrvc lifecycleSrvc = new LifecycleEventSrvc();
 			
 			LifeCycleEventBean parturitionEventBean = new LifeCycleEventBean();
@@ -165,8 +167,15 @@ class LifecycleEventSrvcTest {
 			parturitionEventBean.setEventComments("The calf should NOT be added as the tag is in use");
 			parturitionEventBean.setEventTimeStamp(Util.getDateTimeInSpecifiedFormat(DateTime.now(IMDProperties.getServerTimeZone()),"MM/dd/yyyy, hh:mm:ss aa"));
 			
+			UserLoader userLoader = new UserLoader();
+			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
+			assertTrue(user != null);
+			assertTrue(user.getPassword() != null);
+			parturitionEventBean.setLoginToken(user.getPassword());
+			
+			
 			String responseStr = lifecycleSrvc.addEvent(parturitionEventBean).getEntity().toString();
-			assertTrue(responseStr.indexOf("This tag# is already in use") >= 0, "Since the calf tag# was the same as the parturating cow the service should have thrown an invalid tag# error");
+			assertTrue(responseStr.indexOf("This tag# is already in use") >= 0, "Since the calf tag# was the same as the parturating cow the service should have thrown an invalid tag# error, instead we got the following message back " + responseStr);
 
 			assertEquals(2,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag()));
 			assertEquals(0,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), calfCorrectTag));
@@ -181,17 +190,17 @@ class LifecycleEventSrvcTest {
 			assertEquals(1,animalLoader.insertAnimal(animal));
 			
 			
-			UserLoader userLoader = new UserLoader();
-			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
-			assertTrue(user != null);
-			assertTrue(user.getPassword() != null);
 			parturitionEventBean.setLoginToken(user.getPassword());
 			
-			
-			
+			parturitionEventBean.setOperatorID("CALFOPR");
 			responseStr = lifecycleSrvc.addEvent(parturitionEventBean).getEntity().toString();
 			assertTrue(responseStr.indexOf("This tag# is already in use") < 0, "Since the calf tag# was the same as the parturating cow the service should have thrown an invalid tag# error");
 			assertTrue(responseStr.indexOf("The calf with the tag# " + calfCorrectTag + " has been successfully added to the herd") >= 0, responseStr);
+			
+			Animal calf = new Animal(animal.getOrgID(),calfCorrectTag);
+			assertEquals(calfCorrectTag, animalLoader.getAnimalRawInfo(calf).get(0).getAnimalTag());
+			assertEquals("CALFOPR", eventLoader.retrieveAllLifeCycleEventsForAnimal(calf.getOrgID(), calf.getAnimalTag()).get(0).getEventOperator().getPersonID());
+			
 			
 			assertEquals(3,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag()));
 			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), calfCorrectTag));

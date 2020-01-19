@@ -67,8 +67,8 @@ public class HeatWarningAdvisement extends AdvisementRule {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays((int)ruleDto.getThirdThreshold()* 4);
-						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);// Adding one will take care of the case when insemination today, so we want to include that event as well.
+						DateTime startDate = DateTime.now(IMDProperties.getServerTimeZone()).minusDays((int)ruleDto.getThirdThreshold()* 4);
+						DateTime endDate = DateTime.now(IMDProperties.getServerTimeZone()).plusDays(1);// Adding one will take care of the case when insemination today, so we want to include that event as well.
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								startDate,

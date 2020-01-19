@@ -1,10 +1,15 @@
 package com.imd.dto;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.imd.services.bean.FeedItemBean;
+import com.imd.services.bean.FeedPlanBean;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class FeedPlan extends IMDairiesDTO {
@@ -21,9 +26,46 @@ public class FeedPlan extends IMDairiesDTO {
 	private Float planDM;
 	private Float planCP;
 	private Float planME;
+	private Float planCost;
 	
 	private String planAnalysisComments;
 	
+	public FeedPlan(FeedPlanBean feedPlanBean, User user) {
+		
+		this.feedCohort = new FeedCohort(feedPlanBean.getOrgID(),
+				new LookupValues(Util.LookupValues.FEEDCOHORT, feedPlanBean.getFeedCohortCD(), "", "", "", ""),
+				"");
+		this.setCreatedBy(user);
+		this.setUpdatedBy(user);
+		this.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+		this.setUpdatedDTTM(this.getCreatedDTTM());
+		this.setOrgID(feedPlanBean.getOrgID());
+		if (feedPlanBean.getFeedPlanItems() != null) {
+			Iterator<FeedItemBean> it = feedPlanBean.getFeedPlanItems().iterator();
+			this.feedPlan = new ArrayList<FeedItem>();
+			while (it.hasNext()) {
+				FeedItemBean itemBean = it.next();
+				FeedItem item = new FeedItem();
+				item.setOrgID(this.getOrgID());
+				item.setFeedCohortCD(this.feedCohort.getFeedCohortLookupValue());
+				item.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED, itemBean.getFeedItemCD(), "", "", "", ""));
+				item.setMinimumFulfillment(itemBean.getMinimumFulfillment());
+				item.setFulfillmentPct(itemBean.getFulfillmentPct());
+				item.setMaximumFulfillment(itemBean.getMaximumFulfillment());
+				item.setFulFillmentTypeCD(itemBean.getFulFillmentTypeCD());
+				item.setStart(-99999f);
+				item.setEnd(99999f);
+				item.setUnits(itemBean.getUnits());
+				item.setCreatedBy(this.getCreatedBy());
+				item.setUpdatedBy(this.getUpdatedBy());
+				item.setCreatedDTTM(this.getCreatedDTTM());
+				item.setUpdatedDTTM(this.getUpdatedDTTM());
+				this.feedPlan.add(item);
+			}
+		}
+	}
+	public FeedPlan() {
+	}
 	public FeedCohort getFeedCohort() {
 		return feedCohort;
 	}
@@ -60,6 +102,7 @@ public class FeedPlan extends IMDairiesDTO {
 				prefix + fieldToJson("planAchievedDM", (this.planDM == null ? 0f: new Float(Util.formatTwoDecimalPlaces(this.planDM.floatValue())))) + ",\n" +
 				prefix + fieldToJson("planAchievedCP", (this.planCP == null ? 0f: new Float(Util.formatTwoDecimalPlaces(this.planCP.floatValue())))) + ",\n" +
 				prefix + fieldToJson("planAchievedME", (this.planME == null ? 0f: new Float(Util.formatTwoDecimalPlaces(this.planME.floatValue())))) + ",\n" +
+				prefix + fieldToJson("planCost", (this.planCost == null ? 0f: new Float(Util.formatToSpecifiedDecimalPlaces(this.planCost.floatValue(),0)))) + ",\n" +
 				prefix +"\"feedPlanItems\" :[" + itemsJson + "]";
 	}
 	
@@ -102,6 +145,12 @@ public class FeedPlan extends IMDairiesDTO {
 	}
 	public void setPlanME(Float planME) {
 		this.planME = planME;
+	}
+	public Float getPlanCost() {
+		return planCost;
+	}
+	public void setPlanCost(Float planCost) {
+		this.planCost = planCost;
 	}	
 	
 	

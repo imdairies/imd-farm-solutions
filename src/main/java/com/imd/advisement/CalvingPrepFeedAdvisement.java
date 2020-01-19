@@ -69,7 +69,7 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 							
 							List<LifecycleEvent> preCalvingFeedEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 									orgId,animal.getAnimalTag(),
-									new LocalDate(lifeEvents.get(0).getEventTimeStamp(),IMDProperties.getServerTimeZone()),
+									lifeEvents.get(0).getEventTimeStamp(),
 									null,
 									Util.LifeCycleEvents.PRECAVNGFD, null,null,null,null,null);
 							boolean item1Found = ruleDto.getAuxInfo1() == null || ruleDto.getAuxInfo1().isEmpty();

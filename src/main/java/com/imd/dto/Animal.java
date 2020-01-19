@@ -34,6 +34,7 @@ public class Animal extends IMDairiesDTO{
 	private Sire animalSire;
 	private Dam animalDam;
 	private Float weight;
+	private Float milkingAverage; 
 	private ArrayList<byte[]> photos;
 	
 	// events must ALWAYS be kept sorted by date with latest on top and oldest at bottom. All the code assumes this !
@@ -57,6 +58,7 @@ public class Animal extends IMDairiesDTO{
 	private FeedCohort feedCohortInformation;
 	private CohortNutritionalNeeds animalNutritionalNeeds;
 	private FeedPlan animalFeedPlan;
+	private String operatorAtBirth;
 	
 	/**
 	 * M: Male
@@ -84,7 +86,12 @@ public class Animal extends IMDairiesDTO{
 		}
 	}
 
-	public Animal(String tagNumber) throws IMDException {
+	public Animal(String orgID, String tagNumber) throws IMDException {
+		if (orgID == null || orgID.isEmpty())
+			throw new IMDException ("orgID can't be null or empty");
+		else {
+			this.setOrgID(orgID);
+		}
 		if (tagNumber == null || tagNumber.isEmpty())
 			throw new IMDException ("Tag Number can't be null or empty");
 		else {
@@ -294,6 +301,7 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
 				prefix + fieldToJson("animalTypeCD", this.animalTypeCD) + ",\n" +
 				prefix + fieldToJson("weight", this.weight == null ? "" : this.weight.toString()) + ",\n" +
+				prefix + fieldToJson("milkingAverage", this.milkingAverage == null ? "" : Util.formatToSpecifiedDecimalPlaces(this.milkingAverage, 2)) + ",\n" +
 				prefix + fieldToJson("statusIndicators", this.statusIndicators == null ? "" : this.statusIndicators) + ",\n" + 
 				prefix + fieldToJson("breed", this.breed) + ",\n" +
 				prefix + fieldToJson("animalStatus", this.getAnimalStatus()) + ",\n" + 
@@ -478,6 +486,22 @@ public class Animal extends IMDairiesDTO{
 
 	public void setAnimalFeedPlan(FeedPlan animalIndividualizedFeedPlan) {
 		this.animalFeedPlan = animalIndividualizedFeedPlan;
+	}
+
+	public String getOperatorAtBirth() {
+		return operatorAtBirth;
+	}
+
+	public void setOperatorAtBirth(String operatorAtBirth) {
+		this.operatorAtBirth = operatorAtBirth;
+	}
+
+	public Float getMilkingAverage() {
+		return milkingAverage;
+	}
+
+	public void setMilkingAverage(Float milkingAverage) {
+		this.milkingAverage = milkingAverage;
 	}
 
 //	public void setAnimalNutritionalNeeds(CohortNutritionalNeeds needs) {

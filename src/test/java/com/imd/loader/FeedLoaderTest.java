@@ -43,6 +43,86 @@ class FeedLoaderTest {
 	}
 	
 	@Test
+	void testUpdateFeedPlan() {
+		try {
+			String orgId = "IMD";
+			User user = new User("KASHIF");
+			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
+			
+			LookupValues feedItemLV1 = new LookupValues(Util.LookupValues.FEED,"TST_ALFH1", "","","","");
+			LookupValues feedItemLV2 = new LookupValues(Util.LookupValues.FEED,"TST_ALFH2", "","","","");
+			LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,"LAC_TST", "","","","");
+			FeedCohort feedCohort = new FeedCohort(orgId,feedCohortLV, feedCohortLV.getShortDescription());
+			FeedLoader loader = new FeedLoader();
+			FeedItem feedItem1 = new FeedItem();
+			FeedItem feedItem2 = new FeedItem();
+			FeedPlan feedPlan = new FeedPlan();
+			feedPlan.setOrgID(orgId);
+			feedPlan.setFeedCohort(feedCohort);
+
+			feedItem1.setOrgID(orgId);
+			feedItem1.setFeedItemLookupValue(feedItemLV1);		
+			feedItem2.setOrgID(orgId);
+			feedItem2.setFeedItemLookupValue(feedItemLV2);		
+
+			feedItem1.setFeedCohortCD(feedCohortLV);
+			feedItem2.setFeedCohortCD(feedCohortLV);
+			
+			feedItem1.setStart(0.0f);
+			feedItem1.setEnd(0.0f);
+			feedItem1.setMinimumFulfillment(3.3f);
+			feedItem1.setFulfillmentPct(3.0f);
+//			feedItem.setMaximumFulfillment(null);
+			feedItem1.setUnits("Kgs");
+			feedItem1.setFulFillmentTypeCD(Util.FulfillmentType.ABSOLUTE);
+			feedItem1.setDailyFrequency((Integer)null);
+			feedItem1.setComments("Put alfaalfa hay infront of the calves and let them eat as much as they wish");
+			feedItem1.setCreatedBy(user);
+			feedItem1.setCreatedDTTM(now);
+			feedItem1.setUpdatedBy(user);
+			feedItem1.setUpdatedDTTM(now);
+
+			feedItem2.setStart(0.0f);
+			feedItem2.setEnd(0.0f);
+			feedItem2.setMinimumFulfillment(3.3f);
+			feedItem2.setFulfillmentPct(3.0f);
+//			feedItem.setMaximumFulfillment(null);
+			feedItem2.setUnits("Kgs");
+			feedItem2.setFulFillmentTypeCD(Util.FulfillmentType.ABSOLUTE);
+			feedItem2.setDailyFrequency((Integer)null);
+			feedItem2.setComments("blah blah blah");
+			feedItem2.setCreatedBy(user);
+			feedItem2.setCreatedDTTM(now);
+			feedItem2.setUpdatedBy(user);
+			feedItem2.setUpdatedDTTM(now);
+			
+			List<FeedItem> feedItems = new ArrayList<FeedItem>();
+			feedItems.add(feedItem1);
+			feedItems.add(feedItem2);
+						
+			feedPlan.setFeedPlan(feedItems);
+			
+			assertTrue(loader.deleteFeedPlan(feedPlan) >= 0);
+			assertEquals(2,loader.insertFeedPlan(feedPlan));
+			
+			feedPlan.getFeedPlan().remove(0);
+			assertEquals(1,loader.updateFeedPlan(feedPlan));
+			assertEquals(1,loader.retrieveFeedPlan(feedPlan.getOrgID(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode()).getFeedPlan().size());
+			
+			feedItem1.setFulfillmentPct(10.0f);
+			feedPlan.getFeedPlan().get(0).setFulfillmentPct(13.0f);
+			feedPlan.getFeedPlan().add(feedItem1);
+			assertEquals(2,loader.updateFeedPlan(feedPlan));
+			FeedPlan updatedPlan = loader.retrieveFeedPlan(feedPlan.getOrgID(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(23.0f,updatedPlan.getFeedPlan().get(0).getFulfillmentPct().floatValue() + updatedPlan.getFeedPlan().get(1).getFulfillmentPct().floatValue());
+			
+			assertEquals(2,loader.deleteFeedPlan(feedPlan));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception Occurred");
+		}	}
+	
+	@Test
 	void testFeedPlanEdit() {
 		int originalLoggingMode = IMDLogger.loggingMode;
 		try {

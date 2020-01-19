@@ -286,12 +286,51 @@ public class AnimalLoader {
 	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean) throws Exception {
 		return retrieveMatchingAnimals(animalBean,true,null,null);
 	}
+	public List<Animal> retrieveSpecifiedAnimalTags(String orgID, String commaSeparatedAnimalTagList) {
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " +
+				"from ANIMALS A " +
+				"	LEFT OUTER JOIN LV_SIRE B " +
+				"	ON A.SIRE_TAG=B.ID " +
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " +
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" +
+				" WHERE ( A.ORG_ID=? AND A.ANIMAL_TAG IN " + commaSeparatedAnimalTagList + " ) ORDER BY ANIMAL_TAG";
+		Animal animalValue = null;
+		List<Animal> allMatchingValues = new ArrayList<Animal>();
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1,Util.LookupValues.LCYCL);
+			preparedStatement.setString(2,orgID);
+	
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		    	animalValue = getAnimalFromSQLRecord(rs);
+		    	allMatchingValues.add(animalValue);
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			IMDLogger.log("Error occurred while executing retrieveSpecifiedAnimalTags(" +  orgID + ", {" + commaSeparatedAnimalTagList + "} ) ERROR: " + ex.getMessage(), Util.ERROR);
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return allMatchingValues;
+	}
 	
 	public List<Animal> retrieveMatchingAnimals(AnimalBean animalBean, boolean isWildCardSearch, String additionalQuery, String orderByClause) throws Exception {
 		//TODO: This code is susceptible to SQL Injection !!!
+		
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
 		String orderBy = orderByClause == null || orderByClause.isEmpty() ? " ORDER BY DOB DESC " : orderByClause;
-		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE " + 
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
 				"from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
@@ -460,10 +499,10 @@ public class AnimalLoader {
 		}
 		
 		if (damTag != null) {
-			animal.setAnimalDam(new Dam(damTag));
+			animal.setAnimalDam(new Dam(animal.getOrgID(),damTag));
 		}
 		if (sireTag != null) {
-			animal.setAnimalSire(new Sire(sireTag));
+			animal.setAnimalSire(new Sire(animal.getOrgID(),sireTag));
 			animal.getAnimalSire().setSireSpecification(rs.getString("RECORD_URL"));
 			animal.getAnimalSire().setAlias(rs.getString("SIRE_ALIAS"));
 		}
@@ -491,7 +530,7 @@ public class AnimalLoader {
 		ArrayList<Sire> allMatchingValues = new ArrayList<Sire>();
 		String qryString = "Select * from LV_SIRE A " + 
 				"left outer join sire_usage_stats_vw B on A.id=B.code " + 
-				"ORDER BY A.CONTROLLER,A.ALIAS";
+				"ORDER BY A.ALIAS";
 		List<String> values = new ArrayList<String> ();
 		Sire animalValue = null;
 		ResultSet rs = null;
@@ -629,7 +668,7 @@ public class AnimalLoader {
 				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
-				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
+				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + PREGNANT_INDICATOR + "%' AND C.ADDITIONAL_FLD1 LIKE '%" + LACTATING_INDICATOR + "%' AND C.ADDITIONAL_FLD1 NOT LIKE '%" + DRY_INDICATOR + "%' ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
 		return retrieveAnimalTypes(values, qryString);
@@ -1036,45 +1075,7 @@ public class AnimalLoader {
 		return recordAdded;	
 	}
 	
-	public List<Animal> retrieveSpecifiedAnimalTags(String orgID, String animalTagList) {
-		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " +
-				"from ANIMALS A " +
-				"	LEFT OUTER JOIN LV_SIRE B " +
-				"	ON A.SIRE_TAG=B.ID " +
-				"	LEFT OUTER JOIN LOOKUP_VALUES C " +
-				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" +
-				" WHERE ( A.ORG_ID=? AND A.ANIMAL_TAG IN " + animalTagList + " ) ORDER BY ANIMAL_TAG";
-		Animal animalValue = null;
-		List<Animal> allMatchingValues = new ArrayList<Animal>();
-		ResultSet rs = null;
-		PreparedStatement preparedStatement = null;
-		Connection conn = DBManager.getDBConnection();
-		try {
-			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1,Util.LookupValues.LCYCL);
-			preparedStatement.setString(2,orgID);
-	
-			IMDLogger.log(preparedStatement.toString(),Util.INFO);
-		    rs = preparedStatement.executeQuery();
-		    while (rs.next()) {
-		    	animalValue = getAnimalFromSQLRecord(rs);
-		    	allMatchingValues.add(animalValue);
-		    }
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			IMDLogger.log("Error occurred while executing retrieveSpecifiedAnimalTags(" +  orgID + ", {" + animalTagList + "} ) ERROR: " + ex.getMessage(), Util.ERROR);
-		} finally {
-		    try {
-				if (preparedStatement != null && !preparedStatement.isClosed()) {
-					preparedStatement.close();	
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	    return allMatchingValues;
-	}
-	
+
 	public List<Animal> retrieveSpecifiedAnimalProgney(String orgID, String animalTag) throws Exception {
 		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
 				"from ANIMALS A " + 
@@ -1126,6 +1127,23 @@ public class AnimalLoader {
 				" WHERE A.ORG_ID=? AND (HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) AND C.ADDITIONAL_FLD1 LIKE '%" + DRY_INDICATOR + "%'  ORDER BY ANIMAL_TAG";
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
+		return retrieveAnimalTypes(values, qryString);
+	}
+	public List<Animal> retrieveBrucellaCandidateAnimals(String orgID, DateTime minDob, DateTime maxDob) throws Exception {
+		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
+				"from ANIMALS A " + 
+				"	LEFT OUTER JOIN LV_SIRE B " + 
+				"	ON A.SIRE_TAG=B.ID " + 
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.category_cd='" + Util.LookupValues.LCYCL + "') " +
+				" WHERE A.ORG_ID=? AND A.DOB >= ? AND A.DOB <= ? AND A.GENDER='F' "
+				+ " AND A.ANIMAL_TAG NOT IN ( SELECT ANIMAL_TAG FROM imd.LIFECYCLE_EVENTS WHERE EVENT_CD='" + Util.LifeCycleEvents.VACCINE + "' AND AUX_FL1_VALUE LIKE '" + Util.LookupValues.BRUCELLA + "' ) "
+				+ " AND (A.HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) ORDER BY A.DOB ";
+				
+		List<String> values = new ArrayList<String>();
+		values.add(orgID);
+		values.add(Util.getDateInSQLFormat(minDob));
+		values.add(Util.getDateInSQLFormat(maxDob));
 		return retrieveAnimalTypes(values, qryString);
 	}	
 }

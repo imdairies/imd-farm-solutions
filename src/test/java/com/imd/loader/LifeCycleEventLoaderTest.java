@@ -583,4 +583,100 @@ class LifeCycleEventLoaderTest {
 		}
 	}
 
+	@Test
+	void testSireInseminationRecord() {
+		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+		LifecycleEvent event;
+		User user = new User("KASHIF");
+		try {
+			loader.deleteAnimalLifecycleEvents("IMD","-999");
+			String testSire = "TSTSIRE";
+			event = new LifecycleEvent("IMD", 0, "-999",Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			event.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()));
+			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
+			event.setCreatedBy(new User("KASHIF"));
+			event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			event.setUpdatedBy(event.getCreatedBy());
+			event.setUpdatedDTTM(event.getCreatedDTTM());
+			event.setEventNote("To be deleted later. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long."
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long. "
+					+ "Length should be too long. Length should be too long.  ");
+			event.setAuxField1Value(testSire);
+			int transactionID = loader.insertLifeCycleEvent(event);
+			assertEquals(Util.ERROR_CODE.DATA_LENGTH_ISSUE,transactionID, "Length of comments field should have been too long");
+			event.setEventNote("Positive, الحمدُ للہ");
+			transactionID = loader.insertLifeCycleEvent(event);			
+			event.setEventTransactionID(transactionID);
+			//assertTrue(transactionID > 0,"Record should have been successfully inserted");
+			// 2: Search for the newly inserted event and verify it is retrieved properly
+			event = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
+			assertEquals(Util.LifeCycleEvents.INSEMINATE,event.getEventType().getEventCode(),"Retrieved Record should have the correct Event Code");
+			// 3: Retrieve All events and ensure one of them is the one that we inserted above.
+			List<LifecycleEvent> events = loader.retrieveAllLifeCycleEventsForAnimal("IMD","-999");
+			Iterator<LifecycleEvent> it = events.iterator(); 
+			boolean found = false;
+			while (it.hasNext()) {
+				LifecycleEvent evt = it.next();
+				IMDLogger.log(evt.dtoToJson(" ", DateTimeFormat.forPattern("d MMM yyyy h:mm a")), Util.INFO);				
+				if (evt.getEventTransactionID() == event.getEventTransactionID()) {
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found,"Could not find the recently inserted record");
+
+			// 4: Update the newly inserted event and verify the update
+			event.getEventType().setEventCode("HEAT");
+			DateTime updatedDTTM = DateTime.now(IMDProperties.getServerTimeZone()).plusDays(3);
+			event.setUpdatedDTTM(updatedDTTM);
+			event.setAuxField1Value("UNIQUE 1HO10660\"'%\n\n");
+			event.setAuxField2Value("CONVENTIONAL");
+			event.setAuxField3Value("3VALUE");
+			event.setAuxField4Value(null);
+			int updatedRecCount = loader.updateLifeCycleEvent(event);
+			
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+			String updatedDTTMStr = fmt.print(updatedDTTM);
+
+			LifecycleEvent evt = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
+			IMDLogger.log(event.toString(), Util.INFO);
+			assertEquals(1, updatedRecCount, " Only one record should have been updated");
+			assertEquals("HEAT",evt.getEventType().getEventCode(),"Event Code should have been updated");
+			assertEquals("UNIQUE 1HO10660\"'%\n\n",evt.getAuxField1Value(),"Aux Field1 Value should have been updated");
+			assertEquals("CONVENTIONAL",evt.getAuxField2Value(),"Aux Field2 Value should have been updated");
+			assertEquals("3VALUE",evt.getAuxField3Value(),"Aux Field3 Value should have been updated");
+			assertEquals(null,evt.getAuxField4Value(),"Aux Field4 Value should have been null");
+			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
+					
+			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
+			assertEquals(1,loader.deleteLifeCycleEvent("IMD",event.getEventTransactionID()),"One record should have been deleted");
+
+			// 6: Search for the deleted event and verify it is not retrieved.
+			event = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
+			assertEquals(event,null, "Deleted record should not have been found");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("LifeCycleEvent Creation and/or insertion Failed.");
+		}
+	}	
+	
 }
+
+
+
+
+
+
+
+
+

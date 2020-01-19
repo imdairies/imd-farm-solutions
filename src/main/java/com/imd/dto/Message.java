@@ -1,7 +1,10 @@
 package com.imd.dto;
 
 
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
+
+import com.imd.util.IMDProperties;
 
 public class Message extends IMDairiesDTO{
 	private String languageCD;
@@ -49,6 +52,16 @@ public class Message extends IMDairiesDTO{
 		return (stringify(prefix) + super.dtoToJson(prefix, fmt));
 	}
 
+	public Message clone() {
+		Message clonedMessage = new Message(this.getOrgID(), this.languageCD, this.messageCD);
+		clonedMessage.setMessageText(this.messageText);
+		clonedMessage.setCreatedBy(this.getCreatedBy());
+		clonedMessage.setCreatedDTTM(this.getCreatedDTTM());
+		clonedMessage.setUpdatedBy(this.getUpdatedBy());
+		clonedMessage.setUpdatedDTTM(this.getUpdatedDTTM());
+		return clonedMessage;
+
+	}
 
 
 }

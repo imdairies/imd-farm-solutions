@@ -239,7 +239,7 @@ class AdvisementLoaderTest {
 			
 			
 			CalfWeightAdvisement adv = new CalfWeightAdvisement();
-			List<Animal> advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgID(), null);
+			List<Animal> advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgID(), Util.LanguageCode.ENG);
 			assertTrue(advAnml != null && advAnml.size() >= 3, " At least three animals should have been retrieved");
 			Iterator<Animal> it = advAnml.iterator();
 			while (it.hasNext()) {
@@ -347,6 +347,12 @@ class AdvisementLoaderTest {
 	}
 	
 	@Test
+	void testSpecificExistingAnimal() {
+		CalfWeightAdvisement wtAdvisement = new CalfWeightAdvisement();
+		wtAdvisement.applyAdvisementRule("IMD", Util.LanguageCode.ENG);
+	}
+	
+	@Test
 	void testWeightMeasurementAdvisementRule() {
 
 		try {
@@ -448,7 +454,7 @@ class AdvisementLoaderTest {
 			assertEquals(1,transTh3Violation, "Exactly one record -995 should have been inserted");				
 			assertTrue(eventsLoader.insertLifeCycleEvent(th3ViolationEvent)>0);	
 
-			List<Animal> animalPop = weightMeasurementAdvisement.applyAdvisementRule("IMD", null);
+			List<Animal> animalPop = weightMeasurementAdvisement.applyAdvisementRule("IMD", Util.LanguageCode.ENG);
 			boolean th3Found = false;
 			boolean th2Found = false;
 			boolean th1Found = false;

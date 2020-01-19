@@ -4,6 +4,8 @@ package com.imd.services.bean;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
+import com.imd.util.IMDProperties;
+
 
 public class MilkingDetailBean {
 	private String animalTag;
@@ -73,17 +75,17 @@ public class MilkingDetailBean {
 		this.orgID = orgID;
 	}
 	public LocalDate getRecordDate() {
-		return new LocalDate(milkingDateStr);
+		return new LocalDate(milkingDateStr, IMDProperties.getServerTimeZone());
 		//return new LocalDate();
 	}
 	public LocalTime getRecordTime() {
-		return new LocalTime(this.milkingTimeStr);
+		return new LocalTime(this.milkingTimeStr, IMDProperties.getServerTimeZone());
 	}
 	public String toString() {
 		return "\nanimalTag: " + this.animalTag + "\n" + 
 		"orgID:" + this.orgID + "\n" + 
-		"milkingDateStr:" +  this.milkingDateStr + "\n" + 
-		"milkingTimeStr:" +  this.milkingTimeStr + "\n" + 
+		"milkingDateStr:" +  this.milkingDateStr + "\n" +
+		"milkingTimeStr:" +  this.milkingTimeStr + "\n" +
 		"milkingEventNumber:" +  this.milkingEventNumber + "\n" + 
 		"milkVolume:" +  this.milkVolume + "\n" + 
 		"fatValue:" + this.fatValue + "\n" + 

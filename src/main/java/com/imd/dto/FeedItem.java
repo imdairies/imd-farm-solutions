@@ -4,7 +4,6 @@ import org.joda.time.format.DateTimeFormatter;
 
 public class FeedItem extends IMDairiesDTO {
 	private LookupValues feedCohortLookupValue;
-//	private LookupValues feedCohortCD;
 	private LookupValues feedItemLookupValue;
 	private Float start;
 	private Float end;
@@ -20,6 +19,7 @@ public class FeedItem extends IMDairiesDTO {
 	private FeedItemNutritionalStats feedItemNutritionalStats;
 	private Float dailyIntake;
 	private String intakeType;
+	private Float costOfIntake;
 
 	public LookupValues getFeedItemLookupValue() {
 		return feedItemLookupValue;
@@ -125,11 +125,6 @@ public class FeedItem extends IMDairiesDTO {
 		return stringify(prefix) + ",\n" + super.dtoToJson(prefix);
 	}
 
-//	private String stringify(String prefix) {
-//		return  (feedItemLookupValue != null ? feedItemLookupValue.dtoToJson(prefix) + ",\n" : "") + 
-//				prefix + fieldToJson("units",units) + ",\n" + 
-//				prefix + fieldToJson("dailyIntake",dailyIntake);
-//	}
 	private String stringify(String prefix) {
 		return  (feedItemLookupValue != null ? feedItemLookupValue.dtoToJson(prefix) + ",\n" : "") + 
 				prefix + fieldToJson("start",start) + ",\n" + 
@@ -142,6 +137,7 @@ public class FeedItem extends IMDairiesDTO {
 				prefix + fieldToJson("dailyFrequency",dailyFrequency) + ",\n" + 
 				prefix + fieldToJson("comments",comments) + ",\n" + 
 				prefix + fieldToJson("intakeType",intakeType) + ",\n" + 
+				prefix + fieldToJson("costOfIntake",costOfIntake) + ",\n" + 
 				prefix + fieldToJson("dailyIntake",dailyIntake);
 	}
 	public String dtoToJson(String prefix, boolean appendSuperJson)  {		
@@ -176,7 +172,13 @@ public class FeedItem extends IMDairiesDTO {
 	}
 	public void setIntakeType(String intakeType) {
 		this.intakeType = intakeType;
-	}	
+	}
+	public Float getCostOfIntake() {
+		return costOfIntake;
+	}
+	public void setCostOfIntake(Float costPerUnit) {
+		this.costOfIntake = costPerUnit;
+	}
 	
 	
 }

@@ -70,8 +70,6 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
 						Animal animal = it.next();
-//						LocalDate startDate = new LocalDate(animal.getDateOfBirth().plusDays((int)ruleDto.getFirstThreshold()));
-//						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);// Adding one will take care of the case when the animal came in heat today, so we want to include that event as well.
 						List<LifecycleEvent> parturitionEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								null,
@@ -84,8 +82,8 @@ public class DelayedHeatCowAdvisement extends AdvisementRule {
 						} else {
 							List<LifecycleEvent> heatEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 									orgId,animal.getAnimalTag(),
-									new LocalDate(parturitionEvents.get(0).getEventTimeStamp()),
-									LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1),/*this ensures that we accommodate today's events*/
+									parturitionEvents.get(0).getEventTimeStamp(),
+									DateTime.now(IMDProperties.getServerTimeZone()).plusDays(1),/*this ensures that we accommodate today's events*/
 									Util.LifeCycleEvents.HEAT, null,null,null,null,null);
 							if (heatEvents == null || heatEvents.isEmpty()) {
 								// This animal never came into heat since its last parturition.

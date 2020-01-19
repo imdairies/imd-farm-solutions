@@ -51,8 +51,8 @@ public class Sire extends Animal {
 		return stringify("   ") + super.dtoToJson("   ");		
 	}
 	
-	public Sire(String tagNumber) throws IMDException  {
-		super(tagNumber);
+	public Sire(String OrgID, String tagNumber) throws IMDException  {
+		super(OrgID, tagNumber);
 		setGender('M');
 	}
 	public Contact getMarketedByCompany() {

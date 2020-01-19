@@ -61,10 +61,10 @@ public class CohortNutritionalNeeds extends IMDairiesDTO {
 		return  prefix + fieldToJson("nutritionalNeedsFeedCohortCD", nutritionalNeedsFeedCohortCD) + ",\n" + 
 				prefix + fieldToJson("nutritionalNeedsStart", this.nutritionalNeedsStart == null ? "" : this.nutritionalNeedsStart.toString()) + ",\n" +
 				prefix + fieldToJson("nutritionalNeedsEnd", this.nutritionalNeedsEnd == null ? "" : this.nutritionalNeedsEnd.toString()) + ",\n" +
-				prefix + fieldToJson("nutritionalNeedsDryMatter", this.nutritionalNeedsDryMatter == null ? 0f : new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsDryMatter,2))) + ",\n" +
-				prefix + fieldToJson("nutritionalNeedsCrudeProtein", this.nutritionalNeedsCrudeProtein == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsCrudeProtein,2))) + ",\n" +
-				prefix + fieldToJson("nutritionalNeedsTDN", this.nutritionalNeedsTDN == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsTDN,2))) + ",\n" +
-				prefix + fieldToJson("nutritionalNeedsMetabloizableEnergy", this.nutritionalNeedsMetabloizableEnergy == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsMetabloizableEnergy,2))) + ",\n";
+				prefix + fieldToJson("nutritionalNeedsDryMatter", this.nutritionalNeedsDryMatter == null ? 0f : new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsDryMatter,4))) + ",\n" +
+				prefix + fieldToJson("nutritionalNeedsCrudeProtein", this.nutritionalNeedsCrudeProtein == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsCrudeProtein,3))) + ",\n" +
+				prefix + fieldToJson("nutritionalNeedsTDN", this.nutritionalNeedsTDN == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsTDN,3))) + ",\n" +
+				prefix + fieldToJson("nutritionalNeedsMetabloizableEnergy", this.nutritionalNeedsMetabloizableEnergy == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsMetabloizableEnergy,3))) + ",\n";
 	}
 
 	public String dtoToJson(String prefix)  {		
@@ -97,5 +97,15 @@ public class CohortNutritionalNeeds extends IMDairiesDTO {
 	}
 	public void setNutritionalNeedsTDN(Float nutritionalNeedsTDN) {
 		this.nutritionalNeedsTDN = nutritionalNeedsTDN;
+	}
+
+	public String stringify(String prefix, String keyNamePrefix) {
+		return  prefix + fieldToJson(keyNamePrefix + "NutritionalNeedsFeedCohortCD", nutritionalNeedsFeedCohortCD) + ",\n" + 
+				prefix + fieldToJson(keyNamePrefix + "NutritionalNeedsStart", this.nutritionalNeedsStart == null ? "" : this.nutritionalNeedsStart.toString()) + ",\n" +
+				prefix + fieldToJson(keyNamePrefix + "NutritionalNeedsEnd", this.nutritionalNeedsEnd == null ? "" : this.nutritionalNeedsEnd.toString()) + ",\n" +
+				prefix + fieldToJson(keyNamePrefix + "NutritionalNeedsDryMatter", this.nutritionalNeedsDryMatter == null ? 0f : new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsDryMatter,4))) + ",\n" +
+				prefix + fieldToJson(keyNamePrefix + "NutritionalNeedsCrudeProtein", this.nutritionalNeedsCrudeProtein == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsCrudeProtein,3))) + ",\n" +
+				prefix + fieldToJson(keyNamePrefix + "NutritionalNeedsTDN", this.nutritionalNeedsTDN == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsTDN,3))) + ",\n" +
+				prefix + fieldToJson(keyNamePrefix + "NutritionalNeedsMetabloizableEnergy", this.nutritionalNeedsMetabloizableEnergy == null ? 0f :  new Float(Util.formatToSpecifiedDecimalPlaces(this.nutritionalNeedsMetabloizableEnergy,3))) + ",\n";
 	}
 }

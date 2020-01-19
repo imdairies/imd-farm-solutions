@@ -24,6 +24,7 @@ import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
+import com.imd.util.Util.LifeCycleEvents;
 
 public class LifeCycleEventsLoader {
 
@@ -226,7 +227,7 @@ public class LifeCycleEventsLoader {
 		return retrieveSpecificLifeCycleEventsForAnimal(orgId,animalTag,null,null,eventCD, null, null, null, null, null);
 	}
 
-	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, LocalDate fromDate, LocalDate toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
+	public List<LifecycleEvent> retrieveSpecificLifeCycleEventsForAnimal(String orgId, String tagNumber, DateTime fromDate, DateTime toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
 		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
 							+ " B.FIELD1_LABEL, B.FIELD1_TYPE, B.FIELD1_UNIT, "
@@ -776,6 +777,67 @@ public class LifeCycleEventsLoader {
 		return retrieveSpecificLifeCycleEvents(orgID, startDate, endDate, Util.LifeCycleEvents.ABORTION,
 				null, 
 				null, null, null, null);
+	}
+
+	public List<LifecycleEvent> retrieveSireInseminationRecord(String orgID, String auxField1Value,
+			String auxField3Value) {
+		return retrieveSpecificLifeCycleEvents(orgID, null, null, 
+				Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, 
+				auxField1Value, null, auxField3Value, null);
+	}
+
+	public List<LifecycleEvent> retrieveTwoRelevantWeightEvents(Animal animal, DateTime plusDays) {
+		String qryString = "SELECT A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
+				   " FROM LIFECYCLE_EVENTS A  " +
+				   " LEFT OUTER JOIN LV_LIFECYCLE_EVENT B " +
+				   " 	ON	A.EVENT_CD = B.EVENT_CD  " +
+				   " LEFT OUTER JOIN LOOKUP_VALUES C " +
+				   " 	ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' " +
+				   "     WHERE  A.ORG_ID=? AND A.ANIMAL_TAG=? AND A.EVENT_CD='" + Util.LifeCycleEvents.WEIGHT + "' AND " +
+				   " A.EVENT_DTTM = (SELECT MAX(EVENT_DTTM) FROM imd.LIFECYCLE_EVENTS WHERE ANIMAL_TAG=A.ANIMAL_TAG AND ORG_ID=A.ORG_ID AND EVENT_CD=A.EVENT_CD AND EVENT_DTTM <= ?) " +
+				   "  UNION " +
+				   " SELECT A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR  " +
+				   " FROM LIFECYCLE_EVENTS A " +
+				   " LEFT OUTER JOIN LV_LIFECYCLE_EVENT B " +
+				   " 	ON	A.EVENT_CD = B.EVENT_CD  " +
+				   " LEFT OUTER JOIN LOOKUP_VALUES C " +
+				   " 	ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='" +  Util.LifeCycleEvents.WEIGHT + "' " +
+				   "      WHERE A.ORG_ID=? AND A.ANIMAL_TAG=? AND A.EVENT_CD='WEIGHT' AND " +
+				   "  A.EVENT_DTTM = (SELECT MIN(EVENT_DTTM) FROM imd.LIFECYCLE_EVENTS WHERE ANIMAL_TAG=A.ANIMAL_TAG AND ORG_ID=A.ORG_ID AND EVENT_CD=A.EVENT_CD AND EVENT_DTTM > ?)";
+		List<LifecycleEvent> wtEvents = new ArrayList<LifecycleEvent>();
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		ResultSet rs = null;
+		int i=1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(i++, animal.getOrgID());
+			preparedStatement.setString(i++, animal.getAnimalTag());
+			preparedStatement.setString(i++, Util.getDateInSQLFormat(plusDays));
+			preparedStatement.setString(i++, animal.getOrgID());
+			preparedStatement.setString(i++, animal.getAnimalTag());
+			preparedStatement.setString(i, Util.getDateInSQLFormat(plusDays));
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		    	wtEvents.add(this.getLifeCycleEventFromSQLRecord(rs));
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			IMDLogger.log("Could not retrieve two relevant weight events for the animal [" + animal.getOrgID() +"-" + animal.getAnimalTag() + "]", Util.ERROR);
+		} finally {
+		    try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();	
+				}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return wtEvents;
 	}
 }
 

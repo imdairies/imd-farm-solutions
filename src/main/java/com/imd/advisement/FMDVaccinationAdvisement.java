@@ -68,8 +68,8 @@ public class FMDVaccinationAdvisement extends AdvisementRule {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays((int)ruleDto.getThirdThreshold());
-						LocalDate endDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1);
+						DateTime startDate = DateTime.now(IMDProperties.getServerTimeZone()).minusDays((int)ruleDto.getThirdThreshold());
+						DateTime endDate = DateTime.now(IMDProperties.getServerTimeZone()).plusDays(1);
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								startDate,

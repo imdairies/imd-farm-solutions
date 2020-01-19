@@ -24,6 +24,7 @@ import com.imd.loader.AnimalLoader;
 import com.imd.loader.InventoryLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.LookupValuesLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDLogger;
@@ -36,18 +37,26 @@ import com.imd.util.Util;
 @Path("animalevent")
 public class LifecycleEventSrvc {
     
-	/**
-	 * Retrieves ALL the events for a given Animal 
-	 * @return
-	 */
-	
 	@POST
 	@Path("/search")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAnimalLifecycleEvent(LifeCycleEventBean animalEventBean){
+
+		IMDLogger.log("getAnimalLifecycleEvent Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".getAnimalLifecycleEvent",animalEventBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".getAnimalLifecycleEvent", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		animalEventBean.setOrgID(orgID);
+		IMDLogger.log(animalEventBean.toString(), Util.INFO);		
+		
 		LifeCycleEventsLoader animalEventsloader = new LifeCycleEventsLoader();
 		AnimalLoader animalLoader = new AnimalLoader();
-		animalEventBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
 		String animalEvents = "";
 		AnimalBean animalBean = new AnimalBean();
 		animalBean.setAnimalTag(animalEventBean.getAnimalTag());
@@ -137,13 +146,23 @@ public class LifecycleEventSrvc {
 	@Path("/retrieveoneevent")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response retrieveOneEvent(LifeCycleEventBean eventBean){
+
+		IMDLogger.log("retrieveOneEvent Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveOneEvent",eventBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".retrieveOneEvent", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgID(orgID);
+		IMDLogger.log(eventBean.toString(), Util.INFO);				
+		
 		String animalEvent = "";
-		eventBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
 		String eventTransactionID = eventBean.getEventTransactionID();
-		
-		IMDLogger.log("retrieveOneEvent Called with following input values", Util.INFO);
-		IMDLogger.log(eventBean.toString(), Util.INFO);
-		
+				
 		if (eventTransactionID == null || eventTransactionID.trim().isEmpty()) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event transaction id.\"}").build();
 		}
@@ -166,11 +185,21 @@ public class LifecycleEventSrvc {
 	@Path("/deleteoneevent")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteOneEvent(LifeCycleEventBean eventBean){
-		eventBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+		IMDLogger.log("deleteOneEvent Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".deleteOneEvent",eventBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".deleteOneEvent", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgID(orgID);
+		IMDLogger.log(eventBean.toString(), Util.INFO);				
+
 		String eventTransactionID = eventBean.getEventTransactionID();
 		int deleteCount = 0;
-		IMDLogger.log("deleteOneEvent Called with following input values", Util.INFO);
-		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		if (eventTransactionID == null || eventTransactionID.trim().isEmpty()) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event transaction id.\"}").build();
@@ -189,14 +218,24 @@ public class LifecycleEventSrvc {
 	@Path("/addbatch")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addEventForMultipleAnimals(LifeCycleEventBean eventBean){
-		String orgId = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
-		eventBean.setOrgID(orgId);
+
+		IMDLogger.log("addEventForMultipleAnimals Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".addEventForMultipleAnimals",eventBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".addEventForMultipleAnimals", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgID(orgID);
+		IMDLogger.log(eventBean.toString(), Util.INFO);				
+		
+		
 		String animalTag = eventBean.getAnimalTag();
 		String eventComments = eventBean.getEventComments();
-		String eventCode = eventBean.getEventCode();
-		
-		IMDLogger.log("Add Batch Event Called with following input values", Util.INFO);
-		IMDLogger.log(eventBean.toString(), Util.INFO);
+		String eventCode = eventBean.getEventCode();		
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
@@ -211,7 +250,7 @@ public class LifecycleEventSrvc {
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);		
 		String animalTags[] = {""};
 		AnimalBean animalBean = new AnimalBean();
-		animalBean.setOrgID(orgId);
+		animalBean.setOrgID(orgID);
 		if (animalTag.indexOf(",") <0)
 			animalTags[0] = animalTag;
 		else
@@ -282,14 +321,24 @@ public class LifecycleEventSrvc {
 	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addEvent(LifeCycleEventBean eventBean){
-		String orgId = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
-		eventBean.setOrgID(orgId);
+
+		IMDLogger.log("addEvent Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".addEvent",eventBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".addEvent", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgID(orgID);
+		IMDLogger.log(eventBean.toString(), Util.INFO);				
+		
 		String animalTag = eventBean.getAnimalTag();
 		String eventComments = eventBean.getEventComments();
 		String eventCode = eventBean.getEventCode();
 		
-		IMDLogger.log("Add Event Called with following input values", Util.INFO);
-		IMDLogger.log(eventBean.toString(), Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
@@ -301,12 +350,11 @@ public class LifecycleEventSrvc {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide comments.\"}").build();
 		}
 		LifecycleEvent event;
-		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		AnimalLoader animalLoader = new AnimalLoader();
 		
 		AnimalBean animalBean = new AnimalBean();
 		animalBean.setAnimalTag(animalTag);
-		animalBean.setOrgID(orgId);
+		animalBean.setOrgID(orgID);
 		
 		LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 		String validationResult = eventsLoader.performEventSpecificValidations(eventBean, animalBean);
@@ -323,7 +371,6 @@ public class LifecycleEventSrvc {
 				} else {
 					Animal animal = animals.get(0);
 					event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
-					User user = new User(userID);
 					event.setCreatedBy(user);
 					event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 					event.setUpdatedBy(user);
@@ -420,6 +467,7 @@ public class LifecycleEventSrvc {
 			}
 			
 			AnimalSrvc animalSrvc = new AnimalSrvc();
+			calfBean.setOperatorAtBirth(event.getEventOperator() != null ? event.getEventOperator().getPersonID() : "");
 			String calfAdditionResponse = animalSrvc.addAnimal(calfBean).getEntity().toString();
 			if (calfAdditionResponse.indexOf("\"error\": false") >= 0)
 				return "The calf with the tag# " + calfBean.getAnimalTag() + " has been successfully added to the herd";
@@ -515,7 +563,19 @@ public class LifecycleEventSrvc {
 	@Path("/update")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateEvent(LifeCycleEventBean eventBean){
-		eventBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+		IMDLogger.log("updateEvent Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".updateEvent",eventBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".updateEvent", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgID(orgID);
+		IMDLogger.log(eventBean.toString(), Util.INFO);				
+		
 		String eventTransactionID = eventBean.getEventTransactionID();
 		String eventComments = eventBean.getEventComments();
 		String eventCode = eventBean.getEventCode();
@@ -552,7 +612,66 @@ public class LifecycleEventSrvc {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
 		else 
 			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
-	} 	
+	}
+	
+	@POST
+	@Path("/viewsirerecord")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getSireInseminationRecord(LifeCycleEventBean animalEventBean) {
+//		int loggingMode = IMDLogger.loggingMode;
+//		IMDLogger.loggingMode = Util.INFO;
+
+		IMDLogger.log("getSireInseminationRecord Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + ".getSireInseminationRecord",animalEventBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + ".getSireInseminationRecord", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		animalEventBean.setOrgID(orgID);
+		IMDLogger.log(animalEventBean.toString(), Util.INFO);		
+		
+		LifeCycleEventsLoader animalEventsloader = new LifeCycleEventsLoader();
+		AnimalLoader animalLoader = new AnimalLoader();
+		String animalEvents = "";
+		AnimalBean animalBean = new AnimalBean();
+		animalBean.setAnimalTag(animalEventBean.getAnimalTag());
+		animalBean.setOrgID(animalEventBean.getOrgID());
+		try {
+			String eventTypeCD = animalEventBean.getEventCode();
+			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
+				eventTypeCD = null;
+			List<LifecycleEvent> events = animalEventsloader.retrieveSireInseminationRecord(animalBean.getOrgID(),animalEventBean.getAuxField1Value(),animalEventBean.getAuxField3Value());
+			if (events == null || events.size() == 0)
+			{
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No insemination/mating records found for the specified sire\"}").build();
+			}
+	    	Iterator<LifecycleEvent> eventIt = events.iterator();
+	    	while (eventIt.hasNext()) {
+	    		LifecycleEvent event = eventIt.next();
+	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
+	    		String extendedComment = formatComent(event);
+	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt) + ",\n  \"formattedComments\":\"" + Util.encodeJson(extendedComment) + "\"\n},\n";	    		
+	    	}
+	    	animalEvents = "[" + animalEvents.substring(0,animalEvents.lastIndexOf(",\n")) + "]";
+	    	IMDLogger.log(animalEvents, Util.INFO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		} 
+//		finally {
+//			IMDLogger.loggingMode = loggingMode;
+//		}
+		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity(animalEvents).build();
+    }
+    
+
 	
 	
 }
+
+
+

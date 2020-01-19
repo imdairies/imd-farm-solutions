@@ -23,7 +23,7 @@ public class MessageCatalogLoader {
 	
 	private static HashMap <String, Message> messageCache = new HashMap <String, Message>();
 	
-	public static Message getMessage(String orgId, String languageCD, String messageCD) {
+	public synchronized static Message getMessage(String orgId, String languageCD, String messageCD) {
 		String qryString = " SELECT A.* FROM " +   
 				" imd.MESSAGE_CATALOG A " +
 				" WHERE A.ORG_ID=? AND A.LANG_CD=? AND MESSAGE_CD=? ";
@@ -51,6 +51,10 @@ public class MessageCatalogLoader {
 			    	String messageText = rs.getString("MESSAGE_TEXT");
 			    	if (messageText != null && !messageText.isEmpty())
 			    		message.setMessageText(messageText);
+			    	message.setCreatedBy(new User(rs.getString("CREATED_BY")));
+			    	message.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
+			    	message.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
+			    	message.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 			    	messageCache.put(orgId + "-" + languageCD + "-" + message.getMessageCD(),message);
 			    }
 			} catch (Exception ex) {
@@ -68,10 +72,10 @@ public class MessageCatalogLoader {
 				}
 			}
 		} 
-	    return message;
+	    return message.clone();
 	}
-	public static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, List<String> dynamicValues) {
-		Message transformedMessage = getMessage( orgId,  languageCD,  messageCd) ;
+	public synchronized static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, List<String> dynamicValues) {
+		Message transformedMessage = getMessage( orgId,  languageCD,  messageCd);
 		if (transformedMessage != null && transformedMessage.getMessageText() != null && 
 				!transformedMessage.getMessageText().isEmpty() && 
 				dynamicValues != null && !dynamicValues.isEmpty() && 
@@ -82,18 +86,29 @@ public class MessageCatalogLoader {
 		}
 		return transformedMessage;			
 	}
-	public static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, String firstDynamicValue) {
+	public synchronized static String getDynamicallyPopulatedMessage(String messageToBePopulated, List<String> dynamicValues) {
+		String transformedMessage = messageToBePopulated;
+		if (transformedMessage != null && !transformedMessage.isEmpty() && 
+				dynamicValues != null && !dynamicValues.isEmpty() && 
+						messageToBePopulated.indexOf(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + "1") >= 0) {
+			for (int i=0; i < dynamicValues.size(); i++) {
+				transformedMessage = transformedMessage.replaceAll(Util.MessageCatalog.DYNAMIC_VALUE_PLACEHOLDER + (i+1), dynamicValues.get(i));
+			}
+		}
+		return transformedMessage;			
+	}
+	public synchronized static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, String firstDynamicValue) {
 		List<String> dynamicValues = new ArrayList<String>();
 		dynamicValues.add(firstDynamicValue);
 		return getDynamicallyPopulatedMessage( orgId,  languageCD,  messageCd, dynamicValues);
 	}
-	public static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, int firstDynamicValue) {
+	public synchronized static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, int firstDynamicValue) {
 		return getDynamicallyPopulatedMessage( orgId,  languageCD,  messageCd, firstDynamicValue + "");
 	}
-	public static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, float firstDynamicValue) {
+	public synchronized static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, float firstDynamicValue) {
 		return getDynamicallyPopulatedMessage( orgId,  languageCD,  messageCd, firstDynamicValue + "");
 	}
-	public static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, double firstDynamicValue) {
+	public synchronized static Message getDynamicallyPopulatedMessage(String orgId, String languageCD, String messageCd, double firstDynamicValue) {
 		return getDynamicallyPopulatedMessage( orgId,  languageCD,  messageCd, firstDynamicValue + "");
 	}
 	public List<Message> retrieveMessage(MessageBean messageBean) {
@@ -130,7 +145,7 @@ public class MessageCatalogLoader {
 				message.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 				message.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 				message.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
-		    	messages.add(message);
+		    	messages.add(message.clone());
 		    	messageCache.put(message.getOrgID() + "-" + message.getLanguageCD() + "-" + message.getMessageCD(),message);
 		    }
 		} catch (Exception ex) {
@@ -256,7 +271,8 @@ public class MessageCatalogLoader {
 		}
 	    return updatedRecord;		
 	
-	}	public int deleteMessage(MessageBean messageBean) {
+	}	
+	public int deleteMessage(MessageBean messageBean) {
 		int deletedRecord = -1;
 		String qryString = "DELETE FROM imd.MESSAGE_CATALOG WHERE ORG_ID=? AND "
 				+ "LANG_CD=? AND "
@@ -278,6 +294,8 @@ public class MessageCatalogLoader {
 
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 		    deletedRecord = preparedStatement.executeUpdate();
+		    if (deletedRecord <= 1)
+		    	messageCache.remove(messageBean.getOrgId()+"-"+messageBean.getLanguageCD() + "-" + messageBean.getMessageCD());
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			deletedRecord = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
 			ex.printStackTrace();
@@ -302,6 +320,10 @@ public class MessageCatalogLoader {
 			}
 		}
 	    return deletedRecord;
+	}
+	
+	public HashMap<String, Message> getMessageCache(){
+		return messageCache;
 	}
 
 }

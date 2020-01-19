@@ -55,6 +55,36 @@ public class FeedLoader {
 		}
 		return result;
 	}	
+	public int deleteFeedPlan(FeedPlan feedPlan) {
+		return deleteFeedPlan(feedPlan.getOrgID(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
+	}
+	public int deleteFeedPlan(String orgID, String feedCohortLookupCode) {
+		String qryString = "DELETE FROM imd.FEED_PLAN WHERE ORG_ID=? AND FEED_COHORT = ? ";
+		int result = -1;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		try {
+			int i= 1;
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(i++, orgID);
+			preparedStatement.setString(i++, feedCohortLookupCode);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			result = preparedStatement.executeUpdate();	
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}		
+	
+	
 	public int deleteFeedPlanItem(FeedItem feedItem) {
 		return deleteFeedPlanItem(feedItem, null, null, null);
 	}
@@ -319,18 +349,20 @@ public class FeedLoader {
 		feedItem.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 		feedItem.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));		
 		
+		Float dm = 0f;
+		Float cp = 0f;
+		Float me = 0f;
+		Float unitCost = 0f;
 		
 		FeedItemNutritionalStats itemNutritionalValues = new FeedItemNutritionalStats();
-		itemNutritionalValues.setDryMatter(0f);
-		itemNutritionalValues.setCrudeProtein(0f);
-		itemNutritionalValues.setMetabolizableEnergy(0f);
-		Float dm = null;
-		Float cp = null;
-		Float me = null;
-		
+//		itemNutritionalValues.setDryMatter(dm);
+//		itemNutritionalValues.setCrudeProtein(cp);
+//		itemNutritionalValues.setMetabolizableEnergy(me);
+//		feedItem.setCostPerUnit(unitCost);
+
 		try {
-			String dmCpMe = rs.getString("ITEM_NUTRITIONAL_VALUES");
-			String[] stats = dmCpMe.split("\n");
+			String dmCpMeCost = rs.getString("ITEM_NUTRITIONAL_VALUES");
+			String[] stats = dmCpMeCost.split("\n");
 			for (int i=0; i<stats.length; i++) {
 				if (stats[i].indexOf(Util.NutritionalStats.DM_POSTFIX) >=0)
 					dm =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.DM_POSTFIX) + Util.NutritionalStats.DM_POSTFIX.length()));
@@ -338,15 +370,20 @@ public class FeedLoader {
 					cp =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.CP_POSTFIX) + Util.NutritionalStats.CP_POSTFIX.length()));
 				else if (stats[i].indexOf(Util.NutritionalStats.ME_POSTFIX) >=0)
 					me =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.ME_POSTFIX) + Util.NutritionalStats.ME_POSTFIX.length()));
+				else if (stats[i].indexOf(Util.NutritionalStats.COST_POSTFIX) >=0)
+					unitCost =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.COST_POSTFIX) + Util.NutritionalStats.COST_POSTFIX.length()));
 			}
-			itemNutritionalValues.setDryMatter(dm);
-			itemNutritionalValues.setCrudeProtein(cp);
-			itemNutritionalValues.setMetabolizableEnergy(me);
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			IMDLogger.log("Could not parse one or more of DM, CP, ME value for the feed item: " + feedItemLV.getLookupValueCode() + ". You must specify these values prefixed by DM=, CP=, ME= each on A separate line in the \"Additional Info 1\" field for this particular Feed Item lookup", Util.ERROR);
+			IMDLogger.log("Could not parse one or more of DM, CP, ME, COST_PER_UNIT value(s) for the feed item: " + feedItemLV.getLookupValueCode() + ". You must specify these values prefixed by "+ Util.NutritionalStats.DM_POSTFIX + 
+					", " + Util.NutritionalStats.CP_POSTFIX + ", " + Util.NutritionalStats.ME_POSTFIX + ", " + Util.NutritionalStats.COST_POSTFIX + " each on a separate line in the \"Additional Info 1\" field for the Feed Item: " + feedItemLV, Util.ERROR);
 		}
+		itemNutritionalValues.setDryMatter(dm);
+		itemNutritionalValues.setCrudeProtein(cp);
+		itemNutritionalValues.setMetabolizableEnergy(me);
+		itemNutritionalValues.setCostPerUnit(unitCost);
 		feedItem.setFeedItemNutritionalStats(itemNutritionalValues);
+		feedItem.setCostOfIntake(unitCost);
 		return feedItem;
 	}
 
@@ -458,6 +495,7 @@ public class FeedLoader {
 				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, " +
 				" B.long_descr as ITEM_LONG_DESCR," +
 				" B.additional_fld1 as ITEM_NUTRITIONAL_VALUES,  " +
+				" B.additional_fld2 as ITEM_COST_PER_UNIT,  " +
 				" IFNULL(C.short_descr,A.FEED_COHORT) AS FEED_COHORT_SHORT_DESCR, " +
 				" C.long_descr AS FEED_COHORT_LONG_DESCR," +
 				" C.additional_fld1 AS FEED_COHORT_ADDITIONAL_FLD1, " +
@@ -506,8 +544,103 @@ public class FeedLoader {
 			}
 		}
 	    return feedPlan;
-	}	
+	}
 	
+	public int updateFeedPlan(FeedPlan feedPlan) throws Exception {
+		if (feedPlan == null || feedPlan.getOrgID() == null || feedPlan.getOrgID().isEmpty() || 
+				feedPlan.getFeedCohort() == null || 
+				feedPlan.getFeedCohort().getFeedCohortLookupValue() == null ||
+				feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode() == null ||
+				feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode().isEmpty())
+			return Util.ERROR_CODE.DOES_NOT_EXIST;
+
+		// delete all the feeditems in the plan and then insert all the items in the feedplan i.e. we update by
+		// performing a delete followed by an insertion.
+		int updatedRecordCount = deleteFeedPlan(feedPlan);
+		IMDLogger.log(updatedRecordCount + " records deleted ", Util.INFO);
+		
+		updatedRecordCount = insertFeedPlan(feedPlan);
+		return updatedRecordCount;
+	}
+	
+	public int insertFeedPlan(FeedPlan feedPlan) {
+		int recordAdded = -1;
+		
+		if (feedPlan == null || feedPlan.getFeedPlan() == null)
+			return 0;
+		
+		String qryString = "insert into  imd.FEED_PLAN (ORG_ID,"
+				+ "FEED_ITEM,"
+				+ "FEED_COHORT,"
+				+ "START,"
+				+ "END,"
+				+ "MIN_FULFILLMENT,"
+				+ "FULFILLMENT_PCT,"
+				+ "MAX_FULFILLMENT,"
+				+ "FULFILLMENT_TYPE,"
+				+ "UNITS,"
+				+ "DAILY_FREQUENCY,"
+				+ "COMMENTS,"
+				+ "CREATED_BY,"
+				+ "CREATED_DTTM,"
+				+ "UPDATED_BY,"
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		Iterator<FeedItem> feedItemsIt = feedPlan.getFeedPlan().iterator();
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			while (feedItemsIt.hasNext()) {
+				FeedItem feedItem = feedItemsIt.next();
+				int i = 1;
+					preparedStatement.setString(i++,  feedItem.getOrgID());
+					preparedStatement.setString(i++,  feedItem.getFeedItemLookupValue().getLookupValueCode());
+					preparedStatement.setString(i++,  feedItem.getFeedCohortCD().getLookupValueCode());
+					preparedStatement.setString(i++,  formatFieldValue(feedItem.getStart()));
+					preparedStatement.setString(i++,  formatFieldValue(feedItem.getEnd()));
+					preparedStatement.setString(i++, formatFieldValue(feedItem.getMinimumFulfillment()));
+					preparedStatement.setString(i++, formatFieldValue(feedItem.getFulfillmentPct()));
+					preparedStatement.setString(i++, formatFieldValue(feedItem.getMaximumFulfillment()));
+					preparedStatement.setString(i++,  feedItem.getFulFillmentTypeCD());
+					preparedStatement.setString(i++, feedItem.getUnits());
+					preparedStatement.setString(i++, formatFieldValue(feedItem.getDailyFrequency()));
+					preparedStatement.setString(i++, feedItem.getComments());
+					preparedStatement.setString(i++, feedItem.getCreatedBy().getUserId());
+					preparedStatement.setString(i++, feedItem.getCreatedDTTMSQLFormat());
+					preparedStatement.setString(i++, feedItem.getUpdatedBy().getUserId());
+					preparedStatement.setString(i++, feedItem.getUpdatedDTTMSQLFormat());
+					preparedStatement.addBatch();
+				}
+				long[] recodAdditionCounts = preparedStatement.executeLargeBatch();
+				recordAdded = 0;
+				for (int i=0; i< recodAdditionCounts.length; i++) {
+					recordAdded += recodAdditionCounts[i];
+				}
+			} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+				recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+				ex.printStackTrace();
+			} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
+				recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
+				ex.printStackTrace();
+			} catch (java.sql.SQLSyntaxErrorException ex) {
+				recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+				ex.printStackTrace();
+			} catch (java.sql.SQLException ex) {
+				recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+				ex.printStackTrace();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+			    try {
+					if (preparedStatement != null && !preparedStatement.isClosed()) {
+						preparedStatement.close();	
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		return recordAdded;		
+	}
 	public FeedPlan retrieveDistinctFeedItemsInFeedPlan(String orgID) throws IMDException {
 		String qryString = "SELECT distinct A.org_id, A.FEED_ITEM,A.units," +
 				" IFNULL(B.short_descr,A.FEED_ITEM) as ITEM_SHORT_DESCR, " + 

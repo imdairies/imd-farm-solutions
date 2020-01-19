@@ -65,7 +65,7 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 					Iterator<Animal> it = animalPopulation.iterator();
 					while (it.hasNext()) {
 						Animal animal = it.next();
-						LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(thirdThreshold);
+						DateTime startDate = DateTime.now(IMDProperties.getServerTimeZone()).minusDays(thirdThreshold);
 						List<LifecycleEvent> lifeEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(
 								orgId,animal.getAnimalTag(),
 								startDate,
@@ -75,8 +75,16 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 						String ruleNote = "";
 						String animalNote = "";
 						if (lifeEvents == null || lifeEvents.isEmpty()) {
+							List<String> values = new ArrayList<String>();
+							values.add(currentAgeInDays + "") ;
+							if (currentAgeInDays >  ruleDto.getThirdThreshold())
+								values.add(ruleDto.getThirdThreshold() + "");
+							else
+								values.add(currentAgeInDays + "");
+							animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEIGHT_MEASUREMENT_ADVISEMENT_TH3 , values) == null ? "":
+								MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEIGHT_MEASUREMENT_ADVISEMENT_TH3, values).getMessageText();
 							// No weight event found - indicates that the animal was not weighed in the last Threshold3 days.
-							animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days. You should immediately weigh this animal.";	
+//							animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days. You should immediately weigh this animal.";	
 							ruleNote = ruleDto.getThirdThresholdMessage();
 							animal.setThreshold3Violated(true);
 						} else {
@@ -84,12 +92,28 @@ public class WeightMeasurementAdvisement extends AdvisementRule {
 							if (daysSinceLatestWeightEvent > secondThreshold) {
 								ruleNote = ruleDto.getSecondThresholdMessage();
 								animal.setThreshold2Violated(true);
-								animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days. You should weigh this animal.";	
+								List<String> values = new ArrayList<String>();
+								values.add(currentAgeInDays + "") ;
+								if (currentAgeInDays >  ruleDto.getSecondThreshold())
+									values.add(ruleDto.getSecondThreshold() + "");
+								else
+									values.add(currentAgeInDays + "");
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEIGHT_MEASUREMENT_ADVISEMENT_TH2 , values) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEIGHT_MEASUREMENT_ADVISEMENT_TH2, values).getMessageText();
+//								animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getSecondThreshold() + " days. You should weigh this animal.";	
 								
 							} else if (daysSinceLatestWeightEvent > firstThreshold) {
 								ruleNote = ruleDto.getFirstThresholdMessage();
 								animal.setThreshold1Violated(true);
-								animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getThirdThreshold() + " days. You should plan to weigh this animal.";	
+								List<String> values = new ArrayList<String>();
+								values.add(currentAgeInDays + "") ;
+								if (currentAgeInDays >  ruleDto.getFirstThreshold())
+									values.add(ruleDto.getFirstThreshold() + "");
+								else
+									values.add(currentAgeInDays + "");
+								animalNote = MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEIGHT_MEASUREMENT_ADVISEMENT_TH1 , values) == null ? "":
+									MessageCatalogLoader.getDynamicallyPopulatedMessage(orgId, languageCd, Util.MessageCatalog.WEIGHT_MEASUREMENT_ADVISEMENT_TH1, values).getMessageText();
+//								animalNote = "This animal (" + animal.getAnimalTag() + ") is " + currentAgeInDays + " days old and has not been weighed in the last " + ruleDto.getFirstThreshold() + " days. You should plan to weigh this animal.";	
 							} else {
 								//the young animal was weighed recently
 								IMDLogger.log("Animal " + animal.getAnimalTag() + " was weighed recently i.e. " + daysSinceLatestWeightEvent + " days ago. No Weight Measurement advisement necessary", Util.INFO);

@@ -2,6 +2,7 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -94,7 +95,7 @@ class MilkingDetailLoaderTest {
 			DateTime createdTS = DateTime.now();
 			int tenDaysInPast = 10;
 			LocalDate recordDate1 = new LocalDate(createdTS.getYear(),createdTS.getMonthOfYear(),createdTS.getDayOfMonth());
-			LocalDate recordDateBeforeParturation = new LocalDate(createdTS.getYear(),createdTS.getMonthOfYear()-1,createdTS.getDayOfMonth());
+			LocalDate recordDateBeforeParturation = recordDate1.minusMonths(1); //new LocalDate(createdTS.getYear(),createdTS.getMonthOfYear()-1,createdTS.getDayOfMonth());
 			Dam dam = createDam(orgID, animalTag, DateTime.now().minusYears(4), Util.AnimalTypes.DRYPREG);
 			LifecycleEvent parturationEvent = new LifecycleEvent(orgID, 0, animalTag, Util.LifeCycleEvents.PARTURATE, user, createdTS, user, createdTS);
 			parturationEvent.setEventTimeStamp(createdTS.minusDays(tenDaysInPast));
@@ -111,40 +112,34 @@ class MilkingDetailLoaderTest {
 			MilkingDetailLoader milkDetailloader = new MilkingDetailLoader();
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 
-			milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDate1);
-			milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDateBeforeParturation);
+			milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, animalTag);
+
 			eventsLoader.deleteAnimalLifecycleEvents(orgID, animalTag);
 			animalLoader.deleteAnimal(orgID, animalTag);
 			
 			assertEquals(1,animalLoader.insertAnimal(dam));
 
-			assertEquals(MilkingDetailLoader.ANIMAL_IS_NOT_LACTATING,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false));
-			assertEquals(MilkingDetailLoader.ANIMAL_IS_NOT_LACTATING,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true));
+			assertNotEquals(MilkingDetailLoader.ANIMAL_IS_NOT_LACTATING,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag));
 			
 			assertEquals(1,animalLoader.deleteAnimal(orgID, animalTag));
 			dam.setAnimalType(Util.AnimalTypes.LACTATING);
 			assertEquals(1,animalLoader.insertAnimal(dam));
 			
-			assertEquals(MilkingDetailLoader.NO_PARTURATION_OR_ABORTION_EVENT_FOUND,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false));
-			assertEquals(MilkingDetailLoader.NO_PARTURATION_OR_ABORTION_EVENT_FOUND,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true));
+			assertEquals(MilkingDetailLoader.NO_PARTURATION_OR_ABORTION_EVENT_FOUND,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag));
 			
 			assertTrue(eventsLoader.insertLifeCycleEvent(parturationEvent)>0);
 
-			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
-			assertEquals(MilkingDetailLoader.NO_MILK_RECORD_FOUND_AFTER_PARTURATION,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false));
+			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
 			
 			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
 
-			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
-			assertEquals(Util.getDaysBetween(LocalDate.now(IMDProperties.getServerTimeZone()), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
+			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
 			
 			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecordBeforeParturation.getMilkingDetailBean()));
 
-			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, true).intValue());
-			assertEquals(Util.getDaysBetween(LocalDate.now(IMDProperties.getServerTimeZone()), milkingRecord1.getRecordDate()),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag, false).intValue());
+			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
 			
-			assertEquals(1,milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDate1));
-			assertEquals(1,milkDetailloader.deleteMilkingRecordOfaDay(orgID, animalTag, recordDateBeforeParturation));
+			milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, animalTag);
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents(orgID, animalTag));
 			assertEquals(1,animalLoader.deleteAnimal(orgID, animalTag));
 
@@ -163,8 +158,9 @@ class MilkingDetailLoaderTest {
 			milkingRecord.setMilkingEventNumber((short) 1);
 			MilkingDetailLoader loader = new MilkingDetailLoader();
 
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,2,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,2,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,1,1));
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST");
 			assertEquals(1,loader.insertMilkRecord(milkingRecord.getMilkingDetailBean()), "One record should have been inserted");
 			
 			milkingRecord = createMilkingRecord("TST", new LocalDate(2019,1,1), new LocalTime(13,0,0));
@@ -245,15 +241,30 @@ class MilkingDetailLoaderTest {
 			assertEquals(0,milkRec.getRecordTime().getMinuteOfHour(), " Record Time should have been 21:00");
 			assertTrue(milkRec.getAdditionalStatistics()== null || milkRec.getAdditionalStatistics().size() == 0 ? false: true," There should be some additional statistics e.g. " + Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE);
 
-			assertEquals(1,loader.deleteOneMilkingRecord("IMD", "TST", new LocalDate(2019,1,1), 1),"One record should have been deleted");
-			assertEquals(2,loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,1,1)),"Two records should have been deleted");
-			assertEquals(1,loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,2,1)),"Two records should have been deleted");			
+//			assertEquals(1,loader.deleteOneMilkingRecord("IMD", "TST", new LocalDate(2019,1,1), 1),"One record should have been deleted");
+//			assertEquals(2,loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,1,1)),"Two records should have been deleted");
+//			assertEquals(1,loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,2,1)),"Two records should have been deleted");			
+			assertEquals(4,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST"),"four records should have been deleted");			
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
 		}		
 	}
 	
+	@Test
+	void testYearMilkingRecordRetrieval() {
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+		LocalDate startDate = LocalDate.now(IMDProperties.getServerTimeZone()).plusYears(1);
+		try {
+			while (!Util.isLeapYear(startDate))
+				startDate = startDate.plusYears(1);
+			loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedYear(startDate);
+			loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedYear(startDate.minusYears(2));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("The year " + startDate.getYear() + " would not have any record so the output should be 365 days of empty values not an exception");
+		}
+	}
 	
 	
 	@Test
@@ -333,11 +344,15 @@ class MilkingDetailLoaderTest {
 			
 			MilkingDetailLoader loader = new MilkingDetailLoader();
 
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,10));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,12,31));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,10));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,12,31));
+
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST");
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST");
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST_TST");
 
 
 			assertEquals(1,loader.insertMilkRecord(milkingRecord1_1.getMilkingDetailBean()), "One record should have been inserted");
@@ -444,11 +459,16 @@ class MilkingDetailLoaderTest {
 				IMDLogger.log(milkRec.getAnimalTag() + " " + milkRec.getRecordDate() + " " + milkRec.getMilkVolume(), Util.INFO);
 				break;
 			}			
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,10));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,10));
 
+			assertEquals(9,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST"));
+			assertEquals(3,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST"));
+			
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Milk Information testing failed.");
@@ -547,12 +567,15 @@ class MilkingDetailLoaderTest {
 			
 			MilkingDetailLoader loader = new MilkingDetailLoader();
 
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,2,10));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,12,31));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,2,10));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,12,31));
 
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST");
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST");
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST_TST");
 
 
 			assertEquals(1,loader.insertMilkRecord(milkingRecord1_1_1.getMilkingDetailBean()), "One record should have been inserted");
@@ -632,13 +655,15 @@ class MilkingDetailLoaderTest {
 			assertEquals(0, noRecordMonths, "we should not have received months with no record in result");
 			assertEquals(240.0,totalMonthVolume, " Milking volume for the year should have been 240");			
 			
-			
-			
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,2,10));
-			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,2,10));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,2,10));
+//			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,2,10));
 
+			assertEquals(9,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST"));
+			assertEquals(0,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST"));
+			assertEquals(3,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST_TST"));
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");

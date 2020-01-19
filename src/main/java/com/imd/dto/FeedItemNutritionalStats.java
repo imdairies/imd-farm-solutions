@@ -36,5 +36,13 @@ public class FeedItemNutritionalStats extends IMDairiesDTO {
 	public void setCostPerUnit(Float costPerUnit) {
 		this.costPerUnit = costPerUnit;
 	}
+	public String toString() {
+		String prefix =" ";
+		return	prefix + fieldToJson("feedItemCD",feedItemCD) + ",\n" + 
+				prefix + fieldToJson("dryMatter",dryMatter) + ",\n" + 
+				prefix + fieldToJson("crudeProtein",crudeProtein) + ",\n" + 
+				prefix + fieldToJson("metabolizableEnergy",metabolizableEnergy) + ",\n" + 
+				prefix + fieldToJson("costPerUnit",costPerUnit);		
+	}
 
 }

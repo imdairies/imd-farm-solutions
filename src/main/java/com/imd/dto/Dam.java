@@ -19,15 +19,15 @@ public class Dam extends Animal {
 	 */
 	private Map<LocalDate, HashMap<Short,MilkingDetail>> milkingRecord;
 
-	public Dam(String tagNumber) throws IMDException {
-		super(tagNumber);
+	public Dam(String orgID, String tagNumber) throws IMDException {
+		super(orgID, tagNumber);
 		milkingRecord = new HashMap <LocalDate, HashMap<Short,MilkingDetail>> ();
 		setGender(Util.GENDER_CHAR.FEMALE);
 	}
 	public Dam(String orgID, String tag, DateTime dob, boolean isAgeEstimated, double purchasePrice, String currency) throws IMDException {
 		super(orgID, tag, dob, isAgeEstimated, purchasePrice, currency);
 		milkingRecord = new HashMap <LocalDate, HashMap<Short,MilkingDetail>> ();
-		setGender('F');
+		setGender(Util.GENDER_CHAR.FEMALE);
 	}
 	public MilkingDetail getMilkingAverageAtPurchase() {
 		return milkingDetailAtPurchase;

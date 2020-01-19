@@ -30,6 +30,7 @@ import com.imd.dto.Person;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
 import com.imd.services.AnimalSrvc;
+import com.imd.services.MilkingInformationSrvc;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.MilkingDetailBean;
 import com.imd.services.bean.SireBean;
@@ -610,7 +611,7 @@ class AnimalLoaderTest {
 //			assertEquals(1,transactionId);
 			
 			
-			Animal updatedAnimal = new Sire(animal.getAnimalTag());
+			Animal updatedAnimal = new Sire(animal.getOrgID(),animal.getAnimalTag());
 			updatedAnimal.setOrgID(animal.getOrgID());
 			updatedAnimal.setAnimalTag(animal.getAnimalTag());
 			updatedAnimal.setDateOfBirth(animal.getDateOfBirth());
@@ -836,11 +837,12 @@ class AnimalLoaderTest {
 			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal2.getOrgID(), animal2.getAnimalTag(), pastMilkDate) >= 0);
 			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal3.getOrgID(), animal3.getAnimalTag(), pastMilkDate) >= 0);
 			AnimalSrvc anmlSrvc = new AnimalSrvc();
+			MilkingInformationSrvc milkingSrvc = new MilkingInformationSrvc();
 			MilkingDetailBean milkBean = new MilkingDetailBean();
 			milkBean.setMilkingDateStr(pastMilkDate.toString());
 			milkBean.setMilkingTimeStr("4:00");
 			milkBean.setMilkingEventNumber((short)1);			
-			String responseStr = anmlSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
+			String responseStr = milkingSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
 
 			//assertFalse(responseStr.contains("\"message\":\"No matching record found\""));
 			
@@ -873,11 +875,11 @@ class AnimalLoaderTest {
 			assertEquals(animal1.getAnimalTag(),animals.get(0).getAnimalTag());
 			assertEquals(animal2.getAnimalTag(),animals.get(1).getAnimalTag());
 			assertEquals(animal3.getAnimalTag(),animals.get(2).getAnimalTag());
-			
-			responseStr = anmlSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
+			 
+			responseStr = milkingSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
 
 			milkBean.setMilkingDateStr(LocalDate.now(IMDProperties.getServerTimeZone()).toString());
-			responseStr = anmlSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
+			responseStr = milkingSrvc.retrieveLactatingAnimalsMilkRecord(milkBean).getEntity().toString();
 			
 			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));
 			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));

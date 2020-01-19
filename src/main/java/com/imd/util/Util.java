@@ -43,6 +43,7 @@ public class Util {
 		public static final  String LCYCL = "LCYCL";
 		public static final String FEED = "FEED";
 		public static final String FEEDCOHORT = "FEEDCOHORT";
+		public static final String BRUCELLA = "BRUCELLA";
 	}
 
 	
@@ -96,6 +97,32 @@ public class Util {
 
 	public static final int MINIMUM_AGE_AT_CALVING_IN_DAYS = 550;
 
+	public static final class StarRating {
+
+		public static final Float FIVE_STAR = 5.0f;
+		public static final Float FOUR_POINT_FIVE_STAR = 4.5f;
+		public static final Float FOUR_STAR = 4.0f;
+		public static final Float THREE_POINT_FIVE_STAR = 3.5f;
+		public static final Float THREE_STAR = 3.0f;
+		public static final Float TWO_POINT_FIVE_STAR = 2.5f;
+		public static final Float TWO_STAR = 2.0f;
+		public static final Float ONE_POINT_FIVE_STAR = 1.5f;
+		public static final Float ONE_STAR = 1.0f;
+		public static final Float POINT_FIVE_STAR = 0.5f;
+		public static final Float NO_STAR = 0f;
+		public static final Float COULD_NOT_COMPUTE_RATING = -1f;
+		public static final Float ANIMAL_NOT_ELIGIBLE = -2f;
+		
+	}
+
+	public static final class PerformanceMilestone {
+
+		public static final String CALFWEIGHT = "CALFWEIGHT";
+		public static final String HEIFERWEIGHT = "HEIFERWEIGHT";
+		public static final String FIRSTHEAT = "FIRSTHEAT";
+		
+	}
+
 	public static final class HTTPCodes {
 
 		public static final int UNAUTHORIZED = 401;
@@ -144,6 +171,14 @@ public class Util {
 		public static final String WEANOFF_ADVISEMENT_TH3 = "33";
 		public static final String WEANOFF_ADVISEMENT_TH2 = "34";
 		public static final String WEANOFF_ADVISEMENT_TH1 = "35";
+
+		public static final String BRUCELLAVACCINE_ADVISEMENT_TH1 = "36";
+		public static final String BRUCELLAVACCINE_ADVISEMENT_TH2 = "37";
+		public static final String BRUCELLAVACCINE_ADVISEMENT_TH3 = "38";
+		
+		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH1 = "39";
+		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH2 = "40";
+		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH3 = "41";
 		
 	}
 
@@ -187,6 +222,11 @@ public class Util {
 		public static final String CORNSILAGE = "CORNSILAGE";
 		public static final String GLUCOSA = "GLUCOSA";
 		public static final String OIL = "OIL";
+		public static final String ALFAALFA = "ALFAALFA";
+		public static final String HDVANDA = "HDVANDA";
+		public static final String BYPASFAT84 = "BYPASFAT84";
+		public static final String MEETHASODA = "MEETHASODA";
+		public static final String MNRLBRKT = "MNRLBRKT";
 		
 	}
 
@@ -194,6 +234,7 @@ public class Util {
 		public static final String DM_POSTFIX = "DM=";
 		public static final String CP_POSTFIX = "CP=";
 		public static final String ME_POSTFIX = "ME=";
+		public static final String COST_POSTFIX = "COST_PER_UNIT=";
 		
 	}
 
@@ -266,6 +307,7 @@ public class Util {
 		public static final String CALVINGPREPFEED = "CALVINGPREPFEED";
 		public static final String CALFWEIGHT = "CALFWEIGHT";
 		public static final String MASTITIS = "MASTITIS";
+		public static final String BRUCELLAVACCINE = "BRUCELLAVACCINE";
 	}
 	
 	
@@ -301,6 +343,9 @@ public class Util {
 		public static final String UNDETERMINED = "UNDETERMINED";
 		public static final String NEARPRTRT = "NEARPRTRT";
 		public static final String FARPRTRT = "FARPRTRT";
+		public static final String LCTEARLYHI = "LCTEARLYHI";
+		public static final String LCTMIDHIGH = "LCTMIDHIGH";
+		public static final String LCTOLDHIGH = "LCTOLDHIGH";
 	}
 
 	 public static final class GENDER_CHAR {
@@ -430,8 +475,20 @@ public class Util {
 	public static String encodeJson(float floatValue) {
 		return encodeJson(floatValue + "");
 	}
+	public static String formatTwoDecimalPlaces(Float floatValue) {
+		if (floatValue == null)
+			return formatToSpecifiedDecimalPlaces(0,2);
+		else
+			return formatToSpecifiedDecimalPlaces(floatValue,2);
+	}
 	public static String formatTwoDecimalPlaces(float floatValue) {
 		return formatToSpecifiedDecimalPlaces(floatValue,2);
+	}
+	public static String formatToSpecifiedDecimalPlaces(Float floatValue, int decimalPlaces) {
+		if (floatValue == null)
+			return formatToSpecifiedDecimalPlaces(0,decimalPlaces);
+		else
+			return formatToSpecifiedDecimalPlaces(floatValue.floatValue(),decimalPlaces);
 	}
 	public static String formatToSpecifiedDecimalPlaces(float floatValue, int decimalPlaces) {
 		String pattern = "#.";
@@ -654,6 +711,12 @@ public class Util {
 		//TODO: As of now anyone who is authenticated can access everything. In future when we enhance our 
 		// user authorization security model we would update this method.
 		return (new UserLoader()).isUserAuthenticated(loginToken);
+	}
+	public static boolean isLeapYear(LocalDate date) {
+		return (date.getYear() % 4) == 0;
+	}
+	public static boolean isLeapYear(DateTime timestamp) {
+		return (timestamp.getYear() % 4) == 0;
 	}
 	
 	

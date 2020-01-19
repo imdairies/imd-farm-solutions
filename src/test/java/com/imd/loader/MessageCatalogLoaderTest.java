@@ -2,6 +2,7 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -137,6 +138,32 @@ class MessageCatalogLoaderTest {
 			IMDLogger.loggingMode = originalLoggingMode;
 			
 		}
+	}
+	
+	@Test
+	void testImmutability() {
+		MessageCatalogLoader ldr = new MessageCatalogLoader();
+		Message testMessage =  new Message("IMD",Util.LanguageCode.ENG, "-99999");
+		testMessage.setMessageText("This is a Test Message the first parameter is: %1 and the second is :%2");
+		String key = testMessage.getOrgID()+"-"+testMessage.getLanguageCD()+"-"+testMessage.getMessageCD();
+		ldr.getMessageCache().put(key, testMessage);
+		List<String> values = new ArrayList<String>();
+		values.add("first");
+		values.add("second");
+		assertEquals("This is a Test Message the first parameter is: first and the second is :second",
+				MessageCatalogLoader.getDynamicallyPopulatedMessage(testMessage.getOrgID(),testMessage.getLanguageCD(),testMessage.getMessageCD(),values).getMessageText());
+		values.remove(0);
+		values.remove(0);
+		values.add("1st");
+		values.add("2nd");
+		assertEquals("This is a Test Message the first parameter is: 1st and the second is :2nd",
+				MessageCatalogLoader.getDynamicallyPopulatedMessage(testMessage.getOrgID(),testMessage.getLanguageCD(),testMessage.getMessageCD(),values).getMessageText());
+		MessageBean msgBn = new MessageBean();
+		msgBn.setOrgId(testMessage.getOrgID());
+		msgBn.setLanguageCD(testMessage.getLanguageCD());
+		msgBn.setMessageCD(testMessage.getMessageCD());
+		ldr.deleteMessage(msgBn);
+		assertEquals(null,ldr.getMessageCache().get(key));
 	}
 
 }

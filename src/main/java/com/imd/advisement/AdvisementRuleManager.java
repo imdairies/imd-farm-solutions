@@ -33,6 +33,7 @@ public class AdvisementRuleManager {
 		advisementRulesMap.put(Util.AdvisementRules.CALVINGPREPFEED, new CalvingPrepFeedAdvisement());
 		advisementRulesMap.put(Util.AdvisementRules.CALFWEIGHT, new CalfWeightAdvisement());
 		advisementRulesMap.put(Util.AdvisementRules.MASTITIS, new MastitisTestAdvisement());
+		advisementRulesMap.put(Util.AdvisementRules.BRUCELLAVACCINE, new BrucellaVaccineAdvisement());
 	}
 
 	public List<AnimalAdvisement> executeAllRules(List<Advisement> activeRules, boolean includeThreshold1, boolean includeThreshold2, boolean includeThreshold3, String languageCd) {

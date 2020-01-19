@@ -24,6 +24,7 @@ public class AnimalBean {
 	private String leftPoseImage;
 	private String herdJoiningDttmStr;
 	private String loginToken;
+	private String operatorAtBirth;
 
 	public String getAnimalTag() {
 		return animalTag;
@@ -177,5 +178,11 @@ public class AnimalBean {
 
 	public void setLoginToken(String loginToken) {
 		this.loginToken = loginToken;
+	}
+	public String getOperatorAtBirth() {
+		return operatorAtBirth;
+	}
+	public void setOperatorAtBirth(String operatorAtBirth) {
+		this.operatorAtBirth = operatorAtBirth;
 	}
 }

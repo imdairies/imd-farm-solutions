@@ -164,6 +164,12 @@ public class MilkingDetailLoader {
 		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "' AND MILK_DATE='" + Util.getDateInSQLFormat(recordDate) + "'";
 		return performDeletion(qryString);
 	}
+	public int deleteAllMilkingRecordOfanAnimal(String orgID, String animalTag) {
+		if (orgID == null || orgID.isEmpty() || animalTag == null || animalTag.isEmpty())
+			return 0;
+		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "'";
+		return performDeletion(qryString);
+	}
 	public int deleteOneMilkingRecord(String orgID, String animalTag, LocalDate recordDate, int sequenceNbr) {
 		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + 
 				"' AND MILK_DATE='" + Util.getDateInSQLFormat(recordDate) + "' AND SEQ_NBR=" + sequenceNbr;
@@ -259,7 +265,7 @@ public class MilkingDetailLoader {
 	public MilkingDetail[] retrieveFarmMilkVolumeForEachDayOfSpecifiedYear(LocalDate startDate) throws SQLException {
 		LocalDate startOfYear = new LocalDate(startDate.getYear(), 1, 1);
 		LocalDate endOfTheYear = new LocalDate(startDate.getYear(),12, 31);
-		MilkingDetail[] dailyRecordofTheYear = new MilkingDetail[365];
+		MilkingDetail[] dailyRecordofTheYear = new MilkingDetail[Util.getDaysBetween(endOfTheYear, startOfYear)+1];
 		List<MilkingDetail> dailyRecordforTheYear = retrieveFarmMilkVolumeForSpecifiedDateRange(startOfYear, endOfTheYear, false);		
 		Iterator<MilkingDetail> it = dailyRecordforTheYear.iterator();
 		int dayIndex = 1;
@@ -283,6 +289,10 @@ public class MilkingDetailLoader {
 		}
 		for (; dayIndex <= endOfTheYear.getDayOfYear()  ;) {
 			MilkingDetail emptyRecord = new MilkingDetail();
+			if (lastInsertedRecordDate == null) {
+				// case when the year does not have any milking record.
+				lastInsertedRecordDate = startOfYear.minusDays(1);
+			}
 			lastInsertedRecordDate = lastInsertedRecordDate.plusDays(1);
 			emptyRecord.setRecordDate(lastInsertedRecordDate);
 			emptyRecord.setMilkVolume(0.0f);
@@ -461,6 +471,7 @@ public class MilkingDetailLoader {
 	 * @param startDate
 	 * @param endDate
 	 * @param shouldIncludeMissingDays If set to true then even if there is no record for a day, the output will have a zero volume for that day. If set to false then the days with no record will not be included in the return array.
+	 * @param isDescendingOrder 
 	 * @return
 	 * @throws SQLException 
 	 */
@@ -612,53 +623,32 @@ public class MilkingDetailLoader {
 		return responseList;		
 	}
 
-	public Integer getDaysInMilkingOfCow(String orgID, String animalTag, boolean shouldDeduceFromParturationTimestampOnly) {
-		return getDaysInMilkingOfCow(orgID, animalTag, shouldDeduceFromParturationTimestampOnly, null);
+	public Integer getDaysInMilkingOfCow(String orgID, String animalTag) {
+		return getDaysInMilkingOfCow(orgID, animalTag, null);
 	}
 
-	public Integer getDaysInMilkingOfCow(String orgID, String animalTag, boolean shouldDeduceFromParturationTimestampOnly, LocalDate toDateOfDaysInMilking) {
-		/**
-		 * TODO: CAUTION This method only calculates the Days in Milking for the latest parturation. If one goes back to the animal's milking record
-		 * for a past lactation then the method will return a negative value. This ought to be fixed when I get time.
-		 */
+	public Integer getDaysInMilkingOfCow(String orgID, String animalTag, LocalDate toDateOfDaysInMilking) {
 		Integer dim = null;
 		DateTime dimWindowStart = null;
 		AnimalLoader animalLoader = new AnimalLoader();
 		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
-		DateTime targetDateTime = toDateOfDaysInMilking == null ? DateTime.now(IMDProperties.getServerTimeZone()) : new DateTime(toDateOfDaysInMilking.getYear(),toDateOfDaysInMilking.getMonthOfYear(),toDateOfDaysInMilking.getDayOfMonth(),0,0);
+		DateTime targetDateTime = toDateOfDaysInMilking == null ? DateTime.now(IMDProperties.getServerTimeZone()) : new DateTime(toDateOfDaysInMilking.getYear(),toDateOfDaysInMilking.getMonthOfYear(),toDateOfDaysInMilking.getDayOfMonth(),0,0, IMDProperties.getServerTimeZone());
 		try {
 			List<Animal> animals = animalLoader.getAnimalRawInfo(orgID, animalTag);
 			if (animals == null || animals.isEmpty()) {
 				IMDLogger.log("The animal " + animalTag + " does not exist. Can't calculate its Days in Milking", Util.ERROR);
 				dim = ANIMAL_DOES_NOT_EXIST;
-			} else if (!animals.get(0).isLactating()) {
-				dim = ANIMAL_IS_NOT_LACTATING;
-				IMDLogger.log("The animal's type indicates that " + animalTag + " is not lactating. Days in Milking can only be calculated for lactating animals", Util.ERROR);
+//			} else if (!animals.get(0).isLactating()) {
+//				dim = ANIMAL_IS_NOT_LACTATING;
+//				IMDLogger.log("The animal's type indicates that " + animalTag + " is not lactating. Days in Milking can only be calculated for lactating animals", Util.ERROR);
 			} else {
-				List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(orgID, animalTag, null, null, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,  null,  null, null);
+				List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(orgID, animalTag, null, targetDateTime, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,  null,  null, null);
 				if (events == null || events.isEmpty()) {
 					IMDLogger.log("Did not find any parturation or abortion event for the animal " + animalTag + "; Days in Milking won't be calculated for this animal", Util.ERROR);
 					dim = NO_PARTURATION_OR_ABORTION_EVENT_FOUND;
 				} else {
 					dimWindowStart = events.get(0).getEventTimeStamp();
-					if (shouldDeduceFromParturationTimestampOnly) {
-						dim = Util.getDaysBetween(targetDateTime, dimWindowStart);
-						
-					} else {
-						String qryString = "SELECT A.*, 0 AS AVERAGE_VOL FROM imd.MILK_LOG A " + 
-								"where A.org_id=? " + 
-								"and A.animal_tag=? and A.MILK_DATE >= ? order by MILK_DATE asc";
-						
-						List<String> values = new ArrayList<String> ();
-						values.add(orgID);
-						values.add(animalTag);
-						values.add(Util.getDateTimeInSQLFormat(dimWindowStart));
-						ArrayList <MilkingDetail> milkRecords = readRecords(qryString, values);
-						if (milkRecords == null || milkRecords.isEmpty())
-							dim = NO_MILK_RECORD_FOUND_AFTER_PARTURATION;
-						else
-							dim = Util.getDaysBetween(toDateOfDaysInMilking == null ? LocalDate.now(IMDProperties.getServerTimeZone()) : toDateOfDaysInMilking, milkRecords.get(0).getRecordDate());
-					}
+					dim = Util.getDaysBetween(targetDateTime, dimWindowStart);
 				}
 			}
 		} catch (Exception e) {

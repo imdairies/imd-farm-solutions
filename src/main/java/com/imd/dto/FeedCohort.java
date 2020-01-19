@@ -44,7 +44,7 @@ public class FeedCohort extends IMDairiesDTO{
 				prefix + fieldToJson("feedCohortTypeShortDescription", feedCohortTypeShortDescription == null ? "" : this.feedCohortTypeShortDescription) + ",\n" +
 				prefix + fieldToJson("feedCohortDeterminatationCriteria", this.feedCohortDeterminationCriteria == null ? "" : this.feedCohortDeterminationCriteria) + ",\n" +
 				prefix + fieldToJson("animalFeedCohortDeterminatationMessage", this.animalFeedCohortDeterminatationMessage == null ? "" : this.animalFeedCohortDeterminatationMessage) + ",\n" + 
-				(this.cohortNutritionalNeeds == null ? "" : this.cohortNutritionalNeeds.stringify(prefix));
+				(this.cohortNutritionalNeeds == null ? "" : this.cohortNutritionalNeeds.stringify(prefix,"feedCohort"));
 	}
 
 	public String dtoToJson(String prefix)  {		
@@ -74,6 +74,9 @@ public class FeedCohort extends IMDairiesDTO{
 	}
 	public void setCohortNutritionalNeeds(CohortNutritionalNeeds cohortNutritionalNeeds) {
 		this.cohortNutritionalNeeds = cohortNutritionalNeeds;
+	}
+	public String toString() {
+		return stringify(" ");
 	}
 
 }
