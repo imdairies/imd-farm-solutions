@@ -116,15 +116,30 @@ public class Util {
 	}
 
 	public static final class PerformanceMilestone {
-
 		public static final String CALFWEIGHT = "CALFWEIGHT";
 		public static final String HEIFERWEIGHT = "HEIFERWEIGHT";
 		public static final String FIRSTHEAT = "FIRSTHEAT";
-		
+		public static final String CALVINGRATE = "CALVINGRATE";
+		public static final String FIRSTLACTATIONPEAK = "FIRSTLACTATIONPEAK";
+		public static final String SECONDLACTATIONPEAK = "SECONDLACTATIONPEAK";
+		public static final String THIRDLACTATIONPEAK = "THIRDLACTATIONPEAK";
+		public static final String FIRSTLACTATIONFERTILITY = "FIRSTLACTATIONFERTILITY";
+		public static final String SECONDLACTATIONFERTILITY = "SECONDLACTATIONFERTILITY";
+		public static final String THIRDLACTATIONFERTILITY = "THIRDLACTATIONFERTILITY";
+
+		public static final String FIRSTLACTATIONPRODUCTION = "FIRSTLACTATIONPRODUCTION";
+		public static final String SECONDLACTATIONPRODUCTION = "SECONDLACTATIONPRODUCTION";
+		public static final String THIRDLACTATIONPRODUCTION = "THIRDLACTATIONPRODUCTION";
+
+	}
+	public static final class PerformanceBadges {
+
+		public static final String GROWTH_PLUS_BADGE = "growthPlusBadge";
+		public static final String MILK_PLUS_BADGE = "milkPlusBadge";
+		public static final String FERTILITY_PLUS_BADGE = "fertilityPlusBadge";
 	}
 
 	public static final class HTTPCodes {
-
 		public static final int UNAUTHORIZED = 401;
 		public static final int BAD_REQUEST = 400;
 		public static final int NOT_IMPLEMENTED = 501;
@@ -132,7 +147,6 @@ public class Util {
 	}
 
 	public static final class MessageCatalog {
-
 		public static final String GENERIC_UPDATE_FAILED_MESSAGE = "0";
 		public static final String VERIFY_ACCESS_MESSAGE = "1";
 		public static final String USER_PROFILE_UPDATED = "2";
@@ -179,25 +193,21 @@ public class Util {
 		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH1 = "39";
 		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH2 = "40";
 		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH3 = "41";
-		
 	}
 
 	public static final class CurrencyCode {
 		public static final String PKR = "PKR";
 		public static final String USD = "USD";
-		
 	}
 
 	public static final class LanguageCode {
 		public static final String ENG = "ENG";
 		public static final String URD = "URD";
-		
 	}
 
 	public static final class Gender {
 		public static final String FEMALE = "FEMALE";
 		public static final String MALE = "MALE";
-		
 	}
 
 	
@@ -211,6 +221,13 @@ public class Util {
 		public static final Double HEIFER_TARGET_WEIGHT = new Double(300d);
 		public static final Double YOUNG_ANIMAL_AGE_LIMIT = new Double(400d);
 		public static final int CALFWEIGHT_ADVISEMENT_AGE = 180;
+		public static final float DESIRED_CALF_DAILY_WEIGHT_GAIN_KG = 0.83f;
+		public static final float WEIGHT_AT_BIRTH = 30f;
+		/**
+		 * Number of top lpd records over which the max lpd will be calculated.
+		 */
+		public static final int MAX_LPD_AVERAGED_OVER_RECORD_COUNT = 3;
+		public static final int CLOSTRUM_DAYS = 7;
 		
 	}
 
@@ -227,6 +244,7 @@ public class Util {
 		public static final String BYPASFAT84 = "BYPASFAT84";
 		public static final String MEETHASODA = "MEETHASODA";
 		public static final String MNRLBRKT = "MNRLBRKT";
+		public static final String P25 = "P25";
 		
 	}
 
@@ -717,6 +735,24 @@ public class Util {
 	}
 	public static boolean isLeapYear(DateTime timestamp) {
 		return (timestamp.getYear() % 4) == 0;
+	}
+	public static boolean isMonthFavourableForInsemination(int monthOfYear) {
+		boolean isMonthFavourable = false;
+		switch (monthOfYear) {
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 11:
+			case 12:
+				isMonthFavourable = true; 
+				break;
+			default:
+				isMonthFavourable = false;
+		}
+		
+		return isMonthFavourable;
 	}
 	
 	

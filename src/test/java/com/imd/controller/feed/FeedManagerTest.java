@@ -828,6 +828,8 @@ class FeedManagerTest {
 			milkingRecord1.setMilkVolume(9.0f);
 			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
 			
+			lactatingHighProducer.setStatusIndicators(AnimalLoader.LACTATING_INDICATOR);
+			
 			
 			
 			FeedPlan plan = manager.getPersonalizedFeedPlan(feedCohort, cohortFeedPlan, lactatingHighProducer);
@@ -889,7 +891,7 @@ class FeedManagerTest {
 			float expectedPlanCost = (48.46f * 3f /*48.46 Kgs Alfalfa*/) + 
 					(18.47f * 4.75f /* 18.47 Kgs Corn Silage*/) + 
 					(0.40f * 135f /*400 grams of bypass fat*/) + 
-					(12f * 42.75f /* 10.22 Kgs Vanda*/) +
+					(12f * 42.75f /* 12 Kgs Vanda*/) +
 					(0.1f * 64.0f /*100 grams of meetha soda */) + 
 					(0.1f * 200f /* 100 grams Mineral*/);
 			

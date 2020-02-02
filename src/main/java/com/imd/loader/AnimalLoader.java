@@ -176,6 +176,10 @@ public class AnimalLoader {
 		}
 		return recordAdded;
 	}	
+	public int deleteAnimal(Animal animal) {
+		return deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+	}
+
 	public int deleteAnimal(String orgID, String animalTag) {
 		String qryString = "DELETE FROM ANIMALS where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "'";
 		int result = -1;

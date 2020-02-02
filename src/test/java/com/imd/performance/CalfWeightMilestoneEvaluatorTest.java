@@ -2,7 +2,6 @@ package com.imd.performance;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,11 +21,9 @@ import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.PerformanceMilestoneLoader;
-import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
-import com.imd.util.Util.LifeCycleEvents;
 
 
 class CalfWeightMilestoneEvaluatorTest {
@@ -65,7 +62,6 @@ class CalfWeightMilestoneEvaluatorTest {
 		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 		
 		List<PerformanceMilestone> milestones = perfLdr.retrieveSpecificPerformanceMilestone(orgID,Util.PerformanceMilestone.CALFWEIGHT);
-//		List<PerformanceMilestone> milestones = perfLdr.retrieveActivePerformanceMilestones(orgID);
 		MilestoneEvaluator eval = new CalfWeightMilestoneEvaluator();
 		try {
 			Animal oneStarAnimal = createTestAnimal(orgID,oneStarTag,now.minusYears(2));
@@ -108,9 +104,6 @@ class CalfWeightMilestoneEvaluatorTest {
 			fourStarWtEvent2.setEventTimeStamp(fourStarAnimal.getDateOfBirth().plusDays(112));
 			fourStarWtEvent2.setAuxField1Value("132");
 
-			
-			
-			
 			Animal fiveStarAnimal = createTestAnimal(orgID,fiveStarTag,now.minusYears(6));
 			LifecycleEvent fiveStarWtEvent1 = new LifecycleEvent(orgID, 0, fiveStarTag, Util.LifeCycleEvents.WEIGHT, 
 					user, now, user, now);
@@ -120,9 +113,6 @@ class CalfWeightMilestoneEvaluatorTest {
 					user, now, user, now);
 			fiveStarWtEvent2.setEventTimeStamp(fiveStarAnimal.getDateOfBirth().plusDays(112));
 			fiveStarWtEvent2.setAuxField1Value("132");
-			
-			
-			
 			
 			Animal noStarAnimal = createTestAnimal(orgID,noStarTag,now.minusYears(7));
 			LifecycleEvent noStarWtEvent1 = new LifecycleEvent(orgID, 0, noStarAnimal.getAnimalTag(), Util.LifeCycleEvents.WEIGHT, 

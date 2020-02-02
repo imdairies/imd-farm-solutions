@@ -48,7 +48,7 @@ public class PerformanceMilestoneLoader {
 				" FROM imd.PERF_MILESTONES A,  " + 
 				" imd.PERF_MILESTONE_TEMPLATE B  " + 
 				" WHERE A.ORG_ID=? AND " +  (milestoneID != null ? " A.MILESTONE_ID=? AND " : "") +
-				" A.MILESTONE_ID=B.MILESTONE_ID AND A.ENABLE_IND='Y' AND B.ENABLE_IND='Y' ORDER BY A.UPDATED_DTTM  DESC";
+				" A.MILESTONE_ID=B.MILESTONE_ID AND A.ENABLE_IND='Y' AND B.ENABLE_IND='Y' ORDER BY A.SEQ_NBR ASC, A.UPDATED_DTTM  DESC";
 		List<PerformanceMilestone> perfMilestones = new ArrayList<PerformanceMilestone>();
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;

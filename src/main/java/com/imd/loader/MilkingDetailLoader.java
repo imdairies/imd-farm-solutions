@@ -657,6 +657,80 @@ public class MilkingDetailLoader {
 		}
 		return dim;
 	}
+
+
+
+	public float getMaximumDailyProductionOfCow(String orgID, String animalTag, DateTime milkDateStartTS,
+			DateTime milkDateEndTS) {
+		
+		String qryString = "SELECT " +
+				" SUM(VOL) AS LPD, MILK_DATE " + 
+				" FROM imd.MILK_LOG " + 
+				" WHERE " + 
+				" ORG_ID = ? AND ANIMAL_TAG = ? AND " + 
+				" MILK_DATE >= ? " + (milkDateEndTS == null ? "" : " AND MILK_DATE <= ? ") + " GROUP BY MILK_DATE ORDER BY LPD DESC";
+		
+		try {
+			int i = 1;
+			ResultSet rs = null;
+			PreparedStatement preparedStatement = null;
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(i++,orgID);
+			preparedStatement.setString(i++,animalTag);
+			preparedStatement.setString(i++,Util.getDateInSQLFormat(milkDateStartTS));
+			if (milkDateEndTS != null)
+				preparedStatement.setString(i++,Util.getDateInSQLFormat(milkDateEndTS));
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    int averagedOver = 0;
+		    float totalMilk = 0;
+		    while (rs.next()) {
+		    	if (averagedOver >= Util.DefaultValues.MAX_LPD_AVERAGED_OVER_RECORD_COUNT)
+		    		break;
+		    	else { 
+		    		averagedOver++;
+		    		totalMilk += rs.getFloat("LPD");
+		    	}
+		    }
+		    return (averagedOver == 0 ? 0 : totalMilk / averagedOver);
+		} catch (SQLException e) {
+			IMDLogger.log("Exception occurred while retrieving maximum daily production of the animal " + animalTag, Util.ERROR);
+			e.printStackTrace();
+		}
+		return 0;
+	}
+	public float getTotalProductionOfCow(String orgID, String animalTag, DateTime milkDateStartTS, DateTime milkDateEndTS) {
+		
+		String qryString = "SELECT " +
+				" SUM(VOL) AS TOTAL_PRODUCTION " + 
+				" FROM imd.MILK_LOG " + 
+				" WHERE " + 
+				" ORG_ID = ? AND ANIMAL_TAG = ? AND " + 
+				" MILK_DATE >= ? AND MILK_DATE <= ? ";
+		
+		float totalMilk = 0;
+		try {
+			int i = 1;
+			ResultSet rs = null;
+			PreparedStatement preparedStatement = null;
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(i++,orgID);
+			preparedStatement.setString(i++,animalTag);
+			preparedStatement.setString(i++,Util.getDateInSQLFormat(milkDateStartTS));
+			preparedStatement.setString(i++,Util.getDateInSQLFormat(milkDateEndTS));
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		    	totalMilk = rs.getFloat("TOTAL_PRODUCTION");
+		    }
+		} catch (SQLException e) {
+			IMDLogger.log("Exception occurred while retrieving maximum daily production of the animal " + animalTag, Util.ERROR);
+			e.printStackTrace();
+		}
+		return totalMilk;
+	}
 }
 
 

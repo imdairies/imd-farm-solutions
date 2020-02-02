@@ -2,7 +2,6 @@ package com.imd.performance;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 

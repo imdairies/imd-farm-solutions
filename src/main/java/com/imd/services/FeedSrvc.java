@@ -313,7 +313,7 @@ public class FeedSrvc {
 			IMDLogger.log("Exception in FeedSrvc.retrieveActiveAnimalFeedListing() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An error occurred while analyzing the farm feed needs: " +  e.getClass().getName() + "-" + e.getMessage() + "\"}").build();
 		}
-    	IMDLogger.log(responseJson, Util.ERROR);
+    	IMDLogger.log(responseJson, Util.INFO);
 		return Response.status(Util.HTTPCodes.OK).entity(responseJson).build();
 	}
 

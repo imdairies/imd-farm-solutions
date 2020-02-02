@@ -2,7 +2,6 @@ package com.imd.performance;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,7 +18,6 @@ import com.imd.dto.LifecycleEvent;
 import com.imd.dto.Note;
 import com.imd.dto.PerformanceMilestone;
 import com.imd.dto.Sire;
-import com.imd.performance.HeiferWeightMilestoneEvaluator;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
@@ -96,10 +94,6 @@ class FirstHeatMilestoneEvaluatorTest {
 			}
 			assertEquals(0,evtLdr.deleteAnimalLifecycleEvents(orgID, oneStarTag));
 			assertEquals(1,anmlLdr.deleteAnimal(orgID, oneStarTag));
-			
-			
-			
-			
 			
 		} catch (Exception e) {
 			e.printStackTrace();

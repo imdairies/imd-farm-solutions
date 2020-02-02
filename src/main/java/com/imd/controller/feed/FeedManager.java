@@ -71,7 +71,8 @@ public class FeedManager {
 		List<CohortNutritionalNeeds> needs = null;
 		Float start = null;
 		Float end = null;
-		if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FEMALECALF)) {
+		if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FEMALECALF) || 
+				feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FMLWNDOFF)) {
 			start = new Float(animal.getCurrentAgeInDays());
 			end = new Float(animal.getCurrentAgeInDays());
 		}
@@ -86,8 +87,16 @@ public class FeedManager {
 			}
 			cohortNeed = needs.get(0);
 		}
-		if (cohortNeed != null && 
-				(feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.LCTEARLY) || 
+		if (cohortNeed != null) {
+			if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.MALECALF) || 
+					feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FEMALECALF)) {
+				Float wt = animal.getWeight();
+				if (wt == null) {
+					wt = (animal.getCurrentAgeInDays()*Util.DefaultValues.DESIRED_CALF_DAILY_WEIGHT_GAIN_KG) + Util.DefaultValues.WEIGHT_AT_BIRTH;
+					IMDLogger.log("Animal " + animal.getAnimalTag() + " does not have any weight specified. We will assume the weight to be " + wt + " in our getMetabolizableEnergyRequiremnt calculations", Util.WARNING);
+				}
+				cohortNeed.setMetabloizableEnergy(this.getMetabolizableEnergyRequiremntOfYoungCalves(wt.doubleValue(), feedCohort.getFeedCohortLookupValue().getLookupValueCode()).getMetabloizableEnergy());
+			} else if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.LCTEARLY) || 
 					feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.LCTMID) ||
 					feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.LCTOLD) ||
 					feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.LCTEARLYHI) || 
@@ -97,45 +106,46 @@ public class FeedManager {
 					feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.NEARPRTRT) ||
 					feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FARPRTRT) ||
 					feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.PREGHFR)
-				)) {
-			Float wt = animal.getWeight();
-			if (wt == null) {
-				IMDLogger.log("Animal " + animal.getAnimalTag() + " does not have any weight specified. We will assume the weight to be " + Util.DefaultValues.ADULT_COW_WEIGHT + " in our getMetabolizableEnergyRequiremnt calculations", Util.ERROR);
-				wt = Util.DefaultValues.ADULT_COW_WEIGHT.floatValue();
-			}
-			Float threeDaysMilkingAverage = animal.getMilkingAverage();
-			if (threeDaysMilkingAverage == null) {
-				if (animal.isLactating()) {
-					threeDaysMilkingAverage = getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
+				) {
+				Float wt = animal.getWeight();
+				if (wt == null) {
+					IMDLogger.log("Animal " + animal.getAnimalTag() + " does not have any weight specified. We will assume the weight to be " + Util.DefaultValues.ADULT_COW_WEIGHT + " in our getMetabolizableEnergyRequiremnt calculations", Util.ERROR);
+					wt = Util.DefaultValues.ADULT_COW_WEIGHT.floatValue();
 				}
-				else 
-					threeDaysMilkingAverage = 0f;
-				animal.setMilkingAverage(threeDaysMilkingAverage);
-			}
-//			if (animal.isLactating()) {
-//				threeDaysMilkingAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS).doubleValue();
-//			}
-			Integer daysIntoPregnancy = null;
-			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
-			if (animal.isPregnant()) {
-				List<LifecycleEvent> evts = loader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), 
-						animal.getAnimalTag(), DateTime.now(IMDProperties.getServerTimeZone()).minusDays(PREGNANCY_DURATION_DAYS),null,
-						Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
-				if (evts != null && !evts.isEmpty()) {
-					if (evts.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) && 
-							evts.get(0).getAuxField3Value().equals(Util.YES)) {
-						daysIntoPregnancy = Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()),evts.get(0).getEventTimeStamp());
-					} else if (evts.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING) && 
-							evts.get(0).getAuxField2Value().equals(Util.YES)) {
-						daysIntoPregnancy = Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()),evts.get(0).getEventTimeStamp());
+				Float threeDaysMilkingAverage = animal.getMilkingAverage();
+				if (threeDaysMilkingAverage == null) {
+					if (animal.isLactating()) {
+						threeDaysMilkingAverage = getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
 					}
+					else 
+						threeDaysMilkingAverage = 0f;
+					animal.setMilkingAverage(threeDaysMilkingAverage);
 				}
-				if (daysIntoPregnancy == null)
-					IMDLogger.log("Animal " + animal.getAnimalTag() + " has been marked pregnant but its last insemination/mating was not marked as successful. We will assume that the animal is NOT pregnant in our getMetabolizableEnergyRequiremnt calculations", Util.ERROR);
+	//			if (animal.isLactating()) {
+	//				threeDaysMilkingAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS).doubleValue();
+	//			}
+				Integer daysIntoPregnancy = null;
+				LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+				if (animal.isPregnant()) {
+					List<LifecycleEvent> evts = loader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), 
+							animal.getAnimalTag(), DateTime.now(IMDProperties.getServerTimeZone()).minusDays(PREGNANCY_DURATION_DAYS),null,
+							Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
+					if (evts != null && !evts.isEmpty()) {
+						if (evts.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) && 
+								evts.get(0).getAuxField3Value().equals(Util.YES)) {
+							daysIntoPregnancy = Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()),evts.get(0).getEventTimeStamp());
+						} else if (evts.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.MATING) && 
+								evts.get(0).getAuxField2Value().equals(Util.YES)) {
+							daysIntoPregnancy = Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()),evts.get(0).getEventTimeStamp());
+						}
+					}
+					if (daysIntoPregnancy == null)
+						IMDLogger.log("Animal " + animal.getAnimalTag() + " has been marked pregnant but its last insemination/mating was not marked as successful. We will assume that the animal is NOT pregnant in our getMetabolizableEnergyRequiremnt calculations", Util.ERROR);
+				}
+				CohortNutritionalNeeds calculation = this.getMetabolizableEnergyRequiremnt(new Double(wt), threeDaysMilkingAverage.doubleValue(), daysIntoPregnancy, feedCohort.getFeedCohortLookupValue().getLookupValueCode(), null, null);
+				cohortNeed.setMetabloizableEnergy(calculation.getMetabloizableEnergy());
+				cohortNeed.setNutritionalNeedsTDN(calculation.getNutritionalNeedsTDN());
 			}
-			CohortNutritionalNeeds calculation = this.getMetabolizableEnergyRequiremnt(new Double(wt), threeDaysMilkingAverage.doubleValue(), daysIntoPregnancy, feedCohort.getFeedCohortLookupValue().getLookupValueCode(), null, null);
-			cohortNeed.setMetabloizableEnergy(calculation.getMetabloizableEnergy());
-			cohortNeed.setNutritionalNeedsTDN(calculation.getNutritionalNeedsTDN());
 		}
 		return cohortNeed;
 	}
@@ -194,7 +204,7 @@ public class FeedManager {
 			animal.setWeight(animalWeight);
 		}
 		//... now we have the cohort and the weight.
-		if (animal.getMilkingAverage() == null && !animal.isLactating()) {
+		if (animal.getMilkingAverage() == null && animal.isLactating()) {
 			animal.setMilkingAverage(getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS));
 		}
 		
@@ -760,6 +770,26 @@ public class FeedManager {
 //		// DM
 //		return nutritionalNeeds;
 //	}
+	
+	
+	
+	
+	/**
+	 * Source: https://www.calfnotes.com/pdffiles/CN071.pdf 
+	 * @param Animal
+	 * @return NutritionalStats
+	 */
+
+	public CohortNutritionalNeeds getMetabolizableEnergyRequiremntOfYoungCalves(Double animalWeight, String feedCohort) {
+		CohortNutritionalNeeds needs = new CohortNutritionalNeeds();
+		
+		double mem = 0.10 * Math.pow(animalWeight,0.75);
+		double meg = 0.84 * Math.pow(animalWeight,0.355) * Math.pow(Util.DefaultValues.DESIRED_CALF_DAILY_WEIGHT_GAIN_KG,1.2);
+
+		needs.setMetabloizableEnergy(new Float((mem + meg) * 4.184));
+		return needs;
+	}	
+	
 	/**
 	 * Determine Energy, DM, CP requirements of dairy cow based on the information provided in the following
 	 * text (Chapter 6 & 7): 

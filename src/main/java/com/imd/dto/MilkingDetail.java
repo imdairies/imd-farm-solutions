@@ -202,7 +202,7 @@ public class MilkingDetail extends IMDairiesDTO{
 		this.volUnit = volUnit;
 	}
 	public MilkingDetailBean getMilkingDetailBean() {
-		return new MilkingDetailBean(this.animalTag,this.orgID, this.recordDate.toString(),this.recordTime.toString(),
+		return new MilkingDetailBean(this.animalTag,this.orgID, this.recordDate.toString(),this.recordTime == null ? "00:00" : this.recordTime.toString(),
 				this.milkingEventNumber, this.milkVolume, this.fatValue, this.lrValue, this.toxinValue, this.temperatureInCentigrade,
 				this.humidity, this.comments);
 //		return null;
