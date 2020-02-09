@@ -2090,9 +2090,10 @@ class AdvisementLoaderTest {
 					Animal populationAnimal = it.next();
 					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
 					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
-						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.VANDA) > 0);
-						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) < 0);
 						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.GLUCOSA) < 0);
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.P25) > 0);
+						// we have effectively disabled the OIL advisement by setting unachievable threshold in DB
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) < 0);
 						th3Found = true;
 					}
 				}
@@ -2108,7 +2109,7 @@ class AdvisementLoaderTest {
 			eventBean2.setOrgID("IMD");
 			eventBean2.setEventTimeStamp(Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(50)));
 			glucosaEvent = new LifecycleEvent(eventBean2);
-			glucosaEvent.setAuxField1Value(Util.FeedItems.VANDA);
+			glucosaEvent.setAuxField1Value(Util.FeedItems.P25);
 			glucosaEvent.setAuxField2Value(Util.YES);
 			glucosaEvent.setCreatedBy(new User("KASHIF"));
 			glucosaEvent.setUpdatedBy(new User("KASHIF"));
@@ -2125,17 +2126,15 @@ class AdvisementLoaderTest {
 					Animal populationAnimal = it.next();
 					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
 					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
-						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) > 0);
-						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.GLUCOSA) < 0);
-						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.VANDA) < 0);
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.P25) < 0, populationAnimal.getNote(1).getNoteText());
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.GLUCOSA) < 0, populationAnimal.getNote(1).getNoteText());
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) < 0, populationAnimal.getNote(1).getNoteText());
 						th3Found = true;
 					}
 				}
 			}
+//			assertFalse(th3Found,dryPregnant.getAnimalTag() +  "("+ dryPregnant.getAnimalType() + ") cow should have been included in the Pre Calving Feed Threshold3 Advisement population");
 			assertFalse(th3Found,dryPregnant.getAnimalTag() +  "("+ dryPregnant.getAnimalType() + ") cow should NOT have been included in the Pre Calving Feed Threshold3 Advisement population");
-			
-			
-			
 			
 			eventBean2 = new LifeCycleEventBean();
 			eventBean2.setAnimalTag(dryPregnant.getAnimalTag());

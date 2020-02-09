@@ -30,6 +30,7 @@ public class LifeCycleEventsLoader {
 
 	
 	public LifeCycleEventsLoader() {
+		
 	}
 	
 	public int insertLifeCycleEvent(LifecycleEvent event) throws SQLException {

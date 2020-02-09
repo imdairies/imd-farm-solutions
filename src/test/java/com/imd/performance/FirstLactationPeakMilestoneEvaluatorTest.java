@@ -194,7 +194,7 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, oneStarFemale.getDateOfBirth().plusDays((14*30)+275));
 
 			LocalDate milkDate = new LocalDate(oneStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
-			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((oneStarValue-1)/3,1));
+			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((oneStarValue-0.5)/3,1));
 			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
 			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
 			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
@@ -210,7 +210,7 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
 			
 			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
-			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating());
+			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating(),outcome.getEvaluationResultMessage());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Came in heat : To be deleted", Util.LifeCycleEvents.HEAT, oneStarFemale.getDateOfBirth().plusDays((14*30)+275+90));
@@ -455,7 +455,7 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(fourStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fourStarFemale.getDateOfBirth().plusDays((14*30)+275));
 
 			LocalDate milkDate = new LocalDate(fourStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
-			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((fourStarValue-1)/3,1));
+			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((fourStarValue-0.5)/3,1));
 			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
 			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
 			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
@@ -535,7 +535,7 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
-			float fiveStarValue = milestone.getFiveStarThreshold();
+			float fiveStarValue = milestone.getFiveStarThreshold() + 1;
 			
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Came in heat : To be deleted", Util.LifeCycleEvents.HEAT, fiveStarFemale.getDateOfBirth().plusDays(14*30));
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fiveStarFemale.getDateOfBirth().plusDays((14*30) + 1));
@@ -558,7 +558,7 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
 			
 			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
-			assertEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating());
+			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Came in heat : To be deleted", Util.LifeCycleEvents.HEAT, fiveStarFemale.getDateOfBirth().plusDays((14*30)+275+90));

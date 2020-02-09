@@ -12,6 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 
@@ -400,22 +401,6 @@ public class MilkingInformationSrvc {
     }		
 		
 	
-	private String appendMilkingDetails(List<MilkingDetail> milkingRecords, MilkingDetailBean searchBean) throws IMDException {
-		String milkingDetail = "";
-		String prefix = "  ";
-		if (milkingRecords.size() == 0) {
-	    	MilkingDetail recordDetail = new MilkingDetail(searchBean.getOrgID(), searchBean.getAnimalTag(), 
-	    			(short) 0, true, null, null, null, (short) 0);
-	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
-		} else {
-	    	Iterator<MilkingDetail> recordsIt = milkingRecords.iterator();
-	    	while (recordsIt.hasNext()) {
-	    		MilkingDetail recordDetail = recordsIt.next();
-	    		milkingDetail += "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
-	    	}
-		}    	
-		return milkingDetail;
-	}
 
 
 	@POST
@@ -753,6 +738,98 @@ public class MilkingInformationSrvc {
 						(recValue == null || recValue.getComments()== null ? "" : recValue.getComments()) + "\"" + commaOrBracket+ "\n";
 		return json;
 	}	
+
+	
+	@POST
+	@Path("/completemilkingrecord")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveCompleteMilkingRecordOfFarm(MilkingDetailBean searchBean){
+
+		String methodName = "retrieveCompleteMilkingRecordOfFarm";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+
+		String milkDayList = "";
+		String dailyVolList = "";
+		String dateList = "";
+		String milkingRecordInformation = "";
+		String dailyLactatingAnimalsList = "";
+		String dailyAverageList = "";
+		String prefix = "   ";
+    	
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	MilkingDetail milkRec = null;
+    	MilkingDetail lastValidMilkRec = null;
+    	try {
+			MilkingDetail[]  milkRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(new LocalDate(2015,7,22), LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1));
+			for (int i=0; i<milkRecords.length; i++) {
+				milkRec = milkRecords[i];
+				if (milkRec == null) {
+					IMDLogger.log("Null", Util.INFO);
+//					milkRec = new MilkingDetail();
+//					milkRec.setMilkVolume(0f);
+//					milkRec.setRecordDate(lastValidMilkRec.getRecordDate().plusDays(1));
+//					HashMap<String, Float> addStats = new HashMap<String, Float>();
+//					addStats.put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0f);
+//					addStats.put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
+//					milkRec.setAdditionalStatistics(addStats);
+//					lastValidMilkRec = milkRec;
+//					
+//				} else { 
+//					lastValidMilkRec = milkRec;
+				}
+				IMDLogger.log("[" + i + "/" + milkRecords.length + "] : "+ milkRec.getRecordDate() + " : " + milkRec.getMilkVolume(), Util.INFO);
+				milkDayList += milkRec.getRecordDate().getDayOfYear() + ",";
+				dailyVolList += milkRec.getMilkVolume() + ",";
+				dailyLactatingAnimalsList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT) == null ? 0.0 : milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT))+ ",";
+				dailyAverageList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE) == null ? 0.0 : Math.round(((float)milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.DAILY_AVERAGE))*10))/10 + ",";
+				dateList += "\"" + Util.getDateInSpecifiedFormart(milkRec.getRecordDate(),"dd-MMM-YYYY") + "\",";
+			}
+			if (dailyAverageList != null) {
+				int commatoremove = dailyAverageList.lastIndexOf(",");
+				dailyAverageList = dailyAverageList.substring(0,commatoremove);
+			}
+			if (dateList != null) {
+				int commatoremove = dateList.lastIndexOf(",");
+				dateList = dateList.substring(0,commatoremove);
+			}
+			if (milkDayList != null) {
+				int commatoremove = milkDayList.lastIndexOf(",");
+				milkDayList = milkDayList.substring(0,commatoremove);
+			}
+			if (dailyVolList != null) {
+				int commatoremove = dailyVolList.lastIndexOf(",");
+				dailyVolList = dailyVolList.substring(0,commatoremove);
+			}
+			if (dailyLactatingAnimalsList != null) {
+				int commatoremove = dailyLactatingAnimalsList.lastIndexOf(",");
+				dailyLactatingAnimalsList = dailyLactatingAnimalsList.substring(0,commatoremove);
+			}
+			milkingRecordInformation += "[" + "\n" + prefix + "{" +  "\n" + prefix + prefix + "\"title\":\"Jan 2015 - Feb 2020\"," + "\n" + prefix + prefix + "\"max\":600, " + "\n" + prefix + prefix + "\"min\":100, " + "\n" + prefix + prefix +  "\"days\":[" + milkDayList + "],\n"   + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n" + prefix + prefix +  "\"dates\":[" + dateList + "],\n"  + prefix + prefix  + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "],\n" + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception occurred while processing milk information for the following: " +  milkRec, Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(milkingRecordInformation, Util.INFO);
+		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
+    }		
+		
+	
+	
+	
 	
 }
 

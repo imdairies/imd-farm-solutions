@@ -262,6 +262,7 @@ public class MilkingDetailLoader {
 		values.add("" + milkingSearchParam.getMilkingEventNumber());
 		return readRecords(qryString, values);
 	}
+
 	public MilkingDetail[] retrieveFarmMilkVolumeForEachDayOfSpecifiedYear(LocalDate startDate) throws SQLException {
 		LocalDate startOfYear = new LocalDate(startDate.getYear(), 1, 1);
 		LocalDate endOfTheYear = new LocalDate(startDate.getYear(),12, 31);
@@ -304,6 +305,55 @@ public class MilkingDetailLoader {
 		return dailyRecordofTheYear;
 	}
 
+	public MilkingDetail[] retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(LocalDate startDate, LocalDate endDate) throws SQLException {
+		LocalDate rangeStartOfYear  = (startDate != null ? new LocalDate(startDate.getYear(), 1,   1) : null);
+		LocalDate rangeEndOfTheMonth = (endDate   != null ? (new LocalDate(  endDate.getYear(), endDate.getMonthOfYear() + 1, 1)).minusDays(1) : null);
+		List<MilkingDetail> dailyRecordforTheYear = retrieveFarmMilkVolumeForSpecifiedDateRange(rangeStartOfYear, rangeEndOfTheMonth, false);
+		if (rangeStartOfYear == null) {
+			rangeStartOfYear = dailyRecordforTheYear.get(0).getRecordDate(); 
+		}
+		if (rangeEndOfTheMonth == null) {
+			rangeEndOfTheMonth = dailyRecordforTheYear.get(dailyRecordforTheYear.size()-1).getRecordDate();
+		}
+		
+		MilkingDetail[] dailyRecordofTheYear = new MilkingDetail[Util.getDaysBetween(rangeEndOfTheMonth, rangeStartOfYear)+1];
+		
+		Iterator<MilkingDetail> it = dailyRecordforTheYear.iterator();
+		int dayIndex = 0;
+		LocalDate lastInsertedRecordDate = null;
+		lastInsertedRecordDate = rangeStartOfYear.minusDays(1);
+		while (it.hasNext()) {
+			MilkingDetail milkDetail = it.next();
+			int dayIndexInDateRange = Util.getDaysBetween(milkDetail.getRecordDate(), rangeStartOfYear);
+			for (; dayIndexInDateRange > dayIndex; dayIndex++) {
+//				int dateDiffInDays = dayIndexInDateRange - dayIndex;
+				MilkingDetail emptyRecord = new MilkingDetail();
+				emptyRecord.setRecordDate(lastInsertedRecordDate.plusDays(1));
+				emptyRecord.setMilkVolume(0.0f);
+				emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0.0f);
+				emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0.0f);
+				dailyRecordofTheYear[dayIndex] = emptyRecord;
+				lastInsertedRecordDate = emptyRecord.getRecordDate();
+			}
+			dailyRecordofTheYear[dayIndex++] = milkDetail;
+			lastInsertedRecordDate = milkDetail.getRecordDate();
+		}
+		for (; dayIndex < dailyRecordofTheYear.length  ;) {
+			MilkingDetail emptyRecord = new MilkingDetail();
+			if (lastInsertedRecordDate == null) {
+				// case when the year does not have any milking record.
+				lastInsertedRecordDate = rangeStartOfYear.minusDays(1);
+			}
+			lastInsertedRecordDate = lastInsertedRecordDate.plusDays(1);
+			emptyRecord.setRecordDate(lastInsertedRecordDate);
+			emptyRecord.setMilkVolume(0.0f);
+			emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0.0f);
+			emptyRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0.0f);
+			dailyRecordofTheYear[dayIndex] = emptyRecord;
+			dayIndex++;
+		}
+		return dailyRecordofTheYear;
+	}
 	
 	public List<MilkingDetail> retrieveFarmMonthlyMilkVolumeForSpecifiedYear(LocalDate startDate, boolean shouldIncludeMissingMonths) throws SQLException {
 		LocalDate startOfYear = new LocalDate(startDate.getYear(), 1, 1);
@@ -409,20 +459,42 @@ public class MilkingDetailLoader {
 				+ "AVG(LR) AS AVG_LR, "
 				+ "AVG(FAT) AS AVG_FAT, "
 				+ "AVG(TEMP_C) AS AVG_TEMPERATURE "
-				+ " FROM imd.MILK_LOG where " + 
-				"MILK_DATE >= CAST(? AS DATE) AND MILK_DATE <= CAST(? AS  DATE) group by milk_date order by milk_date asc";
+				+ " FROM imd.MILK_LOG ";
+		
+		if (startDate != null) {
+			if (endDate != null) {
+				qryString += " where MILK_DATE >= CAST(? AS DATE) AND MILK_DATE <= CAST(? AS  DATE) group by milk_date order by milk_date asc";
+			} else {
+				qryString += " where MILK_DATE >= CAST(? AS DATE) group by milk_date order by milk_date asc";
+			}
+		} else {
+			if (endDate != null) {
+				qryString += " where MILK_DATE <= CAST(? AS  DATE) group by milk_date order by milk_date asc";
+			} else {
+				qryString += " group by milk_date order by milk_date asc";
+			}
+		}
+		
 		ResultSet rs = null;
+		int i = 1;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		preparedStatement = conn.prepareStatement(qryString);
-		preparedStatement.setString(1,Util.getDateInSpecifiedFormart(startDate, "yyyy-MM-dd"));
-		preparedStatement.setString(2,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
+		if (startDate != null)
+			preparedStatement.setString(i++,Util.getDateInSpecifiedFormart(startDate, "yyyy-MM-dd"));
+		if (endDate != null)
+			preparedStatement.setString(i++,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
 		IMDLogger.log(preparedStatement.toString(),Util.INFO);
 	    rs = preparedStatement.executeQuery();
 	    LocalDate dateInProcess = startDate;
+	    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");			
 	    while (rs.next()) {
+	    	if (dateInProcess == null) {
+	    		// case when the calling function did not specify any start date.
+	    		dateInProcess = dtf.parseLocalDate(rs.getString("MILK_DATE"));
+	    		dateInProcess = new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(),1);
+	    	}
 			MilkingDetail milkDetail = new MilkingDetail();
-			DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");			
 			milkDetail.setRecordDate(new LocalDate(dtf.parseLocalDate(rs.getString("MILK_DATE"))));
 			milkDetail.setMilkVolume(rs.getFloat("VOLUME"));
 			milkDetail.setLrValue(rs.getFloat("AVG_LR"));

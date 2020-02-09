@@ -28,7 +28,6 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 		setAdvisementID(Util.AdvisementRules.CALVINGPREPFEED);
 	}
 
-
 	@Override
 	public List<Animal> applyAdvisementRule(String orgId, String languageCd) {
 		List<Animal> eligiblePopulation = new ArrayList<Animal>();
@@ -39,7 +38,7 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 			Advisement ruleDto =  advLoader.retrieveAdvisementRule(orgId, getAdvisementID(), true);
 			if (ruleDto == null) {
 				return null;
-			} else {				
+			} else {
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
 					Message localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
@@ -84,7 +83,8 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								Iterator<LifecycleEvent> calvingIt = preCalvingFeedEvents.iterator();
 								while (calvingIt.hasNext()) {
 									LifecycleEvent feedEvt = calvingIt.next();
-									String feedItemCode = feedEvt.getAuxField1Value();
+									String feedItemCode = feedEvt.getAuxField1Value() == null ? "" : feedEvt.getAuxField1Value();
+									//String feedItemTypeCode = feedEvt.getAuxField2Value() == null ? "" : feedEvt.getAuxField2Value();
 									if (!item1Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo1()))) {
 										// feed item 1 should be given and there is an event that indicates it was in fact given.
 										item1Found = true;
@@ -92,16 +92,16 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 										// feed item 2 should be given and there is an event that indicates it was in fact given.
 										item2Found = true;
 									} else if (!item3Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo3()))) {
-										// feed item 2 should be given and there is an event that indicates it was in fact given.
+										// feed item 3 should be given and there is an event that indicates it was in fact given.
 										item3Found = true;
 									} else if (!item4Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo4()))) {
-										// feed item 2 should be given and there is an event that indicates it was in fact given.
+										// feed item 4 should be given and there is an event that indicates it was in fact given.
 										item4Found = true;
 									} else if (!item5Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo5()))) {
-										// feed item 2 should be given and there is an event that indicates it was in fact given.
+										// feed item 5 should be given and there is an event that indicates it was in fact given.
 										item5Found = true;
 									} else {
-										IMDLogger.log("The Feed Item: " + feedItemCode + " was administered during pre-calving feeding even though there is no advisement for this. While this is all well and good, you may be wasting money unnecessarily.", Util.WARNING);
+										IMDLogger.log("The Feed Item: " + feedItemCode + " was administered during pre-calving feeding event though there is no advisement for this. While this is all well and good, you may be wasting money unnecessarily.", Util.WARNING);
 									}
 //										float th1 = ruleDto.getFirstThreshold() + this.getFeedItemThreshold1(ruleDto.getAuxInfo1());
 //										float th2 = ruleDto.getSecondThreshold() + this.getFeedItemThreshold2(ruleDto.getAuxInfo1());

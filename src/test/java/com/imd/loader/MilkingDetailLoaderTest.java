@@ -24,6 +24,7 @@ import com.imd.services.bean.MilkingDetailBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
+import com.imd.util.TestDataCreationUtil;
 import com.imd.util.Util;
 
 class MilkingDetailLoaderTest {
@@ -266,6 +267,53 @@ class MilkingDetailLoaderTest {
 		}
 	}
 	
+	@Test
+	void testCompleteMilkingRecordRetrieval() {
+		IMDLogger.loggingMode = Util.INFO;
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+		LocalDate startDate = 	new LocalDate(1900,1,1);
+		try {
+			String orgId = "IMD";
+			String animalTag = "-999";
+			MilkingDetail milkRec1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate, 1, 15f);
+			MilkingDetail milkRec2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate, 2, 15f);
+			MilkingDetail milkRec3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate, 3, 12f);
+			MilkingDetail milkRec4 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1), 1, 14f);
+			MilkingDetail milkRec5 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1), 2, 14f);
+			MilkingDetail milkRec6 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1), 3, 15f);
+			MilkingDetailLoader milkLoader = new MilkingDetailLoader();
+			
+			assertTrue(milkLoader.deleteAllMilkingRecordOfanAnimal(orgId, animalTag) >= 0);
+			
+			assertEquals(1,milkLoader.insertMilkRecord(milkRec1.getMilkingDetailBean()));
+			assertEquals(1,milkLoader.insertMilkRecord(milkRec2.getMilkingDetailBean()));
+			assertEquals(1,milkLoader.insertMilkRecord(milkRec3.getMilkingDetailBean()));
+			assertEquals(1,milkLoader.insertMilkRecord(milkRec4.getMilkingDetailBean()));
+			assertEquals(1,milkLoader.insertMilkRecord(milkRec5.getMilkingDetailBean()));
+			assertEquals(1,milkLoader.insertMilkRecord(milkRec6.getMilkingDetailBean()));
+			
+			MilkingDetail allMilkingRecords[] = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(startDate, null);
+			assertTrue(allMilkingRecords.length >= 2);
+			allMilkingRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(startDate, milkRec6.getRecordDate());
+			assertNotEquals(null, allMilkingRecords);
+			assertEquals(31,allMilkingRecords.length, " Since we added records for 1900-01-01 therefore we should have only two days of records  1 & 2 Jan 1900 with non zero values and the rest 29 days of Jan should be zero volumes");
+			assertTrue(allMilkingRecords[0].getMilkVolume() + 
+					allMilkingRecords[1].getMilkVolume() + 
+					allMilkingRecords[2].getMilkVolume() == 42f+43f, " Since we added records for 1900-01-01 therefore we should have only two days of records  1 & 2 Jan 1900 with non zero values and the rest 29 days of Jan should be zero volumes");
+			assertEquals(1f,allMilkingRecords[0].getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT).floatValue());
+			assertEquals(42f,allMilkingRecords[0].getMilkVolume().floatValue());
+			assertEquals(1f,allMilkingRecords[1].getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT).floatValue());
+			assertEquals(43f,allMilkingRecords[1].getMilkVolume().floatValue());
+			assertEquals(0f,allMilkingRecords[30].getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT).floatValue());
+			assertEquals(0f,allMilkingRecords[30].getMilkVolume().floatValue());
+
+			assertEquals(6,milkLoader.deleteAllMilkingRecordOfanAnimal(orgId, animalTag));
+					
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
 	
 	@Test
 	void testMonthlyConsolidatedMilkingRecords() {

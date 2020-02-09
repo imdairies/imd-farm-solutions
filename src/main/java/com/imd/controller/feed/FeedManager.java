@@ -55,12 +55,19 @@ public class FeedManager {
 		if (farmActiveHerd == null || farmActiveHerd.isEmpty())
 			throw new IMDException("The specified animals do not exist in the farm.");
 		Iterator<Animal> it = farmActiveHerd.iterator();
+		Animal animal = null;
 		while (it.hasNext()) {
-			Animal animal = it.next();
-			animal.setWeight(getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag()));
-			animal.setFeedCohortInformation(getAnimalFeedCohort(animal.getOrgID(), animal.getAnimalTag()));
-			animal.getFeedCohortInformation().setCohortNutritionalNeeds(this.getFeedCohortNutritionalNeeds(animal.getFeedCohortInformation(),animal));
-			animal.setAnimalNutritionalNeeds(getAnimalNutritionalNeeds(animal));
+			try {
+				animal = it.next();
+				animal.setWeight(getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag()));
+				animal.setFeedCohortInformation(getAnimalFeedCohort(animal.getOrgID(), animal.getAnimalTag()));
+				animal.getFeedCohortInformation().setCohortNutritionalNeeds(this.getFeedCohortNutritionalNeeds(animal.getFeedCohortInformation(),animal));
+				animal.setAnimalNutritionalNeeds(getAnimalNutritionalNeeds(animal));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				IMDLogger.log("Exception occurred while retrieving feed information for the animal " + animal.getAnimalTag(), Util.ERROR);
+				
+			}
 		}
 		return farmActiveHerd;
 	}
