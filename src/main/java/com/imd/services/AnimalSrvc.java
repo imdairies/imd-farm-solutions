@@ -2,7 +2,6 @@ package com.imd.services;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,12 +28,10 @@ import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.MessageCatalogLoader;
 import com.imd.loader.MilkingDetailLoader;
-import com.imd.loader.UserLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.services.bean.MilkingDetailBean;
 import com.imd.services.bean.SireBean;
-import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;;
@@ -45,6 +42,8 @@ public class AnimalSrvc {
 	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 285;
 
 
+	
+	
 	/**
 	 * Retrieves ALL the active animals in a farm
 	 * @return

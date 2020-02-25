@@ -772,24 +772,9 @@ public class MilkingInformationSrvc {
     	MilkingDetail milkRec = null;
     	MilkingDetail lastValidMilkRec = null;
     	try {
-			MilkingDetail[]  milkRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(new LocalDate(2015,7,22), LocalDate.now(IMDProperties.getServerTimeZone()).plusDays(1));
+			MilkingDetail[]  milkRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(null, null);
 			for (int i=0; i<milkRecords.length; i++) {
 				milkRec = milkRecords[i];
-				if (milkRec == null) {
-					IMDLogger.log("Null", Util.INFO);
-//					milkRec = new MilkingDetail();
-//					milkRec.setMilkVolume(0f);
-//					milkRec.setRecordDate(lastValidMilkRec.getRecordDate().plusDays(1));
-//					HashMap<String, Float> addStats = new HashMap<String, Float>();
-//					addStats.put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0f);
-//					addStats.put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
-//					milkRec.setAdditionalStatistics(addStats);
-//					lastValidMilkRec = milkRec;
-//					
-//				} else { 
-//					lastValidMilkRec = milkRec;
-				}
-				IMDLogger.log("[" + i + "/" + milkRecords.length + "] : "+ milkRec.getRecordDate() + " : " + milkRec.getMilkVolume(), Util.INFO);
 				milkDayList += milkRec.getRecordDate().getDayOfYear() + ",";
 				dailyVolList += milkRec.getMilkVolume() + ",";
 				dailyLactatingAnimalsList += (milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT) == null ? 0.0 : milkRec.getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT))+ ",";
@@ -816,12 +801,14 @@ public class MilkingInformationSrvc {
 				int commatoremove = dailyLactatingAnimalsList.lastIndexOf(",");
 				dailyLactatingAnimalsList = dailyLactatingAnimalsList.substring(0,commatoremove);
 			}
-			milkingRecordInformation += "[" + "\n" + prefix + "{" +  "\n" + prefix + prefix + "\"title\":\"Jan 2015 - Feb 2020\"," + "\n" + prefix + prefix + "\"max\":600, " + "\n" + prefix + prefix + "\"min\":100, " + "\n" + prefix + prefix +  "\"days\":[" + milkDayList + "],\n"   + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n" + prefix + prefix +  "\"dates\":[" + dateList + "],\n"  + prefix + prefix  + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "],\n" + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
+			String title = milkRecords != null && milkRecords.length > 0 ? 
+					Util.getDateInSpecifiedFormart(milkRecords[0].getRecordDate(), "MMM YYYY")  + " - " + Util.getDateInSpecifiedFormart(milkRecords[milkRecords.length-1].getRecordDate(), "MMM YYYY") 
+					: "";
+			milkingRecordInformation += "[" + "\n" + prefix + "{" +  "\n" + prefix + prefix + "\"title\":\"" + title + "\"," + "\n" + prefix + prefix + "\"max\":600, " + "\n" + prefix + prefix + "\"min\":100, " + "\n" + prefix + prefix +  "\"days\":[" + milkDayList + "],\n"   + prefix + prefix + "\"averages\":[" + dailyAverageList + "],\n" + prefix + prefix +  "\"dates\":[" + dateList + "],\n"  + prefix + prefix  + "\"milkedAnimals\":[" + dailyLactatingAnimalsList + "],\n" + prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception occurred while processing milk information for the following: " +  milkRec, Util.ERROR);
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
-//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(milkingRecordInformation, Util.INFO);
 		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();

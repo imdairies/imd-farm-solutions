@@ -72,7 +72,7 @@ public class PerformanceEvaluationSrvc {
 			}
 			
 			returnJson = "{\n" + badgeInformation + "\"performanceInformation\":[\n" + returnJson + "\n]\n}";
-			IMDLogger.log(returnJson, Util.ERROR);
+			IMDLogger.log(returnJson, Util.INFO);
 			return Response.status(Util.HTTPCodes.OK).entity(returnJson).build();
 		} catch (Exception e) {
 			e.printStackTrace();

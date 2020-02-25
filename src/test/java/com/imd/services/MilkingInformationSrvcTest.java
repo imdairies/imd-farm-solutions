@@ -52,6 +52,12 @@ class MilkingInformationSrvcTest {
 		searchBean.setLoginToken(user.getPassword());
 		resp = srvc.retrieveCompleteMilkingRecordOfFarm(searchBean);
 		assertEquals(Util.HTTPCodes.OK,resp.getStatus());
+		assertTrue(resp.getEntity().toString().indexOf("\"title\":") > 0);
+		assertTrue(resp.getEntity().toString().indexOf("\"days\":") > 0);
+		assertTrue(resp.getEntity().toString().indexOf("\"averages\":") > 0);
+		assertTrue(resp.getEntity().toString().indexOf("\"dates\":") > 0);
+		assertTrue(resp.getEntity().toString().indexOf("\"milkedAnimals\":") > 0);
+		assertTrue(resp.getEntity().toString().indexOf("\"volumes\":") > 0);
 	}
-
 }
+
