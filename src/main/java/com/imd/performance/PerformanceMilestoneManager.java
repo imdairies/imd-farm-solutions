@@ -69,7 +69,6 @@ public class PerformanceMilestoneManager {
 		boolean heiferWeightBadge = false;
 		boolean firstHeatBadge = false;
 		
-
 		boolean firstLactationPeak = false;
 		boolean secondLactationPeak = true;
 		boolean thirdLactationPeak = true;
@@ -82,85 +81,84 @@ public class PerformanceMilestoneManager {
 		boolean firstLactationFertility = false;
 		boolean secondLactationFertility = true;
 		boolean thirdLactationFertility = true;
-		
 
 		while (it.hasNext()) {
 			PerformanceMilestone milestone = it.next();
 			if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.CALFWEIGHT)) {
-				if (milestone.getStarRating() >= 3) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.GROWTH_PLUS_BADGE_STAR_RATNG_THRESHOLD) {
 					calfWeightBadge = true;
 				} else {
 					calfWeightBadge = false;
 				}
 					
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.HEIFERWEIGHT)) {
-				if (milestone.getStarRating() >= 3) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.GROWTH_PLUS_BADGE_STAR_RATNG_THRESHOLD) {
 					heiferWeightBadge = true;
 				} else {
 					heiferWeightBadge = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.FIRSTHEAT)) {
-				if (milestone.getStarRating() >= 3) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.GROWTH_PLUS_BADGE_STAR_RATNG_THRESHOLD) {
 					firstHeatBadge = true;
 				} else {
 					firstHeatBadge = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.FIRSTLACTATIONPEAK)) {
-				if (milestone.getStarRating() >= 3) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.MILK_PLUS_BADGE_STAR_RATNG_THRESHOLD) {
 					firstLactationPeak = true;
 				} else {
 					firstLactationPeak = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.SECONDLACTATIONPEAK)) {
-				if (milestone.getStarRating() >= 3 || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.MILK_PLUS_BADGE_STAR_RATNG_THRESHOLD || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
 					secondLactationPeak = true;
 				} else {
 					secondLactationPeak = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.THIRDLACTATIONPEAK)) {
-				if (milestone.getStarRating() >= 3 || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.MILK_PLUS_BADGE_STAR_RATNG_THRESHOLD || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
 					thirdLactationPeak = true;
 				} else {
 					thirdLactationPeak = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.FIRSTLACTATIONPRODUCTION)) {
-				if (milestone.getStarRating() >= 3) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.MILK_PLUS_BADGE_STAR_RATNG_THRESHOLD) {
 					firstLactationProduction = true;
 				} else {
 					firstLactationProduction = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.SECONDLACTATIONPRODUCTION)) {
-				if (milestone.getStarRating() >= 3 || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.MILK_PLUS_BADGE_STAR_RATNG_THRESHOLD || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
 					secondLactationProduction = true;
 				} else {
 					secondLactationProduction = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.THIRDLACTATIONPRODUCTION)) {
-				if (milestone.getStarRating() >= 3 || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.MILK_PLUS_BADGE_STAR_RATNG_THRESHOLD || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
 					thirdLactationProduction = true;
 				} else {
 					thirdLactationProduction = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.FIRSTLACTATIONFERTILITY)) {
-				if (milestone.getStarRating() >= 3) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.FERTILITY_PLUS_BADGE_STAR_RATNG_THRESHOLD) {
 					firstLactationFertility = true;
 				} else {
 					firstLactationFertility = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.SECONDLACTATIONFERTILITY)) {
-				if (milestone.getStarRating() >= 3 || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.FERTILITY_PLUS_BADGE_STAR_RATNG_THRESHOLD || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
 					secondLactationFertility = true;
 				} else {
 					secondLactationFertility = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.THIRDLACTATIONFERTILITY)) {
-				if (milestone.getStarRating() >= 3 || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.FERTILITY_PLUS_BADGE_STAR_RATNG_THRESHOLD || milestone.getStarRating() == Util.StarRating.ANIMAL_NOT_ELIGIBLE) {
 					thirdLactationFertility = true;
 				} else {
 					thirdLactationFertility = false;
 				}
 			} else if (milestone.getMilestoneID().equals(Util.PerformanceMilestone.CALVINGRATE)) {
-				if (milestone.getStarRating() >= 3) {
+				if (milestone.getStarRating() >= Util.PerformanceBadges.FERTILITY_PLUS_BADGE_STAR_RATNG_THRESHOLD) {
 					calvingRateBadge = true;
 				} else {
 					calvingRateBadge = false;

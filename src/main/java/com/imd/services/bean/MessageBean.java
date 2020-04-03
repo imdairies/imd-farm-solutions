@@ -7,6 +7,7 @@ public class MessageBean {
 	private String loginToken;
 	private String messageCD;
 	private String messageText;
+	private String messageCategoryCD;
 	
 	public String getOrgId() {
 		return orgId;
@@ -49,8 +50,15 @@ public class MessageBean {
 				"\n userId: " + this.userId +
 				"\n languageCD: " + this.languageCD +
 				"\n messageCD: " + this.messageCD +
+				"\n messageCategoryCD: " + this.messageCategoryCD +
 				"\n messageText: " + this.messageText +
 				"\n loginToken: " + this.loginToken;
+	}
+	public String getMessageCategoryCD() {
+		return messageCategoryCD;
+	}
+	public void setMessageCategoryCD(String messageCategoryCD) {
+		this.messageCategoryCD = messageCategoryCD;
 	}
 
 }

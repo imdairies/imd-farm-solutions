@@ -13,7 +13,9 @@ import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
+import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.MilkingDetailLoader;
 import com.imd.services.bean.LifeCycleEventBean;
 
 public class TestDataCreationUtil {
@@ -34,9 +36,18 @@ public class TestDataCreationUtil {
 		milkingRecord.setUpdatedDTTM(DateTime.now());
 		return milkingRecord;
 	}
+
 	
+	public static int deleteAllMilkingRecordOfanAnimal(String orgId, String animalTag) {
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+		return loader.deleteAllMilkingRecordOfanAnimal(orgId, animalTag);
+	}
+
 	
-	
+	public static int insertMilkingRecord(MilkingDetail milkRecord) {
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+		return loader.insertMilkRecord(milkRecord.getMilkingDetailBean());		
+	}
 	public static Animal createTestAnimal(String orgId, String animalTag, DateTime dob, boolean isFemale) throws Exception {
 		Animal c000 = null;
 		if (isFemale)
@@ -62,8 +73,33 @@ public class TestDataCreationUtil {
 		c000.addNote(newNote);
 		return c000;
 	}
+	
+	public static int insertAnimal(Animal animal) throws Exception {
+		AnimalLoader loader = new AnimalLoader();
+		return (loader.insertAnimal(animal));
+	}
+
+	public static int deleteAnimal(Animal animal) throws Exception {
+		return (deleteAnimal(animal.getOrgID(),animal.getAnimalTag()));
+	}
+	
+	public static int deleteAnimal(String orgId, String animalTag) throws Exception {
+		AnimalLoader loader = new AnimalLoader();
+		return (loader.deleteAnimal(orgId, animalTag));
+	}
+	
+	public static int deleteAllAnimalEvents(String orgId, String animalTag) throws Exception {
+		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+		return (loader.deleteAnimalLifecycleEvents(orgId, animalTag));
+	}
+	
+	public static int deleteLifecycleEvent(String orgId, String transId) throws Exception {
+		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
+		return (loader.deleteLifeCycleEvent(orgId, transId));
+	}
+	
 	public static int insertEvent(String animalTag, String comments, String eventCode, DateTime eventDTTM) throws IMDException, SQLException {
-		return insertEvent(animalTag, comments, eventCode, eventDTTM, null, null, null,null);
+		return insertEvent(animalTag, comments, eventCode, eventDTTM, null, null, null, null);
 	}	
 	public static int insertEvent(String animalTag, String comments, String eventCode, DateTime eventDTTM, String aux1, String aux2, String aux3, String aux4) throws IMDException, SQLException {
 		LifeCycleEventBean eventBean = new LifeCycleEventBean();

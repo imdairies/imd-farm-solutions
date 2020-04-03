@@ -12,7 +12,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 
@@ -597,7 +596,7 @@ public class MilkingInformationSrvc {
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		responseCode = loader.insertMilkRecord(milkingRecord);
-    		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
+    		if (responseCode == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
     			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
     		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
     			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();

@@ -1,14 +1,14 @@
 package com.imd.dto;
 
 
-import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.imd.util.IMDProperties;
 
 public class Message extends IMDairiesDTO{
 	private String languageCD;
 	private String messageCD;
+	private String messageCategoryCD;
+	private String messageCategoryDescription;
 	private String messageText;
 	public Message(String orgId, String languageCD2, String messageCd2) {
 		this.setOrgID(orgId);
@@ -42,6 +42,8 @@ public class Message extends IMDairiesDTO{
 	private String stringify(String prefix) {
 		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
 				prefix + fieldToJson("languageCD", this.languageCD) + ",\n" +
+				prefix + fieldToJson("messageCategoryCD", this.messageCategoryCD) + ",\n" +
+				prefix + fieldToJson("messageCategoryDescription", this.messageCategoryDescription) + ",\n" +
 				prefix + fieldToJson("messageCD", this.messageCD) + ",\n" +
 				prefix + fieldToJson("messageText", this.messageText) + ",\n";
 	}
@@ -55,12 +57,26 @@ public class Message extends IMDairiesDTO{
 	public Message clone() {
 		Message clonedMessage = new Message(this.getOrgID(), this.languageCD, this.messageCD);
 		clonedMessage.setMessageText(this.messageText);
+		clonedMessage.setMessageCategoryCD(this.messageCategoryCD);
+		clonedMessage.setMessageCategoryDescription(this.messageCategoryDescription);
 		clonedMessage.setCreatedBy(this.getCreatedBy());
 		clonedMessage.setCreatedDTTM(this.getCreatedDTTM());
 		clonedMessage.setUpdatedBy(this.getUpdatedBy());
 		clonedMessage.setUpdatedDTTM(this.getUpdatedDTTM());
 		return clonedMessage;
 
+	}
+	public String getMessageCategoryCD() {
+		return messageCategoryCD;
+	}
+	public void setMessageCategoryCD(String messageCategoryCD) {
+		this.messageCategoryCD = messageCategoryCD;
+	}
+	public String getMessageCategoryDescription() {
+		return messageCategoryDescription;
+	}
+	public void setMessageCategoryDescription(String messageCategoryDescription) {
+		this.messageCategoryDescription = messageCategoryDescription;
 	}
 
 

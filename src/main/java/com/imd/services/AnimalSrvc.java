@@ -18,8 +18,10 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.imd.controller.LactationInformationManager;
 import com.imd.dto.Animal;
 import com.imd.dto.Dam;
+import com.imd.dto.LactationInformation;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.Sire;
@@ -358,7 +360,7 @@ public class AnimalSrvc {
 			String message = performPostInsertionSteps(animal);
 			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New Animal has been created successfully. "+ message + "\"}").build();
 		}
-		else if (result == Util.ERROR_CODE.ALREADY_EXISTS) {
+		else if (result == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION) {
 			String message = MessageCatalogLoader.getMessage(orgID, langCd, Util.MessageCatalog.ALREADY_EXISTS).getMessageText();
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + message + "\"}").build();
 //			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Another animal with the same tag already exists. Please use a different tag number.\"}").build();
@@ -553,7 +555,7 @@ public class AnimalSrvc {
 		if (result == 1) {
 			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"Sire has been added successfully.\"}").build();
 		}
-		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+		else if (result == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Sire with the same tag/code already exists. Please use a different tag/code.\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Sire  '" + tag+ "' could not be added. Please reduce the field length and try again.\"}").build();
@@ -732,15 +734,13 @@ public class AnimalSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response searchAnimals(AnimalBean searchBean){
 		
-//		int originalMode = IMDLogger.loggingMode;
-//		IMDLogger.loggingMode = Util.INFO;
-		
-		IMDLogger.log("searchAnimals Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".searchAnimals",searchBean.getLoginToken());
+		String methodName = "searchAnimals";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName, searchBean.getLoginToken());
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".searchAnimals", Util.WARNING);
+					+ this.getClass().getName()  + "." + methodName, Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
 		String orgID = user.getOrgID();
@@ -770,12 +770,8 @@ public class AnimalSrvc {
     			tagInClause = "(" + tagInClause + ")";
     			searchBean.setAnimalTag(tagInClause);
     			
-       			//animalValues = loader.retrieveSpecifiedAnimalTags(searchBean, tagInClause);   			
-//    			animalValues = loader.retrieveMatchingAnimals(searchBean);
     		} 
-//    		else {
 			animalValues = loader.retrieveMatchingAnimals(searchBean);
-//    		}
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -796,10 +792,6 @@ public class AnimalSrvc {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
-    	
-//		IMDLogger.loggingMode = originalMode;
-
-    	
 		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 
@@ -931,7 +923,6 @@ public class AnimalSrvc {
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -974,7 +965,6 @@ public class AnimalSrvc {
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -1017,7 +1007,6 @@ public class AnimalSrvc {
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -1060,7 +1049,6 @@ public class AnimalSrvc {
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-
 			}
 	    	Iterator<Animal> animalValueIt = animalValues.iterator();
 	    	while (animalValueIt.hasNext()) {
@@ -1079,116 +1067,7 @@ public class AnimalSrvc {
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
-//	@POST
-//	@Path("/lactatingcowsmilkrecord")
-//	@Consumes (MediaType.APPLICATION_JSON)
-//	public Response retrieveLactatingAnimalsMilkRecord(MilkingDetailBean selectedDateSearchBean) {
-//		//TODO: Improve the implementation of this service. It is inefficient and counter intuitive. 
-//		// TODO: The monthly average averages across the month in all of the lifetime of the cow instead of only for one month i.e.
-//		// Feb average will be for Febs of all the years, instead of only the Feb for a given year. This is not the right way to deduce monthly average.
-//		IMDLogger.log("retrieveLactatingAnimalsMilkRecord Called ", Util.INFO);
-//		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveLactatingAnimalsMilkRecord",selectedDateSearchBean.getLoginToken());
-//		if (user == null) {
-//			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
-//					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-//					+ this.getClass().getName() + ".retrieveLactatingAnimalsMilkRecord", Util.WARNING);
-//			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
-//		}
-//		String orgID = user.getOrgID();
-//		String langCd = user.getPreferredLanguage();
-//		selectedDateSearchBean.setOrgID(orgID);
-//		IMDLogger.log(selectedDateSearchBean.toString(), Util.INFO);
-//
-//    	String animalValueResult = "";
-//    	try {
-//    		AnimalLoader loader = new AnimalLoader();
-//    		MilkingDetailLoader milkingLoader = new MilkingDetailLoader();
-//    		List<Animal> animalValues = null;
-//    		if (selectedDateSearchBean.getRecordDate().isBefore(LocalDate.now(IMDProperties.getServerTimeZone()))) {
-//    			// a past date has been selected so we bring all animals who had a milk record for that date 
-//    			animalValues = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(selectedDateSearchBean.getOrgID(),selectedDateSearchBean.getRecordDate(),selectedDateSearchBean.getMilkingEventNumber());    			
-//    		} 
-//    		if (animalValues == null || animalValues.size() == 0) {
-//    			// case when the date is current or future OR when a past date does not have any milking entry. In such cases 
-//    			// we bring in all currently lactating animals. 
-//    			animalValues = loader.retrieveActiveLactatingAnimals(selectedDateSearchBean.getOrgID());
-//    		}
-//    		
-//			if (animalValues == null || animalValues.size() == 0)
-//			{
-//				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
-//
-//			}
-//	    	Iterator<Animal> animalValueIt = animalValues.iterator();
-//	    	while (animalValueIt.hasNext()) {
-//	    		Animal animalValue = animalValueIt.next();
-//	    		selectedDateSearchBean.setAnimalTag(animalValue.getAnimalTag());
-//	    		MilkingDetailBean previousDateSearchBean = new MilkingDetailBean(selectedDateSearchBean);
-//	    		previousDateSearchBean.setRecordDate(selectedDateSearchBean.getRecordDate().minusDays(1));
-//	    		List <MilkingDetail> selectedDateMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(selectedDateSearchBean, true);
-//	    		List <MilkingDetail> prevDayMilkingInfo = null;
-//	    		if (selectedDateMilkingInfo == null || selectedDateMilkingInfo.size() == 0)
-//	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(previousDateSearchBean, true);
-//	    		else
-//	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(previousDateSearchBean, false);
-//	    		
-//	    		animalValueResult += appendMilkingDetails(selectedDateMilkingInfo,prevDayMilkingInfo,selectedDateSearchBean);
-//	    	}
-//	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
-//	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
-//	    	else
-//	    		animalValueResult = "[]";
-//	    	IMDLogger.log(animalValueResult, Util.INFO);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			IMDLogger.log("Exception in AnimalSrvc.retrieveLactatingAnimalsMilkRecord() service method: " + e.getMessage(),  Util.ERROR);
-//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
-//		}
-//    	IMDLogger.log(animalValueResult, Util.INFO);
-//		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
-//    }
-//	private String appendMilkingDetails(List<MilkingDetail> selectedDaysMilkingRecords, List<MilkingDetail> previousDaysMilkingRecords, MilkingDetailBean searchBean) throws IMDException {
-//		String milkingDetail = "";
-//		String prefix = "  ";
-//		if (selectedDaysMilkingRecords == null || selectedDaysMilkingRecords.size() == 0) {
-//	    	MilkingDetail recordDetail = new MilkingDetail(searchBean.getOrgID(), searchBean.getAnimalTag(), 
-//	    			(short) 0, true, null, null, null, (short) 0);
-//	    	recordDetail.setAdditionalStatistics(getPreviousDaysVolumeForAnimal(searchBean.getAnimalTag(),previousDaysMilkingRecords));
-//			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.DAYS_IN_MILKING, getDaysInMilking(searchBean.getOrgID(), searchBean.getAnimalTag(),searchBean.getRecordDate()));
-//	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
-//		} else {
-//	    	Iterator<MilkingDetail> recordsIt = selectedDaysMilkingRecords.iterator();
-//	    	while (recordsIt.hasNext()) {
-//	    		MilkingDetail recordDetail = recordsIt.next();
-//	    		HashMap<String, Float> prevDayValues = getPreviousDaysVolumeForAnimal(recordDetail.getAnimalTag(),previousDaysMilkingRecords);
-//				recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.DAYS_IN_MILKING, getDaysInMilking(searchBean.getOrgID(), searchBean.getAnimalTag(),searchBean.getRecordDate()));
-//	    		if (prevDayValues != null) {
-//	    			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL, prevDayValues.get(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL));
-//	    		}
-//	    		milkingDetail += "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
-//	    		IMDLogger.log(milkingDetail, Util.INFO);
-//	    	}
-//		}
-//		return milkingDetail;
-//	}
-//	private Float getDaysInMilking(String orgID, String animalTag, LocalDate toDateForDaysInMilking) {
-//		MilkingDetailLoader loader = new MilkingDetailLoader();
-//		return new Float(loader.getDaysInMilkingOfCow(orgID, animalTag, true, toDateForDaysInMilking));
-//	}
-//	private HashMap <String, Float> getPreviousDaysVolumeForAnimal(String animalTag, List<MilkingDetail> previousDaysMilkingRecords) {
-//		HashMap <String, Float> values = null;
-//    	Iterator<MilkingDetail> recordsIt = previousDaysMilkingRecords.iterator();
-//    	while (recordsIt.hasNext()) {
-//    		MilkingDetail recordDetail = recordsIt.next();
-//    		if (recordDetail.getAnimalTag().equalsIgnoreCase(animalTag)) {
-//    			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL, recordDetail.getMilkVolume());
-//    			values = recordDetail.getAdditionalStatistics();
-//    			break;
-//    		}
-//    	}
-//    	return values;
-//	}
-
+	
 	@POST
 	@Path("/addmilkingrecord")
 	@Consumes (MediaType.APPLICATION_JSON)
@@ -1222,7 +1101,7 @@ public class AnimalSrvc {
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		responseCode = loader.insertMilkRecord(milkingRecord);
-    		if (responseCode == Util.ERROR_CODE.ALREADY_EXISTS)
+    		if (responseCode == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
     			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
     		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
     			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
@@ -1299,7 +1178,6 @@ public class AnimalSrvc {
 	    			IMDLogger.log(currentDate.toString(), Util.INFO);
 	    		}
 	    		dailyRecords.add(recValue);
-//	    		milkingInformation += "{\n" + recValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
     		milkingInformation += consolidateDailyMilkingRecord(dailyRecords) + "\n";
 	    	if (milkingInformation != null && !milkingInformation.trim().isEmpty() )
@@ -1463,12 +1341,13 @@ public class AnimalSrvc {
 	@Path("/retrieveprogney")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveProgney(AnimalBean searchBean){
-		IMDLogger.log("retrieveProgney Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveProgney",searchBean.getLoginToken());
+		String methodName = "retrieveProgney";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + methodName + ".",searchBean.getLoginToken());
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveProgney", Util.WARNING);
+					+ this.getClass().getName() + methodName + ".", Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
 		String orgID = user.getOrgID();
@@ -1504,10 +1383,59 @@ public class AnimalSrvc {
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }	
+
 	
-	
-	
+	@POST
+	@Path("/lactationinformation")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveLactationInformation(AnimalBean searchBean){
+		String methodName = "retrieveLactationInformation";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + methodName + ".",searchBean.getLoginToken());
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + methodName + ".", Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgID();
+		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+    	String lacDetailResult = "";
+    	try {
+    		if (searchBean.getAnimalTag() == null || searchBean.getAnimalTag().isEmpty())
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Please specify the animal tag\"}").build();
+    		
+    		LactationInformationManager lacMgr = new LactationInformationManager();
+    		List<LactationInformation> lacInfo = lacMgr.getAnimalLactationInformation(orgID, searchBean.getAnimalTag());
+
+			if (lacInfo == null || lacInfo.size() == 0)
+			{
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No lactation information could be found for this animal\"}").build();
+			}
+	    	Iterator<LactationInformation> lacInfoIt = lacInfo.iterator();
+	    	while (lacInfoIt.hasNext()) {
+	    		LactationInformation lacDetail = lacInfoIt.next();
+	    		lacDetailResult += "{\n" + lacDetail.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
+	    	}
+	    	if (lacDetailResult != null && !lacDetailResult.trim().isEmpty() )
+	    		lacDetailResult = "[" + lacDetailResult.substring(0,lacDetailResult.lastIndexOf(",\n")) + "]";
+	    	else
+	    		lacDetailResult = "[]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.retrieveProgney() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Error occurred while retrieving animal lactation information: (" +  e.getMessage() + ")\"}").build();
+		}
+    	IMDLogger.log(lacDetailResult, Util.INFO);
+		return Response.status(Util.HTTPCodes.OK).entity(lacDetailResult).build();
+    }	
+
 }
+
+
+
 
 
 

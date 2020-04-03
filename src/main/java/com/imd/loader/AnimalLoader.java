@@ -14,6 +14,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import com.imd.dto.Animal;
+import com.imd.dto.AnimalPhoto;
 import com.imd.dto.Contact;
 import com.imd.dto.Dam;
 import com.imd.dto.Sire;
@@ -87,7 +88,7 @@ public class AnimalLoader {
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
@@ -152,7 +153,7 @@ public class AnimalLoader {
 			preparedStatement.setString(16,(updatedDttm == null ? null : Util.getDateTimeInSQLFormat(updatedDttm)));
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
@@ -181,26 +182,28 @@ public class AnimalLoader {
 	}
 
 	public int deleteAnimal(String orgID, String animalTag) {
-		String qryString = "DELETE FROM ANIMALS where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "'";
-		int result = -1;
+		String qryString = "DELETE FROM ANIMALS where ORG_ID=? AND ANIMAL_TAG =? ";
+		int recordDeleted = 0;
 		Statement st = null;
+		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
-			st = conn.createStatement();
-			IMDLogger.log(qryString, Util.INFO);
-			result = st.executeUpdate(qryString);			
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, orgID);
+			preparedStatement.setString(2, animalTag);
+			recordDeleted = preparedStatement.executeUpdate();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
 		    try {
-				if (st != null && !st.isClosed()) {
-					st.close();	
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
-		return result;
+		return recordDeleted;
 	}
 	public int deleteSire(String animalTag) {
 		String qryString = "DELETE FROM LV_SIRE where ID = '" + animalTag + "'";
@@ -292,7 +295,7 @@ public class AnimalLoader {
 	}
 	public List<Animal> retrieveSpecifiedAnimalTags(String orgID, String commaSeparatedAnimalTagList) {
 		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " +
-				"from ANIMALS A " +
+				" from ANIMALS A " +
 				"	LEFT OUTER JOIN LV_SIRE B " +
 				"	ON A.SIRE_TAG=B.ID " +
 				"	LEFT OUTER JOIN LOOKUP_VALUES C " +
@@ -334,18 +337,20 @@ public class AnimalLoader {
 		
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
 		String orderBy = orderByClause == null || orderByClause.isEmpty() ? " ORDER BY DOB DESC " : orderByClause;
-		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
-				"from ANIMALS A " + 
-				"	LEFT OUTER JOIN LV_SIRE B " + 
-				"	ON A.SIRE_TAG=B.ID " + 
-				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
-				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" +   
+		String qryString = "Select P.PHOTO_COUNT, A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR " + 
+				" from ANIMALS A " +
+				"	LEFT OUTER JOIN LV_SIRE B " +
+				"	ON A.SIRE_TAG=B.ID " +
+				"	LEFT OUTER JOIN animal_photo_count_vw P " +
+				"	ON A.ANIMAL_TAG = P.ANIMAL_TAG AND P.ORG_ID=A.ORG_ID " +
+				"	LEFT OUTER JOIN LOOKUP_VALUES C " +
+				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" +
 				" WHERE ( A.ORG_ID=? ";
 		
 		
 		List<String> values = new ArrayList<String> ();
 		values.add(Util.LookupValues.LCYCL);
-		values.add(animalBean.getOrgID());		
+		values.add(animalBean.getOrgID());
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
 			if (animalBean.getAnimalTag().contains("("))
 				qryString +=  " AND A.ANIMAL_TAG IN  " + animalBean.getAnimalTag();
@@ -365,8 +370,19 @@ public class AnimalLoader {
 		if (animalBean.getSire() != null && !animalBean.getSire().isEmpty()) {
 			qryString +=  " AND SIRE_TAG ='" + animalBean.getSire() + "' " ;
 		}
-		if (animalBean.getDateOfBirthStr() != null && !animalBean.getDateOfBirthStr().isEmpty()) {
-			qryString +=  " AND DOB >= '" + animalBean.getDateOfBirthStr() + "' " ;
+		if (animalBean.getDobFrom() != null && !animalBean.getDobFrom().isEmpty()) {
+			qryString +=  " AND DOB >= '" + animalBean.getDobFrom() + "' " ;
+		}
+		if (animalBean.getDobTo() != null && !animalBean.getDobTo().isEmpty()) {
+			qryString +=  " AND DOB <= '" + animalBean.getDobTo() + "' " ;
+		}
+		if (animalBean.getAgeInMonthsFrom() != null && !animalBean.getAgeInMonthsFrom().isEmpty()) {
+			int ageInHoursFrom = (int)Math.round(Float.parseFloat(animalBean.getAgeInMonthsFrom()) * 30.5f * 24f);
+			qryString +=  " AND DOB >= '" + DateTime.now(IMDProperties.getServerTimeZone()).minusHours(ageInHoursFrom) + "' " ;
+		}
+		if (animalBean.getAgeInMonthsTo() != null && !animalBean.getAgeInMonthsTo().isEmpty()) {
+			int ageInHoursTo = (int)Math.round(Float.parseFloat(animalBean.getAgeInMonthsTo()) * 30.5f * 24f);
+			qryString +=  " AND DOB <= '" + DateTime.now(IMDProperties.getServerTimeZone()).minusHours(ageInHoursTo) + "' " ;
 		}
 		if (additionalQuery != null && !additionalQuery.trim().isEmpty()) 
 			qryString += " AND " + additionalQuery;
@@ -482,6 +498,7 @@ public class AnimalLoader {
 		String leftPoseImage = rs.getString("LEFT_POSE");
 		String aiInd = rs.getString("AI_IND");
 		String statusIndicators = null;
+		Integer photoCount = 0;
 		int lactationNbr = 0;
 		
 		try {
@@ -493,6 +510,11 @@ public class AnimalLoader {
 			lactationNbr = rs.getInt("LACTATION_NBR");
 		} catch (Exception ex) {
 			//ex.printStackTrace();
+		}	
+		try {
+			photoCount = rs.getInt("PHOTO_COUNT");
+		} catch (Exception ex) {
+			photoCount = 0;
 		}	
 		boolean isEstimated = (ind == null || ind.trim().isEmpty() || ind.trim().equalsIgnoreCase("N") ? true : false);
 		Animal animal;
@@ -523,6 +545,7 @@ public class AnimalLoader {
 		animal.setBornThroughAI((aiInd != null && aiInd.equalsIgnoreCase("Y")) ? true : false);
 		animal.setHerdJoiningDate(herdJoiningDttm);
 		animal.setHerdLeavingDate(herdLeavingDttm);
+		animal.setPhotoCount(photoCount);
 		animal.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		animal.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		animal.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
@@ -545,15 +568,14 @@ public class AnimalLoader {
 		int i=1;
 		while (it.hasNext())
 			preparedStatement.setString(i++,it.next());
-		IMDLogger.log(preparedStatement.toString(),Util.INFO);		
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
 	    rs = preparedStatement.executeQuery();
 	    while (rs.next()) {
-			animalValue = getSireFromSQLRecord(rs);	    	
+			animalValue = getSireFromSQLRecord(rs);
 	    	allMatchingValues.add(animalValue);
 	    }
 	    return allMatchingValues;
 	}
-	
 	
 	public List<Animal> retrieveDamOrSire(AnimalBean animalBean)  throws Exception {
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
@@ -562,7 +584,7 @@ public class AnimalLoader {
 				" LEFT OUTER JOIN LV_SIRE s ON A.SIRE_TAG=s.ID " + 
 				" LEFT OUTER JOIN LOOKUP_VALUES C ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" + 
 				" WHERE ( A.ORG_ID=? AND A.GENDER=?)";
-		
+
 		List<String> values = new ArrayList<String> ();
 		values.add( Util.LookupValues.LCYCL);
 		values.add(animalBean.getOrgID());
@@ -577,7 +599,7 @@ public class AnimalLoader {
 		int i=1;
 		while (it.hasNext())
 			preparedStatement.setString(i++,it.next());
-		IMDLogger.log(preparedStatement.toString(),Util.INFO);		
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
 	    rs = preparedStatement.executeQuery();
 	    while (rs.next()) {
 	    	animalValue = getAnimalFromSQLRecord(rs);
@@ -691,6 +713,54 @@ public class AnimalLoader {
 		return retrieveAnimalTypes(values, qryString);
 	}
 
+	public ArrayList<AnimalPhoto> retrieveAnimalPhotos(String orgID, String animalTag) throws Exception {
+		
+		ArrayList<AnimalPhoto> allPhotoURIs = new ArrayList<AnimalPhoto>();
+		String qryString = " SELECT A.DOB," +
+				" B.ORG_ID,  " +
+				" B.ANIMAL_TAG,  " +
+				" B.PHOTO_ID,  " +
+				" B.PHOTO_URI,  " +
+				" B.COMMENTS,  " +
+				" B.PHOTO_DTTM," +
+				" B.CREATED_BY,  " +
+				" B.CREATED_DTTM, " +
+				" B.UPDATED_BY,  " +
+				" B.UPDATED_DTTM  " +
+				" FROM imd.ANIMALS A, imd.ANIMAL_PHOTO B  " +
+				" WHERE  A.ORG_ID=B.ORG_ID AND A.ANIMAL_TAG=B.ANIMAL_TAG AND " +
+				" A.ORG_ID=? AND A.ANIMAL_TAG=? ORDER BY B.PHOTO_DTTM DESC";
+		
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		preparedStatement = conn.prepareStatement(qryString);
+		int i=1;
+		preparedStatement.setString(i++,orgID);
+		preparedStatement.setString(i++,animalTag);
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		rs = preparedStatement.executeQuery();
+		
+	    while (rs.next()) {
+	    	AnimalPhoto photo = new AnimalPhoto();
+	    	photo.setOrgID(rs.getString("ORG_ID"));
+	    	photo.setAgeAtPhotoDTTM(new DateTime(rs.getTimestamp("DOB"),IMDProperties.getServerTimeZone()));
+	    	photo.setAnimalTag(rs.getString("ANIMAL_TAG"));
+	    	photo.setPhotoID(rs.getString("PHOTO_ID"));
+	    	photo.setPhotoURI(rs.getString("PHOTO_URI"));
+	    	photo.setComments(rs.getString("COMMENTS"));
+	    	photo.setPhotoTimeStamp(new DateTime(rs.getTimestamp("PHOTO_DTTM"),IMDProperties.getServerTimeZone()));
+	    	photo.setCreatedBy(new User(rs.getString("CREATED_BY")));
+	    	photo.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
+	    	photo.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
+	    	photo.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
+	    	allPhotoURIs.add(photo);
+	    }
+		return allPhotoURIs;
+	}
+	
+	
+	
 	private ArrayList<Animal> retrieveAnimalTypes(List<String> values, String qryString) throws SQLException, IMDException {
 		ArrayList<Animal> allMatchingValues = new ArrayList<Animal>();
 		Animal animalValue = null;
@@ -1149,6 +1219,109 @@ public class AnimalLoader {
 		values.add(Util.getDateInSQLFormat(minDob));
 		values.add(Util.getDateInSQLFormat(maxDob));
 		return retrieveAnimalTypes(values, qryString);
+	}
+	
+	public int deleteAllAnimalPhotos(String orgID, String animalTag) {
+		String qryString = "DELETE FROM imd.ANIMAL_PHOTO where ORG_ID=? AND ANIMAL_TAG = ?";
+		int recordDeleted = 0;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, orgID);
+			preparedStatement.setString(2, animalTag);
+			recordDeleted = preparedStatement.executeUpdate();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordDeleted;
+	}	
+	
+	public int deleteSpecificAnimalPhotos(String orgID, String animalTag, String photoID) {
+		String qryString = "DELETE FROM imd.ANIMAL_PHOTO where ORG_ID = ? AND ANIMAL_TAG = ? AND PHOTO_ID = ? ";
+		int recordDeleted = 0;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(1, orgID);
+			preparedStatement.setString(2, animalTag);
+			preparedStatement.setString(3, photoID);
+			recordDeleted = preparedStatement.executeUpdate();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordDeleted;
+	}
+	public int insertAnimalPhoto(AnimalPhoto photo) {
+		int recordAdded = -1;
+		String qryString = "insert into ANIMAL_PHOTO (ORG_ID,"
+				+ "ANIMAL_TAG,"
+				+ "PHOTO_ID,"
+				+ "PHOTO_URI,"
+				+ "COMMENTS,"
+				+ "PHOTO_DTTM,"
+				+ "CREATED_BY,"
+				+ "CREATED_DTTM,"
+				+ "UPDATED_BY,"
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?)";
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, (photo.getOrgID() == null ? null : photo.getOrgID()));
+			preparedStatement.setString(index++, (photo.getAnimalTag() == null ? null : photo.getAnimalTag()));
+			preparedStatement.setString(index++, (photo.getPhotoID() == null ? null : photo.getPhotoID()));
+			preparedStatement.setString(index++, (photo.getPhotoURI() == null ? null : photo.getPhotoURI()));
+			preparedStatement.setString(index++, (photo.getComments() == null ? null : photo.getComments()));
+			preparedStatement.setString(index++, (photo.getPhotoTimeStamp() == null ? null : Util.getDateTimeInSQLFormat(photo.getPhotoTimeStamp())));
+			preparedStatement.setString(index++, (photo.getCreatedBy() == null ? null : photo.getCreatedBy().getUserId()));
+			preparedStatement.setString(index++, (photo.getCreatedDTTM() == null ? null :photo.getCreatedDTTMSQLFormat()));
+			preparedStatement.setString(index++,(photo.getUpdatedBy() == null ? null : photo.getUpdatedBy().getUserId()));
+			preparedStatement.setString(index++,(photo.getUpdatedDTTM() == null ? null :photo.getUpdatedDTTMSQLFormat()));
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			recordAdded = preparedStatement.executeUpdate();
+		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
+			ex.printStackTrace();
+		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
+			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
+			ex.printStackTrace();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordAdded;	
 	}	
 }
 

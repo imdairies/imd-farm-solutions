@@ -79,7 +79,7 @@ public class LifecycleEventSrvc {
 	    	Iterator<LifecycleEvent> eventIt = events.iterator();
 	    	while (eventIt.hasNext()) {
 	    		LifecycleEvent event = eventIt.next();
-	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("d MMM yyyy h:mm a");
+	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
 	    		String extendedComment = formatComent(event);
 	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animalValues.get(0).getDateOfBirth()) + ",\n  \"formattedComments\":\"" + Util.encodeJson(extendedComment) + "\"\n},\n";	    		
 	    	}
@@ -219,12 +219,13 @@ public class LifecycleEventSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addEventForMultipleAnimals(LifeCycleEventBean eventBean){
 
-		IMDLogger.log("addEventForMultipleAnimals Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".addEventForMultipleAnimals",eventBean.getLoginToken());
+		String methodName = "addEventForMultipleAnimals";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,eventBean.getLoginToken());
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".addEventForMultipleAnimals", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
 		String orgID = user.getOrgID();
@@ -297,7 +298,7 @@ public class LifecycleEventSrvc {
 			if (animals == null || animals.isEmpty()) { 
 				additionalMessage = Util.ERROR_POSTFIX + animalBean.getAnimalTag() + " does not exist";
 			} else {
-				event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
+				event = new LifecycleEvent(eventBean, "yyyy-MM-dd HH:mm");
 				LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 				event.setCreatedBy(new User(userID));
 				event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
@@ -370,7 +371,7 @@ public class LifecycleEventSrvc {
 					// exactly one animal should exist for the specified animal tag.
 				} else {
 					Animal animal = animals.get(0);
-					event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
+					event = new LifecycleEvent(eventBean, "yyyy-MM-dd HH:mm");
 					event.setCreatedBy(user);
 					event.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 					event.setUpdatedBy(user);
@@ -386,7 +387,7 @@ public class LifecycleEventSrvc {
 			}
 			if (result > 0)
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully. The Transaction Id is: " + Util.encodeJson(result + additionalMessage) + "\"}").build();
-			else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+			else if (result == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + Util.encodeJson(eventCode)  + "' already exists\"}").build();
 			else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
@@ -432,7 +433,7 @@ public class LifecycleEventSrvc {
 			if (event.getEventTimeStamp() == null)
 				return ". " + Util.ERROR_POSTFIX + "The calf date of birth has not been specified. The calf will not be automatically added. Please add the calf manually";
 			
-			calfBean.setDateOfBirthStr(Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp(),"MM/dd/yyyy, hh:mm:ss aa"));
+			calfBean.setDateOfBirthStr(Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp(),"yyyy-MM-dd HH:mm"));
 			calfBean.setBreed(animal.getBreed());
 			calfBean.setDam(animal.getAnimalTag());
 			calfBean.setOrgID(animal.getOrgID());
@@ -485,8 +486,8 @@ public class LifecycleEventSrvc {
 	private String performPostEventAdditionInfomationProcessing(LifecycleEvent event, Animal animal, User user) {
 		String message = "";
 		if (event.getEventType().getEventCode().equals(Util.LifeCycleEvents.HEAT)) {
-			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd K:mm a") +
-					" - " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd K:mm a")
+			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd hh:mm a") +
+					" - " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd hh:mm a")
 					+ " (i.e. 12-18 hours after the standing heat)";			
 		}
 		return message;
@@ -522,7 +523,7 @@ public class LifecycleEventSrvc {
 				IMDLogger.log("Updating the Semen inventory", Util.INFO);
 				inventory.setOrgID(eventBean.getOrgID()); 
 				inventory.setItemSKU(eventBean.getAuxField1Value()); // bull code
-				inventory.setInventoryAddDttm(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern( "MM/dd/yyyy, hh:mm:ss aa"))); // when was this item consumed
+				inventory.setInventoryAddDttm(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm"))); // when was this item consumed
 				inventory.setItemType(eventBean.getAuxField2Value() != null && eventBean.getAuxField2Value().trim().length() >= 1 ? eventBean.getAuxField2Value().charAt(0) + "" : eventBean.getAuxField2Value()); // sexed or not
 				inventory.setQuantity(1.0f); // single usage per insemination
 				inventory.setAuxValue1(eventBean.getEventTransactionID()); // FK to event table
@@ -533,7 +534,7 @@ public class LifecycleEventSrvc {
 				int result = loader.addSemenInventoryUsage(inventory);
 				if (result == 1)
 					additionalMessage = ". Semen Inventory has been updated";
-				else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+				else if (result == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
 					additionalMessage = ". " + Util.ERROR_POSTFIX + " Semen Inventory could not be updated since a similar entry already exists. Please review semen imnventory and update it manually";
 				else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
 					additionalMessage = ". " + Util.ERROR_POSTFIX + " Semen Inventory could not be updated since one or more data fields are longer than allowed length. Please submit a bug report";
@@ -595,7 +596,7 @@ public class LifecycleEventSrvc {
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);
 		int result = -1;
 		try {
-			LifecycleEvent event = new LifecycleEvent(eventBean, "MM/dd/yyyy, hh:mm:ss aa");
+			LifecycleEvent event = new LifecycleEvent(eventBean, "yyyy-MM-dd HH:mm");
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			event.setUpdatedBy(new User(userID));
 			event.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
@@ -611,7 +612,7 @@ public class LifecycleEventSrvc {
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Event  '" + Util.encodeJson(eventCode) + "' could not be added. Please reduce the field length and try again.\"}").build();
 		else 
-			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during creation of the new lifecycle event\"}").build();
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"An unknown error occurred during update of the lifecycle event\"}").build();
 	}
 	
 	@POST

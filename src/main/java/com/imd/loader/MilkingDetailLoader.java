@@ -80,7 +80,7 @@ public class MilkingDetailLoader {
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (java.sql.SQLSyntaxErrorException ex) {
 			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
@@ -658,7 +658,7 @@ public class MilkingDetailLoader {
 				cowMilkingDetail.setTemperatureInCentigrade(milkingEventRecord.getTemperatureInCentigrade());
 				cowMilkingDetail.setHumidity(milkingEventRecord.getHumidity());
 				cowMilkingDetail.setComments(cowMilkInfo.getComments());
-				int response =  Util.ERROR_CODE.ALREADY_EXISTS;
+				int response =  Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 				if (cowMilkingDetail.getMilkVolume() != null)
 					// case when a cow was set in lactation now and we update an older farm milking
 					// record when this cow was not even lactating. So her previous milking vol will be
@@ -666,7 +666,7 @@ public class MilkingDetailLoader {
 					// deliberately wants an addition which will be indicated by the fact that 
 					// he mentions a non null milk volume for that animal.
 					response = insertMilkRecord(cowMilkingDetail);
-				if (response == Util.ERROR_CODE.ALREADY_EXISTS) {
+				if (response == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION) {
 					response = updateMilkRecord(cowMilkingDetail);
 					if (response == 1)
 						cowMilkInfo.setOutcome("EDIT");
@@ -732,6 +732,16 @@ public class MilkingDetailLoader {
 
 
 
+	/**
+	 * In general its not a good idea to take one day maximum production as the peak of the cow in that lactation. Therefore as a
+	 * best practise we take the top Util.DefaultValues.MAX_LPD_AVERAGED_OVER_RECORD_COUNT daily production value and then take the
+	 * average of the til.DefaultValues.MAX_LPD_AVERAGED_OVER_RECORD_COUNT days and use that as the maximum daily production value
+	 * @param orgID
+	 * @param animalTag
+	 * @param milkDateStartTS
+	 * @param milkDateEndTS
+	 * @return
+	 */
 	public float getMaximumDailyProductionOfCow(String orgID, String animalTag, DateTime milkDateStartTS,
 			DateTime milkDateEndTS) {
 		
@@ -765,7 +775,7 @@ public class MilkingDetailLoader {
 		    		totalMilk += rs.getFloat("LPD");
 		    	}
 		    }
-		    return (averagedOver == 0 ? 0 : totalMilk / averagedOver);
+		    return (averagedOver == 0 ? 0 : (float)((float)totalMilk / (float)averagedOver));
 		} catch (SQLException e) {
 			IMDLogger.log("Exception occurred while retrieving maximum daily production of the animal " + animalTag, Util.ERROR);
 			e.printStackTrace();
@@ -802,6 +812,52 @@ public class MilkingDetailLoader {
 			e.printStackTrace();
 		}
 		return totalMilk;
+	}
+	public float getDurationInMilking(String orgID, String animalTag, DateTime searchWindowStartTS, DateTime searchWindowEndTS, int durationType) {
+		
+		String qryString = "SELECT " +
+				" MIN(MILK_DATE) as MILK_START, MAX(MILK_DATE) AS MILK_END " + 
+				" FROM imd.MILK_LOG " + 
+				" WHERE " + 
+				" ORG_ID = ? AND ANIMAL_TAG = ? AND " + 
+				" MILK_DATE >= ? AND MILK_DATE <= ? ";
+		
+		float duration = 0;
+		try {
+			int i = 1;
+			ResultSet rs = null;
+			PreparedStatement preparedStatement = null;
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(i++,orgID);
+			preparedStatement.setString(i++,animalTag);
+			preparedStatement.setString(i++,Util.getDateInSQLFormat(searchWindowStartTS));
+			preparedStatement.setString(i++,Util.getDateInSQLFormat(searchWindowEndTS));
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		    	String firstDateOfMilking = rs.getString("MILK_START");
+		    	String lastDateOfMilking = rs.getString("MILK_END");
+		    	if (firstDateOfMilking != null && !firstDateOfMilking.isEmpty() && 
+		    			lastDateOfMilking != null && !lastDateOfMilking.isEmpty()) {
+		    		LocalDate startDate = new LocalDate(firstDateOfMilking, IMDProperties.getServerTimeZone());
+		    		LocalDate endDate = new LocalDate(lastDateOfMilking, IMDProperties.getServerTimeZone());
+		    		if (durationType == Util.DurationType.DAYS) {
+		    			duration = Util.getDaysBetween(endDate, startDate)+1;
+		    		} else if (durationType == Util.DurationType.MONTHS) {
+		    			duration = (float)(((float)Util.getDaysBetween(endDate, startDate)+1)/30.5f);
+		    		} else if (durationType == Util.DurationType.YEARS) {
+		    			duration = (float)(((float)Util.getDaysBetween(endDate, startDate)+1)/365f);
+		    		} else {
+		    			duration = Util.getDaysBetween(endDate, startDate)+1;		    			
+		    		}
+		    	}
+		    }
+		} catch (SQLException e) {
+			IMDLogger.log("Exception occurred while retrieving duration in milking for the animal " + animalTag, Util.ERROR);
+			e.printStackTrace();
+		}
+		return duration;
 	}
 }
 

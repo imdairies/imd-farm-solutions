@@ -74,7 +74,7 @@ public class LifeCycleEventsLoader {
 			if (result.next()) 
 				transactionID = result.getInt(1);
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			transactionID = Util.ERROR_CODE.ALREADY_EXISTS;
+			transactionID = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			transactionID = Util.ERROR_CODE.DATA_LENGTH_ISSUE;

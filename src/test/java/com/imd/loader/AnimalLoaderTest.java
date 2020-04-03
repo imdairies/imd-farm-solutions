@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import com.imd.dto.Advisement;
 import com.imd.dto.Animal;
+import com.imd.dto.AnimalPhoto;
 import com.imd.dto.BankDetails;
 import com.imd.dto.Contact;
 import com.imd.dto.Dam;
@@ -71,8 +72,8 @@ class AnimalLoaderTest {
 //				/*record time*/LocalTime.parse("18:00:00"), /*milk vol*/27.0f, (short)1));
 		c000.setPurchaseDate(DateTime.parse("2017-02-08"));
 		c000.setCreatedBy(new User("KASHIF"));
-		c000.setCreatedDTTM(DateTime.now());
-		c000.setHerdJoiningDate(DateTime.now().minusDays(10));
+		c000.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+		c000.setHerdJoiningDate(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10));
 		c000.setHerdLeavingDate(null);
 		c000.setUpdatedBy(c000.getCreatedBy());
 		c000.setUpdatedDTTM(c000.getCreatedDTTM());
@@ -248,10 +249,10 @@ class AnimalLoaderTest {
 			AnimalLoader loader = new AnimalLoader();
 			loader.deleteAnimal("IMD", animalTag);
 			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
-			animal.setDateOfBirth(now.minusDays(1));
+			animal.setDateOfBirth(now.minusDays(10));
 			assertEquals(0,animal.getCurrentAge().getYears(), " The current age should be less than a year");
 			assertEquals(0,animal.getCurrentAge().getMonths(), " The current age should be less than a month");
-			assertEquals(1,animal.getCurrentAgeInDays(), " The current age should be one day but it was " + animal.getCurrentAgeInDays());
+			assertEquals(10,animal.getCurrentAgeInDays(), " The current age should be one day but it was " + animal.getCurrentAgeInDays());
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
 			List <Animal>  animals = loader.retrieveActiveAnimals("IMD");
@@ -279,9 +280,39 @@ class AnimalLoaderTest {
 			AnimalBean animalBean = new AnimalBean();
 			animalBean.setOrgID("IMD");
 			animalBean.setAnimalTag(animalTag);
+
+			animalBean.setDobFrom(Util.getDateInSQLFormat(animal.getDateOfBirth().minusDays(10)));
 			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
 			assertEquals(animalTag,animal.getAnimalTag());
 
+			animalBean.setDobFrom(null);
+			animalBean.setDobTo(Util.getDateInSQLFormat(animal.getDateOfBirth().minusDays(10)));
+			assertTrue(loader.retrieveMatchingAnimals(animalBean).isEmpty());
+
+			animalBean.setDobFrom(Util.getDateInSQLFormat(animal.getDateOfBirth().minusDays(10)));
+			animalBean.setDobTo(Util.getDateInSQLFormat(animal.getDateOfBirth().plusDays(10)));
+			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
+			assertEquals(animalTag,animal.getAnimalTag());
+
+			animalBean.setDobFrom(null);
+			animalBean.setDobTo(null);
+			animalBean.setDateOfBirthStr(null);
+			float currentAgeInMonths = (Util.getDaysBetween(now,animal.getDateOfBirth()))/30.5f;
+			
+			animalBean.setAgeInMonthsFrom((currentAgeInMonths * 3f) + "");
+			animalBean.setAgeInMonthsTo((currentAgeInMonths / 3f) + "");
+			animalBean.setDobTo(Util.getDateInSQLFormat(animal.getDateOfBirth().plusDays(10)));
+			//IMDLogger.loggingMode = Util.INFO;
+			assertFalse(loader.retrieveMatchingAnimals(animalBean).isEmpty());
+			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
+			assertEquals(animalTag,animal.getAnimalTag());
+			
+			animalBean.setAgeInMonthsFrom(null);
+			animalBean.setAgeInMonthsTo(null);
+			animalBean.setDobFrom(null);
+			animalBean.setDobTo(null);
+			animalBean.setDateOfBirthStr(null);
+			
 			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
 			it = animals.iterator();
 			found = false;
@@ -294,6 +325,7 @@ class AnimalLoaderTest {
 			}
 			assertTrue(found, "Tag " + animalTag + " is a lactating cow so it should have been found by retrieveActiveLactatingAnimals API");
 			assertTrue(animal.isPregnant(), "Tag " + animalTag + " has the status " + animal.getStatusIndicators() + " and should be considered pregnant");
+			assertEquals(0,animal.getPhotoCount().intValue());
 			
 			loader.deleteAnimal("IMD", animalTag);
 
@@ -772,7 +804,48 @@ class AnimalLoaderTest {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
 		}
-	}	
+	}
+	
+	@Test
+	void testAnimalPhotos() {
+		try {
+			Animal animal1 = createTestAnimal("-999");
+
+			AnimalPhoto photo = new AnimalPhoto();
+			photo.setOrgID(animal1.getOrgID());
+			photo.setAnimalTag(animal1.getAnimalTag());
+			photo.setPhotoID("" + DateTime.now().getMillis());
+			photo.setPhotoURI(Util.ANIMAL_PHOTO_UPLOAD_PATH + "/" + photo.getAnimalTag() + "/" + photo.getPhotoID() + ".png");
+			photo.setComments("Test photo to be deleted");
+			photo.setPhotoTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(100));
+			photo.setCreatedBy(animal1.getCreatedBy());
+			photo.setCreatedDTTM(animal1.getCreatedDTTM());
+			photo.setUpdatedBy(photo.getCreatedBy());
+			photo.setUpdatedDTTM(photo.getCreatedDTTM());
+			
+			
+			AnimalLoader loader = new AnimalLoader();
+			assertTrue(loader.deleteAllAnimalPhotos(animal1.getOrgID(), animal1.getAnimalTag()) >= 0);
+			assertTrue(loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()) >= 0);
+			
+			assertEquals(1,loader.insertAnimal(animal1));
+			assertEquals(1,loader.insertAnimalPhoto(photo));
+			photo.setPhotoID("" + DateTime.now().minusDays(1).getMillis());
+			photo.setPhotoURI(Util.ANIMAL_PHOTO_UPLOAD_PATH + "/" + photo.getAnimalTag() + "/" + photo.getPhotoID() + " .png");
+			assertEquals(1,loader.insertAnimalPhoto(photo));
+			
+			List<AnimalPhoto> photos = loader.retrieveAnimalPhotos(animal1.getOrgID(), animal1.getAnimalTag());
+			assertEquals(2,photos.size());
+
+			assertEquals(2,loader.deleteAllAnimalPhotos(animal1.getOrgID(), animal1.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()));
+						
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Animal Photo CRUD operation(s) Failed.");
+		}
+	}
 	
 	@Test
 	void testRetrieveAnimalProgney() {

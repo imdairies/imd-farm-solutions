@@ -156,7 +156,7 @@ public class UserLoader {
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;

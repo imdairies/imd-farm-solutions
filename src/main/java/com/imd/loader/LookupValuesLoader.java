@@ -49,7 +49,7 @@ public class LookupValuesLoader {
 			preparedStatement.setString(i++, luValues.getUpdatedDTTMSQLFormat());
 			result = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			result = Util.ERROR_CODE.ALREADY_EXISTS;
+			result = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			result = Util.ERROR_CODE.DATA_LENGTH_ISSUE;

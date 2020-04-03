@@ -24,8 +24,10 @@ public class MessageCatalogLoader {
 	private static HashMap <String, Message> messageCache = new HashMap <String, Message>();
 	
 	public synchronized static Message getMessage(String orgId, String languageCD, String messageCD) {
-		String qryString = " SELECT A.* FROM " +   
+		String qryString = " SELECT A.*, C.SHORT_DESCR AS SHORT_DESCR FROM " +   
 				" imd.MESSAGE_CATALOG A " +
+		        " LEFT OUTER JOIN imd.LOOKUP_VALUES C " + 
+				" ON (A.CATEGORY_CD = C.LOOKUP_CD  AND C.CATEGORY_CD = 'MSG_CTGRY') " +				
 				" WHERE A.ORG_ID=? AND A.LANG_CD=? AND MESSAGE_CD=? ";
 		Message message = new Message(orgId, languageCD, messageCD);
 		IMDLogger.log(message.toString(), Util.INFO);
@@ -49,6 +51,8 @@ public class MessageCatalogLoader {
 			    while (rs.next()) {
 			    	message = new Message(orgId,languageCD, rs.getString("MESSAGE_CD"));
 			    	String messageText = rs.getString("MESSAGE_TEXT");
+			    	message.setMessageCategoryCD(rs.getString("CATEGORY_CD"));
+			    	message.setMessageCategoryDescription(rs.getString("SHORT_DESCR"));
 			    	if (messageText != null && !messageText.isEmpty())
 			    		message.setMessageText(messageText);
 			    	message.setCreatedBy(new User(rs.getString("CREATED_BY")));
@@ -112,11 +116,14 @@ public class MessageCatalogLoader {
 		return getDynamicallyPopulatedMessage( orgId,  languageCD,  messageCd, firstDynamicValue + "");
 	}
 	public List<Message> retrieveMessage(MessageBean messageBean) {
-		String qryString = " SELECT * FROM " +   
-				" imd.MESSAGE_CATALOG ";
-		String whereClause = (messageBean.getOrgId() == null || messageBean.getOrgId().isEmpty() ? "" : " ORG_ID=? AND") +
-				(messageBean.getLanguageCD() == null || messageBean.getLanguageCD().isEmpty() ? "" : " LANG_CD=? AND") +
-				(messageBean.getMessageCD() == null || messageBean.getMessageCD().isEmpty() ? "" : " MESSAGE_CD=? ");
+		String qryString = " SELECT A.*, C.SHORT_DESCR AS SHORT_DESCR FROM " +   
+				" imd.MESSAGE_CATALOG A " +
+				" LEFT OUTER JOIN imd.LOOKUP_VALUES C " + 
+				" ON (A.CATEGORY_CD = C.LOOKUP_CD AND C.CATEGORY_CD = 'MSG_CTGRY') ";			
+		String whereClause = (messageBean.getOrgId() == null || messageBean.getOrgId().isEmpty() ? "" : " A.ORG_ID=? AND") +
+				(messageBean.getLanguageCD() == null || messageBean.getLanguageCD().isEmpty() ? "" : " A.LANG_CD=? AND") +
+				(messageBean.getMessageCategoryCD() == null || messageBean.getMessageCategoryCD().isEmpty() ? "" : " A.CATEGORY_CD=? AND") +
+				(messageBean.getMessageCD() == null || messageBean.getMessageCD().isEmpty() ? "" : " A.MESSAGE_CD=? ");
 		if (!whereClause.isEmpty()) {
 			whereClause = " WHERE " + whereClause;
 			String queryConditions = (whereClause.lastIndexOf("AND") == whereClause.length()-3) ?  whereClause.substring(0,whereClause.length()-3) : whereClause;
@@ -134,12 +141,16 @@ public class MessageCatalogLoader {
 				preparedStatement.setString(i++, messageBean.getOrgId());
 			if (messageBean.getLanguageCD() != null &&  !messageBean.getLanguageCD().isEmpty())
 				preparedStatement.setString(i++, messageBean.getLanguageCD());
+			if (messageBean.getMessageCategoryCD() != null &&  !messageBean.getMessageCategoryCD().isEmpty())
+				preparedStatement.setString(i++, messageBean.getMessageCategoryCD());
 			if (messageBean.getMessageCD() != null &&  !messageBean.getMessageCD().isEmpty())
 				preparedStatement.setString(i++, messageBean.getMessageCD());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
 		    	Message message = new Message(rs.getString("ORG_ID"),rs.getString("LANG_CD"),rs.getString("MESSAGE_CD"));
+		    	message.setMessageCategoryCD(rs.getString("CATEGORY_CD"));
+		    	message.setMessageCategoryDescription(rs.getString("SHORT_DESCR"));
 		    	message.setMessageText(rs.getString("MESSAGE_TEXT"));
 		    	message.setCreatedBy(new User(rs.getString("CREATED_BY")));
 				message.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
@@ -169,11 +180,12 @@ public class MessageCatalogLoader {
 		String qryString = "insert into imd.MESSAGE_CATALOG (ORG_ID,"
 				+ "LANG_CD,"
 				+ "MESSAGE_CD,"
+				+ "CATEGORY_CD,"
 				+ "MESSAGE_TEXT,"
 				+ "CREATED_BY,"
 				+ "CREATED_DTTM,"
 				+ "UPDATED_BY,"
-				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?)";
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?)";
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
 		int i = 1;
@@ -183,6 +195,7 @@ public class MessageCatalogLoader {
 			preparedStatement.setString(i++, messageBean.getOrgId());
 			preparedStatement.setString(i++, messageBean.getLanguageCD());
 			preparedStatement.setString(i++, messageBean.getMessageCD());
+			preparedStatement.setString(i++, messageBean.getMessageCategoryCD());
 			preparedStatement.setString(i++, messageBean.getMessageText().toString());
 			preparedStatement.setString(i++, messageBean.getUserId());
 			preparedStatement.setString(i++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
@@ -192,7 +205,7 @@ public class MessageCatalogLoader {
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 		    insertedRecord = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			insertedRecord = Util.ERROR_CODE.ALREADY_EXISTS;
+			insertedRecord = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			insertedRecord = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
@@ -222,7 +235,7 @@ public class MessageCatalogLoader {
 	}
 	public int updatedMessage(MessageBean messageBean) {
 		int updatedRecord = -1;
-		String qryString = "UPDATE imd.MESSAGE_CATALOG SET MESSAGE_TEXT=?, UPDATED_BY=?, UPDATED_DTTM=? WHERE "
+		String qryString = "UPDATE imd.MESSAGE_CATALOG SET MESSAGE_TEXT=?, CATEGORY_CD=?, UPDATED_BY=?, UPDATED_DTTM=? WHERE "
 				+ "ORG_ID=? AND LANG_CD=? AND MESSAGE_CD=?";
 		
 		PreparedStatement preparedStatement = null;
@@ -232,6 +245,7 @@ public class MessageCatalogLoader {
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(i++, messageBean.getMessageText().toString());
+			preparedStatement.setString(i++, messageBean.getMessageCategoryCD());
 			preparedStatement.setString(i++,messageBean.getUserId());
 			preparedStatement.setString(i++, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
 			preparedStatement.setString(i++, messageBean.getOrgId());

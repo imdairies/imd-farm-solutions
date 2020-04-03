@@ -36,6 +36,7 @@ public class Animal extends IMDairiesDTO{
 	private Float weight;
 	private Float milkingAverage; 
 	private ArrayList<byte[]> photos;
+	private Integer photoCount;
 	
 	// events must ALWAYS be kept sorted by date with latest on top and oldest at bottom. All the code assumes this !
 	private List<LifecycleEvent> lifeCycleEvents; 
@@ -71,6 +72,7 @@ public class Animal extends IMDairiesDTO{
 	 * Holds any user entered text against this Animal.
 	 */
 	private ArrayList<Note> notes;
+	
 
 	public Animal(String orgID, String tagNumber, DateTime birthDate, boolean isDobEstimated, double purPrice, String priceCurr) throws IMDException{
 
@@ -137,6 +139,12 @@ public class Animal extends IMDairiesDTO{
 		return notes.size();
 	}
 	
+	public Integer getPhotoCount() {
+		return this.photoCount;
+	}
+	public void setPhotoCount(Integer count) {
+		this.photoCount = count;
+	}
 	
 	public void setNotes(ArrayList<Note> notesList) {
 		this.notes = notesList;
@@ -321,6 +329,7 @@ public class Animal extends IMDairiesDTO{
 				prefix + fieldToJson("frontSideImageURL", this.frontSideImageURL) + ",\n" +
 				prefix + fieldToJson("backSideImageURL", this.backSideImageURL) + ",\n" + 
 				prefix + fieldToJson("rightSideImageURL", this.rightSideImageURL) + ",\n" +
+				prefix + fieldToJson("photoCount", this.getPhotoCount()) + ",\n" +
 				prefix + fieldToJson("leftSideImageURL", this.leftSideImageURL) + ",\n" + cohort +
 				(this.animalNutritionalNeeds == null ? "" : this.animalNutritionalNeeds.dtoToJson(prefix,false));
 	}

@@ -145,7 +145,7 @@ public class FeedLoader {
 			preparedStatement.setString(11, dietReq.getUpdatedDTTMSQLFormat());
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
@@ -211,7 +211,7 @@ public class FeedLoader {
 			preparedStatement.setString(i++, feedItem.getUpdatedDTTMSQLFormat());
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 			ex.printStackTrace();
 		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
@@ -617,7 +617,7 @@ public class FeedLoader {
 					recordAdded += recodAdditionCounts[i];
 				}
 			} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-				recordAdded = Util.ERROR_CODE.ALREADY_EXISTS;
+				recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 				ex.printStackTrace();
 			} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
 				recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;

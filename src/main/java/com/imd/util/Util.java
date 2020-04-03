@@ -97,6 +97,16 @@ public class Util {
 
 	public static final int MINIMUM_AGE_AT_CALVING_IN_DAYS = 550;
 
+	public static final long MAX_PHOTO_SIZE_IN_BYTES = 5*1024*1024;
+
+	public static final String ANIMAL_PHOTO_UPLOAD_PATH = "/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions-responsive-client/public/assets/img/cow-photos";
+
+	public static final class DurationType {
+		public static final int DAYS = 1;
+		public static final int MONTHS = 2;
+		public static final int YEARS = 3;
+	}
+
 	public static final class StarRating {
 
 		public static final Float FIVE_STAR = 5.0f;
@@ -137,6 +147,9 @@ public class Util {
 		public static final String GROWTH_PLUS_BADGE = "growthPlusBadge";
 		public static final String MILK_PLUS_BADGE = "milkPlusBadge";
 		public static final String FERTILITY_PLUS_BADGE = "fertilityPlusBadge";
+		public static final Float GROWTH_PLUS_BADGE_STAR_RATNG_THRESHOLD = 3f;
+		public static final Float MILK_PLUS_BADGE_STAR_RATNG_THRESHOLD = 3f;
+		public static final Float FERTILITY_PLUS_BADGE_STAR_RATNG_THRESHOLD = 3f;
 	}
 
 	public static final class HTTPCodes {
@@ -308,6 +321,7 @@ public class Util {
 		public static final String SOLD = "SOLD";
 		public static final String PRECAVNGFD = "PRECAVNGFD";
 		public static final String MEDICALTST = "MEDICALTST";
+		public static final String DRYOFF = "DRY-OFF";
 	}
 
 	public static final class AdvisementRules {
@@ -391,7 +405,7 @@ public class Util {
 	 
 	 public static final class ERROR_CODE {
 			public static final int UNKNOWN_ERROR = -1000;
-			public static final int ALREADY_EXISTS = -1001;
+			public static final int KEY_INTEGRITY_VIOLATION = -1001;
 			public static final int DATA_LENGTH_ISSUE = -1002;
 			public static final int SQL_SYNTAX_ERROR = -1003;
 			public static final int DOES_NOT_EXIST = -1004;
@@ -473,13 +487,13 @@ public class Util {
 	public static int getDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		return (new Period(startTimeStamp, endTimeStamp, PeriodType.days()).getDays());
 	}
+	public static int getDaysBetween(LocalDate endDate, LocalDate startDate) {
+		return (new Period(startDate, endDate, PeriodType.days()).getDays());
+	}	
+		
 	public static int getHoursBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		return (new Period(startTimeStamp, endTimeStamp, PeriodType.hours()).getHours());
 	}
-	public static int getDaysBetween(LocalDate endDate, LocalDate startDate) {
-		return (new Period(startDate, endDate, PeriodType.days()).getDays());
-	}
-	
 	public static String getYearMonthDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		Period dateDifference = new Period(startTimeStamp, endTimeStamp, PeriodType.yearMonthDay());
 		return (dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") + (dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") + (dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "");
@@ -753,6 +767,10 @@ public class Util {
 		}
 		
 		return isMonthFavourable;
+	}
+	public static DateTime parseDateTime(String timeStampStr, String format) {
+		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+		return DateTime.parse(timeStampStr, fmt);
 	}
 	
 	

@@ -204,7 +204,7 @@ public class LVLifecycleEventsSrvc {
 		}
 		if (result == 1)
 			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"New Lifecycle event has been created successfully\"}").build();
-		else if (result == Util.ERROR_CODE.ALREADY_EXISTS)
+		else if (result == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The specified Lifecycle Event '" + eventCode+ "' already exists\"}").build();
 		else if (result == Util.ERROR_CODE.DATA_LENGTH_ISSUE)
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"At least one of the fields is longer than the allowed length. Lifecycle Event '" + eventCode+ "' could not be added. Please reduce the field length and try again.\"}").build();

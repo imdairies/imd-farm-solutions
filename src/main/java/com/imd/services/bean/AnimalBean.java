@@ -12,6 +12,10 @@ public class AnimalBean {
 	private String animalType;
 	private String gender;
 	private String dateOfBirthStr;
+	private String dobFrom;
+	private String dobTo;
+	private String ageInMonthsFrom;
+	private String ageInMonthsTo;
 	private String dobAccuracyInd;
 	private String aiIndicator;
 	private String breed;
@@ -184,5 +188,29 @@ public class AnimalBean {
 	}
 	public void setOperatorAtBirth(String operatorAtBirth) {
 		this.operatorAtBirth = operatorAtBirth;
+	}
+	public String getDobFrom() {
+		return dobFrom;
+	}
+	public void setDobFrom(String dobFrom) {
+		this.dobFrom = dobFrom;
+	}
+	public String getDobTo() {
+		return dobTo;
+	}
+	public void setDobTo(String dobTo) {
+		this.dobTo = dobTo;
+	}
+	public String getAgeInMonthsFrom() {
+		return ageInMonthsFrom;
+	}
+	public void setAgeInMonthsFrom(String ageInMonthsFrom) {
+		this.ageInMonthsFrom = ageInMonthsFrom;
+	}
+	public String getAgeInMonthsTo() {
+		return ageInMonthsTo;
+	}
+	public void setAgeInMonthsTo(String ageInMonthsTo) {
+		this.ageInMonthsTo = ageInMonthsTo;
 	}
 }
