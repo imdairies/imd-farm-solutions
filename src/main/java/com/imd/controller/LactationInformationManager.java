@@ -1,7 +1,6 @@
 package com.imd.controller;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -51,7 +50,7 @@ public class LactationInformationManager {
 				lct.setCalfTag(evt.getAuxField3Value());
 			}
 			List<LifecycleEvent> insemEvts = evtLoader.retrieveSpecificLifeCycleEventsForAnimal(orgId, animalTag, 
-					processedCount == lactationCount-1 /* first lactation */ ? null : calvingEvts.get(processedCount+1).getEventTimeStamp(), 
+					processedCount == (lactationCount-1) /* first lactation */ ? null : calvingEvts.get(processedCount+1).getEventTimeStamp(), 
 					lct.getLactationStartTimestamp(),
 					Util.LifeCycleEvents.MATING, Util.LifeCycleEvents.INSEMINATE,
 					null,null,null,null);

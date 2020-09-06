@@ -6,14 +6,12 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.loader.AnimalLoader;
 import com.imd.util.IMDException;
-import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
@@ -79,7 +77,7 @@ public class Animal extends IMDairiesDTO{
 		if (tagNumber == null || birthDate == null || priceCurr == null)
 			throw new IMDException ("One or more values contain null. Please provide valid values for all the parameters");
 		else {
-			this.setOrgID(orgID);
+			this.setOrgId(orgID);
 			this.animalTag = tagNumber;
 			this.dateOfBirth = birthDate;
 			this.isDateOfBirthEstimated = isDobEstimated;
@@ -92,7 +90,7 @@ public class Animal extends IMDairiesDTO{
 		if (orgID == null || orgID.isEmpty())
 			throw new IMDException ("orgID can't be null or empty");
 		else {
-			this.setOrgID(orgID);
+			this.setOrgId(orgID);
 		}
 		if (tagNumber == null || tagNumber.isEmpty())
 			throw new IMDException ("Tag Number can't be null or empty");
@@ -164,7 +162,6 @@ public class Animal extends IMDairiesDTO{
 		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 		if (this.dateOfBirth == null ) return new Period(now, now, PeriodType.yearMonthDayTime());
 		if (Util.getDaysBetween(now, dateOfBirth) <= 1) {
-//			IMDLogger.log("Less than one day old " + this.animalTag, Util.INFO);
 			return new Period(this.dateOfBirth, now, PeriodType.yearMonthDayTime());
 		}
 		else
@@ -304,7 +301,7 @@ public class Animal extends IMDairiesDTO{
 	private String stringify(String prefix) {
 		String cohort = (this.feedCohortInformation == null ? "" : this.feedCohortInformation.dtoToJson(prefix,false));
 
-		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
+		return  prefix + fieldToJson("orgID", getOrgId()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("animalType", this.animalType) + ",\n" +
 				prefix + fieldToJson("animalTypeCD", this.animalTypeCD) + ",\n" +

@@ -3,12 +3,10 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
@@ -30,7 +28,6 @@ import com.imd.dto.Note;
 import com.imd.dto.Person;
 import com.imd.dto.Sire;
 import com.imd.dto.User;
-import com.imd.services.AnimalSrvc;
 import com.imd.services.MilkingInformationSrvc;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.MilkingDetailBean;
@@ -38,6 +35,7 @@ import com.imd.services.bean.SireBean;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
+import com.imd.util.TestDataCreationUtil;
 import com.imd.util.Util;
 
 class AnimalLoaderTest {
@@ -140,13 +138,13 @@ class AnimalLoaderTest {
 			DateTime referenceDate = new DateTime(2019,10,1,0,0,IMDProperties.getServerTimeZone());
 			AnimalLoader animalLoader = new AnimalLoader();
 			
-			assertTrue(animalLoader.deleteAnimal(animalInRange.getOrgID(), animalInRange.getAnimalTag()) >= 0);
-			assertTrue(animalLoader.deleteAnimal(animalOutOfRange.getOrgID(), animalOutOfRange.getAnimalTag()) >= 0);
+			assertTrue(animalLoader.deleteAnimal(animalInRange.getOrgId(), animalInRange.getAnimalTag()) >= 0);
+			assertTrue(animalLoader.deleteAnimal(animalOutOfRange.getOrgId(), animalOutOfRange.getAnimalTag()) >= 0);
 
 			animalInRange.setDateOfBirth(referenceDate);
 			animalOutOfRange.setDateOfBirth(referenceDate.minusMonths(1));
 			
-			HashMap<String,String> values = animalLoader.retrieveCalvingsInDateRange(animalInRange.getOrgID(), 
+			HashMap<String,String> values = animalLoader.retrieveCalvingsInDateRange(animalInRange.getOrgId(), 
 					new DateTime(2019,1,1,0,0,IMDProperties.getServerTimeZone()),
 					new DateTime(2019,12,31,23,59,IMDProperties.getServerTimeZone()));
 			String referenceMonthCalvingsCountStr = values.get(referenceDate.getYear() + "-" + referenceDate.getMonthOfYear());
@@ -162,7 +160,7 @@ class AnimalLoaderTest {
 			animalLoader.insertAnimal(animalInRange);
 			animalLoader.insertAnimal(animalOutOfRange);
 
-			values = animalLoader.retrieveCalvingsInDateRange(animalInRange.getOrgID(), 
+			values = animalLoader.retrieveCalvingsInDateRange(animalInRange.getOrgId(), 
 					new DateTime(2019,1,1,0,0,IMDProperties.getServerTimeZone()),
 					new DateTime(2019,12,31,23,59,IMDProperties.getServerTimeZone()));
 			referenceMonthCalvingsCountStr = values.get(referenceDate.getYear()  + "-" + referenceDate.getMonthOfYear());
@@ -172,8 +170,8 @@ class AnimalLoaderTest {
 			assertEquals(referenceMonthCalvingsCount+1, Integer.parseInt(referenceMonthCalvingsCountStr));
 			assertEquals(referencePreviousMonthCalvingsCount+1, Integer.parseInt(referencePreviousMonthCalvingsCountStr));
 			
-			assertTrue(animalLoader.deleteAnimal(animalInRange.getOrgID(), animalInRange.getAnimalTag()) == 1);
-			assertTrue(animalLoader.deleteAnimal(animalOutOfRange.getOrgID(), animalOutOfRange.getAnimalTag()) == 1);
+			assertTrue(animalLoader.deleteAnimal(animalInRange.getOrgId(), animalInRange.getAnimalTag()) == 1);
+			assertTrue(animalLoader.deleteAnimal(animalOutOfRange.getOrgId(), animalOutOfRange.getAnimalTag()) == 1);
 			IMDLogger.loggingMode = originalLogginMode;
 			
 		} catch (Exception e) {
@@ -196,9 +194,9 @@ class AnimalLoaderTest {
 			DateTime dob = now.minusDays(Integer.parseInt(rules.get(0).getAuxInfo1()));
 			AnimalLoader ldr = new AnimalLoader();
 			
-			assertTrue(ldr.deleteAnimal(youngAnimal.getOrgID(), youngAnimal.getAnimalTag()) >= 0);
-			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgID(), oldAnimal.getAnimalTag()) >= 0);
-			assertTrue(ldr.deleteAnimal(borderLineAnimal.getOrgID(), borderLineAnimal.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(youngAnimal.getOrgId(), youngAnimal.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgId(), oldAnimal.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(borderLineAnimal.getOrgId(), borderLineAnimal.getAnimalTag()) >= 0);
 
 			youngAnimal.setDateOfBirth(dob.plusDays(10));
 			oldAnimal.setDateOfBirth(dob.minusDays(100));
@@ -211,7 +209,7 @@ class AnimalLoaderTest {
 			
 			boolean youngFound = false;
 			boolean borderLineFound = false;
-			List <Animal> animals = ldr.retrieveAnimalsBornOnOrAfterSpecifiedDate(youngAnimal.getOrgID(), dob);
+			List <Animal> animals = ldr.retrieveAnimalsBornOnOrAfterSpecifiedDate(youngAnimal.getOrgId(), dob);
 			assertTrue(animals != null && animals.size() >= 2, " At least two animals should have been retrieved");
 			Iterator<Animal> it = animals.iterator();
 			while (it.hasNext()) {
@@ -229,9 +227,9 @@ class AnimalLoaderTest {
 			assertTrue(youngFound,youngAnimal.getAnimalTag() + " should have been retrieved as it is younger than " + borderLineAnimal.getCurrentAgeInDays() + " days");
 			assertTrue(borderLineFound,borderLineAnimal.getAnimalTag() + " should have been retrieved as it is " + borderLineAnimal.getCurrentAgeInDays() + " days in age");
 			
-			assertTrue(ldr.deleteAnimal(youngAnimal.getOrgID(), youngAnimal.getAnimalTag()) == 1);
-			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgID(), oldAnimal.getAnimalTag()) == 1);
-			assertTrue(ldr.deleteAnimal(borderLineAnimal.getOrgID(), borderLineAnimal.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(youngAnimal.getOrgId(), youngAnimal.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgId(), oldAnimal.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(borderLineAnimal.getOrgId(), borderLineAnimal.getAnimalTag()) == 1);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -260,7 +258,7 @@ class AnimalLoaderTest {
 			boolean found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 					break;
 				}
@@ -278,7 +276,7 @@ class AnimalLoaderTest {
 			assertEquals(1,result);
 			
 			AnimalBean animalBean = new AnimalBean();
-			animalBean.setOrgID("IMD");
+			animalBean.setOrgId("IMD");
 			animalBean.setAnimalTag(animalTag);
 
 			animalBean.setDobFrom(Util.getDateInSQLFormat(animal.getDateOfBirth().minusDays(10)));
@@ -313,12 +311,12 @@ class AnimalLoaderTest {
 			animalBean.setDobTo(null);
 			animalBean.setDateOfBirthStr(null);
 			
-			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
+			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgId());
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 					break;
 				}
@@ -336,12 +334,12 @@ class AnimalLoaderTest {
 			animal = loader.retrieveMatchingAnimals(animalBean).get(0);
 			assertEquals(animalTag,animal.getAnimalTag());
 
-			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
+			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgId());
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 					break;
 				}
@@ -353,12 +351,12 @@ class AnimalLoaderTest {
 			animal.setAnimalType("BULL");
 			transactionID = loader.insertAnimal(animal);
 			assertEquals(1,transactionID);
-			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgID());
+			animals = loader.retrieveActiveLactatingAnimals(animalBean.getOrgId());
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 					break;
 				}
@@ -370,27 +368,27 @@ class AnimalLoaderTest {
 			animalBean.setAnimalType("DUMMY12");
 			assertEquals(0,loader.retrieveMatchingAnimals(animalBean).size());
 			AnimalBean searchBean = new AnimalBean();
-			searchBean.setOrgID("IMD");
+			searchBean.setOrgId("IMD");
 			searchBean.setGender('F');
 			animals = loader.retrieveDamOrSire(searchBean);
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
 					found = true;
 					break;
 				}
 			}
 			assertTrue(found, "Tag " + animalTag + " should have been found as a Dam");
-			searchBean.setOrgID("IMD");
+			searchBean.setOrgId("IMD");
 			searchBean.setGender('M');
 			animals = loader.retrieveDamOrSire(searchBean);
 			it = animals.iterator();
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase(animalTag)) {
 					found = true;
 				}
 			}
@@ -546,7 +544,7 @@ class AnimalLoaderTest {
 			boolean found = false;
 			while (it.hasNext()) {
 				sire = it.next();
-				if (sire.getOrgID().equalsIgnoreCase("GBL") && sire.getAlias().equalsIgnoreCase("JUNIOR")) {
+				if (sire.getOrgId().equalsIgnoreCase("GBL") && sire.getAlias().equalsIgnoreCase("JUNIOR")) {
 					found = true;
 					break;
 				}
@@ -577,7 +575,7 @@ class AnimalLoaderTest {
 			boolean found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
 					found = true;
 					break;
 				}
@@ -595,7 +593,7 @@ class AnimalLoaderTest {
 			found = false;
 			while (it.hasNext()) {
 				animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
 					found = true;
 					break;
 				}
@@ -619,17 +617,17 @@ class AnimalLoaderTest {
 			Animal animal;
 			animal = createTestAnimal("-999");
 			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			loader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
 			animal.setAnimalTypeCD(Util.AnimalTypes.HFRPREGN);
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
-			List <Animal>  animals = loader.retrieveSpecifiedAnimalTags(animal.getOrgID(),  "(" + animal.getAnimalTag() + ")");
+			List <Animal>  animals = loader.retrieveSpecifiedAnimalTags(animal.getOrgId(),  "(" + animal.getAnimalTag() + ")");
 			Iterator<Animal> it = animals.iterator();
 			boolean found = false;
 			Animal retrievedAnimal = null;
 			while (it.hasNext()) {
 				retrievedAnimal = it.next();
-				if (retrievedAnimal.getOrgID().equalsIgnoreCase(animal.getOrgID()) && 
+				if (retrievedAnimal.getOrgId().equalsIgnoreCase(animal.getOrgId()) && 
 						retrievedAnimal.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
 					found = true;
 					break;
@@ -643,8 +641,8 @@ class AnimalLoaderTest {
 //			assertEquals(1,transactionId);
 			
 			
-			Animal updatedAnimal = new Sire(animal.getOrgID(),animal.getAnimalTag());
-			updatedAnimal.setOrgID(animal.getOrgID());
+			Animal updatedAnimal = new Sire(animal.getOrgId(),animal.getAnimalTag());
+			updatedAnimal.setOrgId(animal.getOrgId());
 			updatedAnimal.setAnimalTag(animal.getAnimalTag());
 			updatedAnimal.setDateOfBirth(animal.getDateOfBirth());
 			updatedAnimal.setDateOfBirthEstimated(animal.isDateOfBirthEstimated());
@@ -668,7 +666,7 @@ class AnimalLoaderTest {
 			assertEquals(updatedAnimal.getAlias(),finalUpdatedAnimal.getAlias());
 			assertEquals(updatedAnimal.getGender(),finalUpdatedAnimal.getGender());
 			
-			int transactionId  = loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			int transactionId  = loader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
 			assertEquals(1,transactionId);
 			
 		} catch (Exception e) {
@@ -690,10 +688,10 @@ class AnimalLoaderTest {
 			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
 			User user = new User("KASHIF");
 
-			loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag());
-			loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag());
-			eventLoader.deleteAnimalLifecycleEvents(animal1.getOrgID(), animal1.getAnimalTag());
-			eventLoader.deleteAnimalLifecycleEvents(animal2.getOrgID(), animal2.getAnimalTag());
+			loader.deleteAnimal(animal1.getOrgId(), animal1.getAnimalTag());
+			loader.deleteAnimal(animal2.getOrgId(), animal2.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents(animal1.getOrgId(), animal1.getAnimalTag());
+			eventLoader.deleteAnimalLifecycleEvents(animal2.getOrgId(), animal2.getAnimalTag());
 
 			animal1.setAnimalType(Util.AnimalTypes.HFRPREGN);
 			animal2.setAnimalType(Util.AnimalTypes.HEIFER);
@@ -729,12 +727,12 @@ class AnimalLoaderTest {
 			boolean shouldNotBeFound = false;
 			while (it.hasNext()) {
 				Animal animal = it.next();
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("000")) {
 					shouldBeFound = true;
 					assertTrue(animal.getStatusIndicators() != null);
 					assertEquals(2,animal.getParturationCount());
 				}
-				if (animal.getOrgID().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("-999")) {
+				if (animal.getOrgId().equalsIgnoreCase("IMD") && animal.getAnimalTag().equalsIgnoreCase("-999")) {
 					shouldNotBeFound = true;
 				}
 			}
@@ -756,7 +754,7 @@ class AnimalLoaderTest {
 		try {
 			Animal animal = createTestAnimal("-999");
 			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			loader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
 			animal.setAnimalType(Util.AnimalTypes.HEIFER);
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
@@ -765,13 +763,13 @@ class AnimalLoaderTest {
 			boolean found = false;
 			while (it.hasNext()) {
 				Animal anml = it.next();
-				if (anml.getOrgID().equalsIgnoreCase(animal.getOrgID()) && anml.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
+				if (anml.getOrgId().equalsIgnoreCase(animal.getOrgId()) && anml.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
 					found = true;
 					break;
 				}
 			}
 			assertTrue(found, animal.getAnimalTag()+ " should have been found");
-			int transactionId  = loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			int transactionId  = loader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
 			assertEquals(1,transactionId);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -783,22 +781,22 @@ class AnimalLoaderTest {
 		try {
 			Animal animal = createTestAnimal("-999");
 			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			loader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
 			animal.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			int transactionID = loader.insertAnimal(animal);
 			assertTrue(transactionID > 0,"Record should have been successfully inserted");
-			List <Animal>  animals = loader.retrieveActiveFemaleCalves(animal.getOrgID());
+			List <Animal>  animals = loader.retrieveActiveFemaleCalves(animal.getOrgId());
 			Iterator<Animal> it = animals.iterator();
 			boolean found = false;
 			while (it.hasNext()) {
 				Animal animal1 = it.next();
-				if (animal1.getOrgID().equalsIgnoreCase(animal.getOrgID()) && animal1.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
+				if (animal1.getOrgId().equalsIgnoreCase(animal.getOrgId()) && animal1.getAnimalTag().equalsIgnoreCase(animal.getAnimalTag())) {
 					found = true;
 					break;
 				}
 			}
 			assertTrue(found, animal.getAnimalTag() + " should have been found");
-			int transactionId  = loader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+			int transactionId  = loader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
 			assertEquals(1,transactionId);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -812,7 +810,7 @@ class AnimalLoaderTest {
 			Animal animal1 = createTestAnimal("-999");
 
 			AnimalPhoto photo = new AnimalPhoto();
-			photo.setOrgID(animal1.getOrgID());
+			photo.setOrgId(animal1.getOrgId());
 			photo.setAnimalTag(animal1.getAnimalTag());
 			photo.setPhotoID("" + DateTime.now().getMillis());
 			photo.setPhotoURI(Util.ANIMAL_PHOTO_UPLOAD_PATH + "/" + photo.getAnimalTag() + "/" + photo.getPhotoID() + ".png");
@@ -825,8 +823,8 @@ class AnimalLoaderTest {
 			
 			
 			AnimalLoader loader = new AnimalLoader();
-			assertTrue(loader.deleteAllAnimalPhotos(animal1.getOrgID(), animal1.getAnimalTag()) >= 0);
-			assertTrue(loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()) >= 0);
+			assertTrue(loader.deleteAllAnimalPhotos(animal1.getOrgId(), animal1.getAnimalTag()) >= 0);
+			assertTrue(loader.deleteAnimal(animal1.getOrgId(), animal1.getAnimalTag()) >= 0);
 			
 			assertEquals(1,loader.insertAnimal(animal1));
 			assertEquals(1,loader.insertAnimalPhoto(photo));
@@ -834,11 +832,11 @@ class AnimalLoaderTest {
 			photo.setPhotoURI(Util.ANIMAL_PHOTO_UPLOAD_PATH + "/" + photo.getAnimalTag() + "/" + photo.getPhotoID() + " .png");
 			assertEquals(1,loader.insertAnimalPhoto(photo));
 			
-			List<AnimalPhoto> photos = loader.retrieveAnimalPhotos(animal1.getOrgID(), animal1.getAnimalTag());
+			List<AnimalPhoto> photos = loader.retrieveAnimalPhotos(animal1.getOrgId(), animal1.getAnimalTag(),null);
 			assertEquals(2,photos.size());
 
-			assertEquals(2,loader.deleteAllAnimalPhotos(animal1.getOrgID(), animal1.getAnimalTag()));
-			assertEquals(1,loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()));
+			assertEquals(2,loader.deleteAllAnimalPhotos(animal1.getOrgId(), animal1.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal1.getOrgId(), animal1.getAnimalTag()));
 						
 			
 		} catch (Exception e) {
@@ -856,9 +854,9 @@ class AnimalLoaderTest {
 			animal1.setAnimalDam(animalDam);
 			animal2.setAnimalDam(animalDam);
 			AnimalLoader loader = new AnimalLoader();
-			loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag());
-			loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag());
-			loader.deleteAnimal(animalDam.getOrgID(), animalDam.getAnimalTag());
+			loader.deleteAnimal(animal1.getOrgId(), animal1.getAnimalTag());
+			loader.deleteAnimal(animal2.getOrgId(), animal2.getAnimalTag());
+			loader.deleteAnimal(animalDam.getOrgId(), animalDam.getAnimalTag());
 			animal1.setAnimalType(Util.AnimalTypes.FEMALECALF);
 			animal2.setAnimalType(Util.AnimalTypes.MALECALF);
 			animal1.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(24));
@@ -868,14 +866,14 @@ class AnimalLoaderTest {
 			assertTrue(loader.insertAnimal(animalDam) > 0);
 			assertTrue(loader.insertAnimal(animal1) > 0);
 			assertTrue(loader.insertAnimal(animal2) > 0);
-			List <Animal>  animals = loader.retrieveSpecifiedAnimalProgney(animalDam.getOrgID(), animalDam.getAnimalTag());
+			List <Animal>  animals = loader.retrieveSpecifiedAnimalProgney(animalDam.getOrgId(), animalDam.getAnimalTag());
 			assertEquals(2,animals.size());
 			assertEquals(animal2.getAnimalTag(),animals.get(0).getAnimalTag());
 			assertEquals(animal1.getAnimalTag(),animals.get(1).getAnimalTag());
 
-			assertEquals(1,loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()));
-			assertEquals(1,loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag()));
-			assertEquals(1,loader.deleteAnimal(animalDam.getOrgID(), animalDam.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal1.getOrgId(), animal1.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal2.getOrgId(), animal2.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animalDam.getOrgId(), animalDam.getAnimalTag()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
@@ -896,20 +894,23 @@ class AnimalLoaderTest {
 			animal2.setAnimalType(Util.AnimalTypes.DRYPREG);
 			animal3.setAnimalType(Util.AnimalTypes.DRYPREG);
 
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal1.getOrgId(), animal1.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal2.getOrgId(), animal2.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal3.getOrgId(), animal3.getAnimalTag()) >= 0);
+
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal1.getOrgId(), animal1.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal2.getOrgId(), animal2.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal3.getOrgId(), animal3.getAnimalTag()) >= 0);
+
 			AnimalLoader loader = new AnimalLoader();
-			
-			assertTrue(loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()) >=0);
-			assertTrue(loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag()) >=0);
-			assertTrue(loader.deleteAnimal(animal3.getOrgID(), animal3.getAnimalTag()) >=0);
+			assertTrue(loader.deleteAnimal(animal1.getOrgId(), animal1.getAnimalTag()) >=0);
+			assertTrue(loader.deleteAnimal(animal2.getOrgId(), animal2.getAnimalTag()) >=0);
+			assertTrue(loader.deleteAnimal(animal3.getOrgId(), animal3.getAnimalTag()) >=0);
 			
 			
 			LocalDate pastMilkDate = new LocalDate(1900,1,1, LocalDate.now(IMDProperties.getServerTimeZone()).getChronology());
 			
 			MilkingDetailLoader milkLoader = new MilkingDetailLoader();
-			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal1.getOrgID(), animal1.getAnimalTag(), pastMilkDate) >= 0);
-			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal2.getOrgID(), animal2.getAnimalTag(), pastMilkDate) >= 0);
-			assertTrue(milkLoader.deleteMilkingRecordOfaDay(animal3.getOrgID(), animal3.getAnimalTag(), pastMilkDate) >= 0);
-			AnimalSrvc anmlSrvc = new AnimalSrvc();
 			MilkingInformationSrvc milkingSrvc = new MilkingInformationSrvc();
 			MilkingDetailBean milkBean = new MilkingDetailBean();
 			milkBean.setMilkingDateStr(pastMilkDate.toString());
@@ -929,21 +930,21 @@ class AnimalLoaderTest {
 			milkingRecord.setComments("Morning Milking");
 			milkingRecord.setMilkingEventNumber((short) 1);
 
-			assertEquals(1,milkLoader.insertMilkRecord(milkingRecord.getMilkingDetailBean()));
-			List <Animal>  animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal1.getOrgID(),pastMilkDate,1);
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord));
+			List <Animal>  animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal1.getOrgId(),pastMilkDate,1);
 			assertEquals(1,animals.size());
 			assertEquals(animal1.getAnimalTag(),animals.get(0).getAnimalTag());
 			
 			milkingRecord.setAnimalTag(animal2.getAnimalTag());
-			assertEquals(1,milkLoader.insertMilkRecord(milkingRecord.getMilkingDetailBean()));
-			animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal2.getOrgID(),pastMilkDate,1);
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord));
+			animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal2.getOrgId(),pastMilkDate,1);
 			assertEquals(2,animals.size());
 			assertEquals(animal1.getAnimalTag(),animals.get(0).getAnimalTag());
 			assertEquals(animal2.getAnimalTag(),animals.get(1).getAnimalTag());
 			
 			milkingRecord.setAnimalTag(animal3.getAnimalTag());
-			assertEquals(1,milkLoader.insertMilkRecord(milkingRecord.getMilkingDetailBean()));
-			animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal3.getOrgID(),pastMilkDate,1);
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord));
+			animals = loader.retrieveAnimalsMilkedAtSpecificMilkingEvent(animal3.getOrgId(),pastMilkDate,1);
 			assertEquals(3,animals.size());
 			assertEquals(animal1.getAnimalTag(),animals.get(0).getAnimalTag());
 			assertEquals(animal2.getAnimalTag(),animals.get(1).getAnimalTag());
@@ -957,18 +958,14 @@ class AnimalLoaderTest {
 			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));
 			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));
 			assertFalse(responseStr.contains("\"animalTag\":\"" + animal1.getAnimalTag() + "\""));
-			
-			
 
-			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal1.getOrgID(), animal1.getAnimalTag(), pastMilkDate));
-			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal2.getOrgID(), animal2.getAnimalTag(), pastMilkDate));
-			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal3.getOrgID(), animal3.getAnimalTag(), pastMilkDate));
+			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal1.getOrgId(), animal1.getAnimalTag(), pastMilkDate));
+			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal2.getOrgId(), animal2.getAnimalTag(), pastMilkDate));
+			assertEquals(1,milkLoader.deleteMilkingRecordOfaDay(animal3.getOrgId(), animal3.getAnimalTag(), pastMilkDate));
 			
-			assertEquals(1,loader.deleteAnimal(animal1.getOrgID(), animal1.getAnimalTag()));
-			assertEquals(1,loader.deleteAnimal(animal2.getOrgID(), animal2.getAnimalTag()));
-			assertEquals(1,loader.deleteAnimal(animal3.getOrgID(), animal3.getAnimalTag()));
-			
-			
+			assertEquals(1,loader.deleteAnimal(animal1.getOrgId(), animal1.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal2.getOrgId(), animal2.getAnimalTag()));
+			assertEquals(1,loader.deleteAnimal(animal3.getOrgId(), animal3.getAnimalTag()));
 			
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -6,6 +6,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 
 public class InventoryBean {
+	private String orgId;
 	private String itemSKU;
 	private String itemType;
 	private Float quantity;
@@ -204,6 +205,14 @@ public class InventoryBean {
 			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd H:mm");
 			this.inventoryAddDttmStr = dateTime.toString(fmt);
 		}
+	}
+
+	public String getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(String orgId) {
+		this.orgId = orgId;
 	}
 
 }

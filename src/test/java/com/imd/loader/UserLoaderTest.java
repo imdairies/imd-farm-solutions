@@ -42,7 +42,7 @@ class UserLoaderTest {
 			UserLoader loader = new UserLoader();
 			
 			User newUser = new User("-999");
-			newUser.setOrgID("IMD");
+			newUser.setOrgId("IMD");
 			newUser.setPassword(loader.encryptPassword("PASSWORD"));
 			newUser.setActive(true);
 			newUser.setPersonId("PERSON_ID");
@@ -53,10 +53,10 @@ class UserLoaderTest {
 			newUser.setUpdatedBy(newUser.getCreatedBy());
 			newUser.setUpdatedDTTM(newUser.getCreatedDTTM());
 			
-			assertTrue(loader.deleteUser(newUser.getOrgID(), newUser.getUserId())>=0);
+			assertTrue(loader.deleteUser(newUser.getOrgId(), newUser.getUserId())>=0);
 
 			assertEquals(1,loader.insertUser(newUser));
-			User addedUser = loader.retrieveUser(newUser.getOrgID(), newUser.getUserId());
+			User addedUser = loader.retrieveUser(newUser.getOrgId(), newUser.getUserId());
 			assertTrue(addedUser != null);
 			assertEquals(addedUser.getUserId(),newUser.getUserId());
 			assertEquals(addedUser.getPassword(),newUser.getPassword());
@@ -66,7 +66,7 @@ class UserLoaderTest {
 			assertEquals(Util.getDateInSQLFormat(addedUser.getCreatedDTTM()),Util.getDateInSQLFormat(newUser.getCreatedDTTM()));
 			
 			UserBean updateUserBean = new UserBean();
-			updateUserBean.setOrgId(newUser.getOrgID());
+			updateUserBean.setOrgId(newUser.getOrgId());
 			updateUserBean.setUserId(newUser.getUserId());
 			updateUserBean.setUserId(newUser.getUserId());
 			updateUserBean.setPreferredCurrency(Util.CurrencyCode.USD);
@@ -79,7 +79,7 @@ class UserLoaderTest {
 			Thread.sleep(1000);// So that the updated DTTM can be at least a second after the original insertion.
 			assertEquals(1,loader.updateUserProfile(updateUserBean));
 			
-			User updatedUser = loader.retrieveUser(newUser.getOrgID(), newUser.getUserId());
+			User updatedUser = loader.retrieveUser(newUser.getOrgId(), newUser.getUserId());
 			assertTrue(updatedUser != null);
 			assertEquals(updateUserBean.getUserId(),updatedUser.getUserId());
 			assertEquals(addedUser.getPassword(),updatedUser.getPassword());
@@ -97,7 +97,7 @@ class UserLoaderTest {
 			assertTrue(addedUser.getCreatedDTTM().isEqual(updatedUser.getCreatedDTTM()));
 
 			
-			assertEquals(1,loader.deleteUser(newUser.getOrgID(), newUser.getUserId()));
+			assertEquals(1,loader.deleteUser(newUser.getOrgId(), newUser.getUserId()));
 			
 		} catch (Exception ex) {
 			fail("Exception " + ex.getMessage());
@@ -116,7 +116,7 @@ class UserLoaderTest {
 			UserLoader loader = new UserLoader();
 			
 			User newUser = new User("-999");
-			newUser.setOrgID("IMD");
+			newUser.setOrgId("IMD");
 			newUser.setPassword(loader.encryptPassword("PASSWORD"));
 			newUser.setActive(true);
 			newUser.setPersonId("PERSON_ID");
@@ -127,11 +127,11 @@ class UserLoaderTest {
 			newUser.setUpdatedBy(newUser.getCreatedBy());
 			newUser.setUpdatedDTTM(newUser.getCreatedDTTM());
 			
-			assertTrue(loader.deleteUser(newUser.getOrgID(), newUser.getUserId())>=0);
-			assertEquals(null,loader.retrieveUser(newUser.getOrgID(), newUser.getUserId()));
+			assertTrue(loader.deleteUser(newUser.getOrgId(), newUser.getUserId())>=0);
+			assertEquals(null,loader.retrieveUser(newUser.getOrgId(), newUser.getUserId()));
 
 			assertEquals(1,loader.insertUser(newUser));
-			User addedUser = loader.retrieveUser(newUser.getOrgID(), newUser.getUserId());
+			User addedUser = loader.retrieveUser(newUser.getOrgId(), newUser.getUserId());
 			assertTrue(addedUser != null);
 			assertEquals(addedUser.getUserId(),newUser.getUserId());
 			assertEquals(addedUser.getPassword(),newUser.getPassword());
@@ -140,7 +140,7 @@ class UserLoaderTest {
 			assertEquals(addedUser.getPreferredCurrency(),newUser.getPreferredCurrency());
 			assertEquals(Util.getDateInSQLFormat(addedUser.getCreatedDTTM()),Util.getDateInSQLFormat(newUser.getCreatedDTTM()));
 			
-			assertEquals(1,loader.deleteUser(newUser.getOrgID(), newUser.getUserId()));
+			assertEquals(1,loader.deleteUser(newUser.getOrgId(), newUser.getUserId()));
 			
 		} catch (Exception ex) {
 			fail("Exception " + ex.getMessage());
@@ -157,7 +157,7 @@ class UserLoaderTest {
 			UserLoader loader = new UserLoader();
 			
 			User newUser = new User("-999");
-			newUser.setOrgID("IMD");
+			newUser.setOrgId("IMD");
 			newUser.setPassword(loader.encryptPassword("PASSWORD"));
 			newUser.setActive(true);
 			newUser.setPersonId("PERSON_ID");
@@ -170,28 +170,28 @@ class UserLoaderTest {
 			
 			int cacheSize = loader.getSessionCache().size();
 			
-			assertTrue(loader.deleteUser(newUser.getOrgID(), newUser.getUserId())>=0);
-			assertEquals(null,loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword()));
+			assertTrue(loader.deleteUser(newUser.getOrgId(), newUser.getUserId())>=0);
+			assertEquals(null,loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),newUser.getPassword()));
 
 			assertEquals(1,loader.insertUser(newUser));
 			IMDLogger.loggingMode = Util.INFO;
 
-			assertEquals(null,loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),loader.encryptPassword("incorrectPassword")));
-			User authenticatedUser = loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword());
+			assertEquals(null,loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),loader.encryptPassword("incorrectPassword")));
+			User authenticatedUser = loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),newUser.getPassword());
 			assertTrue(authenticatedUser !=  null);
 			assertTrue(authenticatedUser.getPassword()!=null);
 			assertEquals(cacheSize + 1, loader.getSessionCache().size());
-			assertEquals(authenticatedUser.getUserId(), loader.isUserAuthenticated(authenticatedUser.getPassword()).getUserId(),authenticatedUser.toString());
+			assertEquals(authenticatedUser.getUserId(), loader.isUserAuthenticated(authenticatedUser.getPassword(),false).getUserId(),authenticatedUser.toString());
 			
 			// simulate multiple logins by the same user
-			authenticatedUser = loader.authenticateUser(newUser.getOrgID(), newUser.getUserId(),newUser.getPassword());
+			authenticatedUser = loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),newUser.getPassword());
 			assertTrue(authenticatedUser !=  null);
 			assertEquals(cacheSize + 1, loader.getSessionCache().size());						
 			
 			assertEquals(1,loader.logoutUser(authenticatedUser.getPassword()));
-			assertEquals(null,loader.isUserAuthenticated(authenticatedUser.getPassword()));			
+			assertEquals(null,loader.isUserAuthenticated(authenticatedUser.getPassword(),false));			
 			
-			assertEquals(1,loader.deleteUser(newUser.getOrgID(), newUser.getUserId()));
+			assertEquals(1,loader.deleteUser(newUser.getOrgId(), newUser.getUserId()));
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -200,4 +200,80 @@ class UserLoaderTest {
 			IMDLogger.loggingMode = oldMode;
 		}
 	}
+	@Test
+	void testTokenRenewal() {
+		int oldMode = IMDLogger.loggingMode;
+		IMDLogger.loggingMode = Util.INFO;
+		
+		try {
+			UserLoader loader = new UserLoader();
+			Integer inactivityLimitInMinutes = (Integer)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES);
+			Util.getConfigurations().setOrganizationConfigurationValue(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES, (int)(1));
+			
+			User newUser = new User("-999");
+			newUser.setOrgId("IMD");
+			newUser.setPassword(loader.encryptPassword("PASSWORD"));
+			newUser.setActive(true);
+			newUser.setPersonId("PERSON_ID");
+			newUser.setPreferredLanguage(Util.LanguageCode.URD);
+			newUser.setPreferredCurrency(Util.CurrencyCode.PKR);
+			newUser.setCreatedBy(new User("-998"));
+			newUser.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			newUser.setUpdatedBy(newUser.getCreatedBy());
+			newUser.setUpdatedDTTM(newUser.getCreatedDTTM());
+			
+			int cacheSize = loader.getSessionCache().size();
+			
+			assertTrue(loader.deleteUser(newUser.getOrgId(), newUser.getUserId())>=0);
+			assertEquals(null,loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),newUser.getPassword()));
+
+			assertEquals(1,loader.insertUser(newUser));
+			IMDLogger.loggingMode = Util.INFO;
+			
+			
+
+			assertEquals(null,loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),loader.encryptPassword("incorrectPassword")));
+			User authenticatedUser = loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),newUser.getPassword());
+			assertTrue(authenticatedUser !=  null);
+			assertTrue(authenticatedUser.getPassword()!=null);
+			assertEquals(cacheSize + 1, loader.getSessionCache().size());
+			assertEquals(authenticatedUser.getUserId(), loader.isUserAuthenticated(authenticatedUser.getPassword(),true).getUserId(),authenticatedUser.toString());
+			
+			Thread.sleep(1000 /*1 second sleep*/);
+			assertEquals(authenticatedUser.getUserId(), loader.isUserAuthenticated(authenticatedUser.getPassword(),true).getUserId(),authenticatedUser.toString());
+			Thread.sleep(2000 /* 2 seconds sleep*/);
+			assertEquals(authenticatedUser.getUserId(), loader.isUserAuthenticated(authenticatedUser.getPassword(),true).getUserId(),authenticatedUser.toString());
+
+			// disabled to avoid having to wait for 1 minute for this unit test to finish. Life is too fast to be waiting for 1 min :)
+//			Thread.sleep(70 * 1000 /* sleep for 1 minute 10 seconds*/);
+//			assertEquals(null, loader.isUserAuthenticated(authenticatedUser.getPassword(),true));
+
+			// simulate multiple logins by the same user
+			authenticatedUser = loader.authenticateUser(newUser.getOrgId(), newUser.getUserId(),newUser.getPassword());
+			assertTrue(authenticatedUser !=  null);
+			assertEquals(cacheSize + 1, loader.getSessionCache().size());						
+			
+			assertEquals(1,loader.logoutUser(authenticatedUser.getPassword()));
+			assertEquals(null,loader.isUserAuthenticated(authenticatedUser.getPassword(),true));			
+
+			assertEquals(1,loader.deleteUser(newUser.getOrgId(), newUser.getUserId()));
+			Util.getConfigurations().setOrganizationConfigurationValue(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES, inactivityLimitInMinutes);
+						
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Exception " + ex.getMessage());
+		} finally {
+			IMDLogger.loggingMode = oldMode;
+		}
+	}
+
+
 }
+
+
+
+
+
+
+
+

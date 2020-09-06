@@ -4,7 +4,6 @@ package com.imd.performance;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joda.time.DateTime;
 
 import com.imd.dto.Animal;
 import com.imd.dto.LifecycleEvent;
@@ -84,7 +83,7 @@ public class FirstHeatMilestoneEvaluator extends MilestoneEvaluator {
 				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
 				return couldnotBeEvaluatedMilestone;
 			} else if (!animals.get(0).getGender().equalsIgnoreCase(Util.GENDER_CHAR.FEMALE + "") || 
-					animals.get(0).getCurrentAgeInDays() < milestoneRule.getFiveStarThreshold()) {
+					animals.get(0).getCurrentAgeInDays() < milestoneRule.getOneStarThreshold()) {
 				evaluationResultMessage = "The milestone " + this.getMilestoneID() + " is only applicable to Female Animals which are older than " + milestoneRule.getOneStarThreshold() + " days";
 				IMDLogger.log(evaluationResultMessage,Util.INFO);
 				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
@@ -98,7 +97,7 @@ public class FirstHeatMilestoneEvaluator extends MilestoneEvaluator {
 			return couldnotBeEvaluatedMilestone;
 		}
 		Animal animal = animals.get(0);
-		List<LifecycleEvent> heatEvents = heatEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(),animal.getDateOfBirth(), 
+		List<LifecycleEvent> heatEvents = heatEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(),animal.getDateOfBirth(), 
 				animal.getDateOfBirth().plusDays(milestoneRule.getOneStarThreshold().intValue()),Util.LifeCycleEvents.HEAT,null, null, null, null, null);
 		if (heatEvents == null || heatEvents.isEmpty()) {
 			evaluationResultMessage = "This animal did not come in heat by " +  milestoneRule.getOneStarThreshold() + " days of age.";

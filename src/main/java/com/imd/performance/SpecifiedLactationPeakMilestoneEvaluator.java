@@ -16,7 +16,6 @@ import com.imd.loader.MessageCatalogLoader;
 import com.imd.loader.MilkingDetailLoader;
 import com.imd.loader.PerformanceMilestoneLoader;
 import com.imd.util.IMDLogger;
-import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 public class SpecifiedLactationPeakMilestoneEvaluator extends MilestoneEvaluator {
@@ -104,7 +103,7 @@ public class SpecifiedLactationPeakMilestoneEvaluator extends MilestoneEvaluator
 			return couldnotBeEvaluatedMilestone;
 		}
 		Animal animal = animals.get(0);
-		List<LifecycleEvent> calvingEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(),
+		List<LifecycleEvent> calvingEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(),
 				animal.getDateOfBirth(), null,
 				Util.LifeCycleEvents.PARTURATE,Util.LifeCycleEvents.ABORTION, null, null, null, null);
 		if (calvingEvents == null || calvingEvents.isEmpty()) {
@@ -129,7 +128,7 @@ public class SpecifiedLactationPeakMilestoneEvaluator extends MilestoneEvaluator
 			measurementEndTS = calvingEvents.get(totalLactations-(lactationNumber+1)).getEventTimeStamp();
 		
 		MilkingDetailLoader milkLoader = new MilkingDetailLoader();
-		float maxLpdSpecifiedLactation = milkLoader.getMaximumDailyProductionOfCow(animal.getOrgID(), animal.getAnimalTag(),measurementStartTS, measurementEndTS);
+		float maxLpdSpecifiedLactation = milkLoader.getMaximumDailyProductionOfCow(animal.getOrgId(), animal.getAnimalTag(),measurementStartTS, measurementEndTS);
 		
 		if (maxLpdSpecifiedLactation == 0) {
 			evaluationResultMessage = "The maximum daily production during lactation #" + this.lactationNumber + "   could not be deduced for this animal, probably because it doesn't have any milking record between " + 

@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -26,7 +25,6 @@ import com.imd.dto.FeedItemNutritionalStats;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.LookupValues;
-import com.imd.dto.MilkingDetail;
 import com.imd.dto.Note;
 import com.imd.dto.Person;
 import com.imd.dto.Sire;
@@ -38,6 +36,7 @@ import com.imd.loader.MilkingDetailLoader;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
+import com.imd.util.TestDataCreationUtil;
 import com.imd.util.Util;
 
 class FeedManagerTest {
@@ -58,22 +57,6 @@ class FeedManagerTest {
 	void tearDown() throws Exception {
 	}
 
-	private MilkingDetail createMilkingRecord(String tagNbr, LocalDate milkingDate, LocalTime milkingTime) throws IMDException {
-		short milkFreq = 3;
-		float milkingVol = 13.0f;
-		boolean isMachineMilked = true;	
-		MilkingDetail milkingRecord = new MilkingDetail("IMD", tagNbr, milkFreq, isMachineMilked, milkingDate, milkingTime, milkingVol,(short)1);
-		milkingRecord.setHumidity(50.0f);
-		milkingRecord.setTemperatureInCentigrade(19.3f);
-		milkingRecord.setLrValue(28.0f);
-		milkingRecord.setFatValue(3.80f);
-		milkingRecord.setToxinValue(0.11f);
-		milkingRecord.setCreatedBy(new User("KASHIF"));
-		milkingRecord.setCreatedDTTM(DateTime.now());
-		milkingRecord.setUpdatedBy(new User("KASHIF"));
-		milkingRecord.setUpdatedDTTM(DateTime.now());
-		return milkingRecord;
-	}
 	
 	@Test
 	void testBullAndMaleCalf() {
@@ -90,7 +73,7 @@ class FeedManagerTest {
 			maleCalf.setUpdatedBy(maleCalf.getCreatedBy());
 			maleCalf.setUpdatedDTTM(maleCalf.getCreatedDTTM());
 			
-			Sire bull = new Sire(maleCalf.getOrgID(),"TEST-BULL");
+			Sire bull = new Sire(maleCalf.getOrgId(),"TEST-BULL");
 			bull.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(300));
 			bull.setAnimalTypeCD(Util.AnimalTypes.BULL);
 			bull.setBreed(maleCalf.getBreed());
@@ -100,16 +83,16 @@ class FeedManagerTest {
 			bull.setUpdatedBy(maleCalf.getCreatedBy());
 			bull.setUpdatedDTTM(maleCalf.getCreatedDTTM());
 			
-			anmLdr.deleteAnimal(maleCalf.getOrgID(), maleCalf.getAnimalTag());
-			anmLdr.deleteAnimal(bull.getOrgID(), bull.getAnimalTag());			
+			anmLdr.deleteAnimal(maleCalf.getOrgId(), maleCalf.getAnimalTag());
+			anmLdr.deleteAnimal(bull.getOrgId(), bull.getAnimalTag());			
 			
 			assertEquals(1,anmLdr.insertAnimal(maleCalf));
 			assertEquals(1,anmLdr.insertAnimal(bull));
-			assertEquals(Util.FeedCohortType.BULL,manager.getAnimalFeedCohort(bull.getOrgID(), bull.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
-			assertEquals(Util.FeedCohortType.MALECALF,manager.getAnimalFeedCohort(maleCalf.getOrgID(), maleCalf.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.BULL,manager.getAnimalFeedCohort(bull.getOrgId(), bull.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.MALECALF,manager.getAnimalFeedCohort(maleCalf.getOrgId(), maleCalf.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
 			
-			assertEquals(1,anmLdr.deleteAnimal(maleCalf.getOrgID(), maleCalf.getAnimalTag()));
-			assertEquals(1,anmLdr.deleteAnimal(bull.getOrgID(), bull.getAnimalTag()));
+			assertEquals(1,anmLdr.deleteAnimal(maleCalf.getOrgId(), maleCalf.getAnimalTag()));
+			assertEquals(1,anmLdr.deleteAnimal(bull.getOrgId(), bull.getAnimalTag()));
 
 		} catch (IMDException ex) {
 			ex.printStackTrace();
@@ -190,9 +173,8 @@ class FeedManagerTest {
 	@Test
 	void testVariousLactationStages() {
 		FeedManager manager = new FeedManager();
-		AnimalLoader anmLdr = new AnimalLoader();
 		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
-		MilkingDetailLoader milkDetailloader = new MilkingDetailLoader();
+		LocalDate recordDate = LocalDate.now(IMDProperties.getServerTimeZone());
 		try {
 			String freshLactationTag = "-999";
 			String midLactationTag = "-998";
@@ -202,6 +184,8 @@ class FeedManagerTest {
 			Dam freshLactation = createDam(orgID,freshLactationTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.LACTATING);
 			Dam midLactation = createDam(orgID,midLactationTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.LCTINSEMIN);
 			Dam oldLactation = createDam(orgID,oldLactationTag,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(4*365),Util.AnimalTypes.LCTPRGNT);
+			
+			
 
 			
 			LifecycleEvent freshParturationEvent = new LifecycleEvent(orgID,0,freshLactationTag,Util.LifeCycleEvents.PARTURATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
@@ -214,134 +198,86 @@ class FeedManagerTest {
 			oldParturationEvent.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.DRYOFF_BY_DAYS));
 
 			
-			LocalDate today = LocalDate.now(IMDProperties.getServerTimeZone());
 			
-			assertTrue(milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, midLactationTag)>=0);
-			assertTrue(milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, oldLactationTag)>=0);
-			assertTrue(milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, freshLactationTag)>=0);
-						
-			eventLoader.deleteAnimalLifecycleEvents(orgID, freshLactationTag);
-			eventLoader.deleteAnimalLifecycleEvents(orgID, midLactationTag);
-			eventLoader.deleteAnimalLifecycleEvents(orgID, oldLactationTag);
-			anmLdr.deleteAnimal(orgID, freshLactationTag);
-			anmLdr.deleteAnimal(orgID, midLactationTag);
-			anmLdr.deleteAnimal(orgID, oldLactationTag);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgID, midLactationTag)>=0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgID, oldLactationTag)>=0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgID, freshLactationTag)>=0);
+			assertTrue(TestDataCreationUtil.deleteFarmMilkingRecordsWithNoAnimalMilkingEvent(orgID) >= 0);
 			
-			anmLdr.insertAnimal(freshLactation);
-			anmLdr.insertAnimal(midLactation);
-			anmLdr.insertAnimal(oldLactation);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(orgID, freshLactationTag) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(orgID, midLactationTag) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(orgID, oldLactationTag) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(orgID, freshLactationTag) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(orgID, midLactationTag) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(orgID, oldLactationTag) >= 0);
+			
+			assertEquals(1,TestDataCreationUtil.insertAnimal(freshLactation));
+			assertEquals(1,TestDataCreationUtil.insertAnimal(midLactation));
+			assertEquals(1,TestDataCreationUtil.insertAnimal(oldLactation));
+			
 			eventLoader.insertLifeCycleEvent(freshParturationEvent);
 			eventLoader.insertLifeCycleEvent(midParturationEvent);
 			eventLoader.insertLifeCycleEvent(oldParturationEvent);
+			
 
 			assertEquals(Util.FeedCohortType.LCTMID,manager.getAnimalFeedCohort(orgID, midLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(Util.FeedCohortType.LCTOLD,manager.getAnimalFeedCohort(orgID, oldLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(Util.FeedCohortType.LCTEARLY,manager.getAnimalFeedCohort(orgID, freshLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(oldLactation.getOrgId(), oldLactation.getAnimalTag(), recordDate.minusDays(3), 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(oldLactation.getOrgId(), oldLactation.getAnimalTag(), recordDate.minusDays(3), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(oldLactation.getOrgId(), oldLactation.getAnimalTag(), recordDate.minusDays(3), 3, 10.0f)));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(freshLactation.getOrgId(), freshLactation.getAnimalTag(), recordDate.minusDays(3), 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(freshLactation.getOrgId(), freshLactation.getAnimalTag(), recordDate.minusDays(3), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(freshLactation.getOrgId(), freshLactation.getAnimalTag(), recordDate.minusDays(3), 3, 9.0f)));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate, 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate, 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate, 3, 10.0f)));
 			
-			MilkingDetail milkingRecord1 = createMilkingRecord(midLactationTag, today, new LocalTime(4,0,0));
-			milkingRecord1.setComments("Milking Record to be deleted after the unit test");
-			
-			milkingRecord1.setRecordDate(today.minusDays(3));
-			milkingRecord1.setAnimalTag(oldLactationTag);
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-	
-			milkingRecord1.setAnimalTag(freshLactationTag);
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));			
-			
-			
-			milkingRecord1.setAnimalTag(midLactationTag);
-			milkingRecord1.setRecordDate(today);
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			
-			milkingRecord1.setRecordDate(today.minusDays(1));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			
-			milkingRecord1.setRecordDate(today.minusDays(2));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			
-			milkingRecord1.setRecordDate(today.minusDays(3));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			
-			milkingRecord1.setRecordDate(today.minusDays(4));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(1), 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(1), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(1), 3, 10.0f)));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(2), 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(2), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(2), 3, 10.0f)));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(3), 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(3), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(3), 3, 10.0f)));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(4), 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(4), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(midLactation.getOrgId(), midLactation.getAnimalTag(), recordDate.minusDays(4), 3, 10.0f)));
+
 			
 			assertEquals(Util.FeedCohortType.LCTMIDHIGH,manager.getAnimalFeedCohort(orgID, midLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(Util.FeedCohortType.LCTOLDHIGH,manager.getAnimalFeedCohort(orgID, oldLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(Util.FeedCohortType.LCTEARLY,manager.getAnimalFeedCohort(orgID, freshLactationTag).getFeedCohortLookupValue().getLookupValueCode());
 			
-			assertEquals(28.0f,manager.getMilkAverage(orgID, midLactationTag, today,5).floatValue());
-			
+			assertEquals(28.0f,manager.getMilkAverage(orgID, midLactationTag, recordDate,5).floatValue());
 
-			assertEquals(15,milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, midLactationTag));
+			assertEquals(15,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgID, midLactationTag));
+			assertEquals(3,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgID, freshLactationTag));
+			assertEquals(3,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgID, oldLactationTag));
 			
-			assertEquals(3,milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, freshLactationTag));
+			TestDataCreationUtil.deleteFarmMilkingRecord(midLactation.getOrgId(), recordDate, null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(midLactation.getOrgId(), recordDate.minusDays(1), null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(midLactation.getOrgId(), recordDate.minusDays(2), null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(midLactation.getOrgId(), recordDate.minusDays(3), null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(midLactation.getOrgId(), recordDate.minusDays(4), null);
 
-			assertEquals(3,milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, oldLactationTag));
+			assertEquals(1,TestDataCreationUtil.deleteAllAnimalEvents(orgID, freshLactationTag));
+			assertEquals(1,TestDataCreationUtil.deleteAllAnimalEvents(orgID, midLactationTag));
+			assertEquals(1,TestDataCreationUtil.deleteAllAnimalEvents(orgID, oldLactationTag));		
 			
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(orgID, freshLactationTag));
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(orgID, midLactationTag));
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(orgID, oldLactationTag));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(orgID, freshLactationTag));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(orgID, midLactationTag));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(orgID, oldLactationTag));
 
-			assertEquals(1,anmLdr.deleteAnimal(orgID, freshLactationTag));
-			assertEquals(1,anmLdr.deleteAnimal(orgID, midLactationTag));
-			assertEquals(1,anmLdr.deleteAnimal(orgID, oldLactationTag));
+
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -519,7 +455,7 @@ class FeedManagerTest {
 			femaleCalf.setUpdatedBy(femaleCalf.getCreatedBy());
 			femaleCalf.setUpdatedDTTM(femaleCalf.getCreatedDTTM());
 			
-			Dam femaleCalfWeanedOff = new Dam(femaleCalf.getOrgID(),"TEST-FEMALEWEANEDOFF");
+			Dam femaleCalfWeanedOff = new Dam(femaleCalf.getOrgId(),"TEST-FEMALEWEANEDOFF");
 			femaleCalfWeanedOff.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(100));
 			femaleCalfWeanedOff.setAnimalTypeCD(Util.AnimalTypes.FEMALECALF);
 			femaleCalfWeanedOff.setBreed(femaleCalf.getBreed());
@@ -529,7 +465,7 @@ class FeedManagerTest {
 			femaleCalfWeanedOff.setUpdatedBy(femaleCalf.getCreatedBy());
 			femaleCalfWeanedOff.setUpdatedDTTM(femaleCalf.getCreatedDTTM());
 			
-			LifecycleEvent event = new LifecycleEvent(femaleCalfWeanedOff.getOrgID(), 0, femaleCalfWeanedOff.getAnimalTag(),Util.LifeCycleEvents.WEANEDOFF,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));			
+			LifecycleEvent event = new LifecycleEvent(femaleCalfWeanedOff.getOrgId(), 0, femaleCalfWeanedOff.getAnimalTag(),Util.LifeCycleEvents.WEANEDOFF,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));			
 			event.setEventTimeStamp(femaleCalfWeanedOff.getDateOfBirth().plusDays(60));
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
@@ -538,22 +474,22 @@ class FeedManagerTest {
 			event.setUpdatedDTTM(event.getCreatedDTTM());
 			event.setEventNote("Testing");
 			
-			eventLoader.deleteAnimalLifecycleEvents(femaleCalfWeanedOff.getOrgID(), femaleCalfWeanedOff.getAnimalTag());
-			anmLdr.deleteAnimal(femaleCalf.getOrgID(), femaleCalf.getAnimalTag());
-			anmLdr.deleteAnimal(femaleCalfWeanedOff.getOrgID(), femaleCalfWeanedOff.getAnimalTag());			
+			eventLoader.deleteAnimalLifecycleEvents(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag());
+			anmLdr.deleteAnimal(femaleCalf.getOrgId(), femaleCalf.getAnimalTag());
+			anmLdr.deleteAnimal(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag());			
 
 			int transactionID = eventLoader.insertLifeCycleEvent(event);
 			assertTrue(transactionID>0,"Exactly one event should have been added successfully");
 
 			assertEquals(1,anmLdr.insertAnimal(femaleCalf));
 			assertEquals(1,anmLdr.insertAnimal(femaleCalfWeanedOff));
-			assertEquals(Util.FeedCohortType.FEMALECALF,manager.getAnimalFeedCohort(femaleCalf.getOrgID(), femaleCalf.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
-			assertEquals(Util.FeedCohortType.FMLWNDOFF,manager.getAnimalFeedCohort(femaleCalfWeanedOff.getOrgID(), femaleCalfWeanedOff.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.FEMALECALF,manager.getAnimalFeedCohort(femaleCalf.getOrgId(), femaleCalf.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(Util.FeedCohortType.FMLWNDOFF,manager.getAnimalFeedCohort(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
 			
 			// Create FEMALECALF feedplan
 			FeedLoader loader = new FeedLoader();
 			FeedItem feedItem = new FeedItem();
-			feedItem.setOrgID("IMD");
+			feedItem.setOrgId("IMD");
 			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_ALFHAY", "","","","");
 			feedItem.setFeedItemLookupValue(feedItemLV);		
 			
@@ -613,9 +549,9 @@ class FeedManagerTest {
 			
 			// Clean up all the test records added.
 			assertEquals(1,loader.deleteFeedPlanItem(feedItem, " AND START >= ? AND END >= ?", feedItem.getStart(), feedItem.getEnd()));
-			assertEquals(1,anmLdr.deleteAnimal(femaleCalf.getOrgID(), femaleCalf.getAnimalTag()));
-			assertEquals(1,anmLdr.deleteAnimal(femaleCalfWeanedOff.getOrgID(), femaleCalfWeanedOff.getAnimalTag()));
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(femaleCalfWeanedOff.getOrgID(), femaleCalfWeanedOff.getAnimalTag()));
+			assertEquals(1,anmLdr.deleteAnimal(femaleCalf.getOrgId(), femaleCalf.getAnimalTag()));
+			assertEquals(1,anmLdr.deleteAnimal(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag()));
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag()));
 
 		} catch (IMDException ex) {
 			ex.printStackTrace();
@@ -657,9 +593,9 @@ class FeedManagerTest {
 			FeedPlan cohortFeedPlan = getCohortFeedPlan(feedCohort, femaleCalf, minFulfillment, maxFulfillment);
 			
 			FeedPlan plan = manager.getPersonalizedFeedPlan(feedCohort, cohortFeedPlan, femaleCalf);
-			assertTrue(plan!=null && plan.getFeedPlan() != null && !plan.getFeedPlan().isEmpty());
+			assertTrue(plan!=null && plan.getFeedPlanItems() != null && !plan.getFeedPlanItems().isEmpty());
 			
-			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
+			Iterator<FeedItem> it = plan.getFeedPlanItems().iterator();
 			while (it.hasNext()) {
 				FeedItem item = it.next();
 				IMDLogger.log(item.getPersonalizedFeedMessage(), Util.INFO);
@@ -682,17 +618,17 @@ class FeedManagerTest {
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(1.793f,3),Util.formatToSpecifiedDecimalPlaces(plan.getPlanDM(),3));
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(expectedPlanCost,0),Util.formatToSpecifiedDecimalPlaces(plan.getPlanCost(),0));
 			
-			maxFulfillment.put(Util.FeedItems.MILK, new Float(3));
-			minFulfillment.put(Util.FeedItems.ALFAHAY, new Float(5));
+			maxFulfillment.put(Util.FeedItems.MILK, 3f);
+			minFulfillment.put(Util.FeedItems.ALFAHAY, 5f);
 			
 			cohortFeedPlan = getCohortFeedPlan(feedCohort, femaleCalf, minFulfillment, maxFulfillment);
 			
 			plan = manager.getPersonalizedFeedPlan(feedCohort, cohortFeedPlan, femaleCalf);
-			assertTrue(plan!=null && plan.getFeedPlan() != null && !plan.getFeedPlan().isEmpty());
+			assertTrue(plan!=null && plan.getFeedPlanItems() != null && !plan.getFeedPlanItems().isEmpty());
 			expectedPlanCost = (3f * 56f /*6 liters milk*/) + (5f * 3f /* 1.5 Kgs Alfahay*/) + 
 					 (5f * 0f /*5 liters water*/) + (0.5f * 43.25f /* 0.5 Kgs Vanda*/);
 			
-			it = plan.getFeedPlan().iterator();
+			it = plan.getFeedPlanItems().iterator();
 			while (it.hasNext()) {
 				FeedItem item = it.next();
 				IMDLogger.log(item.getPersonalizedFeedMessage(), Util.INFO);
@@ -733,17 +669,20 @@ class FeedManagerTest {
 	void testPersonalizedFeedPlanOfFreshHighProducer() {
 		String orgID = "IMD";
 		String lactatingTag = "-999";
-		int sixtyMonthsOld = 60;
+		int fiveYearsOld = 5;
 		
 		FeedManager manager = new FeedManager();
 		Dam lactatingHighProducer;
+		LocalDate recordDate = LocalDate.now(IMDProperties.getServerTimeZone());//.minusYears(100);
 		try {
-			lactatingHighProducer = createDam(orgID,lactatingTag,DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(sixtyMonthsOld), Util.AnimalTypes.LCTAWTHEAT);
+			lactatingHighProducer = createDam(orgID,lactatingTag,DateTime.now(IMDProperties.getServerTimeZone()).minusYears(fiveYearsOld), Util.AnimalTypes.LCTPOSTPAR);
 			
-			AnimalLoader anmLdr = new AnimalLoader();
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag()) >=0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteFarmMilkingRecordsWithNoAnimalMilkingEvent(orgID) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(orgID,lactatingTag) >=0);
 			
-			anmLdr.deleteAnimal(orgID,lactatingTag);
-			assertEquals(1,anmLdr.insertAnimal(lactatingHighProducer));
+			assertEquals(1,TestDataCreationUtil.insertAnimal(lactatingHighProducer));
 			
 			lactatingHighProducer.setWeight(627f);
 			
@@ -757,132 +696,103 @@ class FeedManagerTest {
 			HashMap<String,Float> minFulfillment = new HashMap<String,Float> ();
 			HashMap<String,Float>  maxFulfillment = new HashMap<String,Float> ();
 			
+			minFulfillment.put(Util.FeedItems.GLUCOSA, 7.0f);
+			maxFulfillment.put(Util.FeedItems.GLUCOSA, 60.0f);
+			
 			FeedPlan cohortFeedPlan = getCohortFeedPlan(feedCohort, lactatingHighProducer, minFulfillment, maxFulfillment);
 			
 			MilkingDetailLoader milkDetailloader = new MilkingDetailLoader();
-			LocalDate today = LocalDate.now(IMDProperties.getServerTimeZone());
-			MilkingDetail milkingRecord1 = createMilkingRecord(lactatingTag, today, new LocalTime(4,0,0));
-			milkingRecord1.setComments("Milking Record to be deleted after the unit test");
+//			MilkingDetail milkingRecord1 = createMilkingRecord(lactatingTag, recordDate, new LocalTime(4,0,0));
+//			milkingRecord1.setComments("Milking Record to be deleted after the unit test");
 			
-//			assertTrue(milkDetailloader.deleteMilkingRecordOfaDay(orgID, lactatingTag, today) >= 0);
-//			assertTrue(milkDetailloader.deleteMilkingRecordOfaDay(orgID, lactatingTag, today.minusDays(1)) >= 0);
-//			assertTrue(milkDetailloader.deleteMilkingRecordOfaDay(orgID, lactatingTag, today.minusDays(2)) >= 0);
-//			assertTrue(milkDetailloader.deleteMilkingRecordOfaDay(orgID, lactatingTag, today.minusDays(3)) >= 0);
-//			assertTrue(milkDetailloader.deleteMilkingRecordOfaDay(orgID, lactatingTag, today.minusDays(4)) >= 0);
-			
-			assertTrue(milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, lactatingTag) >= 0);
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate, 1, 11.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate, 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate, 3, 10.0f)));
 
-			milkingRecord1.setAnimalTag(lactatingTag);
-			milkingRecord1.setRecordDate(today);
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(11.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(1), 1, 12.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(1), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(1), 3, 9.0f)));
+
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(2), 1, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(2), 2, 9.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(2), 3, 12.0f)));
 			
-			milkingRecord1.setRecordDate(today.minusDays(1));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(12.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(3), 1, 10.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(3), 2, 10.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(3), 3, 10.0f)));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(4), 1, 11.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(4), 2, 10.0f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag(), recordDate.minusDays(4), 3, 9.0f)));
 			
-			milkingRecord1.setRecordDate(today.minusDays(2));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(12.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			
-			milkingRecord1.setRecordDate(today.minusDays(3));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			
-			milkingRecord1.setRecordDate(today.minusDays(4));
-			milkingRecord1.setMilkingEventNumber((short) 1);
-			milkingRecord1.setMilkVolume(11.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 2);
-			milkingRecord1.setMilkVolume(10.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
-			milkingRecord1.setMilkingEventNumber((short) 3);
-			milkingRecord1.setMilkVolume(9.0f);
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
 			
 			lactatingHighProducer.setStatusIndicators(AnimalLoader.LACTATING_INDICATOR);
-			
-			
+			LifecycleEvent calvingEvent = new LifecycleEvent(orgID,0,lactatingHighProducer.getAnimalTag(),Util.LifeCycleEvents.PARTURATE,
+					new User("KASHIF"),DateTime.now(IMDProperties.getServerTimeZone()),
+					new User("KASHIF"),DateTime.now(IMDProperties.getServerTimeZone()));
+			calvingEvent.setEventTimeStamp(calvingEvent.getCreatedDTTM());
+			List<LifecycleEvent> lifeCycleEvents = new ArrayList<LifecycleEvent>();
+			lifeCycleEvents.add(calvingEvent);
+			lactatingHighProducer.setLifeCycleEvents(lifeCycleEvents);
 			
 			FeedPlan plan = manager.getPersonalizedFeedPlan(feedCohort, cohortFeedPlan, lactatingHighProducer);
-			assertTrue(plan!=null && plan.getFeedPlan() != null && !plan.getFeedPlan().isEmpty());
+			assertTrue(plan!=null && plan.getFeedPlanItems() != null && !plan.getFeedPlanItems().isEmpty());
 			
 			float cp =0;
 			float me = 0;
-			float dm = 0;
 			
-			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
+			Iterator<FeedItem> it = plan.getFeedPlanItems().iterator();
 			while (it.hasNext()) {
 				FeedItem item = it.next();
 				IMDLogger.log(item.getPersonalizedFeedMessage(), Util.INFO);
 				if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.ALFAALFA)) {
 					assertEquals("48.46",Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(48.46f * 3f)),Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(48.46f * 0.2426f * 0.2283f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(48.46f * 0.2426f * 9.3f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces((48.46f * 3f)),Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces((48.46f * 0.2426f * 0.2283f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces((48.46f * 0.2426f * 9.3f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
 					cp += (48.46f * 0.2426f * 0.2283f);
 					me += (48.46f * 0.2426f * 9.3f);
 				} else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.CORNSILAGE)) {
-					assertEquals(Util.formatTwoDecimalPlaces(new Float("18.47410714")),Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(18.47410714f * 4.75f)),Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(18.47410714f * 0.28f * 0.072f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(18.47410714f * 0.28f * 10.8f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces(Float.parseFloat("18.47410714")),Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces((18.47410714f * 4.75f)),Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces((18.47410714f * 0.28f * 0.072f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces((18.47410714f * 0.28f * 10.8f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
 					cp += (18.47410714f * 0.28f * 0.072f);
 					me += (18.47410714f * 0.28f * 10.8f);
 				} else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.BYPASFAT84)) {
-					assertEquals("0.4",Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
-					assertEquals(new Float(0.40f * 135f),new Float(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(0f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(0)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
+					assertEquals(Float.parseFloat("0.4"),Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
+					assertEquals((0.40f * 135f),Float.parseFloat(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
 					cp += 0f;
 					me += 0f;
 				} else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.HDVANDA)) {
 					assertEquals("12",Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
-					assertEquals(new Float(12f * 42.75f),new Float(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(12f * 0.88f * 0.22f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(12f * 0.88f * 13.3888f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
+					assertEquals((12f * 42.75f),Float.parseFloat(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
+					assertEquals(Util.formatTwoDecimalPlaces((12f * 0.88f * 0.22f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces((12f * 0.88f * 13.3888f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
 					cp += (12f * 0.88f * 0.22f);
 					me += (12f * 0.88f * 13.3888f);
 				} else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.MEETHASODA)) {
 					assertEquals("0.1", Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
-					assertEquals(new Float(0.1f * 64.0f ),new Float(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(0f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(0)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
+					assertEquals((0.1f * 64.0f ),Float.parseFloat(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
 					cp += 0f;
 					me += 0f;
 				} else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.MNRLBRKT)) {
 					assertEquals("0.1",Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
-					assertEquals(new Float(0.1f * 200f),new Float(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(0f)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
-					assertEquals(Util.formatTwoDecimalPlaces(new Float(0)),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
+					assertEquals((0.1f * 200f),Float.parseFloat(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
+					cp += 0f;
+					me += 0f;
+				} else if (item.getFeedItemLookupValue().getLookupValueCode().equals(Util.FeedItems.GLUCOSA)) {
+					assertEquals("0.1",Util.formatTwoDecimalPlaces(item.getDailyIntake().floatValue()));
+					assertEquals((0.1f * 110f), Float.parseFloat(Util.formatTwoDecimalPlaces(item.getCostOfIntake().floatValue())));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getCrudeProtein().floatValue()));
+					assertEquals(Util.formatTwoDecimalPlaces(0f),Util.formatTwoDecimalPlaces(item.getFeedItemNutritionalStats().getMetabolizableEnergy().floatValue()));
 					cp += 0f;
 					me += 0f;
 				}
@@ -893,6 +803,7 @@ class FeedManagerTest {
 					(0.40f * 135f /*400 grams of bypass fat*/) + 
 					(12f * 42.75f /* 12 Kgs Vanda*/) +
 					(0.1f * 64.0f /*100 grams of meetha soda */) + 
+					(0.1f * 110.0f /*100 grams of glucosa  */) + 
 					(0.1f * 200f /* 100 grams Mineral*/);
 			
 			IMDLogger.log("The animal's feedplan will give it:\n" + Util.formatTwoDecimalPlaces(plan.getPlanDM()) + " Kgs. of Dry Matter. Required:"+ Util.formatTwoDecimalPlaces(nutritionalNeeds.getDryMatter() * lactatingHighProducer.getWeight()) + " Kgs.\n" +
@@ -909,10 +820,18 @@ class FeedManagerTest {
 //			assertEquals(3,milkDetailloader.deleteMilkingRecordOfaDay(orgID, lactatingTag, today.minusDays(3)));
 //			assertEquals(3,milkDetailloader.deleteMilkingRecordOfaDay(orgID, lactatingTag, today.minusDays(4)));
 
+			
+			
 			assertEquals(15,milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, lactatingTag));
+			TestDataCreationUtil.deleteFarmMilkingRecord(orgID, recordDate, null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(orgID, recordDate.minusDays(1), null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(orgID, recordDate.minusDays(2), null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(orgID, recordDate.minusDays(3), null);
+			TestDataCreationUtil.deleteFarmMilkingRecord(orgID, recordDate.minusDays(4), null);
+
 			
-			
-			assertEquals(1,anmLdr.deleteAnimal(orgID,lactatingHighProducer.getAnimalTag()));
+			assertEquals(0,TestDataCreationUtil.deleteAllAnimalEvents(lactatingHighProducer.getOrgId(), lactatingHighProducer.getAnimalTag()));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(orgID,lactatingHighProducer.getAnimalTag()));
 			
 			// Clean up all the test records added.
 	//		assertEquals(1,loader.deleteFeedPlanItem(feedItem, " AND START >= ? AND END >= ?", feedItem.getStart(), feedItem.getEnd()));
@@ -930,7 +849,7 @@ class FeedManagerTest {
 	private FeedPlan getCohortFeedPlan(FeedCohort feedCohort, Animal animal, HashMap<String,Float> minFulfillment, HashMap<String,Float> maxFulfillment) {
 		String cohortCD = feedCohort.getFeedCohortLookupValue().getLookupValueCode();
 		FeedPlan feedPlan = new FeedPlan();
-		feedPlan.setOrgID(animal.getOrgID());
+		feedPlan.setOrgId(animal.getOrgId());
 		feedPlan.setFeedCohort(feedCohort);
 		feedPlan.setPlanCP(0f);
 		feedPlan.setPlanDM(0f);
@@ -939,7 +858,7 @@ class FeedManagerTest {
 		
 		if (cohortCD.equalsIgnoreCase(Util.FeedCohortType.FEMALECALF)) {
 			FeedItem item1 = new FeedItem();
-			item1.setOrgID(animal.getOrgID());
+			item1.setOrgId(animal.getOrgId());
 			item1.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.ALFAHAY,Util.FeedItems.ALFAHAY,"","",""));
 			item1.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item1.setStart(4f);
@@ -958,7 +877,7 @@ class FeedManagerTest {
 			plan.add(item1);
 
 			FeedItem item2 = new FeedItem();
-			item2.setOrgID(animal.getOrgID());
+			item2.setOrgId(animal.getOrgId());
 			item2.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.MILK,Util.FeedItems.MILK,"","",""));
 			item2.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item2.setStart(0f);
@@ -980,7 +899,7 @@ class FeedManagerTest {
 			plan.add(item2);
 
 			FeedItem item3 = new FeedItem();
-			item3.setOrgID(animal.getOrgID());
+			item3.setOrgId(animal.getOrgId());
 			item3.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.VANDA,Util.FeedItems.VANDA,"","",""));
 			item3.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item3.setStart(0f);
@@ -999,7 +918,7 @@ class FeedManagerTest {
 			plan.add(item3);
 			
 			FeedItem item4 = new FeedItem();
-			item4.setOrgID(animal.getOrgID());
+			item4.setOrgId(animal.getOrgId());
 			item4.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.WATER,Util.FeedItems.WATER,"","",""));
 			item4.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item4.setStart(0f);
@@ -1017,7 +936,7 @@ class FeedManagerTest {
 			plan.add(item4);
 		} else if (cohortCD.equalsIgnoreCase(Util.FeedCohortType.LCTEARLYHI)) {
 			FeedItem item1 = new FeedItem();
-			item1.setOrgID(animal.getOrgID());
+			item1.setOrgId(animal.getOrgId());
 			item1.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.ALFAALFA,"Alfalfa","Alfalfa","2001","2001"));
 			item1.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item1.setStart(-9999f);
@@ -1036,7 +955,7 @@ class FeedManagerTest {
 			plan.add(item1);
 
 			FeedItem item2 = new FeedItem();
-			item2.setOrgID(animal.getOrgID());
+			item2.setOrgId(animal.getOrgId());
 			item2.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.CORNSILAGE,"Corn Silage","Corn Silage","2009","2009"));
 			item2.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item2.setStart(-9999f);
@@ -1055,7 +974,7 @@ class FeedManagerTest {
 			plan.add(item2);
 
 			FeedItem item3 = new FeedItem();
-			item3.setOrgID(animal.getOrgID());
+			item3.setOrgId(animal.getOrgId());
 			item3.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.HDVANDA,"Vanda # 68","Vanda # 68","2043","2043"));
 			item3.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item3.setStart(-9999f);
@@ -1074,7 +993,7 @@ class FeedManagerTest {
 			plan.add(item3);
 			
 			FeedItem item4 = new FeedItem();
-			item4.setOrgID(animal.getOrgID());
+			item4.setOrgId(animal.getOrgId());
 			item4.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.BYPASFAT84,"Bypass Fat 84%","Bypass Fat 84%","2044","2044"));
 			item4.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item4.setStart(0f);
@@ -1093,7 +1012,7 @@ class FeedManagerTest {
 			plan.add(item4);
 			
 			FeedItem item5 = new FeedItem();
-			item5.setOrgID(animal.getOrgID());
+			item5.setOrgId(animal.getOrgId());
 			item5.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.MEETHASODA,"Sodium Bicarbonate","Sodium Bicarbonate","2017","2017"));
 			item5.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item5.setStart(0f);
@@ -1112,7 +1031,7 @@ class FeedManagerTest {
 			plan.add(item5);
 			
 			FeedItem item6 = new FeedItem();
-			item6.setOrgID(animal.getOrgID());
+			item6.setOrgId(animal.getOrgId());
 			item6.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.MNRLBRKT,"Mineral Intraco Premix 100","Mineral Intraco Premix 100","2046","2046"));
 			item6.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
 			item6.setStart(0f);
@@ -1129,8 +1048,29 @@ class FeedManagerTest {
 			item6.getFeedItemNutritionalStats().setMetabolizableEnergy(0f);
 			item6.getFeedItemNutritionalStats().setCostPerUnit(200.0f);
 			plan.add(item6);
+
+			FeedItem item7 = new FeedItem();
+			item7.setOrgId(animal.getOrgId());
+			item7.setFeedItemLookupValue(new LookupValues(Util.LookupValues.FEED,Util.FeedItems.GLUCOSA,"Glucosa","Glucosa","3001","3001"));
+			item7.setFeedCohortCD(feedCohort.getFeedCohortLookupValue());
+			item7.setStart(0f);
+			item7.setEnd(9999f);
+			item7.setFulfillmentPct(0.10f);
+			item7.setMinimumFulfillment(minFulfillment.get(Util.FeedItems.GLUCOSA));
+			item7.setMaximumFulfillment(maxFulfillment.get(Util.FeedItems.GLUCOSA));
+			item7.setFulFillmentTypeCD(Util.FulfillmentType.CLVNGWINDO);
+			item7.setUnits("Kgs.");
+			item7.setComments("glucosa");
+			item7.setFeedItemNutritionalStats(new FeedItemNutritionalStats());
+			item7.getFeedItemNutritionalStats().setDryMatter(0f);
+			item7.getFeedItemNutritionalStats().setCrudeProtein(0f);
+			item7.getFeedItemNutritionalStats().setMetabolizableEnergy(0f);
+			item7.getFeedItemNutritionalStats().setCostPerUnit(110.0f);
+			plan.add(item7);
+		
+		
 		}
-		feedPlan.setFeedPlan(plan);
+		feedPlan.setFeedPlanItems(plan);
 		return feedPlan;
 	}
 
@@ -1346,7 +1286,7 @@ class FeedManagerTest {
 	@Test
 	void testMetabolizableEnergyRequirements() {
 		FeedManager manager = new FeedManager();
-		try { 
+		try {
 			CohortNutritionalNeeds needs = manager.getMetabolizableEnergyRequiremnt(493d, 17.5d/*milking avg*/, 0/*days into pregnancy*/,Util.FeedCohortType.LCTOLD, 3.6d, 3.2d);
 			assertEquals(Util.formatTwoDecimalPlaces(142.55d),Util.formatTwoDecimalPlaces(needs.getMetabloizableEnergy().doubleValue()));
 			assertEquals(Util.formatTwoDecimalPlaces(10.74),Util.formatTwoDecimalPlaces(needs.getNutritionalNeedsTDN().doubleValue()));
@@ -1362,10 +1302,9 @@ class FeedManagerTest {
 			needs = manager.getMetabolizableEnergyRequiremnt(550d, 20d/*milking avg*/, 60/*days into pregnancy*/,Util.FeedCohortType.LCTOLD, 3.6d,3.2d);
 			assertEquals(Util.formatTwoDecimalPlaces(161d),Util.formatTwoDecimalPlaces(needs.getMetabloizableEnergy().doubleValue()));
 			assertEquals(Util.formatTwoDecimalPlaces(12.1d),Util.formatTwoDecimalPlaces(needs.getNutritionalNeedsTDN().doubleValue()));
-			
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
-	}		
+	}
 }

@@ -24,7 +24,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 	
 
 	public LifecycleEvent(String orgID, int transactionID, String animalTag, String eventCode, User user, DateTime createdTS, User updateUser, DateTime updatedTS) throws IMDException {
-		this.setOrgID(orgID);
+		this.setOrgId(orgID);
 		this.eventTransactionID = transactionID;
 		this.animalTag = animalTag;
 		this.eventType = new LifeCycleEventCode(eventCode, "", "");
@@ -43,7 +43,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 		
 		if (dateTimeFormat == null || dateTimeFormat.trim().isEmpty())
 			dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
-		this.setOrgID(eventBean.getOrgID());
+		this.setOrgId(eventBean.getOrgID());
 		this.animalTag = eventBean.getAnimalTag();
 		this.auxField1Value = eventBean.getAuxField1Value();
 		this.auxField2Value = eventBean.getAuxField2Value();
@@ -155,7 +155,7 @@ public class LifecycleEvent extends IMDairiesDTO{
 	}
 	
 	public String stringify(String prefix, DateTimeFormatter fmt)  {
-		String json = prefix + fieldToJson("orgID", this.getOrgID()) + ",\n" +
+		String json = prefix + fieldToJson("orgID", this.getOrgId()) + ",\n" +
 				prefix + fieldToJson("eventTransactionID",this.eventTransactionID) + ",\n" +
 				eventType.dtoToJson(prefix,false) + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" + 

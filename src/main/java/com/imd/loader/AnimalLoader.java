@@ -38,7 +38,7 @@ public class AnimalLoader {
 	
 	public int insertAnimal(Animal animal) throws SQLException {
 		int recordAdded = -1;
-		String qryString = "insert into ANIMALS (ORG_ID,"
+		String qryString = "insert into imd.ANIMALS (ORG_ID,"
 				+ "ANIMAL_TAG,"
 				+ "ALIAS,"
 				+ "BREED,"
@@ -64,7 +64,7 @@ public class AnimalLoader {
 		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(index++, (animal.getOrgID() == null ? null : animal.getOrgID()));
+			preparedStatement.setString(index++, (animal.getOrgId() == null ? null : animal.getOrgId()));
 			preparedStatement.setString(index++, (animal.getAnimalTag() == null ? null : animal.getAnimalTag()));
 			preparedStatement.setString(index++, (animal.getAlias() == null ? null : animal.getAlias()));
 			preparedStatement.setString(index++, (animal.getBreed() == null ? null : animal.getBreed()));
@@ -178,13 +178,12 @@ public class AnimalLoader {
 		return recordAdded;
 	}	
 	public int deleteAnimal(Animal animal) {
-		return deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
+		return deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
 	}
 
 	public int deleteAnimal(String orgID, String animalTag) {
 		String qryString = "DELETE FROM ANIMALS where ORG_ID=? AND ANIMAL_TAG =? ";
 		int recordDeleted = 0;
-		Statement st = null;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
 		try {
@@ -229,13 +228,13 @@ public class AnimalLoader {
 	
 	public List<Animal> getAnimalRawInfo(String orgID, String animalTag) throws Exception {
 		AnimalBean aBean = new AnimalBean();
-		aBean.setOrgID(orgID);
+		aBean.setOrgId(orgID);
 		aBean.setAnimalTag(animalTag);
 		return getAnimalRawInfo(aBean);
 	}
 	public List<Animal> getAnimalRawInfo(Animal animal) throws Exception {
 		AnimalBean aBean = new AnimalBean();
-		aBean.setOrgID(animal.getOrgID());
+		aBean.setOrgId(animal.getOrgId());
 		aBean.setAnimalTag(animal.getAnimalTag());
 		return getAnimalRawInfo(aBean);
 	}
@@ -253,7 +252,7 @@ public class AnimalLoader {
 		
 		List<String> values = new ArrayList<String> ();
 		values.add(Util.LookupValues.LCYCL);
-		values.add(animalBean.getOrgID());		
+		values.add(animalBean.getOrgId());		
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
 			qryString +=  " AND A.ANIMAL_TAG " + (isWildCardSearch ?  " LIKE ? " : " = ?");
 			values.add(animalBean.getAnimalTag());
@@ -347,10 +346,9 @@ public class AnimalLoader {
 				"	ON (A.TYPE_CD=C.LOOKUP_CD AND C.CATEGORY_CD=?)" +
 				" WHERE ( A.ORG_ID=? ";
 		
-		
 		List<String> values = new ArrayList<String> ();
 		values.add(Util.LookupValues.LCYCL);
-		values.add(animalBean.getOrgID());
+		values.add(animalBean.getOrgId());
 		if (animalBean.getAnimalTag() != null && !animalBean.getAnimalTag().trim().isEmpty()) {
 			if (animalBean.getAnimalTag().contains("("))
 				qryString +=  " AND A.ANIMAL_TAG IN  " + animalBean.getAnimalTag();
@@ -457,7 +455,7 @@ public class AnimalLoader {
 		
 	private List<Animal> retrieveDams(String orgID, boolean activeOnly) throws Exception {
 		AnimalBean animalBean = new AnimalBean();
-		animalBean.setOrgID(orgID);
+		animalBean.setOrgId(orgID);
 		animalBean.setActiveOnly(activeOnly);
 		animalBean.setGender(Util.GENDER_CHAR.FEMALE);
 		String additionalQuery = " DOB <= '" + Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Util.MINIMUM_AGE_AT_CALVING_IN_DAYS))+"'";
@@ -467,14 +465,14 @@ public class AnimalLoader {
 	
 	public List<Animal> retrieveActiveAnimals(String orgID) throws Exception {
 		AnimalBean animalBean = new AnimalBean();
-		animalBean.setOrgID(orgID);
+		animalBean.setOrgId(orgID);
 		animalBean.setActiveOnly(true);
 		return retrieveMatchingAnimals(animalBean);
 	}	
 
 	public List<Animal> retrieveAllAnimals(String orgID) throws Exception {
 		AnimalBean animalBean = new AnimalBean();
-		animalBean.setOrgID(orgID);
+		animalBean.setOrgId(orgID);
 		animalBean.setActiveOnly(false);
 		return retrieveMatchingAnimals(animalBean);
 	}	
@@ -525,10 +523,10 @@ public class AnimalLoader {
 		}
 		
 		if (damTag != null) {
-			animal.setAnimalDam(new Dam(animal.getOrgID(),damTag));
+			animal.setAnimalDam(new Dam(animal.getOrgId(),damTag));
 		}
 		if (sireTag != null) {
-			animal.setAnimalSire(new Sire(animal.getOrgID(),sireTag));
+			animal.setAnimalSire(new Sire(animal.getOrgId(),sireTag));
 			animal.getAnimalSire().setSireSpecification(rs.getString("RECORD_URL"));
 			animal.getAnimalSire().setAlias(rs.getString("SIRE_ALIAS"));
 		}
@@ -587,7 +585,7 @@ public class AnimalLoader {
 
 		List<String> values = new ArrayList<String> ();
 		values.add( Util.LookupValues.LCYCL);
-		values.add(animalBean.getOrgID());
+		values.add(animalBean.getOrgId());
 		values.add(animalBean.getGender()+"");
 		IMDLogger.log(qryString,Util.INFO);
 		Animal animalValue = null;
@@ -713,7 +711,7 @@ public class AnimalLoader {
 		return retrieveAnimalTypes(values, qryString);
 	}
 
-	public ArrayList<AnimalPhoto> retrieveAnimalPhotos(String orgID, String animalTag) throws Exception {
+	public ArrayList<AnimalPhoto> retrieveAnimalPhotos(String orgID, String animalTag, String photoId) throws Exception {
 		
 		ArrayList<AnimalPhoto> allPhotoURIs = new ArrayList<AnimalPhoto>();
 		String qryString = " SELECT A.DOB," +
@@ -729,7 +727,9 @@ public class AnimalLoader {
 				" B.UPDATED_DTTM  " +
 				" FROM imd.ANIMALS A, imd.ANIMAL_PHOTO B  " +
 				" WHERE  A.ORG_ID=B.ORG_ID AND A.ANIMAL_TAG=B.ANIMAL_TAG AND " +
-				" A.ORG_ID=? AND A.ANIMAL_TAG=? ORDER BY B.PHOTO_DTTM DESC";
+				" A.ORG_ID=? AND A.ANIMAL_TAG=? " +
+				(photoId != null ? " AND B.PHOTO_ID=? " : "" ) +
+				" ORDER BY B.PHOTO_DTTM DESC";
 		
 		ResultSet rs = null;
 		PreparedStatement preparedStatement = null;
@@ -738,13 +738,16 @@ public class AnimalLoader {
 		int i=1;
 		preparedStatement.setString(i++,orgID);
 		preparedStatement.setString(i++,animalTag);
+		if (photoId != null)
+			preparedStatement.setString(i++,photoId);
+			
 		IMDLogger.log(preparedStatement.toString(),Util.INFO);
 		rs = preparedStatement.executeQuery();
 		
 	    while (rs.next()) {
 	    	AnimalPhoto photo = new AnimalPhoto();
-	    	photo.setOrgID(rs.getString("ORG_ID"));
-	    	photo.setAgeAtPhotoDTTM(new DateTime(rs.getTimestamp("DOB"),IMDProperties.getServerTimeZone()));
+	    	photo.setOrgId(rs.getString("ORG_ID"));
+	    	photo.setDob(new DateTime(rs.getTimestamp("DOB"),IMDProperties.getServerTimeZone()));
 	    	photo.setAnimalTag(rs.getString("ANIMAL_TAG"));
 	    	photo.setPhotoID(rs.getString("PHOTO_ID"));
 	    	photo.setPhotoURI(rs.getString("PHOTO_URI"));
@@ -899,7 +902,7 @@ public class AnimalLoader {
 				preparedStatement.setString(index++, animalDto.getAlias());
 			preparedStatement.setString(index++, animalDto.getUpdatedBy().getUserId());
 			preparedStatement.setString(index++, animalDto.getUpdatedDTTMSQLFormat());
-			preparedStatement.setString(index++, animalDto.getOrgID());
+			preparedStatement.setString(index++, animalDto.getOrgId());
 			preparedStatement.setString(index++, animalDto.getAnimalTag());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
@@ -936,7 +939,7 @@ public class AnimalLoader {
 			preparedStatement.setString(1, animalDto.getAnimalTypeCD());
 			preparedStatement.setString(2, animalDto.getUpdatedBy().getUserId());
 			preparedStatement.setString(3, animalDto.getUpdatedDTTMSQLFormat());
-			preparedStatement.setString(4, animalDto.getOrgID());
+			preparedStatement.setString(4, animalDto.getOrgId());
 			preparedStatement.setString(5, animalDto.getAnimalTag());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
@@ -1205,7 +1208,7 @@ public class AnimalLoader {
 	}
 	public List<Animal> retrieveBrucellaCandidateAnimals(String orgID, DateTime minDob, DateTime maxDob) throws Exception {
 		String qryString = "Select A.*,B.RECORD_URL, B.ALIAS SIRE_ALIAS, B.ID, C.SHORT_DESCR as ANIMAL_TYPE, C.ADDITIONAL_FLD1 AS STATUS_INDICATOR  " + 
-				"from ANIMALS A " + 
+				" from ANIMALS A " + 
 				"	LEFT OUTER JOIN LV_SIRE B " + 
 				"	ON A.SIRE_TAG=B.ID " + 
 				"	LEFT OUTER JOIN LOOKUP_VALUES C " + 
@@ -1213,7 +1216,7 @@ public class AnimalLoader {
 				" WHERE A.ORG_ID=? AND A.DOB >= ? AND A.DOB <= ? AND A.GENDER='F' "
 				+ " AND A.ANIMAL_TAG NOT IN ( SELECT ANIMAL_TAG FROM imd.LIFECYCLE_EVENTS WHERE EVENT_CD='" + Util.LifeCycleEvents.VACCINE + "' AND AUX_FL1_VALUE LIKE '" + Util.LookupValues.BRUCELLA + "' ) "
 				+ " AND (A.HERD_JOINING_DTTM IS NOT NULL AND HERD_LEAVING_DTTM IS NULL) ORDER BY A.DOB ";
-				
+
 		List<String> values = new ArrayList<String>();
 		values.add(orgID);
 		values.add(Util.getDateInSQLFormat(minDob));
@@ -1230,11 +1233,12 @@ public class AnimalLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, orgID);
 			preparedStatement.setString(2, animalTag);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordDeleted = preparedStatement.executeUpdate();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
-		    try {
+			try {
 				if (preparedStatement != null && !preparedStatement.isClosed()) {
 					preparedStatement.close();	
 				}
@@ -1243,7 +1247,7 @@ public class AnimalLoader {
 			}
 		}
 		return recordDeleted;
-	}	
+	}
 	
 	public int deleteSpecificAnimalPhotos(String orgID, String animalTag, String photoID) {
 		String qryString = "DELETE FROM imd.ANIMAL_PHOTO where ORG_ID = ? AND ANIMAL_TAG = ? AND PHOTO_ID = ? ";
@@ -1255,6 +1259,7 @@ public class AnimalLoader {
 			preparedStatement.setString(1, orgID);
 			preparedStatement.setString(2, animalTag);
 			preparedStatement.setString(3, photoID);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordDeleted = preparedStatement.executeUpdate();
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -1269,6 +1274,7 @@ public class AnimalLoader {
 		}
 		return recordDeleted;
 	}
+	
 	public int insertAnimalPhoto(AnimalPhoto photo) {
 		int recordAdded = -1;
 		String qryString = "insert into ANIMAL_PHOTO (ORG_ID,"
@@ -1286,7 +1292,7 @@ public class AnimalLoader {
 		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(index++, (photo.getOrgID() == null ? null : photo.getOrgID()));
+			preparedStatement.setString(index++, (photo.getOrgId() == null ? null : photo.getOrgId()));
 			preparedStatement.setString(index++, (photo.getAnimalTag() == null ? null : photo.getAnimalTag()));
 			preparedStatement.setString(index++, (photo.getPhotoID() == null ? null : photo.getPhotoID()));
 			preparedStatement.setString(index++, (photo.getPhotoURI() == null ? null : photo.getPhotoURI()));

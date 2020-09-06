@@ -57,12 +57,12 @@ class FeedLoaderTest {
 			FeedItem feedItem1 = new FeedItem();
 			FeedItem feedItem2 = new FeedItem();
 			FeedPlan feedPlan = new FeedPlan();
-			feedPlan.setOrgID(orgId);
+			feedPlan.setOrgId(orgId);
 			feedPlan.setFeedCohort(feedCohort);
 
-			feedItem1.setOrgID(orgId);
+			feedItem1.setOrgId(orgId);
 			feedItem1.setFeedItemLookupValue(feedItemLV1);		
-			feedItem2.setOrgID(orgId);
+			feedItem2.setOrgId(orgId);
 			feedItem2.setFeedItemLookupValue(feedItemLV2);		
 
 			feedItem1.setFeedCohortCD(feedCohortLV);
@@ -100,21 +100,21 @@ class FeedLoaderTest {
 			feedItems.add(feedItem1);
 			feedItems.add(feedItem2);
 						
-			feedPlan.setFeedPlan(feedItems);
+			feedPlan.setFeedPlanItems(feedItems);
 			
 			assertTrue(loader.deleteFeedPlan(feedPlan) >= 0);
 			assertEquals(2,loader.insertFeedPlan(feedPlan));
 			
-			feedPlan.getFeedPlan().remove(0);
+			feedPlan.getFeedPlanItems().remove(0);
 			assertEquals(1,loader.updateFeedPlan(feedPlan));
-			assertEquals(1,loader.retrieveFeedPlan(feedPlan.getOrgID(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode()).getFeedPlan().size());
+			assertEquals(1,loader.retrieveFeedPlan(feedPlan.getOrgId(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode()).getFeedPlanItems().size());
 			
 			feedItem1.setFulfillmentPct(10.0f);
-			feedPlan.getFeedPlan().get(0).setFulfillmentPct(13.0f);
-			feedPlan.getFeedPlan().add(feedItem1);
+			feedPlan.getFeedPlanItems().get(0).setFulfillmentPct(13.0f);
+			feedPlan.getFeedPlanItems().add(feedItem1);
 			assertEquals(2,loader.updateFeedPlan(feedPlan));
-			FeedPlan updatedPlan = loader.retrieveFeedPlan(feedPlan.getOrgID(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
-			assertEquals(23.0f,updatedPlan.getFeedPlan().get(0).getFulfillmentPct().floatValue() + updatedPlan.getFeedPlan().get(1).getFulfillmentPct().floatValue());
+			FeedPlan updatedPlan = loader.retrieveFeedPlan(feedPlan.getOrgId(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
+			assertEquals(23.0f,updatedPlan.getFeedPlanItems().get(0).getFulfillmentPct().floatValue() + updatedPlan.getFeedPlanItems().get(1).getFulfillmentPct().floatValue());
 			
 			assertEquals(2,loader.deleteFeedPlan(feedPlan));
 		} catch (Exception e) {
@@ -136,7 +136,7 @@ class FeedLoaderTest {
 			searchBean.setCategoryCode(Util.LookupValues.FEED);
 			
 			FeedPlan feedPlan = feedLoader.retrieveFeedPlan(orgID, feedCohortCD);
-			assertTrue(feedPlan != null && feedPlan.getFeedPlan() != null && !feedPlan.getFeedPlan().isEmpty(), "No Feed Plan exists for " + feedCohortCD + ". This unit test assumes that a feedplan exists for the cohort: "+ feedCohortCD);
+			assertTrue(feedPlan != null && feedPlan.getFeedPlanItems() != null && !feedPlan.getFeedPlanItems().isEmpty(), "No Feed Plan exists for " + feedCohortCD + ". This unit test assumes that a feedplan exists for the cohort: "+ feedCohortCD);
 			
 			List<LookupValues> feedItemsMasterList = lvLoader.retrieveLookupValues(searchBean);
 			assertTrue(feedItemsMasterList != null && !feedItemsMasterList.isEmpty(),"This unit test assumes that we have some lookup values for the category " + Util.LookupValues.FEED);
@@ -146,7 +146,7 @@ class FeedLoaderTest {
 			while (itemMasterListIt.hasNext()) {
 				LookupValues feedItemLV = itemMasterListIt.next();
 				boolean found = false;
-				Iterator<FeedItem> itemIt = feedPlan.getFeedPlan().iterator();
+				Iterator<FeedItem> itemIt = feedPlan.getFeedPlanItems().iterator();
 				while (itemIt.hasNext()) {
 					FeedItem item = itemIt.next();
 					if (item.getFeedItemLookupValue().getLookupValueCode().equals(feedItemLV.getLookupValueCode())) {
@@ -165,7 +165,7 @@ class FeedLoaderTest {
 					+ "that it can use that value for testing addition, edit and deletion.");
 			
 			FeedItem feedItem1 = new FeedItem();
-			feedItem1.setOrgID(feedPlan.getOrgID());
+			feedItem1.setOrgId(feedPlan.getOrgId());
 			feedItem1.setFeedCohortCD(lvLoader.retrieveLookupValue(Util.LookupValues.FEEDCOHORT,feedCohortCD));
 			feedItem1.setFeedItemLookupValue(availableFeedItem);
 			
@@ -188,10 +188,10 @@ class FeedLoaderTest {
 			
 			
 			feedPlan = feedLoader.retrieveFeedPlan(orgID, feedCohortCD);
-			assertTrue(feedPlan != null && feedPlan.getFeedPlan() != null && !feedPlan.getFeedPlan().isEmpty(), "No Feed Plan exists for " + feedCohortCD + ". This unit test assumes that a feedplan exists for the cohort: "+ feedCohortCD);
+			assertTrue(feedPlan != null && feedPlan.getFeedPlanItems() != null && !feedPlan.getFeedPlanItems().isEmpty(), "No Feed Plan exists for " + feedCohortCD + ". This unit test assumes that a feedplan exists for the cohort: "+ feedCohortCD);
 			
 			boolean found = false;
-			Iterator<FeedItem> itemIt = feedPlan.getFeedPlan().iterator();
+			Iterator<FeedItem> itemIt = feedPlan.getFeedPlanItems().iterator();
 			while (itemIt.hasNext()) {
 				FeedItem item = itemIt.next();
 				if (item.getFeedItemLookupValue().getLookupValueCode().equals(availableFeedItem.getLookupValueCode())) {
@@ -223,7 +223,7 @@ class FeedLoaderTest {
 		try {
 			FeedLoader loader = new FeedLoader();
 			FeedItem feedItem = new FeedItem();
-			feedItem.setOrgID("IMD");
+			feedItem.setOrgId("IMD");
 			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_ALFHAY", "","","","");
 			feedItem.setFeedItemLookupValue(feedItemLV);		
 
@@ -259,7 +259,7 @@ class FeedLoaderTest {
 			FeedLoader loader = new FeedLoader();
 			FeedItem feedItem1 = new FeedItem();
 			FeedItem feedItem2 = new FeedItem();
-			feedItem1.setOrgID("IMD");
+			feedItem1.setOrgId("IMD");
 			LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_AHAY", "","","","");
 			feedItem1.setFeedItemLookupValue(feedItemLV);
 
@@ -280,7 +280,7 @@ class FeedLoaderTest {
 			feedItem1.setUpdatedBy(feedItem1.getCreatedBy());
 			feedItem1.setUpdatedDTTM(feedItem1.getCreatedDTTM());
 
-			feedItem2.setOrgID("IMD");
+			feedItem2.setOrgId("IMD");
 			
 			feedItemLV = new LookupValues(Util.LookupValues.FEED,"TST_MILK", "","","","");
 			feedItem2.setFeedItemLookupValue(feedItemLV);
@@ -307,16 +307,16 @@ class FeedLoaderTest {
 			assertEquals(1,loader.insertFeedPlanItem(feedItem1));
 			assertEquals(1,loader.insertFeedPlanItem(feedItem2));
 						
-			FeedPlan plan = loader.retrieveFeedPlan(feedItem1.getOrgID(), feedItem1.getFeedCohortCD().getLookupValueCode());
-			assertEquals(2,plan.getFeedPlan().size());
+			FeedPlan plan = loader.retrieveFeedPlan(feedItem1.getOrgId(), feedItem1.getFeedCohortCD().getLookupValueCode());
+			assertEquals(2,plan.getFeedPlanItems().size());
 			assertEquals(feedItem1.getFeedCohortCD().getLookupValueCode(),plan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
-			assertEquals(feedItem1.getOrgID(),plan.getOrgID());
-			assertTrue(plan.getFeedPlan().get(0).getFeedItemLookupValue().getLookupValueCode().equals(feedItem1.getFeedItemLookupValue().getLookupValueCode()) || plan.getFeedPlan().get(0).getFeedItemLookupValue().getLookupValueCode().equals(feedItem2.getFeedItemLookupValue().getLookupValueCode()));
-			assertTrue(plan.getFeedPlan().get(1).getFeedItemLookupValue().getLookupValueCode().equals(feedItem1.getFeedItemLookupValue().getLookupValueCode()) || plan.getFeedPlan().get(1).getFeedItemLookupValue().getLookupValueCode().equals(feedItem2.getFeedItemLookupValue().getLookupValueCode()));
+			assertEquals(feedItem1.getOrgId(),plan.getOrgId());
+			assertTrue(plan.getFeedPlanItems().get(0).getFeedItemLookupValue().getLookupValueCode().equals(feedItem1.getFeedItemLookupValue().getLookupValueCode()) || plan.getFeedPlanItems().get(0).getFeedItemLookupValue().getLookupValueCode().equals(feedItem2.getFeedItemLookupValue().getLookupValueCode()));
+			assertTrue(plan.getFeedPlanItems().get(1).getFeedItemLookupValue().getLookupValueCode().equals(feedItem1.getFeedItemLookupValue().getLookupValueCode()) || plan.getFeedPlanItems().get(1).getFeedItemLookupValue().getLookupValueCode().equals(feedItem2.getFeedItemLookupValue().getLookupValueCode()));
 
-			plan = loader.retrieveDistinctFeedItemsInFeedPlan(feedItem1.getOrgID());
-			assertTrue(plan.getFeedPlan().size()>= 2);
-			Iterator<FeedItem> it = plan.getFeedPlan().iterator();
+			plan = loader.retrieveDistinctFeedItemsInFeedPlan(feedItem1.getOrgId());
+			assertTrue(plan.getFeedPlanItems().size()>= 2);
+			Iterator<FeedItem> it = plan.getFeedPlanItems().iterator();
 			while(it.hasNext()) {
 				FeedItem item = it.next();
 				if (item.getFeedItemLookupValue().getLookupValueCode().equalsIgnoreCase(feedItem1.getFeedItemLookupValue().getLookupValueCode())) {
@@ -343,7 +343,7 @@ class FeedLoaderTest {
 		try {
 			FeedLoader loader = new FeedLoader();
 			CohortNutritionalNeeds dietReq = new CohortNutritionalNeeds();
-			dietReq.setOrgID("IMD");
+			dietReq.setOrgId("IMD");
 			dietReq.setFeedCohortCD("LAC_TST");
 			dietReq.setStart(0.0f);
 			dietReq.setEnd(0.0f);
@@ -369,7 +369,7 @@ class FeedLoaderTest {
 		try {
 			FeedLoader loader = new FeedLoader();
 			CohortNutritionalNeeds dietReq = new CohortNutritionalNeeds();
-			dietReq.setOrgID("IMD");
+			dietReq.setOrgId("IMD");
 			dietReq.setFeedCohortCD("LAC_TST");
 			dietReq.setStart(0.0f);
 			dietReq.setEnd(0.0f);
@@ -395,9 +395,9 @@ class FeedLoaderTest {
 			LookupValues cohortLV2 = new LookupValues(Util.LookupValues.FEEDCOHORT,"HEIFER_TST","","","","");
 			
 			
-			animalTypes.add(new FeedCohort(dietReq.getOrgID(),cohortLV1,""));
-			animalTypes.add(new FeedCohort(dietReq.getOrgID(),cohortLV2,""));
-			List<CohortNutritionalNeeds> reqs = loader.getCohortNutritionalNeeds(dietReq.getOrgID(),animalTypes);
+			animalTypes.add(new FeedCohort(dietReq.getOrgId(),cohortLV1,""));
+			animalTypes.add(new FeedCohort(dietReq.getOrgId(),cohortLV2,""));
+			List<CohortNutritionalNeeds> reqs = loader.getCohortNutritionalNeeds(dietReq.getOrgId(),animalTypes);
 			assertEquals(1,reqs.size());
 			Iterator<CohortNutritionalNeeds> it = reqs.iterator();
 			while (it.hasNext()) {
@@ -416,7 +416,7 @@ class FeedLoaderTest {
 			dietReq.setFeedCohortCD("HEIFER_TST");
 			assertEquals(1,loader.insertCohortNutritionalNeeds(dietReq));
 			
-			reqs = loader.getCohortNutritionalNeeds(dietReq.getOrgID(),animalTypes);
+			reqs = loader.getCohortNutritionalNeeds(dietReq.getOrgId(),animalTypes);
 			assertEquals(2,reqs.size());
 			it = reqs.iterator();
 			while (it.hasNext()) {

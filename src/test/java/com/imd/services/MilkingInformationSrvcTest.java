@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import com.imd.dto.User;
 import com.imd.loader.UserLoader;
-import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.MilkingDetailBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
@@ -38,7 +37,7 @@ class MilkingInformationSrvcTest {
 	@Test
 	void testCompleteMilkingInformation() {
 		IMDLogger.loggingMode = Util.INFO;
-		String animalTag = "058";
+		String animalTag = "-999";
 		MilkingInformationSrvc srvc = new MilkingInformationSrvc();
 		UserLoader userLoader = new UserLoader();
 		MilkingDetailBean searchBean = new MilkingDetailBean();

@@ -5,14 +5,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.joda.time.DateTime;
 
-import com.imd.dto.Animal;
 import com.imd.dto.User;
 import com.imd.services.bean.UserBean;
 import com.imd.util.DBManager;
@@ -78,7 +75,7 @@ public class UserLoader {
 
 	private User loadUserFromSQL(ResultSet rs) throws SQLException {
 		User user = new User(rs.getString("USER_ID"));
-		user.setOrgID(rs.getString("ORG_ID"));
+		user.setOrgId(rs.getString("ORG_ID"));
 		user.setPassword(rs.getString("PASSWORD"));
 		user.setActive(rs.getString("ACTIVE_IND").equalsIgnoreCase(Util.Y));
 		user.setPersonId(rs.getString("PERSON_ID"));
@@ -140,7 +137,7 @@ public class UserLoader {
 		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(index++,  (newUser.getOrgID() == null ? null : newUser.getOrgID()));
+			preparedStatement.setString(index++,  (newUser.getOrgId() == null ? null : newUser.getOrgId()));
 			preparedStatement.setString(index++,  (newUser.getUserId() == null ? null : newUser.getUserId()));
 			preparedStatement.setString(index++,  (newUser.isActive() ? Util.Y : Util.N));
 			preparedStatement.setString(index++,  (newUser.getPassword() == null ? null : newUser.getPassword()));
@@ -262,7 +259,7 @@ public class UserLoader {
 		ResultSet rs = null;
 		try {
 			existingActivePreparedStatement = conn.prepareStatement(existingActiveSessions);
-			existingActivePreparedStatement.setString(index++, user.getOrgID());
+			existingActivePreparedStatement.setString(index++, user.getOrgId());
 			existingActivePreparedStatement.setString(index++, user.getUserId());
 			existingActivePreparedStatement.setString(index++, Util.Y);
 			IMDLogger.log(existingActivePreparedStatement.toString(), Util.INFO);
@@ -283,7 +280,7 @@ public class UserLoader {
 				IMDLogger.log(updatePreparedStatement.toString(), Util.INFO);
 				recordUpdated = updatePreparedStatement.executeUpdate();
 				if (recordUpdated > 0) {
-					IMDLogger.log(recordUpdated + " open login session(s) found for the user " + user.getUserId() + "(" + user.getOrgID() + ")", Util.WARNING);
+					IMDLogger.log(recordUpdated + " open login session(s) found for the user " + user.getUserId() + "(" + user.getOrgId() + ")", Util.WARNING);
 				}
 			}
 			index = 1;
@@ -292,7 +289,7 @@ public class UserLoader {
 			DateTime issueDttm = DateTime.now(IMDProperties.getServerTimeZone());
 			DateTime expiryDttm = issueDttm.plusMinutes((Integer)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES));
 			insertPreparedStatement = conn.prepareStatement(insertQuery);
-			insertPreparedStatement.setString(index++, user.getOrgID());
+			insertPreparedStatement.setString(index++, user.getOrgId());
 			insertPreparedStatement.setString(index++, user.getUserId());
 			insertPreparedStatement.setString(index++, token);
 			insertPreparedStatement.setString(index++, Util.getDateTimeInSQLFormat(issueDttm));
@@ -305,7 +302,7 @@ public class UserLoader {
 			IMDLogger.log(insertPreparedStatement.toString(), Util.INFO);
 			recordUpdated = insertPreparedStatement.executeUpdate();
 			if (recordUpdated != 1) {
-				IMDLogger.log("Could not insert login session to the database for the user " + user.getUserId() + "(" + user.getOrgID() + ")", Util.ERROR);
+				IMDLogger.log("Could not insert login session to the database for the user " + user.getUserId() + "(" + user.getOrgId() + ")", Util.ERROR);
 			} else {
 				returnUser = user;
 				returnUser.setPassword(token);
@@ -338,9 +335,14 @@ public class UserLoader {
 		return returnUser;
 	}
 
+	/**
+	 * TODO: Change authentication to google account or facebook account or use Java cryptography to encrypt the passwords.
+	 * @param plainTextPassword
+	 * @return
+	 */
 	public String encryptPassword(String plainTextPassword) {
 		// This is a temporary implementation. The real implementation would leverage google or facebook for user authentication. We will
-		// not store use password in this application for security reasons.
+		// not store user password in this application for security reasons.
 		String encryptedPassword = "";
 		for (int i=0; i< plainTextPassword.length(); i++) {
 			int encryptedValue = (int) plainTextPassword.charAt(i);
@@ -409,9 +411,9 @@ public class UserLoader {
 			ex.printStackTrace();
 			IMDLogger.log("Exception occurred while inactivating expired Auth Tokens ", Util.ERROR);
 		} finally {
-		    try {
+			try {
 				if (updatePreparedStatement != null && !updatePreparedStatement.isClosed()) {
-					updatePreparedStatement.close();	
+					updatePreparedStatement.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -420,7 +422,7 @@ public class UserLoader {
 		return recordUpdated;
 	}
 
-	public User isUserAuthenticated(String authToken) {
+	public User isUserAuthenticated(String authToken, boolean renewToken) {
 		User user = sessionCache.get(authToken);
 		if (user != null) {
 			if (user.getCreatedDTTM().isBefore(DateTime.now(IMDProperties.getServerTimeZone()))) {
@@ -428,17 +430,24 @@ public class UserLoader {
 				logoutUser(authToken);
 				sessionCache.remove(authToken);
 				user = null;
+			} else {
+				if (renewToken) {
+					DateTime newExpiryTimestamp = DateTime.now(IMDProperties.getServerTimeZone()).plusMinutes((Integer)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES));
+					user.setCreatedDTTM(newExpiryTimestamp);
+					sessionCache.put(authToken,user);
+				}
 			}
 		}
 		return user;
 	}
+	
 	public HashMap<String, User> getSessionCache(){
 		return sessionCache;
 	}
 
 	public int updateUserProfile(UserBean userBean) {
 		String updateQuery = "UPDATE imd.USERS SET " + 
-				(userBean.getPreferredCurrency() == null ? "" : "PREF_CURR=?,    ") + 
+				(userBean.getPreferredCurrency() == null ? "" : "PREF_CURR=?,   ") + 
 				(userBean.getPreferredLanguage() == null ? "" : "PREF_LANG=?,   ") +
 				(userBean.getUserPreference1() == null ? ""	  : "PREFERENCE1=?, ") +
 				(userBean.getUserPreference2() == null ? ""   : "PREFERENCE2=?, ") +

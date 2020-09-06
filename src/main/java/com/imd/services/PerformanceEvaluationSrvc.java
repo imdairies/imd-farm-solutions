@@ -30,14 +30,14 @@ public class PerformanceEvaluationSrvc {
 		String methodName = "evaluateAnimalPerformance";
 		try {
 			IMDLogger.log(methodName + " Called ", Util.INFO);
-			User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalBean.getLoginToken());
+			User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalBean.getLoginToken(),/*renewToken*/ true);
 			if (user == null) {
 				IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID),
 						(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)
 						+ this.getClass().getName()  + "." + methodName, Util.WARNING);
 				return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 			}
-			String orgID = user.getOrgID();
+			String orgID = user.getOrgId();
 			String langCd = user.getPreferredLanguage();
 			IMDLogger.log(animalBean.toString(), Util.INFO);
 

@@ -44,7 +44,7 @@ public class AdvisementRuleManager {
 				Advisement advConfig = advRuleIt.next();
 				AdvisementRule advRule = advisementRulesMap.get(advConfig.getAdvisementID());
 				if (advRule != null) {
-					List <Animal> animalsInViolation = advRule.applyAdvisementRule(advConfig.getOrgID(), languageCd);
+					List <Animal> animalsInViolation = advRule.applyAdvisementRule(advConfig.getOrgId(), languageCd);
 					if (animalsInViolation != null && !animalsInViolation.isEmpty()) {
 						Iterator<Animal> it = animalsInViolation.iterator();
 						while (it.hasNext()) {

@@ -66,7 +66,7 @@ public class LactationInformation extends IMDairiesDTO {
 	}
 
 	private String stringify(String prefix) {
-		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
+		return  prefix + fieldToJson("orgID", getOrgId()) + ",\n" + 
 				prefix + fieldToJson("lactationNumber", this.lactationNumber) + ",\n" +
 				prefix + fieldToJson("lactationStartTimestamp", this.lactationStartTimestamp) + ",\n" +
 				prefix + fieldToJson("lactationEndTimestamp", this.lactationEndTimestamp) + ",\n" +

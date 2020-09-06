@@ -96,11 +96,11 @@ class BrucellaVaccineAdvisementTest {
 			Animal animal = createTestAnimal("-999");
 
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 
-			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgID(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
+			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgId(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
 			animal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Integer.parseInt(rulDto.getAuxInfo2()) - 1));
 			animal.setHerdLeavingDate(null);
 			animal.setHerdJoiningDate(animal.getDateOfBirth());
@@ -110,7 +110,7 @@ class BrucellaVaccineAdvisementTest {
 //			assertTrue(insertEvent(animal.getAnimalTag(), "TO BE DELETED", Util.LifeCycleEvents.VACCINE, animal.getDateOfBirth().plusMonths(5)) > 0);
 			
 
-			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			boolean thFound = false;
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -130,7 +130,7 @@ class BrucellaVaccineAdvisementTest {
 
 			assertTrue(insertEvent(animal.getAnimalTag(), "TO BE DELETED", Util.LifeCycleEvents.VACCINE, Util.LookupValues.BRUCELLA, null, animal.getDateOfBirth().plusMonths(5)) > 0);
 
-			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -145,8 +145,8 @@ class BrucellaVaccineAdvisementTest {
 			
 			
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 			
 			
@@ -168,11 +168,11 @@ class BrucellaVaccineAdvisementTest {
 			Animal animal = createTestAnimal("-999");
 
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 
-			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgID(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
+			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgId(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
 			animal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays((int)rulDto.getSecondThreshold() + 1));
 			animal.setHerdLeavingDate(null);
 			animal.setHerdJoiningDate(animal.getDateOfBirth());
@@ -182,7 +182,7 @@ class BrucellaVaccineAdvisementTest {
 //			assertTrue(insertEvent(animal.getAnimalTag(), "TO BE DELETED", Util.LifeCycleEvents.VACCINE, animal.getDateOfBirth().plusMonths(5)) > 0);
 			
 
-			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			boolean thFound = false;
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -202,7 +202,7 @@ class BrucellaVaccineAdvisementTest {
 
 			assertTrue(insertEvent(animal.getAnimalTag(), "TO BE DELETED", Util.LifeCycleEvents.VACCINE, Util.LookupValues.BRUCELLA, null, animal.getDateOfBirth().plusMonths(5)) > 0);
 
-			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -217,8 +217,8 @@ class BrucellaVaccineAdvisementTest {
 			
 			
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 			
 			
@@ -240,11 +240,11 @@ class BrucellaVaccineAdvisementTest {
 			Animal animal = createTestAnimal("-999");
 
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 
-			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgID(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
+			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgId(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
 			animal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays((int)rulDto.getFirstThreshold() + 1));
 			animal.setHerdLeavingDate(null);
 			animal.setHerdJoiningDate(animal.getDateOfBirth());
@@ -254,7 +254,7 @@ class BrucellaVaccineAdvisementTest {
 //			assertTrue(insertEvent(animal.getAnimalTag(), "TO BE DELETED", Util.LifeCycleEvents.VACCINE, animal.getDateOfBirth().plusMonths(5)) > 0);
 			
 
-			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			boolean thFound = false;
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -274,7 +274,7 @@ class BrucellaVaccineAdvisementTest {
 
 			assertTrue(insertEvent(animal.getAnimalTag(), "TO BE DELETED", Util.LifeCycleEvents.VACCINE, Util.LookupValues.BRUCELLA, null, animal.getDateOfBirth().plusMonths(3)) > 0);
 
-			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -289,8 +289,8 @@ class BrucellaVaccineAdvisementTest {
 			
 			
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 			
 			
@@ -313,18 +313,18 @@ class BrucellaVaccineAdvisementTest {
 			Animal animal = createTestAnimal("-999");
 
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 
-			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgID(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
+			Advisement rulDto = advLdr.getSpecifiedActiveAdvisementRules(animal.getOrgId(), Util.AdvisementRules.BRUCELLAVACCINE).get(0);
 			animal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays((int)rulDto.getFirstThreshold() - 1));
 			animal.setHerdLeavingDate(null);
 			animal.setHerdJoiningDate(animal.getDateOfBirth());
 			animal.setAnimalType(Util.AnimalTypes.HEIFER);
 			assertEquals(1,animalLoader.insertAnimal(animal), "Exactly one record -999 should have been inserted");
 			
-			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			List<Animal> animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			boolean thFound = false;
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -337,10 +337,10 @@ class BrucellaVaccineAdvisementTest {
 				}
 			}
 
-			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag()));
+			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag()));
 			animal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Integer.parseInt(rulDto.getAuxInfo2()) - 1));
 			assertEquals(1,animalLoader.insertAnimal(animal), "Exactly one record -999 should have been inserted");
-			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			thFound = false;
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -357,10 +357,10 @@ class BrucellaVaccineAdvisementTest {
 			}
 			assertTrue(thFound,animal.getAnimalTag() +  "("+ animal.getAnimalType() + ") should have been included in the Threshold3 Violation Advisement population");
 			
-			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag()));
+			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag()));
 			animal.setDateOfBirth(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(Integer.parseInt(rulDto.getAuxInfo2()) + 1));
 
-			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgID(), Util.LanguageCode.ENG);
+			animalPop = brucellaAdvisement.applyAdvisementRule(animal.getOrgId(), Util.LanguageCode.ENG);
 			
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -372,8 +372,8 @@ class BrucellaVaccineAdvisementTest {
 				}
 			}
 			///// clean up /////
-			animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag());
-			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag());
+			animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag());
+			eventsLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag());
 			///////////////////
 			
 		} catch (Exception ex) {

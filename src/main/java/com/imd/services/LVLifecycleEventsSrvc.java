@@ -23,6 +23,7 @@ import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.InventoryLoader;
 import com.imd.loader.LVLifeCycleEventLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.services.bean.AnimalBean;
 import com.imd.services.bean.LifeCycleEventCodeBean;
 import com.imd.util.IMDLogger;
@@ -137,6 +138,19 @@ public class LVLifecycleEventsSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response searchLifecycleEvent(LifeCycleEventCodeBean eventBean){
     	String lvEvents = "";
+		String methodName = "searchLifecycleEvent";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,eventBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgId(orgId);
+    	IMDLogger.log(eventBean.toString(), Util.INFO);
     	try {
 			LVLifeCycleEventLoader loader = new LVLifeCycleEventLoader();
 			List<LifeCycleEventCode> events = loader.retrieveMatchingLifeCycleEvents(eventBean);
@@ -170,15 +184,23 @@ public class LVLifecycleEventsSrvc {
 	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addLifecycleEvent(LifeCycleEventCodeBean eventBean){
+		String methodName = "addLifecycleEvent";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,eventBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgId(orgId);
+    	IMDLogger.log(eventBean.toString(), Util.INFO);
+    	
 		String eventCode = eventBean.getEventCode();
 		String shortDescription  = eventBean.getEventShortDescription();
 		String longDescription  = eventBean.getEventLongDescription();
-		String isActive  = eventBean.getActiveIndicator();
-		IMDLogger.log("Add Event Called with following input values", Util.INFO);
-		IMDLogger.log("eventCode : " + eventCode, Util.INFO);
-		IMDLogger.log("eventShortDescription : " + shortDescription, Util.INFO);
-		IMDLogger.log("eventLongDescription : " + longDescription, Util.INFO);
-		IMDLogger.log("isActive : " + isActive, Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {			
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
@@ -225,15 +247,22 @@ public class LVLifecycleEventsSrvc {
 	@Path("/update")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response editLifecycleEvent(LifeCycleEventCodeBean eventBean){
+		
+		String methodName = "editLifecycleEvent";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,eventBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		eventBean.setOrgId(orgId);
+    	IMDLogger.log(eventBean.toString(), Util.INFO);
+		
 		String eventCode = eventBean.getEventCode();
-		String shortDescription  = eventBean.getEventShortDescription();
-		String longDescription  = eventBean.getEventLongDescription();
-		String isActive  = eventBean.getActiveIndicator();
-		IMDLogger.log("Edit Event Called with following input values", Util.INFO);
-		IMDLogger.log("eventCode : " + eventCode, Util.INFO);
-		IMDLogger.log("eventShortDescription : " + shortDescription, Util.INFO);
-		IMDLogger.log("eventLongDescription : " + longDescription, Util.INFO);
-		IMDLogger.log("isActive : " + isActive, Util.INFO);
 		
 		if (eventCode == null || eventCode.trim().isEmpty()) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid event code.\"}").build();
@@ -268,6 +297,21 @@ public class LVLifecycleEventsSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAISires(AnimalBean searchBean){
 		String sireValueResult = "";
+		
+		String methodName = "retrieveAISires";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgId);
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+		
     	try {
     		AnimalLoader loader = new AnimalLoader();
 			List<Sire> sireValues = loader.retrieveAISire();
@@ -297,11 +341,24 @@ public class LVLifecycleEventsSrvc {
 	@Path("/availablesires")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAvailableSires(AnimalBean searchBean){
+		
+		String methodName = "retrieveAvailableSires";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgId);
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
 		String sireValueResult = "";
-		String orgID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
     	try {
     		InventoryLoader loader = new InventoryLoader();
-			List<Sire> sireValues = loader.getSiresWithAvailableInventory(orgID);
+			List<Sire> sireValues = loader.getSiresWithAvailableInventory(orgId);
 			if (sireValues == null || sireValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
@@ -330,12 +387,23 @@ public class LVLifecycleEventsSrvc {
 	@Path("/dam")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getActiveFemale(AnimalBean searchBean){
-    	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+		String methodName = "getActiveFemale";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgId);
     	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
@@ -361,12 +429,25 @@ public class LVLifecycleEventsSrvc {
 	@Path("/retrievemates")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getFemaleMates(AnimalBean searchBean){
+		String methodName = "getFemaleMates";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgId);
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
     	String animalValueResult = "";
-    	searchBean.setOrgID((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
+    	searchBean.setOrgId((String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID));
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveAnimals(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveAnimals(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();

@@ -25,6 +25,7 @@ public class PerformanceMilestoneLoader {
 		String qryString = " SELECT " + 
 				" A.ORG_ID,  " + 
 				" A.MILESTONE_ID, " + 
+				" A.SEQ_NBR, " +
 				" A.ENABLE_IND AS MILESTONE_ENABLED, " +  
 				" B.ENABLE_IND AS TEMPLATE_ENABLED, " + 
 				" B.SHORT_DESCR, " + 
@@ -82,8 +83,9 @@ public class PerformanceMilestoneLoader {
 	}
 	private PerformanceMilestone getMilestoneFromSQLRecord(ResultSet rs) throws Exception {
 		PerformanceMilestone milestone = new PerformanceMilestone();
-		milestone.setOrgID(rs.getString("ORG_ID"));
+		milestone.setOrgId(rs.getString("ORG_ID"));
 		milestone.setMilestoneID(rs.getString("MILESTONE_ID"));
+		milestone.setSequenceNbr(rs.getInt("SEQ_NBR"));
 		milestone.setEnabled(rs.getString("TEMPLATE_ENABLED").equalsIgnoreCase("Y") ? true : false);
 		milestone.setEnabledForOrg(rs.getString("MILESTONE_ENABLED").equalsIgnoreCase("Y") ? true : false);
 		milestone.setShortDescription(rs.getString("SHORT_DESCR"));

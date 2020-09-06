@@ -132,7 +132,7 @@ public class Inventory extends IMDairiesDTO {
 		return dtoToJson(" ");
 	}
 	private String stringify(String prefix) {
-		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
+		return  prefix + fieldToJson("orgID", getOrgId()) + ",\n" + 
 				prefix + fieldToJson("itemSKU", this.itemSKU) + ",\n" +
 				prefix + fieldToJson("itemType", this.itemType) + ",\n" +
 				prefix + fieldToJson("quantity", this.quantity) + ",\n" +

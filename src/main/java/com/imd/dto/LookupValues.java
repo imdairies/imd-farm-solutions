@@ -1,5 +1,8 @@
 package com.imd.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.services.bean.LookupValuesBean;
@@ -15,6 +18,7 @@ public class LookupValues extends IMDairiesDTO{
 	private String additionalField1;
 	private String additionalField2;
 	private String additionalField3;
+	private List<LookupValuesPhoto> lookupValuesPhotoList;
 	
 	public LookupValues(String categoryCd, String valueCD, String shortDescr, String longDescr, String shortDescrCD, String longDescrCD) {
 		this.lookupValueCode = valueCD;
@@ -121,6 +125,7 @@ public class LookupValues extends IMDairiesDTO{
 		return prefix + fieldToJson("categoryCode", this.categoryCode) + ",\n" +
 				prefix + fieldToJson("lookupValueCode", this.lookupValueCode) + ",\n" + 
 				prefix + fieldToJson("isActive", this.isActive()) + ",\n" + 
+				prefix + fieldToJson("photoCount", this.lookupValuesPhotoList == null || this.lookupValuesPhotoList.isEmpty() ? 0 : this.lookupValuesPhotoList.size()) + ",\n" + 
 				prefix + fieldToJson("shortDescription", this.shortDescription) + ",\n" + 
 				prefix + fieldToJson("shortDescriptionMessageCd", this.shortDescriptionMessageCd) + ",\n" + 
 				prefix + fieldToJson("longDescription", this.longDescription) + ",\n" + 
@@ -153,6 +158,21 @@ public class LookupValues extends IMDairiesDTO{
 
 	public void setLongDescriptionMessageCd(String longDescriptionMessageCd) {
 		this.longDescriptionMessageCd = longDescriptionMessageCd;
+	}
+
+	public void addPhoto(LookupValuesPhoto photo) {
+		if (this.lookupValuesPhotoList == null)
+			lookupValuesPhotoList = new ArrayList<LookupValuesPhoto>();
+		lookupValuesPhotoList.add(photo);
+	}
+	public List<LookupValuesPhoto> getLookupValuesPhotoList(){
+		return lookupValuesPhotoList;
+	}
+	public void setLookupValuesPhotoList(List<LookupValuesPhoto> photoList){
+		this.lookupValuesPhotoList = photoList;
+	}
+	public void emptyLookupValuesPhotoList(){
+		this.lookupValuesPhotoList.clear();
 	}
 
 }

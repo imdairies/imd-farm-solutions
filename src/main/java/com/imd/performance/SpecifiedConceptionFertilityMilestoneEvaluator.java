@@ -92,12 +92,12 @@ public class SpecifiedConceptionFertilityMilestoneEvaluator extends MilestoneEva
 		}
 		Animal animal = animals.get(0);
 		boolean pregnantHeifer = false;
-		List<LifecycleEvent> calvingOrAbortionEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(),
+		List<LifecycleEvent> calvingOrAbortionEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(),
 				animal.getDateOfBirth(), null,
 				Util.LifeCycleEvents.PARTURATE,Util.LifeCycleEvents.ABORTION, null, null, null, null);
 		if (calvingOrAbortionEvents == null || calvingOrAbortionEvents.isEmpty()) {
 			// this could be a heifer which hasn't calved yet but has had inseminations done to it.
-			List<LifecycleEvent> inseminationEventsForThisLactation = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(),
+			List<LifecycleEvent> inseminationEventsForThisLactation = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(),
 					null, null, Util.LifeCycleEvents.INSEMINATE,Util.LifeCycleEvents.MATING, null, null, /*successfully inseminated*/ Util.YES, null);
 			 if (inseminationEventsForThisLactation == null || inseminationEventsForThisLactation.isEmpty()) {
 				 evaluationResultMessage = this.getMilestoneID() + 
@@ -135,7 +135,7 @@ public class SpecifiedConceptionFertilityMilestoneEvaluator extends MilestoneEva
 		if (lactationNumber > 1 /*&& index >= 1*/)
 			measurementStartTS = calvingOrAbortionEvents.get(index+1).getEventTimeStamp();
 		
-		List<LifecycleEvent> inseminationEventsForThisLactation = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(),
+		List<LifecycleEvent> inseminationEventsForThisLactation = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(),
 				measurementStartTS, measurementEndTS,
 				Util.LifeCycleEvents.INSEMINATE,Util.LifeCycleEvents.MATING, null, null, null, null);
 		

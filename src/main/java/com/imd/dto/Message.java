@@ -11,7 +11,7 @@ public class Message extends IMDairiesDTO{
 	private String messageCategoryDescription;
 	private String messageText;
 	public Message(String orgId, String languageCD2, String messageCd2) {
-		this.setOrgID(orgId);
+		this.setOrgId(orgId);
 		this.languageCD = languageCD2;
 		this.messageCD = messageCd2;
 		this.messageText = "The requested message does not exist in the catalog [" + 
@@ -40,7 +40,7 @@ public class Message extends IMDairiesDTO{
 		return stringify(" ");
 	}
 	private String stringify(String prefix) {
-		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
+		return  prefix + fieldToJson("orgID", getOrgId()) + ",\n" + 
 				prefix + fieldToJson("languageCD", this.languageCD) + ",\n" +
 				prefix + fieldToJson("messageCategoryCD", this.messageCategoryCD) + ",\n" +
 				prefix + fieldToJson("messageCategoryDescription", this.messageCategoryDescription) + ",\n" +
@@ -55,7 +55,7 @@ public class Message extends IMDairiesDTO{
 	}
 
 	public Message clone() {
-		Message clonedMessage = new Message(this.getOrgID(), this.languageCD, this.messageCD);
+		Message clonedMessage = new Message(this.getOrgId(), this.languageCD, this.messageCD);
 		clonedMessage.setMessageText(this.messageText);
 		clonedMessage.setMessageCategoryCD(this.messageCategoryCD);
 		clonedMessage.setMessageCategoryDescription(this.messageCategoryDescription);

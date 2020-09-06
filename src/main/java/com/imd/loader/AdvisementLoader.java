@@ -91,7 +91,7 @@ public class AdvisementLoader {
 
 	private Advisement getAdvisementRuleFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
 		Advisement advRule = new Advisement();
-		advRule.setOrgID(rs.getString("ORG_ID"));
+		advRule.setOrgId(rs.getString("ORG_ID"));
 		advRule.setAdvisementID(rs.getString("ADVISEMENT_ID"));
 		advRule.markEnabled(rs.getString("RULE_ENABLED").equalsIgnoreCase("Y") ? true : false);
 		advRule.markEnabledForOrg(rs.getString("RULE_ENABLED_FOR_ORG").equalsIgnoreCase("Y") ? true : false);

@@ -36,15 +36,16 @@ public class LookupValuesSrvc {
 	@Path("/search")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response searchLookupValues(LookupValuesBean luValuesBean) {
-		IMDLogger.log("searchLookupValues Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".searchLookupValues",luValuesBean.getLoginToken());
+		String methodName = "searchLookupValues";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,luValuesBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".searchLookupValues", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
 		luValuesBean.setOrgID(orgID);
     	String luValueResult = "";
@@ -93,15 +94,15 @@ public class LookupValuesSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addLookupValues(LookupValuesBean luValueBean){
 		IMDLogger.log("addLookupValues Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".addLookupValues",luValueBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + ".addLookupValues",luValueBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + ".addLookupValues", Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		luValueBean.setOrgID(orgID);
 		String categoryCode = luValueBean.getCategoryCode();
 		String lookupCode = luValueBean.getLookupValueCode();
@@ -160,15 +161,15 @@ public class LookupValuesSrvc {
 //		int mode = IMDLogger.loggingMode;
 //		IMDLogger.loggingMode = Util.INFO;
 		IMDLogger.log("updateLookupValues Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".updateLookupValues",luValueBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + ".updateLookupValues",luValueBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + ".updateLookupValues", Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		luValueBean.setOrgID(orgID);		
 		String categoryCode = luValueBean.getCategoryCode();
 		String lookupCode = luValueBean.getLookupValueCode();

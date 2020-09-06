@@ -2,7 +2,6 @@ package com.imd.loader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.imd.dto.Animal;
 import com.imd.dto.Dam;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
@@ -35,6 +35,7 @@ class MilkingDetailLoaderTest {
 
 	@AfterAll
 	static void tearDownAfterClass() throws Exception {
+		TestDataCreationUtil.deleteFarmMilkingRecordsWithNoAnimalMilkingEvent("IMD");
 	}
 
 	@BeforeEach
@@ -58,7 +59,7 @@ class MilkingDetailLoaderTest {
 
 		dam.setPurchaseDate(DateTime.parse("2017-02-08"));
 		dam.setCreatedBy(new User("KASHIF"));
-		dam.setCreatedDTTM(DateTime.now());
+		dam.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		dam.setHerdJoiningDate(dob);
 		dam.setHerdLeavingDate(null);
 		dam.setUpdatedBy(dam.getCreatedBy());
@@ -80,9 +81,9 @@ class MilkingDetailLoaderTest {
 		milkingRecord.setFatValue(3.80f);
 		milkingRecord.setToxinValue(0.11f);
 		milkingRecord.setCreatedBy(new User("KASHIF"));
-		milkingRecord.setCreatedDTTM(DateTime.now());
+		milkingRecord.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		milkingRecord.setUpdatedBy(new User("KASHIF"));
-		milkingRecord.setUpdatedDTTM(DateTime.now());
+		milkingRecord.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 		return milkingRecord;
 	}
 	
@@ -93,11 +94,11 @@ class MilkingDetailLoaderTest {
 			String animalTag = "-999";
 			String orgID = "IMD";
 			User user = new User("KASHIF");
-			DateTime createdTS = DateTime.now();
+			DateTime createdTS = DateTime.now(IMDProperties.getServerTimeZone()).minusYears(20);
 			int tenDaysInPast = 10;
 			LocalDate recordDate1 = new LocalDate(createdTS.getYear(),createdTS.getMonthOfYear(),createdTS.getDayOfMonth());
 			LocalDate recordDateBeforeParturation = recordDate1.minusMonths(1); //new LocalDate(createdTS.getYear(),createdTS.getMonthOfYear()-1,createdTS.getDayOfMonth());
-			Dam dam = createDam(orgID, animalTag, DateTime.now().minusYears(4), Util.AnimalTypes.DRYPREG);
+			Dam dam = createDam(orgID, animalTag, createdTS.minusYears(4), Util.AnimalTypes.DRYPREG);
 			LifecycleEvent parturationEvent = new LifecycleEvent(orgID, 0, animalTag, Util.LifeCycleEvents.PARTURATE, user, createdTS, user, createdTS);
 			parturationEvent.setEventTimeStamp(createdTS.minusDays(tenDaysInPast));
 			
@@ -115,8 +116,8 @@ class MilkingDetailLoaderTest {
 
 			milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, animalTag);
 
-			eventsLoader.deleteAnimalLifecycleEvents(orgID, animalTag);
-			animalLoader.deleteAnimal(orgID, animalTag);
+			TestDataCreationUtil.deleteAllAnimalEvents(orgID, animalTag);
+			TestDataCreationUtil.deleteAnimal(orgID, animalTag);
 			
 			assertEquals(1,animalLoader.insertAnimal(dam));
 
@@ -130,19 +131,23 @@ class MilkingDetailLoaderTest {
 			
 			assertTrue(eventsLoader.insertLifeCycleEvent(parturationEvent)>0);
 
-			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
+			assertEquals(Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), createdTS.minusDays(tenDaysInPast)),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
 			
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecord1.getMilkingDetailBean()));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1));
 
-			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
+			assertEquals(Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), createdTS.minusDays(tenDaysInPast)),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
 			
-			assertEquals(1,milkDetailloader.insertMilkRecord(milkingRecordBeforeParturation.getMilkingDetailBean()));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecordBeforeParturation));
 
-			assertEquals(tenDaysInPast,milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
+			assertEquals(Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), createdTS.minusDays(tenDaysInPast)),milkDetailloader.getDaysInMilkingOfCow(orgID, animalTag).intValue());
 			
-			milkDetailloader.deleteAllMilkingRecordOfanAnimal(orgID, animalTag);
-			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents(orgID, animalTag));
-			assertEquals(1,animalLoader.deleteAnimal(orgID, animalTag));
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgID, animalTag) >=0 );
+			assertEquals(1,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecordBeforeParturation.getOrgId(),milkingRecordBeforeParturation.getRecordDate(),null));
+			assertEquals(1,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1.getOrgId(),milkingRecord1.getRecordDate(),null));
+			
+			
+			assertEquals(1,TestDataCreationUtil.deleteAllAnimalEvents(orgID, animalTag));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(orgID, animalTag));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -154,36 +159,53 @@ class MilkingDetailLoaderTest {
 	@Test
 	void testAnimalProcessing() {
 		try {
-			MilkingDetail milkingRecord = createMilkingRecord("TST", new LocalDate(2019,1,1), new LocalTime(5,0,0));
-			milkingRecord.setComments("Morning Milking");
-			milkingRecord.setMilkingEventNumber((short) 1);
+			LocalDate referenceDate = new LocalDate(LocalDate.now(IMDProperties.getServerTimeZone()).minusYears(20).getYear(),1,1);
+			MilkingDetail milkingRecord1_1 = createMilkingRecord("-990", referenceDate, new LocalTime(5,0,0));
+			milkingRecord1_1.setComments("Morning Milking");
+			milkingRecord1_1.setMilkingEventNumber((short) 1);
 			MilkingDetailLoader loader = new MilkingDetailLoader();
+			
+			
+			Animal animal = TestDataCreationUtil.createTestAnimal(milkingRecord1_1.getOrgId(), milkingRecord1_1.getAnimalTag(), 
+					new DateTime(milkingRecord1_1.getRecordDate().minusYears(3).getYear(),
+							milkingRecord1_1.getRecordDate().minusYears(3).getMonthOfYear(),
+							milkingRecord1_1.getRecordDate().minusYears(3).getDayOfMonth(),0,0,IMDProperties.getServerTimeZone()),
+					true);
 
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,2,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,1,1));
-			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord.getMilkingDetailBean()), "One record should have been inserted");
 			
-			milkingRecord = createMilkingRecord("TST", new LocalDate(2019,1,1), new LocalTime(13,0,0));
-			milkingRecord.setComments("Noon Milking");
-			milkingRecord.setMilkingEventNumber((short) 2);
-			assertEquals(1,loader.insertMilkRecord(milkingRecord.getMilkingDetailBean()), "One record should have been inserted");
-			milkingRecord = createMilkingRecord("TST", new LocalDate(2019,1,1), new LocalTime(21,0,0));
-			milkingRecord.setComments("Night Milking");
-			milkingRecord.setMilkingEventNumber((short) 3);
-			assertEquals(1,loader.insertMilkRecord(milkingRecord.getMilkingDetailBean()), "One record should have been inserted");
-			milkingRecord = createMilkingRecord("TST", new LocalDate(2019,02,1), new LocalTime(5,0,0));
-			milkingRecord.setComments("Morning Milking");
-			milkingRecord.setMilkingEventNumber((short) 1);
-			assertEquals(1,loader.insertMilkRecord(milkingRecord.getMilkingDetailBean()), "One record should have been inserted");
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(milkingRecord1_1.getOrgId(), milkingRecord1_1.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal) >= 0);
+
+			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
 			
-			List <MilkingDetail>  milkRecords = loader.retrieveAllMilkingRecordsOfCow(milkingRecord);
+			
+
+//			loader.deleteMilkingRecordOfaDay("IMD", "-990", new LocalDate(2019,2,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "-990", new LocalDate(2019,1,1));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_1));
+			
+			MilkingDetail milkingRecord1_2 = createMilkingRecord(milkingRecord1_1.getAnimalTag(), milkingRecord1_1.getRecordDate(), new LocalTime(13,0,0));
+			milkingRecord1_2.setComments("Noon Milking");
+			milkingRecord1_2.setMilkingEventNumber((short) 2);
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_2));
+			
+			MilkingDetail milkingRecord1_3 = createMilkingRecord(milkingRecord1_2.getAnimalTag(), milkingRecord1_2.getRecordDate(),  new LocalTime(21,0,0));
+			milkingRecord1_3.setComments("Night Milking");
+			milkingRecord1_3.setMilkingEventNumber((short) 3);
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_3));
+			
+			MilkingDetail milkingRecord2_1 = createMilkingRecord(milkingRecord1_1.getAnimalTag(), milkingRecord1_3.getRecordDate().plusMonths(1), new LocalTime(5,0,0));
+			milkingRecord2_1.setComments("Morning Milking");
+			milkingRecord2_1.setMilkingEventNumber((short) 1);
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_1));
+			
+			List <MilkingDetail>  milkRecords = loader.retrieveAllMilkingRecordsOfCow(milkingRecord1_1);
 			Iterator<MilkingDetail> it = milkRecords.iterator();
 			MilkingDetail milkRec = null;
 			boolean found = false;
 			while (it.hasNext()) {
 				milkRec = it.next();
-				if (milkRec.getOrgID().equalsIgnoreCase("IMD") && milkRec.getAnimalTag().equalsIgnoreCase("TST")) {
+				if (milkRec.getOrgId().equalsIgnoreCase("IMD") && milkRec.getAnimalTag().equalsIgnoreCase("-990")) {
 					found = true;
 					IMDLogger.log(milkRec.dtoToJson(""), Util.INFO);
 					break;
@@ -198,17 +220,16 @@ class MilkingDetailLoaderTest {
 			assertEquals(0.11f, milkRec.getToxinValue().floatValue(), "Toxin should be 0.11 ppm");
 			assertEquals(19.3f, milkRec.getTemperatureInCentigrade().floatValue(), "Temp should be 19.3");
 			assertEquals(50f, milkRec.getHumidity().floatValue(), "Humidify should be 50%");
-			assertEquals("2019-01-01",milkRec.getRecordDate().toString(), " Record Date should have been 2019-01-01");
+			assertEquals(milkingRecord1_1.getRecordDate().toString(),milkRec.getRecordDate().toString());
 			assertEquals(21,milkRec.getRecordTime().getHourOfDay(), " Record Time should have been 21:00");
 			assertEquals(0,milkRec.getRecordTime().getMinuteOfHour(), " Record Time should have been 21:00");
 
-			milkingRecord.setRecordDate(new LocalDate(2019,1,1));
 
 			MilkingDetailBean searchBean = new MilkingDetailBean();
-			searchBean.setOrgID(milkingRecord.getOrgID());
-			searchBean.setAnimalTag(milkingRecord.getAnimalTag());
-			searchBean.setRecordDate(milkingRecord.getRecordDate());
-			searchBean.setRecordTime(milkingRecord.getRecordTime());
+			searchBean.setOrgID(milkingRecord1_1.getOrgId());
+			searchBean.setAnimalTag(milkingRecord1_1.getAnimalTag());
+			searchBean.setRecordDate(milkingRecord1_1.getRecordDate());
+			searchBean.setRecordTime(milkingRecord1_1.getRecordTime());
 						
 			milkRecords = loader.retrieveMonthlyMilkingRecordsOfCow(searchBean);
 			it = milkRecords.iterator();
@@ -225,8 +246,8 @@ class MilkingDetailLoaderTest {
 			assertFalse(invalidMonth, "Only Jan milking records should have been shown");			
 			assertEquals(3, milkRecords.size(), "Three milking records should have been found for Jan");
 
-			searchBean.setRecordDate(new LocalDate(2019,1,1));
-			searchBean.setMilkingEventNumber((short)3);
+			searchBean.setRecordDate(milkingRecord2_1.getRecordDate());
+			searchBean.setMilkingEventNumber(milkingRecord2_1.getMilkingEventNumber());
 			milkRecords = loader.retrieveSingleMilkingRecordsOfCow(searchBean, true);
 			assertEquals(1, milkRecords.size(), "Exactly one milking record should have been returned");
 			milkRec = milkRecords.get(0);
@@ -237,15 +258,16 @@ class MilkingDetailLoaderTest {
 			assertEquals(0.11f, milkRec.getToxinValue().floatValue(), "Toxin should be 0.11 ppm");
 			assertEquals(19.3f, milkRec.getTemperatureInCentigrade().floatValue(), "Temp should be 19.3");
 			assertEquals(50f, milkRec.getHumidity().floatValue(), "Humidify should be 50%");
-			assertEquals("2019-01-01",milkRec.getRecordDate().toString(), " Record Date should have been 2019-01-01");
-			assertEquals(21,milkRec.getRecordTime().getHourOfDay(), " Record Time should have been 21:00");
-			assertEquals(0,milkRec.getRecordTime().getMinuteOfHour(), " Record Time should have been 21:00");
+			assertEquals(milkingRecord2_1.getRecordDate().toString(),milkRec.getRecordDate().toString());
+			assertEquals(milkingRecord2_1.getRecordTime().getHourOfDay(),milkRec.getRecordTime().getHourOfDay());
+			assertEquals(0,milkRec.getRecordTime().getMinuteOfHour());
 			assertTrue(milkRec.getAdditionalStatistics()== null || milkRec.getAdditionalStatistics().size() == 0 ? false: true," There should be some additional statistics e.g. " + Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE);
 
-//			assertEquals(1,loader.deleteOneMilkingRecord("IMD", "TST", new LocalDate(2019,1,1), 1),"One record should have been deleted");
-//			assertEquals(2,loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,1,1)),"Two records should have been deleted");
-//			assertEquals(1,loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(2019,2,1)),"Two records should have been deleted");			
-			assertEquals(4,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST"),"four records should have been deleted");			
+			assertEquals(4,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(milkingRecord2_1.getOrgId(), milkingRecord2_1.getAnimalTag()),"four records should have been deleted");	
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_1.getOrgId(),milkingRecord1_1.getRecordDate(),null));
+			assertEquals(1,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord2_1.getOrgId(),milkingRecord2_1.getRecordDate(),null));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
@@ -275,31 +297,42 @@ class MilkingDetailLoaderTest {
 		try {
 			String orgId = "IMD";
 			String animalTag = "-999";
-			MilkingDetail milkRec1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate, 1, 15f);
-			MilkingDetail milkRec2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate, 2, 15f);
-			MilkingDetail milkRec3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate, 3, 12f);
-			MilkingDetail milkRec4 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1), 1, 14f);
-			MilkingDetail milkRec5 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1), 2, 14f);
-			MilkingDetail milkRec6 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1), 3, 15f);
-			MilkingDetailLoader milkLoader = new MilkingDetailLoader();
 			
-			assertTrue(milkLoader.deleteAllMilkingRecordOfanAnimal(orgId, animalTag) >= 0);
 			
-			assertEquals(1,milkLoader.insertMilkRecord(milkRec1.getMilkingDetailBean()));
-			assertEquals(1,milkLoader.insertMilkRecord(milkRec2.getMilkingDetailBean()));
-			assertEquals(1,milkLoader.insertMilkRecord(milkRec3.getMilkingDetailBean()));
-			assertEquals(1,milkLoader.insertMilkRecord(milkRec4.getMilkingDetailBean()));
-			assertEquals(1,milkLoader.insertMilkRecord(milkRec5.getMilkingDetailBean()));
-			assertEquals(1,milkLoader.insertMilkRecord(milkRec6.getMilkingDetailBean()));
+			MilkingDetail milkRec1_1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"04:00", 1, 15f);
+			MilkingDetail milkRec1_2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"12:00", 2, 15f);
+			MilkingDetail milkRec1_3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"20:00", 3, 12f);
+			MilkingDetail milkRec2_1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1),"04:00",  1, 14f);
+			MilkingDetail milkRec2_2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1),"12:00",  2, 14f);
+			MilkingDetail milkRec2_3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusDays(1),"20:00",  3, 15f);
+
+			
+			Animal animal = TestDataCreationUtil.createTestAnimal(milkRec1_1.getOrgId(), milkRec1_1.getAnimalTag(), 
+					new DateTime(startDate.minusYears(3).getYear(),
+							startDate.minusYears(3).getMonthOfYear(),
+							startDate.minusYears(3).getDayOfMonth(),0,0,IMDProperties.getServerTimeZone()),
+					true);
+
+			
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgId, animalTag) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal) >= 0);
+
+			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
+			
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRec1_1));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRec1_2));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRec1_3));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRec2_1));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRec2_2));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRec2_3));
+			
 			
 			MilkingDetail allMilkingRecords[] = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(startDate, null);
 			assertTrue(allMilkingRecords.length >= 2);
-			allMilkingRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(startDate, milkRec6.getRecordDate());
+			allMilkingRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(startDate, milkRec2_3.getRecordDate());
 			assertNotEquals(null, allMilkingRecords);
-			assertEquals(31,allMilkingRecords.length, " Since we added records for 1900-01-01 therefore we should have only two days of records  1 & 2 Jan 1900 with non zero values and the rest 29 days of Jan should be zero volumes");
-			assertTrue(allMilkingRecords[0].getMilkVolume() + 
-					allMilkingRecords[1].getMilkVolume() + 
-					allMilkingRecords[2].getMilkVolume() == 42f+43f, " Since we added records for 1900-01-01 therefore we should have only two days of records  1 & 2 Jan 1900 with non zero values and the rest 29 days of Jan should be zero volumes");
+			assertEquals(31,allMilkingRecords.length);
+			assertEquals(42f+43f,allMilkingRecords[0].getMilkVolume() + allMilkingRecords[1].getMilkVolume());
 			assertEquals(1f,allMilkingRecords[0].getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT).floatValue());
 			assertEquals(42f,allMilkingRecords[0].getMilkVolume().floatValue());
 			assertEquals(1f,allMilkingRecords[1].getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT).floatValue());
@@ -307,7 +340,13 @@ class MilkingDetailLoaderTest {
 			assertEquals(0f,allMilkingRecords[30].getAdditionalStatistics().get(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT).floatValue());
 			assertEquals(0f,allMilkingRecords[30].getMilkVolume().floatValue());
 
-			assertEquals(6,milkLoader.deleteAllMilkingRecordOfanAnimal(orgId, animalTag));
+			assertEquals(6,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgId, animalTag));
+
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkRec1_1.getOrgId(),milkRec1_1.getRecordDate(),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkRec2_1.getOrgId(),milkRec2_1.getRecordDate(),null));
+			
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
+
 					
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -318,107 +357,113 @@ class MilkingDetailLoaderTest {
 	@Test
 	void testMonthlyConsolidatedMilkingRecords() {
 		try {
-			MilkingDetail milkingRecord1_1 = createMilkingRecord("TST", new LocalDate(1900,1,1), new LocalTime(5,0,0));
+			MilkingDetail milkingRecord1_1 = createMilkingRecord("-990", new LocalDate(1900,1,1), new LocalTime(5,0,0));
 			milkingRecord1_1.setComments("Morning Milking");
 			milkingRecord1_1.setMilkingEventNumber((short) 1);
 			milkingRecord1_1.setMilkVolume(10.0f);
-			MilkingDetail milkingRecord1_2 = createMilkingRecord("TST", new LocalDate(1900,1,1), new LocalTime(13,0,0));
+			MilkingDetail milkingRecord1_2 = createMilkingRecord("-990", new LocalDate(1900,1,1), new LocalTime(13,0,0));
 			milkingRecord1_2.setComments("Afternoon Milking");
 			milkingRecord1_2.setMilkingEventNumber((short) 2);
 			milkingRecord1_2.setMilkVolume(11.0f);
-			MilkingDetail milkingRecord1_3 = createMilkingRecord("TST", new LocalDate(1900,1,1), new LocalTime(21,0,0));
+			MilkingDetail milkingRecord1_3 = createMilkingRecord("-990", new LocalDate(1900,1,1), new LocalTime(21,0,0));
 			milkingRecord1_3.setComments("Night Milking");
 			milkingRecord1_3.setMilkingEventNumber((short) 3);
 			milkingRecord1_3.setMilkVolume(12.0f);
 			
 
-			MilkingDetail milkingRecordTSTTST1_1 = createMilkingRecord("TSTTST", new LocalDate(1900,1,1), new LocalTime(5,0,0));
+			MilkingDetail milkingRecordTSTTST1_1 = createMilkingRecord("-990990", new LocalDate(1900,1,1), new LocalTime(5,0,0));
 			milkingRecordTSTTST1_1.setComments("Morning Milking");
 			milkingRecordTSTTST1_1.setMilkingEventNumber((short) 1);
 			milkingRecordTSTTST1_1.setMilkVolume(12.0f);
-			MilkingDetail milkingRecordTSTTST1_2 = createMilkingRecord("TSTTST", new LocalDate(1900,1,1), new LocalTime(13,0,0));
+			MilkingDetail milkingRecordTSTTST1_2 = createMilkingRecord("-990990", new LocalDate(1900,1,1), new LocalTime(13,0,0));
 			milkingRecordTSTTST1_2.setComments("Afternoon Milking");
 			milkingRecordTSTTST1_2.setMilkingEventNumber((short) 2);
 			milkingRecordTSTTST1_2.setMilkVolume(12.5f);
-			MilkingDetail milkingRecordTSTTST1_3 = createMilkingRecord("TSTTST", new LocalDate(1900,1,1), new LocalTime(21,0,0));
+			MilkingDetail milkingRecordTSTTST1_3 = createMilkingRecord("-990990", new LocalDate(1900,1,1), new LocalTime(21,0,0));
 			milkingRecordTSTTST1_3.setComments("Night Milking");
 			milkingRecordTSTTST1_3.setMilkingEventNumber((short) 3);
 			milkingRecordTSTTST1_3.setMilkVolume(12.5f);
 			
 			
-			MilkingDetail milkingRecord2_1 = createMilkingRecord("TST", new LocalDate(1900,1,2), new LocalTime(5,0,0));
+			MilkingDetail milkingRecord2_1 = createMilkingRecord("-990", new LocalDate(1900,1,2), new LocalTime(5,0,0));
 			milkingRecord2_1.setComments("Morning Milking");
 			milkingRecord2_1.setMilkingEventNumber((short) 1);
 			milkingRecord2_1.setMilkVolume(13.0f);
-			MilkingDetail milkingRecord2_2 = createMilkingRecord("TST", new LocalDate(1900,1,2), new LocalTime(13,0,0));
+			MilkingDetail milkingRecord2_2 = createMilkingRecord("-990", new LocalDate(1900,1,2), new LocalTime(13,0,0));
 			milkingRecord2_2.setComments("Afternoon Milking");
 			milkingRecord2_2.setMilkingEventNumber((short) 2);
 			milkingRecord2_2.setMilkVolume(14.0f);
-			MilkingDetail milkingRecord2_3 = createMilkingRecord("TST", new LocalDate(1900,1,2), new LocalTime(21,0,0));
+			MilkingDetail milkingRecord2_3 = createMilkingRecord("-990", new LocalDate(1900,1,2), new LocalTime(21,0,0));
 			milkingRecord2_3.setComments("Night Milking");
 			milkingRecord2_3.setMilkingEventNumber((short) 3);
 			milkingRecord2_3.setMilkVolume(15.0f);
 			
-			MilkingDetail milkingRecord3_1 = createMilkingRecord("TST", new LocalDate(1900,1,10), new LocalTime(5,0,0));
+			MilkingDetail milkingRecord3_1 = createMilkingRecord("-990", new LocalDate(1900,1,10), new LocalTime(5,0,0));
 			milkingRecord3_1.setComments("Morning Milking");
 			milkingRecord3_1.setMilkingEventNumber((short) 1);
 			milkingRecord3_1.setMilkVolume(16.0f);
-			MilkingDetail milkingRecord3_2 = createMilkingRecord("TST", new LocalDate(1900,1,10), new LocalTime(13,0,0));
+			MilkingDetail milkingRecord3_2 = createMilkingRecord("-990", new LocalDate(1900,1,10), new LocalTime(13,0,0));
 			milkingRecord3_2.setComments("Afternoon Milking");
 			milkingRecord3_2.setMilkingEventNumber((short) 2);
 			milkingRecord3_2.setMilkVolume(17.0f);
-			MilkingDetail milkingRecord3_3 = createMilkingRecord("TST", new LocalDate(1900,1,10), new LocalTime(21,0,0));
+			MilkingDetail milkingRecord3_3 = createMilkingRecord("-990", new LocalDate(1900,1,10), new LocalTime(21,0,0));
 			milkingRecord3_3.setComments("Night Milking");
 			milkingRecord3_3.setMilkingEventNumber((short) 3);
 			milkingRecord3_3.setMilkVolume(18.0f);
 			
 
-			
-			MilkingDetail milkingRecord4_1 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(5,0,0));
-			milkingRecord4_1.setComments("Morning Milking");
-			milkingRecord4_1.setMilkingEventNumber((short) 1);
-			milkingRecord4_1.setMilkVolume(16.0f);
-			MilkingDetail milkingRecord4_2 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(13,0,0));
-			milkingRecord4_2.setComments("Afternoon Milking");
-			milkingRecord4_2.setMilkingEventNumber((short) 2);
-			milkingRecord4_2.setMilkVolume(17.0f);
-			MilkingDetail milkingRecord4_3 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(21,0,0));
-			milkingRecord4_3.setComments("Night Milking");
-			milkingRecord4_3.setMilkingEventNumber((short) 3);
-			milkingRecord4_3.setMilkVolume(18.0f);
-			
-			
+//			
+//			MilkingDetail milkingRecord4_1 = createMilkingRecord("-990", new LocalDate(1900,2,10), new LocalTime(5,0,0));
+//			milkingRecord4_1.setComments("Morning Milking");
+//			milkingRecord4_1.setMilkingEventNumber((short) 1);
+//			milkingRecord4_1.setMilkVolume(16.0f);
+//			MilkingDetail milkingRecord4_2 = createMilkingRecord("-990", new LocalDate(1900,2,10), new LocalTime(13,0,0));
+//			milkingRecord4_2.setComments("Afternoon Milking");
+//			milkingRecord4_2.setMilkingEventNumber((short) 2);
+//			milkingRecord4_2.setMilkVolume(17.0f);
+//			MilkingDetail milkingRecord4_3 = createMilkingRecord("-990", new LocalDate(1900,2,10), new LocalTime(21,0,0));
+//			milkingRecord4_3.setComments("Night Milking");
+//			milkingRecord4_3.setMilkingEventNumber((short) 3);
+//			milkingRecord4_3.setMilkVolume(18.0f);
 			
 			
 			MilkingDetailLoader loader = new MilkingDetailLoader();
 
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,10));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,12,31));
+			TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal("IMD", "-990");
+			TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal("IMD", "-990990");
+			TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal("IMD", "-990_990");
 
-			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST");
-			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST");
-			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST_TST");
-
-
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_3.getMilkingDetailBean()), "One record should have been inserted");
-
-			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTST1_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTST1_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTST1_3.getMilkingDetailBean()), "One record should have been inserted");
+			Animal animal1 = TestDataCreationUtil.createTestAnimal(milkingRecord1_1.getOrgId(), milkingRecord1_1.getAnimalTag(), 
+					new DateTime(milkingRecord1_1.getRecordDate().getYear(),milkingRecord1_1.getRecordDate().getMonthOfYear(),
+							milkingRecord1_1.getRecordDate().getDayOfMonth(),0,0,IMDProperties.getServerTimeZone()),true);
 
 			
-			assertEquals(1,loader.insertMilkRecord(milkingRecord2_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord2_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord2_3.getMilkingDetailBean()), "One record should have been inserted");
+			Animal animal2 = TestDataCreationUtil.createTestAnimal(milkingRecordTSTTST1_1.getOrgId(), milkingRecordTSTTST1_1.getAnimalTag(), 
+					new DateTime(milkingRecordTSTTST1_1.getRecordDate().getYear(),milkingRecordTSTTST1_1.getRecordDate().getMonthOfYear(),
+							milkingRecordTSTTST1_1.getRecordDate().getDayOfMonth(),0,0,IMDProperties.getServerTimeZone()),true);
 
-			assertEquals(1,loader.insertMilkRecord(milkingRecord3_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord3_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord3_3.getMilkingDetailBean()), "One record should have been inserted");
+			
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal2) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal1) >= 0);
+
+			assertEquals(1,TestDataCreationUtil.insertAnimal(animal2));
+			assertEquals(1,TestDataCreationUtil.insertAnimal(animal1));
+			
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_1));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_2));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_3));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecordTSTTST1_1));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecordTSTTST1_2));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecordTSTTST1_3));
+			
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_1));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_2));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_3));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord3_1));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord3_2));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord3_3));
 
 			List <MilkingDetail>  milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedMonth(new LocalDate(1900,3,1), true);
 			Iterator<MilkingDetail> it = milkRecords.iterator();
@@ -490,7 +535,7 @@ class MilkingDetailLoaderTest {
 			LocalDate startDate = new LocalDate(milkingRecord1_1.getRecordDate().getYear(),milkingRecord1_1.getRecordDate().getMonthOfYear(), 1);
 			LocalDate endDate = startDate.plusMonths(2).minusDays(1);
 			
-			milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(milkingRecord1_1.getOrgID(), 
+			milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(milkingRecord1_1.getOrgId(), 
 					milkingRecord1_1.getAnimalTag(), startDate, endDate,true);
 			it = milkRecords.iterator();
 			IMDLogger.log(startDate + " " + endDate, Util.INFO);
@@ -507,15 +552,18 @@ class MilkingDetailLoaderTest {
 				IMDLogger.log(milkRec.getAnimalTag() + " " + milkRec.getRecordDate() + " " + milkRec.getMilkVolume(), Util.INFO);
 				break;
 			}			
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,10));
 
-			assertEquals(9,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST"));
-			assertEquals(3,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST"));
-			
-			
+
+			assertEquals(9,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal("IMD", "-990"));
+			assertEquals(3,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal("IMD", "-990990"));
+
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_1.getOrgId(),milkingRecord1_1.getRecordDate(),null));
+			assertEquals(0,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecordTSTTST1_1.getOrgId(),milkingRecordTSTTST1_1.getRecordDate(),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord2_1.getOrgId(),milkingRecord2_1.getRecordDate(),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord3_1.getOrgId(),milkingRecord3_1.getRecordDate(),null));
+
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal2) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal1) >= 0);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -528,21 +576,21 @@ class MilkingDetailLoaderTest {
 	@Test
 	void testYearlyConsolidatedMilkingRecords() {
 		try {
-			MilkingDetail milkingRecord1_1_1 = createMilkingRecord("TST", new LocalDate(1900,1,1), new LocalTime(5,0,0));
+			MilkingDetail milkingRecord1_1_1 = createMilkingRecord("-990", new LocalDate(1900,1,1), new LocalTime(5,0,0));
 			milkingRecord1_1_1.setComments("Morning Milking");
 			milkingRecord1_1_1.setMilkingEventNumber((short) 1);
 			milkingRecord1_1_1.setMilkVolume(10.0f);
 			milkingRecord1_1_1.setLrValue(28f);
 			milkingRecord1_1_1.setFatValue(3.8f);
 			
-			MilkingDetail milkingRecord1_1_2 = createMilkingRecord("TST", new LocalDate(1900,1,1), new LocalTime(13,0,0));
+			MilkingDetail milkingRecord1_1_2 = createMilkingRecord("-990", new LocalDate(1900,1,1), new LocalTime(13,0,0));
 			milkingRecord1_1_2.setComments("Afternoon Milking");
 			milkingRecord1_1_2.setMilkingEventNumber((short) 2);
 			milkingRecord1_1_2.setMilkVolume(11.0f);
 			milkingRecord1_1_2.setLrValue(28f);
 			milkingRecord1_1_2.setFatValue(3.9f);
 
-			MilkingDetail milkingRecord1_1_3 = createMilkingRecord("TST", new LocalDate(1900,1,1), new LocalTime(21,0,0));
+			MilkingDetail milkingRecord1_1_3 = createMilkingRecord("-990", new LocalDate(1900,1,1), new LocalTime(21,0,0));
 			milkingRecord1_1_3.setComments("Night Milking");
 			milkingRecord1_1_3.setMilkingEventNumber((short) 3);
 			milkingRecord1_1_3.setMilkVolume(12.0f);
@@ -550,7 +598,7 @@ class MilkingDetailLoaderTest {
 			milkingRecord1_1_3.setFatValue(4.0f);
 			
 
-			MilkingDetail milkingRecord1_2_1 = createMilkingRecord("TST", new LocalDate(1900,1,2), new LocalTime(5,0,0));
+			MilkingDetail milkingRecord1_2_1 = createMilkingRecord("-990", new LocalDate(1900,1,2), new LocalTime(5,0,0));
 			milkingRecord1_2_1.setComments("Morning Milking");
 			milkingRecord1_2_1.setMilkingEventNumber((short) 1);
 			milkingRecord1_2_1.setMilkVolume(13.0f);
@@ -558,7 +606,7 @@ class MilkingDetailLoaderTest {
 			milkingRecord1_2_1.setFatValue(4.0f);
 			milkingRecord1_2_1.setTemperatureInCentigrade(6.5f);
 
-			MilkingDetail milkingRecord1_2_2 = createMilkingRecord("TST", new LocalDate(1900,1,2), new LocalTime(13,0,0));
+			MilkingDetail milkingRecord1_2_2 = createMilkingRecord("-990", new LocalDate(1900,1,2), new LocalTime(13,0,0));
 			milkingRecord1_2_2.setComments("Afternoon Milking");
 			milkingRecord1_2_2.setMilkingEventNumber((short) 2);
 			milkingRecord1_2_2.setMilkVolume(14.0f);
@@ -566,7 +614,7 @@ class MilkingDetailLoaderTest {
 			milkingRecord1_2_2.setFatValue(3.95f);
 			milkingRecord1_2_2.setTemperatureInCentigrade(20.5f);
 
-			MilkingDetail milkingRecord1_2_3 = createMilkingRecord("TST", new LocalDate(1900,1,2), new LocalTime(21,0,0));
+			MilkingDetail milkingRecord1_2_3 = createMilkingRecord("-990", new LocalDate(1900,1,2), new LocalTime(21,0,0));
 			milkingRecord1_2_3.setComments("Night Milking");
 			milkingRecord1_2_3.setMilkingEventNumber((short) 3);
 			milkingRecord1_2_3.setMilkVolume(15.0f);
@@ -577,15 +625,15 @@ class MilkingDetailLoaderTest {
 			// TOTAL MILK Month of Jan 1900: 75 ltrs
 			
 
-			MilkingDetail milkingRecord2_10_1 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(5,0,0));
+			MilkingDetail milkingRecord2_10_1 = createMilkingRecord("-990", new LocalDate(1900,2,10), new LocalTime(5,0,0));
 			milkingRecord2_10_1.setComments("Morning Milking");
 			milkingRecord2_10_1.setMilkingEventNumber((short) 1);
 			milkingRecord2_10_1.setMilkVolume(20.0f);
-			MilkingDetail milkingRecord2_10_2 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(13,0,0));
+			MilkingDetail milkingRecord2_10_2 = createMilkingRecord("-990", new LocalDate(1900,2,10), new LocalTime(13,0,0));
 			milkingRecord2_10_2.setComments("Afternoon Milking");
 			milkingRecord2_10_2.setMilkingEventNumber((short) 2);
 			milkingRecord2_10_2.setMilkVolume(30.0f);
-			MilkingDetail milkingRecord2_10_3 = createMilkingRecord("TST", new LocalDate(1900,2,10), new LocalTime(21,0,0));
+			MilkingDetail milkingRecord2_10_3 = createMilkingRecord("-990", new LocalDate(1900,2,10), new LocalTime(21,0,0));
 			milkingRecord2_10_3.setComments("Night Milking");
 			milkingRecord2_10_3.setMilkingEventNumber((short) 3);
 			milkingRecord2_10_3.setMilkVolume(40.0f);
@@ -594,15 +642,15 @@ class MilkingDetailLoaderTest {
 			milkingRecord2_10_3.setTemperatureInCentigrade(20.5f);
 
 			
-			MilkingDetail milkingRecordTSTTSTS2_10_1 = createMilkingRecord("TST_TST", new LocalDate(1900,12,31), new LocalTime(5,0,0));
+			MilkingDetail milkingRecordTSTTSTS2_10_1 = createMilkingRecord("-990_990", new LocalDate(1900,12,31), new LocalTime(5,0,0));
 			milkingRecordTSTTSTS2_10_1.setComments("Morning Milking");
 			milkingRecordTSTTSTS2_10_1.setMilkingEventNumber((short) 1);
 			milkingRecordTSTTSTS2_10_1.setMilkVolume(20.0f);
-			MilkingDetail milkingRecordTSTTSTS2_10_2 = createMilkingRecord("TST_TST", new LocalDate(1900,12,31), new LocalTime(13,0,0));
+			MilkingDetail milkingRecordTSTTSTS2_10_2 = createMilkingRecord("-990_990", new LocalDate(1900,12,31), new LocalTime(13,0,0));
 			milkingRecordTSTTSTS2_10_2.setComments("Afternoon Milking");
 			milkingRecordTSTTSTS2_10_2.setMilkingEventNumber((short) 2);
 			milkingRecordTSTTSTS2_10_2.setMilkVolume(25.0f);
-			MilkingDetail milkingRecordTSTTSTS2_10_3 = createMilkingRecord("TST_TST", new LocalDate(1900,12,31), new LocalTime(21,0,0));
+			MilkingDetail milkingRecordTSTTSTS2_10_3 = createMilkingRecord("-990_990", new LocalDate(1900,12,31), new LocalTime(21,0,0));
 			milkingRecordTSTTSTS2_10_3.setComments("Night Milking");
 			milkingRecordTSTTSTS2_10_3.setMilkingEventNumber((short) 3);
 			milkingRecordTSTTSTS2_10_3.setMilkVolume(30.0f);
@@ -615,32 +663,49 @@ class MilkingDetailLoaderTest {
 			
 			MilkingDetailLoader loader = new MilkingDetailLoader();
 
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TSTTST", new LocalDate(1900,1,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,2,10));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,12,31));
+//			loader.deleteMilkingRecordOfaDay("IMD", "-990", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "-990990", new LocalDate(1900,1,1));
+//			loader.deleteMilkingRecordOfaDay("IMD", "-990", new LocalDate(1900,1,2));
+//			loader.deleteMilkingRecordOfaDay("IMD", "-990", new LocalDate(1900,2,10));
+//			loader.deleteMilkingRecordOfaDay("IMD", "-990_990", new LocalDate(1900,12,31));
 
-			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST");
-			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST");
-			loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST_TST");
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "-990");
+			loader.deleteAllMilkingRecordOfanAnimal("IMD", "-990_990");
+			
+			AnimalLoader anmlLdr = new AnimalLoader();
+			Animal animal1 = TestDataCreationUtil.createTestAnimal("IMD", milkingRecord1_1_1.getAnimalTag(), 
+					new DateTime(milkingRecord1_1_1.getRecordDate().getYear(),milkingRecord1_1_1.getRecordDate().getMonthOfYear(),
+							milkingRecord1_1_1.getRecordDate().getDayOfMonth(),0,0,IMDProperties.getServerTimeZone()),true);
+
+			
+			Animal animal2 = TestDataCreationUtil.createTestAnimal("IMD", milkingRecordTSTTSTS2_10_1.getAnimalTag(), 
+					new DateTime(milkingRecordTSTTSTS2_10_1.getRecordDate().getYear(),milkingRecordTSTTSTS2_10_1.getRecordDate().getMonthOfYear(),
+							milkingRecordTSTTSTS2_10_1.getRecordDate().getDayOfMonth(),0,0,IMDProperties.getServerTimeZone()),true);
+
+			
+			assertTrue(anmlLdr.deleteAnimal(animal2) >= 0);
+			assertEquals(1,anmlLdr.insertAnimal(animal2));
+			
+			assertTrue(anmlLdr.deleteAnimal(animal1) >= 0);
+			assertEquals(1,anmlLdr.insertAnimal(animal1));
 
 
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_1_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_1_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_1_3.getMilkingDetailBean()), "One record should have been inserted");
+			
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_1_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_1_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_1_3), "One record should have been inserted");
 
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_2_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_2_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord1_2_3.getMilkingDetailBean()), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_2_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_2_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_2_3), "One record should have been inserted");
 
-			assertEquals(1,loader.insertMilkRecord(milkingRecord2_10_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord2_10_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecord2_10_3.getMilkingDetailBean()), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_10_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_10_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_10_3), "One record should have been inserted");
 
-			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTSTS2_10_1.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTSTS2_10_2.getMilkingDetailBean()), "One record should have been inserted");
-			assertEquals(1,loader.insertMilkRecord(milkingRecordTSTTSTS2_10_3.getMilkingDetailBean()), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecordTSTTSTS2_10_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecordTSTTSTS2_10_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecordTSTTSTS2_10_3), "One record should have been inserted");
 
 			List <MilkingDetail>  milkRecords = loader.retrieveFarmMonthlyMilkVolumeForSpecifiedYear(new LocalDate(1900,1,1), true);
 			Iterator<MilkingDetail> it = milkRecords.iterator();
@@ -703,19 +768,243 @@ class MilkingDetailLoaderTest {
 			assertEquals(0, noRecordMonths, "we should not have received months with no record in result");
 			assertEquals(240.0,totalMonthVolume, " Milking volume for the year should have been 240");			
 			
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,1));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,1,2));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST", new LocalDate(1900,2,10));
-//			loader.deleteMilkingRecordOfaDay("IMD", "TST_TST", new LocalDate(1900,2,10));
+			assertEquals(9,loader.deleteAllMilkingRecordOfanAnimal("IMD", "-990"));
+			assertEquals(0,loader.deleteAllMilkingRecordOfanAnimal("IMD", "-990990"));
+			assertEquals(3,loader.deleteAllMilkingRecordOfanAnimal("IMD", "-990_990"));
 
-			assertEquals(9,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST"));
-			assertEquals(0,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TSTTST"));
-			assertEquals(3,loader.deleteAllMilkingRecordOfanAnimal("IMD", "TST_TST"));
+
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_1_1.getOrgId(), milkingRecord1_1_1.getRecordDate(),null));
+//			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_1_2.getOrgId(), milkingRecord1_1_2.getRecordDate(),null));
+//			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_1_3.getOrgId(), milkingRecord1_1_3.getRecordDate(),null));
+
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_2_1.getOrgId(), milkingRecord1_2_1.getRecordDate(),null));
+//			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_2_2.getOrgId(), milkingRecord1_2_2.getRecordDate(),null));
+//			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord1_2_3.getOrgId(), milkingRecord1_2_3.getRecordDate(),null));
+
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord2_10_1.getOrgId(), milkingRecord2_10_1.getRecordDate(),null));
+//			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord2_10_2.getOrgId(), milkingRecord2_10_2.getRecordDate(),null));
+//			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(milkingRecord2_10_3.getOrgId(), milkingRecord2_10_3.getRecordDate(),null));
+			
+			
+			assertEquals(1,anmlLdr.deleteAnimal(animal1));
+			assertEquals(1,anmlLdr.deleteAnimal(animal2));
+
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Animal Creation and/or insertion Failed.");
 		}
+	}
+	
+	
+	@Test
+	void testLifeTimeMilkingRecordForAnimal() {
+		try {
+			String orgId = "IMD";
+			String animalTag = "-999";
+			DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusYears(20+4);
+			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, dob, true);
+			LocalDate startDate = new LocalDate(dob.plusYears(20), IMDProperties.getServerTimeZone());
+			
+			MilkingDetail milkingRecord1_1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"4:00", 1, 13.0f);
+			MilkingDetail milkingRecord1_2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"12:00", 2, 14.0f);
+			MilkingDetail milkingRecord1_3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"20:00",  3, 15.0f);
+			
+			MilkingDetail milkingRecord2_1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(1),"4:00", 1, 16.0f);
+			MilkingDetail milkingRecord2_2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(1),"12:00", 2, 17.0f);
+			MilkingDetail milkingRecord2_3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(1),"20:00",  3, 18.0f);
+
+			MilkingDetail milkingRecord3_1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(2), "4:00",1, 16.0f);
+			MilkingDetail milkingRecord3_2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(2),"12:00", 2, 17.0f);
+			MilkingDetail milkingRecord3_3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(2),"20:00", 3, 18.0f);
+
+			MilkingDetail milkingRecord4_1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(3),"4:00", 1, 17.0f);
+			MilkingDetail milkingRecord4_2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(3),"12:00",  2, 17.0f);
+			MilkingDetail milkingRecord4_3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate.plusYears(3),"20:00",  3, 17.0f);
+			
+
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgId, animalTag) >=0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal)>=0);			
+			
+			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_3), "One record should have been inserted");
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord2_3), "One record should have been inserted");
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord3_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord3_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord3_3), "One record should have been inserted");
+
+			MilkingDetailLoader loader = new MilkingDetailLoader();
+
+			List <MilkingDetail>  milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(orgId, animalTag, null,null, false);
+			
+			assertEquals(3,milkRecords.size());
+			assertEquals(milkingRecord1_1.getRecordDate(),milkRecords.get(0).getRecordDate());
+			assertEquals(milkingRecord2_1.getRecordDate(),milkRecords.get(1).getRecordDate());
+			assertEquals(milkingRecord3_1.getRecordDate(),milkRecords.get(2).getRecordDate());
+			
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord4_1), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord4_2), "One record should have been inserted");
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord4_3), "One record should have been inserted");
+
+			milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(orgId, animalTag, null,null, false);
+			assertEquals(4,milkRecords.size());
+			assertEquals(milkingRecord1_1.getRecordDate(),milkRecords.get(0).getRecordDate());
+			assertEquals(milkingRecord2_1.getRecordDate(),milkRecords.get(1).getRecordDate());
+			assertEquals(milkingRecord3_1.getRecordDate(),milkRecords.get(2).getRecordDate());
+			assertEquals(milkingRecord4_1.getRecordDate(),milkRecords.get(3).getRecordDate());
+
+			milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(orgId, animalTag, null,milkingRecord4_1.getRecordDate(), true);
+			assertEquals(Util.getDaysBetween(milkingRecord4_1.getRecordDate(), new LocalDate(animal.getDateOfBirth()))+1,milkRecords.size());
+			assertEquals(new LocalDate(animal.getDateOfBirth()),milkRecords.get(0).getRecordDate());
+			assertEquals(milkingRecord4_1.getRecordDate(),milkRecords.get(milkRecords.size()-1).getRecordDate());
+
+			assertEquals(12,loader.deleteAllMilkingRecordOfanAnimal(orgId, animalTag));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Milk Information testing failed.");
+		}
+	}
+	
+	
+
+	@Test
+	void testUploadMilkingData() {
+		try {
+			String orgId = "IMD";
+			String animalTag = "-999";
+			DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusYears(100);
+			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, dob, true);
+			LocalDate startDate = new LocalDate(dob.plusYears(4), IMDProperties.getServerTimeZone());
+			
+			MilkingDetail milkingRecord1_1 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"4:00", 1, 13.0f);
+			MilkingDetail milkingRecord1_2 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"12:00", 2, 14.0f);
+			MilkingDetail milkingRecord1_3 = TestDataCreationUtil.createMilkingRecord(orgId, animalTag, startDate,"20:00",  3, 15.0f);			
+
+			milkingRecord1_1.setPhValue(6.8f);
+			milkingRecord1_1.setForCalvesUse(6f);
+			milkingRecord1_1.setForFamilyUse(5f);
+			milkingRecord1_1.setForFarmUse(3.5f);
+			milkingRecord1_1.setForOtherUse(1f);
+			milkingRecord1_1.setForPersonalUse(15f);
+			milkingRecord1_1.setForWasteAdj(1f);			
+			
+			milkingRecord1_2.setPhValue(26.8f);
+			milkingRecord1_2.setForCalvesUse(26f);
+			milkingRecord1_2.setForFamilyUse(25f);
+			milkingRecord1_2.setForFarmUse(23.5f);
+			milkingRecord1_2.setForOtherUse(21f);
+			milkingRecord1_2.setForPersonalUse(215f);
+			milkingRecord1_2.setForWasteAdj(21f);			
+
+			milkingRecord1_3.setPhValue(36.8f);
+			milkingRecord1_3.setForCalvesUse(36f);
+			milkingRecord1_3.setForFamilyUse(35f);
+			milkingRecord1_3.setForFarmUse(33.5f);
+			milkingRecord1_3.setForOtherUse(31f);
+			milkingRecord1_3.setForPersonalUse(315f);
+			milkingRecord1_3.setForWasteAdj(31f);			
+			
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgId, animalTag) >=0);
+			assertTrue(TestDataCreationUtil.deleteFarmMilkingRecordsWithNoAnimalMilkingEvent(orgId) >=0);
+			assertTrue(TestDataCreationUtil.deleteAnimal(animal)>=0);			
+			
+			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_1));
+			
+			MilkingDetailLoader loader = new MilkingDetailLoader();
+			List<MilkingDetail> farmRecords = loader.retrieveFarmMilkRecord(milkingRecord1_1);
+			assertEquals(1,farmRecords.size());
+			assertEquals(milkingRecord1_1.getTemperatureInCentigrade(),farmRecords.get(0).getTemperatureInCentigrade());
+			assertEquals(milkingRecord1_1.getPhValue(),farmRecords.get(0).getPhValue());
+			assertEquals(milkingRecord1_1.getForCalvesUse(),farmRecords.get(0).getForCalvesUse());
+			assertEquals(milkingRecord1_1.getForFamilyUse(),farmRecords.get(0).getForFamilyUse());
+			assertEquals(milkingRecord1_1.getForFarmUse(),farmRecords.get(0).getForFarmUse());
+			assertEquals(milkingRecord1_1.getForOtherUse(),farmRecords.get(0).getForOtherUse());
+			assertEquals(milkingRecord1_1.getForPersonalUse(),farmRecords.get(0).getForPersonalUse());
+			assertEquals(milkingRecord1_1.getForWasteAdj(),farmRecords.get(0).getForWasteAdj());
+			
+			milkingRecord1_1.setForFarmUse(1.5f);
+			milkingRecord1_1.setForOtherUse(12f);
+			milkingRecord1_1.setForPersonalUse(13f);
+			milkingRecord1_1.setForWasteAdj(0f);
+
+			assertEquals(Util.Outcome.NOT_OVERWRITTEN,loader.addOrUpdateFarmMilkingRecord(milkingRecord1_1, true));
+			
+			farmRecords = loader.retrieveFarmMilkRecord(milkingRecord1_1);
+			assertEquals(1,farmRecords.size());
+			assertEquals(milkingRecord1_1.getTemperatureInCentigrade(),farmRecords.get(0).getTemperatureInCentigrade());
+			assertEquals(milkingRecord1_1.getPhValue(),farmRecords.get(0).getPhValue());
+			assertEquals(milkingRecord1_1.getForCalvesUse(),farmRecords.get(0).getForCalvesUse());
+			assertEquals(milkingRecord1_1.getForFamilyUse(),farmRecords.get(0).getForFamilyUse());
+			assertNotEquals(milkingRecord1_1.getForFarmUse(),farmRecords.get(0).getForFarmUse());
+			assertNotEquals(milkingRecord1_1.getForOtherUse(),farmRecords.get(0).getForOtherUse());
+			assertNotEquals(milkingRecord1_1.getForPersonalUse(),farmRecords.get(0).getForPersonalUse());
+			assertNotEquals(milkingRecord1_1.getForWasteAdj(),farmRecords.get(0).getForWasteAdj());
+
+			
+			assertEquals(Util.Outcome.EDIT,loader.addOrUpdateFarmMilkingRecord(milkingRecord1_1, false));
+			
+			farmRecords = loader.retrieveFarmMilkRecord(milkingRecord1_1);
+			assertEquals(1,farmRecords.size());
+			assertEquals(milkingRecord1_1.getTemperatureInCentigrade(),farmRecords.get(0).getTemperatureInCentigrade());
+			assertEquals(milkingRecord1_1.getPhValue(),farmRecords.get(0).getPhValue());
+			assertEquals(milkingRecord1_1.getForCalvesUse(),farmRecords.get(0).getForCalvesUse());
+			assertEquals(milkingRecord1_1.getForFamilyUse(),farmRecords.get(0).getForFamilyUse());
+			assertEquals(milkingRecord1_1.getForFarmUse(),farmRecords.get(0).getForFarmUse());
+			assertEquals(milkingRecord1_1.getForOtherUse(),farmRecords.get(0).getForOtherUse());
+			assertEquals(milkingRecord1_1.getForPersonalUse(),farmRecords.get(0).getForPersonalUse());
+			assertEquals(milkingRecord1_1.getForWasteAdj(),farmRecords.get(0).getForWasteAdj());
+			
+			
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_2));
+			farmRecords = loader.retrieveFarmMilkRecord(milkingRecord1_2);
+			assertEquals(1,farmRecords.size());
+			assertEquals(milkingRecord1_2.getTemperatureInCentigrade(),farmRecords.get(0).getTemperatureInCentigrade());
+			assertEquals(milkingRecord1_2.getPhValue(),farmRecords.get(0).getPhValue());
+			assertEquals(milkingRecord1_2.getForCalvesUse(),farmRecords.get(0).getForCalvesUse());
+			assertEquals(milkingRecord1_2.getForFamilyUse(),farmRecords.get(0).getForFamilyUse());
+			assertEquals(milkingRecord1_2.getForFarmUse(),farmRecords.get(0).getForFarmUse());
+			assertEquals(milkingRecord1_2.getForOtherUse(),farmRecords.get(0).getForOtherUse());
+			assertEquals(milkingRecord1_2.getForPersonalUse(),farmRecords.get(0).getForPersonalUse());
+			assertEquals(milkingRecord1_2.getForWasteAdj(),farmRecords.get(0).getForWasteAdj());
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkingRecord1_3));
+			farmRecords = loader.retrieveFarmMilkRecord(milkingRecord1_3);
+			assertEquals(1,farmRecords.size());
+			assertEquals(milkingRecord1_3.getTemperatureInCentigrade(),farmRecords.get(0).getTemperatureInCentigrade());
+			assertEquals(milkingRecord1_3.getPhValue(),farmRecords.get(0).getPhValue());
+			assertEquals(milkingRecord1_3.getForCalvesUse(),farmRecords.get(0).getForCalvesUse());
+			assertEquals(milkingRecord1_3.getForFamilyUse(),farmRecords.get(0).getForFamilyUse());
+			assertEquals(milkingRecord1_3.getForFarmUse(),farmRecords.get(0).getForFarmUse());
+			assertEquals(milkingRecord1_3.getForOtherUse(),farmRecords.get(0).getForOtherUse());
+			assertEquals(milkingRecord1_3.getForPersonalUse(),farmRecords.get(0).getForPersonalUse());
+			assertEquals(milkingRecord1_3.getForWasteAdj(),farmRecords.get(0).getForWasteAdj());
+
+			assertEquals(3,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(orgId, animalTag));
+			assertEquals(1,TestDataCreationUtil.deleteFarmMilkingRecord(orgId, milkingRecord1_1.getRecordDate(),1));
+			assertEquals(2,TestDataCreationUtil.deleteFarmMilkingRecordsWithNoAnimalMilkingEvent(orgId));
+			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Milk Information testing failed.");
+		}		
 	}	
+	
 }
+
+
+
+
+
+
 

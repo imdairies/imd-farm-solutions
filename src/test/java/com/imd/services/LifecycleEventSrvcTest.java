@@ -2,7 +2,6 @@ package com.imd.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.Connection;
 
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterAll;
@@ -22,7 +21,6 @@ import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.UserLoader;
 import com.imd.services.bean.LifeCycleEventBean;
-import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
@@ -81,7 +79,6 @@ class LifecycleEventSrvcTest {
 		
 		try {
 			LifeCycleEventCode inseminateEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.INSEMINATE,"","");
-			LifeCycleEventCode matingEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.MATING,"","");
 			LifeCycleEventCode pregTestCD = new LifeCycleEventCode(Util.LifeCycleEvents.PREGTEST,"","");
 			LifeCycleEventCode parturitionCD = new LifeCycleEventCode(Util.LifeCycleEvents.PARTURATE,"","");
 			
@@ -130,7 +127,7 @@ class LifecycleEventSrvcTest {
 			pregTestEvent.setUpdatedDTTM(pregTestTS);
 
 			LifecycleEvent parturitionEvent = new LifecycleEvent(orgID,0,animalTag,parturitionCD.getEventCode(),user1,DateTime.now(),user1,DateTime.now());
-			parturitionEvent.setOrgID(orgID);
+			parturitionEvent.setOrgId(orgID);
 			parturitionEvent.setAnimalTag(animalTag);
 			parturitionEvent.setAuxField1Value(Util.Gender.FEMALE); 
 			parturitionEvent.setAuxField2Value(null);
@@ -141,8 +138,8 @@ class LifecycleEventSrvcTest {
 			
 			assertTrue(eventLoader.deleteAnimalLifecycleEvents(orgID, animalTag)>=0);
 			assertTrue(eventLoader.deleteAnimalLifecycleEvents(orgID, calfCorrectTag)>=0);
-			assertTrue(animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag())>=0);
-			assertTrue(animalLoader.deleteAnimal(animal.getOrgID(), calfCorrectTag)>=0);
+			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag())>=0);
+			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), calfCorrectTag)>=0);
 
 			assertTrue(eventLoader.insertLifeCycleEvent(inseminationEvent) > 0);
 			assertTrue(eventLoader.insertLifeCycleEvent(pregTestEvent) > 0);
@@ -159,13 +156,13 @@ class LifecycleEventSrvcTest {
 			
 			LifeCycleEventBean parturitionEventBean = new LifeCycleEventBean();
 			parturitionEventBean.setAnimalTag(animal.getAnimalTag());
-			parturitionEventBean.setOrgID(animal.getOrgID());
+			parturitionEventBean.setOrgID(animal.getOrgId());
 			parturitionEventBean.setEventCode(Util.LifeCycleEvents.PARTURATE);
 			parturitionEventBean.setAuxField1Value(Util.Gender.FEMALE);
 			parturitionEventBean.setAuxField2Value(Util.NO);
 			parturitionEventBean.setAuxField3Value(calfIncorrectTag);
 			parturitionEventBean.setEventComments("The calf should NOT be added as the tag is in use");
-			parturitionEventBean.setEventTimeStamp(Util.getDateTimeInSpecifiedFormat(DateTime.now(IMDProperties.getServerTimeZone()),"MM/dd/yyyy, hh:mm:ss aa"));
+			parturitionEventBean.setEventTimeStamp(Util.getDateTimeInSpecifiedFormat(DateTime.now(IMDProperties.getServerTimeZone()),"yyyy-MM-dd HH:mm"));
 			
 			UserLoader userLoader = new UserLoader();
 			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
@@ -177,10 +174,10 @@ class LifecycleEventSrvcTest {
 			String responseStr = lifecycleSrvc.addEvent(parturitionEventBean).getEntity().toString();
 			assertTrue(responseStr.indexOf("This tag# is already in use") >= 0, "Since the calf tag# was the same as the parturating cow the service should have thrown an invalid tag# error, instead we got the following message back " + responseStr);
 
-			assertEquals(2,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(0,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), calfCorrectTag));
-			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(0,animalLoader.deleteAnimal(animal.getOrgID(), calfCorrectTag));
+			assertEquals(2,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(0,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), calfCorrectTag));
+			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(0,animalLoader.deleteAnimal(animal.getOrgId(), calfCorrectTag));
 
 			parturitionEventBean.setAuxField3Value(calfCorrectTag);
 			parturitionEventBean.setEventComments("The calf should be added as the tag is NOT in use");
@@ -197,15 +194,15 @@ class LifecycleEventSrvcTest {
 			assertTrue(responseStr.indexOf("This tag# is already in use") < 0, "Since the calf tag# was the same as the parturating cow the service should have thrown an invalid tag# error");
 			assertTrue(responseStr.indexOf("The calf with the tag# " + calfCorrectTag + " has been successfully added to the herd") >= 0, responseStr);
 			
-			Animal calf = new Animal(animal.getOrgID(),calfCorrectTag);
+			Animal calf = new Animal(animal.getOrgId(),calfCorrectTag);
 			assertEquals(calfCorrectTag, animalLoader.getAnimalRawInfo(calf).get(0).getAnimalTag());
-			assertEquals("CALFOPR", eventLoader.retrieveAllLifeCycleEventsForAnimal(calf.getOrgID(), calf.getAnimalTag()).get(0).getEventOperator().getPersonID());
+			assertEquals("CALFOPR", eventLoader.retrieveAllLifeCycleEventsForAnimal(calf.getOrgId(), calf.getAnimalTag()).get(0).getEventOperator().getPersonID());
 			
 			
-			assertEquals(3,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgID(), calfCorrectTag));
-			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgID(), calfCorrectTag));
+			assertEquals(3,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), calfCorrectTag));
+			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgId(), calfCorrectTag));
 			
 			
 		} catch (Exception e) {

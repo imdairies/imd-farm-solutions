@@ -62,7 +62,7 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			
 			assertEquals(1, anmlLdr.insertAnimal(male));
 
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, male.getOrgID(), male.getAnimalTag(), Util.LanguageCode.ENG);			
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, male.getOrgId(), male.getAnimalTag(), Util.LanguageCode.ENG);			
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 
 			assertEquals(1, anmlLdr.deleteAnimal(male));
@@ -93,12 +93,12 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 					now.minusDays(1000), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(zeroStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag())>= 0);
-			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag()) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag())>= 0);
+			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag()) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(zeroStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
 			float oneStarValue = milestone.getOneStarThreshold();
@@ -109,21 +109,21 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 
 			LocalDate milkDate = new LocalDate(zeroStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
 			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((oneStarValue-1)/3,1));
-			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
-			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
-			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_3.getMilkingDetailBean()));
+			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
+			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
+			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_3 ));
 			
-			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
-			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
-			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
+			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
+			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
+			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.NO_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
@@ -131,26 +131,26 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(zeroStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, zeroStarFemale.getDateOfBirth().plusDays((14*30)+275+91));
 			TestDataCreationUtil.insertEvent(zeroStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, zeroStarFemale.getDateOfBirth().plusDays((14*30)+275+90+275));
 
-			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
-			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
-			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_3.getMilkingDetailBean()));
+			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
+			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
+			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_3 ));
 
-			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, oneStarValue);
-			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, oneStarValue);
-			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, oneStarValue);
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_3.getMilkingDetailBean()));
+			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, oneStarValue);
+			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, oneStarValue);
+			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, oneStarValue);
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.NO_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 			
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag()));
-			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(zeroStarFemale.getOrgID(), zeroStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag()));
+			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(zeroStarFemale.getOrgId(), zeroStarFemale.getAnimalTag()));
 			assertEquals(1,anmlLdr.deleteAnimal(zeroStarFemale));
 			
 		} catch (Exception e) {
@@ -179,12 +179,12 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 					now.minusDays(1000), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(oneStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag())>= 0);
-			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag()) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag())>= 0);
+			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag()) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(oneStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
 			float oneStarValue = milestone.getTwoStarThreshold();
@@ -195,21 +195,21 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 
 			LocalDate milkDate = new LocalDate(oneStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
 			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((oneStarValue-0.5)/3,1));
-			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
-			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
-			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_3.getMilkingDetailBean()));
+			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
+			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
+			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_3 ));
 			
-			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
-			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
-			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
+			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
+			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
+			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating(),outcome.getEvaluationResultMessage());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
@@ -217,26 +217,26 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, oneStarFemale.getDateOfBirth().plusDays((14*30)+275+91));
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, oneStarFemale.getDateOfBirth().plusDays((14*30)+275+90+275));
 
-			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
-			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
-			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_3.getMilkingDetailBean()));
+			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
+			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
+			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_3 ));
 
-			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, oneStarValue);
-			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, oneStarValue);
-			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, oneStarValue);
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_3.getMilkingDetailBean()));
+			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, oneStarValue);
+			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, oneStarValue);
+			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, oneStarValue);
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 			
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag()));
-			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag()));
+			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag()));
 			assertEquals(1,anmlLdr.deleteAnimal(oneStarFemale));
 			
 		} catch (Exception e) {
@@ -266,12 +266,12 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 					now.minusDays(1000), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(twoStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag())>= 0);
-			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag()) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag())>= 0);
+			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag()) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(twoStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
 			float threeStarValue = milestone.getThreeStarThreshold();
@@ -282,21 +282,21 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 
 			LocalDate milkDate = new LocalDate(twoStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
 			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((threeStarValue-1)/3,1));
-			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
-			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
-			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_3.getMilkingDetailBean()));
+			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
+			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
+			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_3 ));
 			
-			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
-			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
-			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
+			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
+			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
+			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.TWO_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
@@ -304,26 +304,26 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(twoStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, twoStarFemale.getDateOfBirth().plusDays((14*30)+275+91));
 			TestDataCreationUtil.insertEvent(twoStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, twoStarFemale.getDateOfBirth().plusDays((14*30)+275+90+275));
 
-			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
-			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
-			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_3.getMilkingDetailBean()));
+			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
+			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
+			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_3 ));
 
-			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, threeStarValue);
-			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, threeStarValue);
-			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, threeStarValue);
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_3.getMilkingDetailBean()));
+			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, threeStarValue);
+			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, threeStarValue);
+			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, threeStarValue);
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.TWO_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 			
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag()));
-			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag()));
+			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag()));
 			assertEquals(1,anmlLdr.deleteAnimal(twoStarFemale));
 			
 		} catch (Exception e) {
@@ -353,12 +353,12 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 					now.minusDays(1000), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(threeStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag())>= 0);
-			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag()) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag())>= 0);
+			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag()) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(threeStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
 			float fourStarValue = milestone.getFourStarThreshold();
@@ -369,21 +369,21 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 
 			LocalDate milkDate = new LocalDate(threeStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
 			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((fourStarValue-1)/3,1));
-			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
-			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
-			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_3.getMilkingDetailBean()));
+			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
+			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
+			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_3 ));
 			
-			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
-			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
-			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
+			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
+			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
+			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.THREE_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
@@ -391,26 +391,26 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(threeStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, threeStarFemale.getDateOfBirth().plusDays((14*30)+275+91));
 			TestDataCreationUtil.insertEvent(threeStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, threeStarFemale.getDateOfBirth().plusDays((14*30)+275+90+275));
 
-			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
-			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
-			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_3.getMilkingDetailBean()));
+			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
+			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
+			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_3 ));
 
-			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, fourStarValue);
-			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, fourStarValue);
-			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, fourStarValue);
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_3.getMilkingDetailBean()));
+			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, fourStarValue);
+			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, fourStarValue);
+			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, fourStarValue);
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.THREE_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 			
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag()));
-			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag()));
+			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag()));
 			assertEquals(1,anmlLdr.deleteAnimal(threeStarFemale));
 			
 		} catch (Exception e) {
@@ -440,12 +440,12 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 					now.minusDays(1000), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(fourStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag())>= 0);
-			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag()) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag())>= 0);
+			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag()) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(fourStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
 			float fourStarValue = milestone.getFiveStarThreshold();
@@ -456,21 +456,21 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 
 			LocalDate milkDate = new LocalDate(fourStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
 			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((fourStarValue-0.5)/3,1));
-			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
-			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
-			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_3.getMilkingDetailBean()));
+			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
+			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
+			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_3 ));
 			
-			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
-			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
-			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
+			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
+			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
+			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
@@ -478,26 +478,26 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(fourStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fourStarFemale.getDateOfBirth().plusDays((14*30)+275+91));
 			TestDataCreationUtil.insertEvent(fourStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fourStarFemale.getDateOfBirth().plusDays((14*30)+275+90+275));
 
-			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
-			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
-			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_3.getMilkingDetailBean()));
+			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk);
+			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk);
+			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_3 ));
 
-			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, fourStarValue);
-			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, fourStarValue);
-			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, fourStarValue);
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_3.getMilkingDetailBean()));
+			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, fourStarValue);
+			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, fourStarValue);
+			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, fourStarValue);
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 			
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag()));
-			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag()));
+			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag()));
 			assertEquals(1,anmlLdr.deleteAnimal(fourStarFemale));
 			
 		} catch (Exception e) {
@@ -527,12 +527,12 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 					now.minusDays(1000), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(fiveStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag())>= 0);
-			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag()) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag())>= 0);
+			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(fiveStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
 			float fiveStarValue = milestone.getFiveStarThreshold() + 1;
@@ -543,21 +543,21 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 
 			LocalDate milkDate = new LocalDate(fiveStarFemale.getDateOfBirth().plusDays(14*30+275+10),IMDProperties.getServerTimeZone());
 			float oneTimeMilk = Float.parseFloat(Util.formatToSpecifiedDecimalPlaces((fiveStarValue)/3,1));
-			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
-			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
-			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec1_3.getMilkingDetailBean()));
+			MilkingDetail rec1_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate,1, oneTimeMilk);
+			MilkingDetail rec1_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate,2, oneTimeMilk);
+			MilkingDetail rec1_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate,3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec1_3 ));
 			
-			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
-			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
-			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec2_3.getMilkingDetailBean()));
+			MilkingDetail rec2_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(1),1, oneTimeMilk);
+			MilkingDetail rec2_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(1),2, oneTimeMilk);
+			MilkingDetail rec2_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(1),3, oneTimeMilk);
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec2_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(oneTimeMilk*3,1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 
@@ -565,26 +565,26 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fiveStarFemale.getDateOfBirth().plusDays((14*30)+275+91));
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fiveStarFemale.getDateOfBirth().plusDays((14*30)+275+90+275));
 
-			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk*2);
-			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk*2);
-			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk*2);
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec3_3.getMilkingDetailBean()));
+			MilkingDetail rec3_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(2),1, oneTimeMilk*2);
+			MilkingDetail rec3_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(2),2, oneTimeMilk*2);
+			MilkingDetail rec3_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(2),3, oneTimeMilk*2);
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec3_3 ));
 
-			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, fiveStarValue);
-			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, fiveStarValue);
-			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, fiveStarValue);
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_1.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_2.getMilkingDetailBean()));
-			assertEquals(1,milkLdr.insertMilkRecord(rec4_3.getMilkingDetailBean()));
+			MilkingDetail rec4_1 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(100+275),1, fiveStarValue);
+			MilkingDetail rec4_2 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(100+275),2, fiveStarValue);
+			MilkingDetail rec4_3 = TestDataCreationUtil.createMilkingRecord(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(),milkDate.plusDays(100+275+275),3, fiveStarValue);
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_1 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_2 ));
+			assertEquals(1,milkLdr.insertMilkRecord(rec4_3 ));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 			assertEquals(Util.formatToSpecifiedDecimalPlaces(((oneTimeMilk*12)/3),1), Util.formatToSpecifiedDecimalPlaces(Float.parseFloat(outcome.getEvaluationValue()),1));
 			
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag()));
-			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()));
+			assertEquals(12,milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()));
 			assertEquals(1,anmlLdr.deleteAnimal(fiveStarFemale));
 			
 		} catch (Exception e) {
@@ -613,23 +613,23 @@ class FirstLactationPeakMilestoneEvaluatorTest {
 					now.minusDays(1000), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(fiveStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag())>= 0);
-			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag()) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag())>= 0);
+			assertTrue(milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(fiveStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Came in heat : To be deleted", Util.LifeCycleEvents.HEAT, fiveStarFemale.getDateOfBirth().plusDays(14*30));
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fiveStarFemale.getDateOfBirth().plusDays((14*30) + 1));
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fiveStarFemale.getDateOfBirth().plusDays((14*30)+275));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
-			assertEquals(3,evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag()));
-			assertEquals(0,milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag()));
+			assertEquals(3,evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()));
+			assertEquals(0,milkLdr.deleteAllMilkingRecordOfanAnimal(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()));
 			assertEquals(1,anmlLdr.deleteAnimal(fiveStarFemale));
 			
 		} catch (Exception e) {

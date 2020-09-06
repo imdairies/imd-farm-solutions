@@ -90,22 +90,22 @@ public class HeiferWeightMilestoneEvaluator extends MilestoneEvaluator {
 		
 		
 		couldnotBeEvaluatedMilestone.setStarRating(Util.StarRating.COULD_NOT_COMPUTE_RATING);
-		if (milestoneRule == null) {
-			List<PerformanceMilestone> milestones = loader.retrieveSpecificPerformanceMilestone(orgID,this.getMilestoneID());
-			if (milestones == null || milestones.isEmpty()) {
-				evaluationResultMessage = this.getMilestoneID() + " Performance Milestone not found or is not active. This milestone can not be evaluated for this animal.";
-				IMDLogger.log(evaluationResultMessage, Util.WARNING);
-				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
-				return couldnotBeEvaluatedMilestone;
-			} else if (milestones.size() != 1) {
-				evaluationResultMessage = "Multiple records were found for the " + 
-						this.getMilestoneID() + " Performance Milestone. We shall pick the most recently updated record and use that for our processing.";
-				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
-				IMDLogger.log(evaluationResultMessage, Util.WARNING);			
-			} else {
-				milestoneRule = milestones.get(0);
-			}
-		}
+//		if (milestoneRule == null) {
+//			List<PerformanceMilestone> milestones = loader.retrieveSpecificPerformanceMilestone(orgID,this.getMilestoneID());
+//			if (milestones == null || milestones.isEmpty()) {
+//				evaluationResultMessage = this.getMilestoneID() + " Performance Milestone not found or is not active. This milestone can not be evaluated for this animal.";
+//				IMDLogger.log(evaluationResultMessage, Util.WARNING);
+//				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
+//				return couldnotBeEvaluatedMilestone;
+//			} else if (milestones.size() != 1) {
+//				evaluationResultMessage = "Multiple records were found for the " + 
+//						this.getMilestoneID() + " Performance Milestone. We shall pick the most recently updated record and use that for our processing.";
+//				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
+//				IMDLogger.log(evaluationResultMessage, Util.WARNING);			
+//			} else {
+//				milestoneRule = milestones.get(0);
+//			}
+//		}
 		milestoneRule.setAnimalTag(animalTag);
 		List<Animal> animals = null;
 		try {
@@ -126,7 +126,7 @@ public class HeiferWeightMilestoneEvaluator extends MilestoneEvaluator {
 		Animal animal = animals.get(0);
 		Float heiferAgeInDaysAtMilestone = null;
 		try {
-			heiferAgeInDaysAtMilestone = new Float(milestoneRule.getAuxInfo1());
+			heiferAgeInDaysAtMilestone = Float.parseFloat(milestoneRule.getAuxInfo1());
 			if (animal.getCurrentAgeInDays() < heiferAgeInDaysAtMilestone) {
 				// this milestone only applies to animals which are above a certain age.
 				milestoneRule.setStarRating(Util.StarRating.ANIMAL_NOT_ELIGIBLE);

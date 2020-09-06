@@ -157,7 +157,7 @@ public class MessageCatalogLoader {
 				message.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 				message.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		    	messages.add(message.clone());
-		    	messageCache.put(message.getOrgID() + "-" + message.getLanguageCD() + "-" + message.getMessageCD(),message);
+		    	messageCache.put(message.getOrgId() + "-" + message.getLanguageCD() + "-" + message.getMessageCD(),message);
 		    }
 		} catch (Exception ex) {
 			ex.printStackTrace();

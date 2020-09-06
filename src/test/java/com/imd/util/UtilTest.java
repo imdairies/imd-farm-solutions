@@ -61,8 +61,14 @@ class UtilTest {
 			
 			inputCSVFile = "2019-02-02" + Util.FILE_RECORD_SEPARATOR + "12:00"  + Util.FILE_RECORD_SEPARATOR + "2" + "\n" /*Timestamp, event number*/+ 
 					"16" + Util.FILE_RECORD_SEPARATOR +"5" + "\n" + /*Temp,Humidity*/
-					"3.95" + Util.FILE_RECORD_SEPARATOR + "28.5  " + "\n" + /*Fat,LR,Aflatoxin*/
-					"012" + Util.FILE_RECORD_SEPARATOR + "11.5" + "\n" + /*Tag number, volume, comment" */
+					"3.95" + Util.FILE_RECORD_SEPARATOR + "28.5  " + "\n" + /*3.95=Fat,28.5=LR,null=Aflatoxin*/
+					"6" /*forCalvesUse*/ + Util.FILE_RECORD_SEPARATOR +
+					"2.5" /*forFarmUse*/ + Util.FILE_RECORD_SEPARATOR +
+					"3" /*forFamilyUse*/ + Util.FILE_RECORD_SEPARATOR +
+					"0" /*forPersonalUse*/ + Util.FILE_RECORD_SEPARATOR +
+					/*forOtherUse*/ Util.FILE_RECORD_SEPARATOR +
+					"6" /*forWasteAdj*/ + "\n" +
+					"012" + Util.FILE_RECORD_SEPARATOR + "11.5" + "\n" + /*012=Tag number, 11.5=volume, null=comment" */
 					"014" + Util.FILE_RECORD_SEPARATOR + "10 " + "\n" + 
 					"015" + Util.FILE_RECORD_SEPARATOR + "13.5" + Util.FILE_RECORD_SEPARATOR + "Test\\ Comments";
 			fileBean.setInputDelimitedFileContents(inputCSVFile);
@@ -74,6 +80,12 @@ class UtilTest {
 			assertEquals(28.5,farmBean.getLrValue().floatValue());
 			assertEquals(null,farmBean.getToxinValue());
 			assertEquals(16f,farmBean.getTemperatureInCentigrade().floatValue());
+			assertEquals(6.0f,farmBean.getForCalvesUse().floatValue());
+			assertEquals(2.5f,farmBean.getForFarmUse().floatValue());
+			assertEquals(3.0f,farmBean.getForFamilyUse().floatValue());
+			assertEquals(0.0f,farmBean.getForPersonalUse().floatValue());
+			assertEquals(null,farmBean.getForOtherUse());
+			assertEquals(6.0f,farmBean.getForWasteAdj().floatValue());
 			assertEquals("2019-02-02",Util.getDateInSQLFormat(farmBean.getRecordDate()));
 			assertEquals("2019-02-02",farmBean.getMilkingDateStr());
 			assertEquals("12:00",Util.getTimeInSQLFormart(farmBean.getRecordTime()));

@@ -47,13 +47,13 @@ public class BrucellaVaccineAdvisement extends AdvisementRule {
 				dynamicValues.add(ruleDto.getAuxInfo2());
 				
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					Message localizedMessage  = MessageCatalogLoader.getDynamicallyPopulatedMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode(), dynamicValues);
+					Message localizedMessage  = MessageCatalogLoader.getDynamicallyPopulatedMessage(ruleDto.getOrgId(), languageCd, ruleDto.getFirstThresholdMessageCode(), dynamicValues);
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setFirstThresholdMessage(localizedMessage.getMessageText());
-					localizedMessage  = MessageCatalogLoader.getDynamicallyPopulatedMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode(), dynamicValues);
+					localizedMessage  = MessageCatalogLoader.getDynamicallyPopulatedMessage(ruleDto.getOrgId(), languageCd, ruleDto.getSecondThresholdMessageCode(), dynamicValues);
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setSecondThresholdMessage(localizedMessage.getMessageText());
-					localizedMessage  = MessageCatalogLoader.getDynamicallyPopulatedMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode(), dynamicValues);
+					localizedMessage  = MessageCatalogLoader.getDynamicallyPopulatedMessage(ruleDto.getOrgId(), languageCd, ruleDto.getThirdThresholdMessageCode(), dynamicValues);
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setThirdThresholdMessage(localizedMessage.getMessageText());
 				}

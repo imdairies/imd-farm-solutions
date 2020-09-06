@@ -2,29 +2,19 @@ package com.imd.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.imd.dto.Advisement;
-import com.imd.dto.Animal;
-import com.imd.dto.LifecycleEvent;
 import com.imd.dto.User;
-import com.imd.loader.AdvisementLoader;
-import com.imd.loader.AnimalLoader;
-import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.UserLoader;
-import com.imd.services.bean.AdvisementBean;
 import com.imd.services.bean.AnimalBean;
 import com.imd.util.IMDLogger;
-import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 class FeedSrvcTest {
@@ -52,7 +42,6 @@ class FeedSrvcTest {
 		try {
 			AnimalBean animalBean = new AnimalBean();
 			FeedSrvc feedSrvc = new FeedSrvc();
-			User kashif = new User("KASHIF");			
 			UserLoader userLoader = new UserLoader();
 			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
 			assertTrue(user != null);
@@ -77,13 +66,12 @@ class FeedSrvcTest {
 		try {
 			AnimalBean animalBean = new AnimalBean();
 			FeedSrvc feedSrvc = new FeedSrvc();
-			User kashif = new User("KASHIF");			
 			UserLoader userLoader = new UserLoader();
 			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
 			assertTrue(user != null);
 			assertTrue(user.getPassword() != null);
 			animalBean.setLoginToken(user.getPassword());
-			String animal1 = "022";
+			String animal1 = "003";
 			String animal2 = "";
 			
 			animalBean.setAnimalTag(animal1 + "," + animal2);
@@ -111,7 +99,6 @@ class FeedSrvcTest {
 		try {
 			AnimalBean animalBean = new AnimalBean();
 			FeedSrvc feedSrvc = new FeedSrvc();
-			User kashif = new User("KASHIF");			
 			UserLoader userLoader = new UserLoader();
 			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
 			assertTrue(user != null);
@@ -151,13 +138,12 @@ class FeedSrvcTest {
 			
 			AnimalBean animalBean = new AnimalBean();
 			FeedSrvc feedSrvc = new FeedSrvc();
-			User kashif = new User("KASHIF");			
 			UserLoader userLoader = new UserLoader();
 			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
 			assertTrue(user != null);
 			assertTrue(user.getPassword() != null);
 			animalBean.setLoginToken(user.getPassword());
-			animalBean.setAnimalTag("017");
+			animalBean.setAnimalTag("003");
 			animalBean.setAnimalType(Util.FeedCohortType.LCTEARLYHI);
 			IMDLogger.loggingMode = Util.INFO;
 			Response serviceResponse = feedSrvc.retrieveFeedPlan(animalBean);

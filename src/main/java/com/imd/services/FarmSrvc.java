@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
@@ -14,7 +13,6 @@ import javax.ws.rs.core.Response;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
 
 import com.imd.dto.Animal;
 import com.imd.dto.LifecycleEvent;
@@ -23,12 +21,12 @@ import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.LookupValuesLoader;
+import com.imd.loader.MessageCatalogLoader;
 import com.imd.services.bean.DurationBean;
 import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
-import com.imd.util.Util.LifeCycleEvents;
 
 @Path("/farm")
 public class FarmSrvc {
@@ -118,13 +116,24 @@ public class FarmSrvc {
 		return processingDate;
 	}	
 
-	
-	@GET
+	@POST
 	@Path("/recentbreedingevents")
 	@Consumes (MediaType.APPLICATION_JSON)
-	public Response retrieveBreedingEventForThisMonth(){
-		IMDLogger.log("retrieveBreedingEventForThisMonth Called with following input values", Util.INFO);
-		String orgID = (String)Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.ORG_ID);
+	public Response retrieveBreedingEventForThisMonth(LookupValuesBean luValueBean){
+		String methodName = "retrieveBreedingEventForThisMonth";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,luValueBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.INFO);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		luValueBean.setOrgID(orgId);
+		IMDLogger.log(luValueBean.toString(), Util.INFO);
+		
 		LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 		DateTime oneMonthAgo = DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(1);
 		DateTime startDate = new DateTime(oneMonthAgo.getYear(), oneMonthAgo.getMonthOfYear(),1,0,0,0,IMDProperties.getServerTimeZone()); 
@@ -133,7 +142,7 @@ public class FarmSrvc {
 
 		String calvedInSpecifiedTimeWindowList = "";
 		int calvedInSpecifiedTimeWindowCount = 0;
-		List<LifecycleEvent> calved = eventsLoader.getBirthsInSpecificDateRange(orgID,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_CALVING_THRESHOLD_DAYS), endDate);
+		List<LifecycleEvent> calved = eventsLoader.getBirthsInSpecificDateRange(orgId,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_CALVING_THRESHOLD_DAYS), endDate);
 		Iterator<LifecycleEvent> it = calved.iterator();
 		while (it.hasNext()) {
 			calvedInSpecifiedTimeWindowCount++;
@@ -144,7 +153,7 @@ public class FarmSrvc {
 
 		String inseminatedOrMatedInSpecifiedTimeWindowList = "";
 		int inseminatedOrMatedInSpecifiedTimeWindowCount = 0;
-		List<LifecycleEvent> insemMateEvents = eventsLoader.getInseminationsOrMatingInSpecificDateRange(orgID,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_INSEMINATION_THRESHOLD_DAYS), endDate);
+		List<LifecycleEvent> insemMateEvents = eventsLoader.getInseminationsOrMatingInSpecificDateRange(orgId,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_INSEMINATION_THRESHOLD_DAYS), endDate);
 		it = insemMateEvents.iterator();
 		while (it.hasNext()) {
 			inseminatedOrMatedInSpecifiedTimeWindowCount++;
@@ -154,7 +163,7 @@ public class FarmSrvc {
 
 		String abortedInSpecifiedTimeWindowList = "";
 		int abortedInSpecifiedTimeWindowCount = 0;
-		List<LifecycleEvent> abortedEvents = eventsLoader.getAbortionsInSpecificDateRange(orgID,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_ABORTION_THRESHOLD_DAYS), endDate);
+		List<LifecycleEvent> abortedEvents = eventsLoader.getAbortionsInSpecificDateRange(orgId,DateTime.now(IMDProperties.getServerTimeZone()).minusDays(RECENT_ABORTION_THRESHOLD_DAYS), endDate);
 		it = abortedEvents.iterator();
 		while (it.hasNext()) {
 			abortedInSpecifiedTimeWindowCount++;
@@ -170,12 +179,12 @@ public class FarmSrvc {
 		
 		AnimalLoader animalLoader = new AnimalLoader();
 		try {
-			List<Animal> animalValues = animalLoader.retrieveActivePregnantAnimals(orgID);
+			List<Animal> animalValues = animalLoader.retrieveActivePregnantAnimals(orgId);
 			Iterator<Animal> itAnimals = animalValues.iterator();
 			while (itAnimals.hasNext()) {
 				Animal animalValue = itAnimals.next();
 	    		if (animalValue.isPregnant() || animalValue.isInseminated()) {
-	    			List<LifecycleEvent> animalEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
+	    			List<LifecycleEvent> animalEvents = eventsLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgId(),
 	    					animalValue.getAnimalTag(), 
 	    					/*LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(INSEMINATION_SEARCH_WINDOW_DAYS)*/null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
@@ -195,7 +204,7 @@ public class FarmSrvc {
 			DateTime startFrom = new DateTime(now.minusMonths(25).getYear(),
 					now.minusMonths(25).getMonthOfYear(),
 					1,0,0,IMDProperties.getServerTimeZone());
-			HashMap<String,String> values = animalLoader.retrieveCalvingsInDateRange(orgID, 
+			HashMap<String,String> values = animalLoader.retrieveCalvingsInDateRange(orgId, 
 					startFrom,
 					now);
 			String value = "";
@@ -251,12 +260,25 @@ public class FarmSrvc {
 	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addLookupValues(LookupValuesBean luValueBean){
+		String methodName = "addLookupValues";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,luValueBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.INFO);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		luValueBean.setOrgID(orgId);
+		IMDLogger.log(luValueBean.toString(), Util.INFO);
+		
+		
 		String categoryCode = luValueBean.getCategoryCode();
 		String lookupCode = luValueBean.getLookupValueCode();
 		String shortDescription  = luValueBean.getShortDescription();
 		String longDescription  = luValueBean.getLongDescription();
-		IMDLogger.log("addLookupValues Called with following input values", Util.INFO);
-		IMDLogger.log(luValueBean.toString() , Util.INFO);
 		
 		if (categoryCode == null || categoryCode.trim().isEmpty()) {			
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid category code.\"}").build();
@@ -306,12 +328,26 @@ public class FarmSrvc {
 	@Path("/update")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateLookupValues(LookupValuesBean luValueBean){
+		
+		String methodName = "updateLookupValues";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,luValueBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() + "." + methodName , Util.INFO);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgId = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		luValueBean.setOrgID(orgId);
+		IMDLogger.log(luValueBean.toString(), Util.INFO);
+		
+		
 		String categoryCode = luValueBean.getCategoryCode();
 		String lookupCode = luValueBean.getLookupValueCode();
 		String shortDescription  = luValueBean.getShortDescription();
 		String longDescription  = luValueBean.getLongDescription();
-		IMDLogger.log("updateLookupValues Called with following input values", Util.INFO);
-		IMDLogger.log(luValueBean.toString() , Util.INFO);
 		
 		if (categoryCode == null || categoryCode.trim().isEmpty()) {			
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must provide a valid category code.\"}").build();

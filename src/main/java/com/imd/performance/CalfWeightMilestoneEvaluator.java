@@ -52,7 +52,7 @@ public class CalfWeightMilestoneEvaluator extends MilestoneEvaluator {
 			couldnotBeEvaluatedMilestone.setMilestoneID(this.getMilestoneID());
 			List<PerformanceMilestone> milestones = loader.retrieveSpecificPerformanceMilestone(orgID, this.getMilestoneID());
 			if (milestones == null || milestones.isEmpty()) {
-				evaluationResultMessage = "Could not find " + this.getMilestoneID() + " in the database. The milestone can not be evaluated for the animal " + animalTag;
+				evaluationResultMessage = "Could not find " + this.getMilestoneID() + " in the database. " + this.getMilestoneID() + " milestone can not be evaluated for the animal " + animalTag;
 				IMDLogger.log(evaluationResultMessage,Util.ERROR);
 				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
 				return couldnotBeEvaluatedMilestone;				
@@ -60,7 +60,7 @@ public class CalfWeightMilestoneEvaluator extends MilestoneEvaluator {
 				milestoneRule = milestones.get(0);
 				couldnotBeEvaluatedMilestone = milestoneRule;
 				if (milestones.size() != 1) {
-					evaluationResultMessage = "Found multiple entries for " + this.getMilestoneID() + " in the database. We shall pick one of these entries and perform the milestone evaluation for the animal " + animalTag;
+					evaluationResultMessage = "Found multiple entries for " + this.getMilestoneID() + " in the database. We shall pick one of these entries and perform the " + this.getMilestoneID() + " milestone evaluation for the animal " + animalTag;
 					IMDLogger.log(evaluationResultMessage,Util.WARNING);
 				}
 			}
@@ -85,35 +85,35 @@ public class CalfWeightMilestoneEvaluator extends MilestoneEvaluator {
 		
 		
 		couldnotBeEvaluatedMilestone.setStarRating(Util.StarRating.COULD_NOT_COMPUTE_RATING);
-		if (milestoneRule == null) {
-			List<PerformanceMilestone> milestones = loader.retrieveSpecificPerformanceMilestone(orgID,this.getMilestoneID());
-			if (milestones == null || milestones.isEmpty()) {
-				evaluationResultMessage = this.getMilestoneID() + " Performance Milestone not found or is not active. This milestone can not be evaluated for this animal.";
-				IMDLogger.log(evaluationResultMessage, Util.WARNING);
-				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
-				return couldnotBeEvaluatedMilestone;
-			} else if (milestones.size() != 1) {
-				evaluationResultMessage = "Multiple records were found for the " + 
-						this.getMilestoneID() + " Performance Milestone. We shall pick the most recently updated record and use that for our processing.";
-				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
-				IMDLogger.log(evaluationResultMessage, Util.WARNING);			
-			} else {
-				milestoneRule = milestones.get(0);
-			}
-		}
+//		if (milestoneRule == null) {
+//			List<PerformanceMilestone> milestones = loader.retrieveSpecificPerformanceMilestone(orgID,this.getMilestoneID());
+//			if (milestones == null || milestones.isEmpty()) {
+//				evaluationResultMessage = this.getMilestoneID() + " Performance Milestone not found or is not active. " + this.getMilestoneID() + " milestone can not be evaluated for this animal.";
+//				IMDLogger.log(evaluationResultMessage, Util.WARNING);
+//				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
+//				return couldnotBeEvaluatedMilestone;
+//			} else if (milestones.size() != 1) {
+//				evaluationResultMessage = "Multiple records were found for the " + 
+//						this.getMilestoneID() + " Performance Milestone. We shall pick the most recently updated record and use that for our processing.";
+//				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
+//				IMDLogger.log(evaluationResultMessage, Util.WARNING);			
+//			} else {
+//				milestoneRule = milestones.get(0);
+//			}
+//		}
 		milestoneRule.setAnimalTag(animalTag);
 		List<Animal> animals = null;
 		try {
 			animals = anmlLoader.getAnimalRawInfo(orgID, animalTag);
 			if (animals == null || animals.size() != 1) {
 				evaluationResultMessage = "A valid record for the animal " + animalTag + " was not found. Expected to receive exactly one record for the animal but instead received: " + 
-						 (animals == null ? "0": animals.size() + ".  This milestone can not be evaluated for this animal.");
+						 (animals == null ? "0": animals.size() + ".  " + this.getMilestoneID() + " milestone can not be evaluated for this animal.");
 				IMDLogger.log(evaluationResultMessage,Util.ERROR);
 				couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
 				return couldnotBeEvaluatedMilestone;
 			}
 		} catch (Exception ex) {
-			evaluationResultMessage = "Exception occurred while retrieving the data for " + animalTag + ". This milestone can not be evaluated for this animal.";
+			evaluationResultMessage = "Exception occurred while retrieving the data for " + animalTag + ". " + this.getMilestoneID() + " milestone can not be evaluated for this animal.";
 			IMDLogger.log(evaluationResultMessage,Util.ERROR);
 			couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
 			return couldnotBeEvaluatedMilestone;
@@ -121,7 +121,7 @@ public class CalfWeightMilestoneEvaluator extends MilestoneEvaluator {
 		Animal animal = animals.get(0);
 		Float calfAgeInDaysAtMilestone = null;
 		try {
-			calfAgeInDaysAtMilestone = new Float(milestoneRule.getAuxInfo1());
+			calfAgeInDaysAtMilestone = Float.parseFloat(milestoneRule.getAuxInfo1());
 			if (animal.getCurrentAgeInDays() < calfAgeInDaysAtMilestone) {
 				// this milestone only applies to animals which are above a certain age.
 				milestoneRule.setStarRating(Util.StarRating.ANIMAL_NOT_ELIGIBLE);
@@ -140,7 +140,7 @@ public class CalfWeightMilestoneEvaluator extends MilestoneEvaluator {
 		if (twoWtEvents == null || twoWtEvents.size() != 2) {
 			evaluationResultMessage = "Two valid weight records of the animal " + animalTag + " were not found. We expected to find one weight record before " + 
 				Util.getDateInSQLFormat(animal.getDateOfBirth().plusDays(calfAgeInDaysAtMilestone.intValue())) + " and one after this date. But we found " + 
-							 (twoWtEvents == null ? "0": twoWtEvents.size() + ". This milestone can not be evaluated for this animal.");
+							 (twoWtEvents == null ? "0": twoWtEvents.size() + ". " + this.getMilestoneID() + " milestone can not be evaluated for this animal.");
 			IMDLogger.log(evaluationResultMessage,Util.ERROR);
 			couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
 			return couldnotBeEvaluatedMilestone;
@@ -148,7 +148,7 @@ public class CalfWeightMilestoneEvaluator extends MilestoneEvaluator {
 		
 		Float weightOnMilestoneAge = deduceWeightAtMilestone(twoWtEvents.get(0), twoWtEvents.get(1),animal.getDateOfBirth(),calfAgeInDaysAtMilestone.intValue());
 		if (weightOnMilestoneAge == null) {
-			evaluationResultMessage = "Could not determine the weight of the animal " + animalTag + " at " + calfAgeInDaysAtMilestone + " days of age. This milestone can not be evaluated for this animal.";
+			evaluationResultMessage = "Could not determine the weight of the animal " + animalTag + " at " + calfAgeInDaysAtMilestone + " days of age. " + this.getMilestoneID() + " milestone can not be evaluated for this animal.";
 			IMDLogger.log(evaluationResultMessage,Util.ERROR);
 			couldnotBeEvaluatedMilestone.setEvaluationResultMessage(evaluationResultMessage);
 			return couldnotBeEvaluatedMilestone;

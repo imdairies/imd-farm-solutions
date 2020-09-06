@@ -14,9 +14,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.imd.dto.LookupValues;
+import com.imd.dto.LookupValuesPhoto;
 import com.imd.dto.User;
 import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.IMDLogger;
+import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
 class LookupValuesLoaderTest {
@@ -125,7 +127,72 @@ class LookupValuesLoaderTest {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			fail("LifeCycleEvent Creation and/or insertion Failed.");
+			fail("LookupValue CRUD Operation Failure.");
 		}
 	}
+
+	@Test
+	void testPhotoCRUDOperations() {
+		LookupValuesLoader loader = new LookupValuesLoader();
+		User user = new User("Kashif");
+		LookupValues luValue = new LookupValues("TESTCTGRY", "VALUECD", "Testing", "Testing", "-9999", "-9999");
+		try {
+			luValue.setCreatedBy(user);
+			luValue.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+			luValue.setUpdatedBy(luValue.getCreatedBy());
+			luValue.setUpdatedDTTM(luValue.getCreatedDTTM());
+			assertTrue(loader.deleteLookupValuesPhotos(luValue.getCategoryCode(), luValue.getLookupValueCode()) >= 0);
+			assertTrue(loader.deleteLookupValue(luValue.getCategoryCode(), luValue.getLookupValueCode())>=0);
+			assertEquals(1,loader.insertLookupValues(luValue));
+			
+			LookupValuesPhoto photo1 = new LookupValuesPhoto("TESTID1","test1.jpg","test comments 1", luValue.getCreatedDTTM());
+			LookupValuesPhoto photo2 = new LookupValuesPhoto("TESTID2","test2.jpg",null, null);
+			
+			luValue.addPhoto(photo1);
+			
+			assertTrue(loader.deleteLookupValuesPhotos(luValue.getCategoryCode(), luValue.getLookupValueCode(), photo1.getPhotoID()) >= 0);
+			assertEquals(1,loader.insertLookupValuesPhotos(luValue));
+			luValue.emptyLookupValuesPhotoList();
+			luValue.addPhoto(photo2);
+			assertTrue(loader.deleteLookupValuesPhotos(luValue.getCategoryCode(), luValue.getLookupValueCode(), photo2.getPhotoID()) >= 0);
+			assertEquals(1,loader.insertLookupValuesPhotos(luValue));
+			
+			LookupValues result = loader.retrieveLookupValuesPhotos("", "",null);
+			assertTrue(result == null);
+
+			result = loader.retrieveLookupValuesPhotos(luValue.getCategoryCode(), luValue.getLookupValueCode(),null);
+			assertTrue(result != null);
+			assertEquals(luValue.getCategoryCode(),result.getCategoryCode());
+			assertEquals(luValue.getLookupValueCode(),result.getLookupValueCode());
+			assertEquals(2,result.getLookupValuesPhotoList().size());
+
+			int index = 0;
+			assertEquals(photo1.getPhotoID(),result.getLookupValuesPhotoList().get(index).getPhotoID());
+			assertEquals(photo1.getPhotoURI(),result.getLookupValuesPhotoList().get(index).getPhotoURI());
+			assertEquals(Util.getDateInSQLFormat(photo1.getPhotoTimeStamp()),
+					Util.getDateInSQLFormat(result.getLookupValuesPhotoList().get(index).getPhotoTimeStamp()));
+			assertEquals(photo1.getComments(),result.getLookupValuesPhotoList().get(index).getComments());
+			
+			index++;
+			assertEquals(photo2.getPhotoID(),result.getLookupValuesPhotoList().get(index).getPhotoID());
+			assertEquals(photo2.getPhotoURI(),result.getLookupValuesPhotoList().get(index).getPhotoURI());
+			assertEquals(photo2.getPhotoTimeStamp(),result.getLookupValuesPhotoList().get(index).getPhotoTimeStamp());
+			assertEquals(photo2.getComments(),result.getLookupValuesPhotoList().get(index).getComments());
+
+			assertEquals(2,loader.deleteLookupValuesPhotos(luValue.getCategoryCode(), luValue.getLookupValueCode()));
+			assertEquals(1,loader.deleteLookupValue(luValue.getCategoryCode(), luValue.getLookupValueCode()));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("LookupValuePhotos CRUD Operation Failure.");
+		}
+	}
+
 }
+
+
+
+
+
+
+

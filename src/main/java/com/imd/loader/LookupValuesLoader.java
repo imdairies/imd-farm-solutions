@@ -12,6 +12,7 @@ import java.util.List;
 import org.joda.time.DateTime;
 
 import com.imd.dto.LookupValues;
+import com.imd.dto.LookupValuesPhoto;
 import com.imd.dto.User;
 import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.DBManager;
@@ -192,13 +193,13 @@ public class LookupValuesLoader {
 	public int deleteLookupValue( String categoryCD, String valueCD) {
 		String qryString = "DELETE FROM LOOKUP_VALUES where CATEGORY_CD=? AND LOOKUP_CD = ? ";
 		int result = -1;		
-		IMDLogger.log(qryString,Util.INFO);
 		PreparedStatement preparedStatement = null;
 		try {
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(1, categoryCD);
 			preparedStatement.setString(2, valueCD);
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
 			result = preparedStatement.executeUpdate();
 			loaderCache.remove(categoryCD + "-" + valueCD);
 		} catch (java.sql.SQLSyntaxErrorException ex) {
@@ -229,18 +230,12 @@ public class LookupValuesLoader {
 		List<String> updateString = new ArrayList<String>();
 		valuestoBeUpdated = " ACTIVE_IND=? ";
 		updateString.add((luValue.isActive() ? "Y": "N"));
-//		if (luValue.getAdditionalField1() != null && !luValue.getAdditionalField1().isEmpty()) {
-			valuestoBeUpdated += ", ADDITIONAL_FLD1=?";
-			updateString.add(luValue.getAdditionalField1());
-//		}
-//		if (luValue.getAdditionalField2() != null && !luValue.getAdditionalField2().isEmpty()) {
-			valuestoBeUpdated += ", ADDITIONAL_FLD2=?";
-			updateString.add(luValue.getAdditionalField2());
-//		}
-//		if (luValue.getAdditionalField3() != null && !luValue.getAdditionalField3().isEmpty()) {
-			valuestoBeUpdated += ", ADDITIONAL_FLD3=?";
-			updateString.add(luValue.getAdditionalField3());
-//		}
+		valuestoBeUpdated += ", ADDITIONAL_FLD1=?";
+		updateString.add(luValue.getAdditionalField1());
+		valuestoBeUpdated += ", ADDITIONAL_FLD2=?";
+		updateString.add(luValue.getAdditionalField2());
+		valuestoBeUpdated += ", ADDITIONAL_FLD3=?";
+		updateString.add(luValue.getAdditionalField3());
 		if (luValue.getShortDescription() != null && !luValue.getShortDescription().isEmpty()) {
 			valuestoBeUpdated += ", SHORT_DESCR=?";
 			updateString.add(luValue.getShortDescription());
@@ -265,8 +260,6 @@ public class LookupValuesLoader {
 			valuestoBeUpdated += ", UPDATED_DTTM=?";
 			updateString.add(luValue.getUpdatedDTTMSQLFormat());
 		}
-		
-//		IMDLogger.log(valuestoBeUpdated, Util.INFO);
 		
 		if (valuestoBeUpdated.isEmpty()) {
 			updatedRecordCount = 0;
@@ -298,7 +291,7 @@ public class LookupValuesLoader {
 			} finally {
 			    try {
 					if (st != null && !st.isClosed()) {
-						st.close();	
+						st.close();
 					}
 				} catch (SQLException e) {
 					e.printStackTrace();
@@ -307,4 +300,169 @@ public class LookupValuesLoader {
 		}
 		return updatedRecordCount;
 	}
+
+	public LookupValues retrieveLookupValuesPhotos(String categoryCd, String lookupCd, String photoId) throws Exception {
+		String qryString = " SELECT A.*," +
+				" B.PHOTO_ID,  " +
+				" B.PHOTO_URI,  " +
+				" B.COMMENTS,  " +
+				" B.PHOTO_DTTM," +
+				" B.CREATED_BY,  " +
+				" B.CREATED_DTTM, " +
+				" B.UPDATED_BY,  " +
+				" B.UPDATED_DTTM  " +
+				" FROM imd.LOOKUP_VALUES A " +
+		        " LEFT OUTER JOIN " +
+		        " LOOKUP_VALUES_PHOTO B ON " +
+		        " (A.CATEGORY_CD = B.CATEGORY_CD AND A.LOOKUP_CD = B.LOOKUP_CD  " + 
+		        (photoId != null ? " AND B.PHOTO_ID=? " : "" ) +
+		        " ) " +
+				" WHERE A.CATEGORY_CD=? AND A.LOOKUP_CD=? " +
+				" ORDER BY B.PHOTO_DTTM DESC";
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		preparedStatement = conn.prepareStatement(qryString);
+		int i=1;
+		if (photoId != null)
+			preparedStatement.setString(i++,photoId);
+		preparedStatement.setString(i++,categoryCd);
+		preparedStatement.setString(i++,lookupCd);
+		IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		rs = preparedStatement.executeQuery();
+		LookupValues lv = null;
+		
+	    while (rs.next()) {
+	    	LookupValuesPhoto photo = new LookupValuesPhoto();
+	    	if (lv == null)
+	    		lv = getDTOFromSQLRecord(rs);
+	    	photo.setPhotoID(rs.getString("PHOTO_ID"));
+	    	photo.setPhotoURI(rs.getString("PHOTO_URI"));
+	    	photo.setComments(rs.getString("COMMENTS"));
+	    	photo.setPhotoTimeStamp(rs.getTimestamp("PHOTO_DTTM") == null ? null : new DateTime(rs.getTimestamp("PHOTO_DTTM"),IMDProperties.getServerTimeZone()));
+	    	photo.setCreatedBy(new User(rs.getString("CREATED_BY")));
+	    	photo.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
+	    	photo.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
+	    	photo.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
+	    	if (photo.getPhotoID() != null)
+	    		lv.addPhoto(photo);
+	    }
+		return lv;
+	}
+
+	
+	public int insertLookupValuesPhotos(LookupValues lv) {
+		int recordAdded = -1;
+		String qryString = "insert into imd.LOOKUP_VALUES_PHOTO (CATEGORY_CD,"
+				+ "LOOKUP_CD,"
+				+ "PHOTO_ID,"
+				+ "PHOTO_URI,"
+				+ "PHOTO_DTTM,"
+				+ "COMMENTS,"
+				+ "CREATED_BY,"
+				+ "CREATED_DTTM,"
+				+ "UPDATED_BY,"
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?)";
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, lv.getCategoryCode());
+			preparedStatement.setString(index++, lv.getLookupValueCode());
+			preparedStatement.setString(index++, lv.getLookupValuesPhotoList().get(0).getPhotoID());
+			preparedStatement.setString(index++, (lv.getLookupValuesPhotoList().get(0).getPhotoURI() == null ? null : lv.getLookupValuesPhotoList().get(0).getPhotoURI()));
+			preparedStatement.setString(index++, (lv.getLookupValuesPhotoList().get(0).getPhotoTimeStamp() == null ? null : Util.getDateTimeInSQLFormat(lv.getLookupValuesPhotoList().get(0).getPhotoTimeStamp())));
+			preparedStatement.setString(index++, (lv.getLookupValuesPhotoList().get(0).getComments() == null ? null : lv.getLookupValuesPhotoList().get(0).getComments()));
+			preparedStatement.setString(index++, (lv.getLookupValuesPhotoList().get(0).getCreatedBy() == null ? null : lv.getLookupValuesPhotoList().get(0).getCreatedBy().getUserId()));
+			preparedStatement.setString(index++, (lv.getLookupValuesPhotoList().get(0).getCreatedDTTM() == null ? null :lv.getLookupValuesPhotoList().get(0).getCreatedDTTMSQLFormat()));
+			preparedStatement.setString(index++,(lv.getLookupValuesPhotoList().get(0).getUpdatedBy() == null ? null : lv.getLookupValuesPhotoList().get(0).getUpdatedBy().getUserId()));
+			preparedStatement.setString(index++,(lv.getLookupValuesPhotoList().get(0).getUpdatedDTTM() == null ? null :lv.getLookupValuesPhotoList().get(0).getUpdatedDTTMSQLFormat()));
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			recordAdded = preparedStatement.executeUpdate();
+		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
+			ex.printStackTrace();
+		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
+			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
+			ex.printStackTrace();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordAdded;	
+	}	
+	
+	
+	
+	public int deleteLookupValuesPhotos(String categoryCd, String lookupCd) {
+		String qryString = "DELETE FROM imd.LOOKUP_VALUES_PHOTO where CATEGORY_CD=? AND LOOKUP_CD = ?";
+		int recordDeleted = 0;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, categoryCd);
+			preparedStatement.setString(index++, lookupCd);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			recordDeleted = preparedStatement.executeUpdate();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordDeleted;
+	}	
+	
+	public int deleteLookupValuesPhotos(String categoryCd, String lookupCd, String photoId) {
+		String qryString = "DELETE FROM imd.LOOKUP_VALUES_PHOTO where CATEGORY_CD=? AND LOOKUP_CD = ? AND PHOTO_ID= ?";
+		int recordDeleted = 0;
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, categoryCd);
+			preparedStatement.setString(index++, lookupCd);
+			preparedStatement.setString(index++, photoId);
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			recordDeleted = preparedStatement.executeUpdate();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordDeleted;
+	}	
+	
+
 }
+
+
+

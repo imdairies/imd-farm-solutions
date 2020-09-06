@@ -126,7 +126,7 @@ class CalfWeightMilestoneEvaluatorTest {
 
 			Animal neverWeighedAnimal = createTestAnimal(orgID,neverWeighedAnimalTag,now.minusYears(9));
 
-			anmlLdr.deleteAnimal(neverWeighedAnimal.getOrgID(),neverWeighedAnimal.getAnimalTag());
+			anmlLdr.deleteAnimal(neverWeighedAnimal.getOrgId(),neverWeighedAnimal.getAnimalTag());
 			assertEquals(1,anmlLdr.insertAnimal(neverWeighedAnimal));
 			addAnimalMilestoneTestData(oneStarAnimal, oneStarWtEvent1, oneStarWtEvent2);
 			addAnimalMilestoneTestData(twoStarAnimal, twoStarWtEvent1, twoStarWtEvent2);
@@ -141,31 +141,31 @@ class CalfWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("90",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.ONE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
-				evaluatedMilestone = eval.evaluatePerformanceMilestone(twoStarAnimal.getOrgID(), twoStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				evaluatedMilestone = eval.evaluatePerformanceMilestone(twoStarAnimal.getOrgId(), twoStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("96",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.TWO_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
-				evaluatedMilestone = eval.evaluatePerformanceMilestone(threeStarAnimal.getOrgID(), threeStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				evaluatedMilestone = eval.evaluatePerformanceMilestone(threeStarAnimal.getOrgId(), threeStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("101.14",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.THREE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
-				evaluatedMilestone = eval.evaluatePerformanceMilestone(fourStarAnimal.getOrgID(), fourStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				evaluatedMilestone = eval.evaluatePerformanceMilestone(fourStarAnimal.getOrgId(), fourStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("106.45",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.FOUR_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
-				evaluatedMilestone = eval.evaluatePerformanceMilestone(fiveStarAnimal.getOrgID(), fiveStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				evaluatedMilestone = eval.evaluatePerformanceMilestone(fiveStarAnimal.getOrgId(), fiveStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("111.43",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.FIVE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
-				evaluatedMilestone = eval.evaluatePerformanceMilestone(noStarAnimal.getOrgID(), noStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				evaluatedMilestone = eval.evaluatePerformanceMilestone(noStarAnimal.getOrgId(), noStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("79.2",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.NO_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
-				evaluatedMilestone = eval.evaluatePerformanceMilestone(neverWeighedAnimal.getOrgID(), neverWeighedAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				evaluatedMilestone = eval.evaluatePerformanceMilestone(neverWeighedAnimal.getOrgId(), neverWeighedAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals((float)Util.StarRating.COULD_NOT_COMPUTE_RATING,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
 			
@@ -197,9 +197,9 @@ class CalfWeightMilestoneEvaluatorTest {
 	private void addAnimalMilestoneTestData(Animal oneStarAnimal, LifecycleEvent oneStarWtEvent1, LifecycleEvent oneStarWtEvent2) throws Exception {
 		LifeCycleEventsLoader evtLdr = new LifeCycleEventsLoader();
 		AnimalLoader anmlLdr = new AnimalLoader();
-		anmlLdr.deleteAnimal(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag());
+		anmlLdr.deleteAnimal(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag());
 		anmlLdr.insertAnimal(oneStarAnimal);		
-		evtLdr.deleteAnimalLifecycleEvents(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag());
+		evtLdr.deleteAnimalLifecycleEvents(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag());
 		evtLdr.insertLifeCycleEvent(oneStarWtEvent1);
 		evtLdr.insertLifeCycleEvent(oneStarWtEvent2);
 	}

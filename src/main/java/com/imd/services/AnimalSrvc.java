@@ -2,6 +2,7 @@ package com.imd.services;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -41,7 +42,7 @@ import com.imd.util.Util;;
 @Path("/animals")
 public class AnimalSrvc {
 
-	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 285;
+	private static final int INSEMINATION_SEARCH_WINDOW_DAYS = 290;
 
 
 	
@@ -78,24 +79,23 @@ public class AnimalSrvc {
 		}
 		return Response.status(Util.HTTPCodes.OK).entity(animalsJson).build(); 
     }
-
-
 	
 	@POST
 	@Path("/getgrowthdata")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getGrowthData(AnimalBean searchBean){
-		IMDLogger.log("getGrowthData Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".getGrowthData",searchBean.getLoginToken());
+		String methodName = "getGrowthData";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".getGrowthData", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
 		String animalValueResult = "";
@@ -113,7 +113,7 @@ public class AnimalSrvc {
 						
     		Animal animalValue = animalValues.get(0);
     		LifeCycleEventsLoader evtLoader = new LifeCycleEventsLoader();
-    		List<LifecycleEvent> weights = evtLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(), animalValue.getAnimalTag(), Util.LifeCycleEvents.WEIGHT);
+    		List<LifecycleEvent> weights = evtLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgId(), animalValue.getAnimalTag(), Util.LifeCycleEvents.WEIGHT);
 
     		if (weights == null || weights.isEmpty()) {
     			String message = MessageCatalogLoader.getMessage(orgID, langCd, Util.MessageCatalog.WEIGHT_NEVER_MEASURED).getMessageText();
@@ -253,17 +253,18 @@ public class AnimalSrvc {
 	@Path("/addanimal")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addAnimal(AnimalBean animalBean){
-		IMDLogger.log("addAnimal Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".addAnimal",animalBean.getLoginToken());
+		String methodName = "addAnimal";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,animalBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".addAnimal", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
-		animalBean.setOrgID(orgID);
+		animalBean.setOrgId(orgID);
 		IMDLogger.log(animalBean.toString(), Util.INFO);
 
 		Animal animal = null;
@@ -329,13 +330,13 @@ public class AnimalSrvc {
 			animal.setBackSideImageURL(backPose);
 			animal.setRightSideImageURL(rightPose);
 			animal.setLeftSideImageURL(leftPose);
-			animal.setOrgID(orgID);
+			animal.setOrgId(orgID);
 			if (alias != null && !alias.trim().isEmpty())
 				animal.setAlias(animalBean.getAlias());
 			animal.setAnimalType(animalBean.getAnimalType());
 			animal.setBreed(animalBean.getBreed());
-			animal.setDateOfBirth(animalBean.getDateOfBirth("MM/dd/yyyy, hh:mm:ss aa"));
-			animal.setHerdJoiningDate(animalBean.getHerdJoiningDate("MM/dd/yyyy, hh:mm:ss aa"));
+			animal.setDateOfBirth(animalBean.getDateOfBirth("yyyy-MM-dd HH:mm"));
+			animal.setHerdJoiningDate(animalBean.getHerdJoiningDate("yyyy-MM-dd HH:mm"));
 			animal.setDateOfBirthEstimated(!(dobAccuracyInd.equalsIgnoreCase(Util.YES) || dobAccuracyInd.equalsIgnoreCase(Util.Y)));
 			animal.setBornThroughAI(aiInd.equalsIgnoreCase(Util.YES)||aiInd.equalsIgnoreCase(Util.Y));
 			if (damTag != null && !damTag.trim().isEmpty())
@@ -379,20 +380,18 @@ public class AnimalSrvc {
 	@Path("/updateanimal")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateAnimal(AnimalBean animalBean){
-//		int originalMode = IMDLogger.loggingMode;
-//		IMDLogger.loggingMode = Util.INFO;
-
-		IMDLogger.log("updateAnimal Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".updateAnimal",animalBean.getLoginToken());
+		String methodName = "updateAnimal";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,animalBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".updateAnimal", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		animalBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+		animalBean.setOrgId(orgID);
 		IMDLogger.log(animalBean.toString(), Util.INFO);
 		
 		
@@ -450,7 +449,7 @@ public class AnimalSrvc {
 //			animal.setBackSideImageURL(backPose);
 //			animal.setRightSideImageURL(rightPose);
 //			animal.setLeftSideImageURL(leftPose);
-			animal.setOrgID(orgID);
+			animal.setOrgId(orgID);
 			if (alias != null && !alias.trim().isEmpty())
 				animal.setAlias(alias);
 			animal.setAnimalTypeCD(typeCD);
@@ -494,17 +493,16 @@ public class AnimalSrvc {
 	@Path("/addsire")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addSire(SireBean sireBean){
-
-		IMDLogger.log("addSire Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".addSire",sireBean.getLoginToken());
+		String methodName = "addSire";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,sireBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".addSire", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
 		sireBean.setOrgID(orgID);
 		IMDLogger.log(sireBean.toString(), Util.INFO);
 		
@@ -567,7 +565,7 @@ public class AnimalSrvc {
 	
 	private String performPostInsertionSteps(Animal animalDto) {
 		LifeCycleEventBean eventBean = new LifeCycleEventBean();
-		eventBean.setOrgID(animalDto.getOrgID());
+		eventBean.setOrgID(animalDto.getOrgId());
 		eventBean.setAnimalTag(animalDto.getAnimalTag());
 		eventBean.setEventComments("This birth event was automatically created during creation of the new animal");
 		eventBean.setEventCode(Util.LifeCycleEvents.BIRTH);
@@ -604,17 +602,17 @@ public class AnimalSrvc {
 	@Path("/adultfemalecows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getAdultFemaleCows(AnimalBean searchBean){
-		IMDLogger.log("getAdultFemaleCows Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".getAdultFemaleCows",searchBean.getLoginToken());
+		String methodName = "getAdultFemaleCows";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".getAdultFemaleCows", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		
     	String animalValueResult = "";
@@ -625,7 +623,7 @@ public class AnimalSrvc {
     	try {
     		AnimalLoader animalLoader = new AnimalLoader();
     		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
-			List<Animal> animalValues = animalLoader.retrieveAdultFemaleCows(searchBean.getOrgID(),270);
+			List<Animal> animalValues = animalLoader.retrieveAdultFemaleCows(searchBean.getOrgId(),270);
 			List<LifecycleEvent> animalEvents = null;
 			if (animalValues == null || animalValues.size() == 0)
 			{
@@ -639,7 +637,7 @@ public class AnimalSrvc {
 	    		Animal animalValue = animalValueIt.next();
 		    	String strInseminationTimeInfo = ""; 
 	    		if (animalValue.isPregnant() || animalValue.isInseminated()) {
-	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgID(),
+	    			animalEvents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animalValue.getOrgId(),
 	    					animalValue.getAnimalTag(), DateTime.now(IMDProperties.getServerTimeZone()).minusDays(INSEMINATION_SEARCH_WINDOW_DAYS), null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null, null, null);
 	    			if (animalEvents != null && !animalEvents.isEmpty()) {
 	    				DateTime inseminatedDate =  animalEvents.get(0).getEventTimeStamp();
@@ -657,7 +655,7 @@ public class AnimalSrvc {
 	    				if (inseminationSireCode != null && !inseminationSireCode.isEmpty()) {
 	    					sireInfo = animalLoader.retrieveSire(inseminationSireCode);
 	    				}
-	    				int inseminationAttempts = eventLoader.determineInseminationAttemptCountInCurrentLactation(animalValue.getOrgID(),animalValue.getAnimalTag());
+	    				int inseminationAttempts = eventLoader.determineInseminationAttemptCountInCurrentLactation(animalValue.getOrgId(),animalValue.getAnimalTag());
 	    				strInseminationTimeInfo = ",\n" + prefix + "\"lastInseminationTimeStamp\":\"" + fmt.print(animalEvents.get(0).getEventTimeStamp()) +"\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"eventTransactionID\":\"" + animalEvents.get(0).getEventTransactionID() + "\"";
 	    				strInseminationTimeInfo += ",\n" + prefix + "\"sireInformation\":\"" + (sireInfo == null ? "ERROR Could not find the sire (" +  inseminationSireCode + ")" : sireInfo.getAlias() + " (" + sireInfo.getAnimalTag() + ")") + "\"";
@@ -669,12 +667,10 @@ public class AnimalSrvc {
 			    		animalValueResult = "{\n" + animalValue.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + strInseminationTimeInfo + "\n},\n";
 			    		//IMDLogger.log("Previous oldest " + largestInseminatedDays + " current value " + daysSinceInseminated, Util.ERROR);
 			    		if (hoursSinceInseminated > largestInseminatedHours /*daysSinceInseminated > largestInseminatedDays*/) {
-			    			//IMDLogger.log("New oldest found. Will simply Add", Util.ERROR);
 							sortedJsonArray.add(animalValueResult);
 							//largestInseminatedDays = daysSinceInseminated;
 							largestInseminatedHours = hoursSinceInseminated;
 						} else {
-			    			//IMDLogger.log("New value is smaller. Will swap", Util.ERROR);
 							//sortedJsonArray.add(sortedJsonArray.size()-1,animalValueResult);
 			    			int j = sortedJsonArray.size()-1;
 							for (;j>=0; j--){
@@ -682,7 +678,6 @@ public class AnimalSrvc {
 								String hours = sortedJsonArray.get(j);
 //								days = days.substring(days.indexOf("daysSinceInsemination\":") + "daysSinceInsemination\":\"".length(),days.lastIndexOf('"'));		
 								hours = hours.substring(hours.indexOf("hoursSinceInsemination\":") + "hoursSinceInsemination\":\"".length(),hours.lastIndexOf('"'));		
-								//IMDLogger.log("Previous days value: " + days, Util.ERROR);
 								//int iDays = Integer.parseInt(days);
 								double iHours = Double.parseDouble(hours);
 //								if (daysSinceInseminated >= iDays) {
@@ -733,19 +728,18 @@ public class AnimalSrvc {
 	@Path("/search")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response searchAnimals(AnimalBean searchBean){
-		
 		String methodName = "searchAnimals";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName, searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName, searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName()  + "." + methodName, Util.WARNING);
+					+ this.getClass().getName()  + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		
 		if (isValueProvided(searchBean.getGender()) && !searchBean.getGender().trim().equalsIgnoreCase(Util.GENDER_CHAR.FEMALE + "") && 
@@ -809,23 +803,24 @@ public class AnimalSrvc {
 	@Path("/getactivedams")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getActiveFemale(AnimalBean searchBean){
-		IMDLogger.log("getActiveFemale Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".getActiveFemale",searchBean.getLoginToken());
+		String methodName = "getActiveFemale";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".getActiveFemale", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		
     	String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveDams(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
@@ -859,23 +854,24 @@ public class AnimalSrvc {
 	@Path("/getalldams")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response getAllDams(AnimalBean searchBean){
-		IMDLogger.log("getAllDams Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".getAllDams",searchBean.getLoginToken());
+		String methodName = "getAllDams";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".getAllDams", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		
     	String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveAllDams(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveAllDams(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No active dam found\"}").build();
@@ -903,23 +899,24 @@ public class AnimalSrvc {
 	@Path("/lactatingcows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveLactatingAnimals(AnimalBean searchBean){
-		IMDLogger.log("retrieveLactatingAnimals Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveLactatingAnimals",searchBean.getLoginToken());
+		String methodName = "retrieveLactatingAnimals";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveLactatingAnimals", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		
 		String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveLactatingAnimals(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -945,23 +942,24 @@ public class AnimalSrvc {
 	@Path("/drycows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveDryCows(AnimalBean searchBean){
-		IMDLogger.log("retrieveDryCows Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveDryCows",searchBean.getLoginToken());
+		String methodName = "retrieveDryCows";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveDryCows", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		
     	String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveDryAnimals(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveDryAnimals(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -987,23 +985,24 @@ public class AnimalSrvc {
 	@Path("/femalecalves")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveFemaleCalves(AnimalBean searchBean){
-		IMDLogger.log("retrieveFemaleCalves Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveFemaleCalves",searchBean.getLoginToken());
+		String methodName = "retrieveFemaleCalves";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveFemaleCalves", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		
     	String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActiveFemaleCalves(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActiveFemaleCalves(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -1029,23 +1028,24 @@ public class AnimalSrvc {
 	@Path("/pregnantcows")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrievePregnantAnimals(AnimalBean searchBean){
-		IMDLogger.log("retrievePregnantAnimals Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrievePregnantAnimals",searchBean.getLoginToken());
+		String methodName = "retrievePregnantAnimals";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrievePregnantAnimals", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
 		String animalValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Animal> animalValues = loader.retrieveActivePregnantAnimals(searchBean.getOrgID());
+			List<Animal> animalValues = loader.retrieveActivePregnantAnimals(searchBean.getOrgId());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No matching record found\"}").build();
@@ -1068,68 +1068,22 @@ public class AnimalSrvc {
 		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
     }
 	
-	@POST
-	@Path("/addmilkingrecord")
-	@Consumes (MediaType.APPLICATION_JSON)
-	public Response addCowMilkingRecord(MilkingDetailBean milkingRecord){
-		IMDLogger.log("addCowMilkingRecord Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".addCowMilkingRecord",milkingRecord.getLoginToken());
-		if (user == null) {
-			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
-					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".addCowMilkingRecord", Util.WARNING);
-			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
-		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		milkingRecord.setOrgID(orgID);
-		IMDLogger.log(milkingRecord.toString(), Util.INFO);
-
-    	int responseCode = 0;
-    	try {
-			if (milkingRecord.getAnimalTag() == null || milkingRecord.getAnimalTag().isEmpty())
-			{
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
-			}
-			if (milkingRecord.getMilkingEventNumber() <1)
-			{
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
-			}
-			if (!(milkingRecord.getMilkVolume() > 0))
-			{
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
-			}
-    		MilkingDetailLoader loader = new MilkingDetailLoader();
-    		responseCode = loader.insertMilkRecord(milkingRecord);
-    		if (responseCode == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
-    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
-    		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
-    		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
-    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
-    		else
-    			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
-    	} catch (Exception e) {
-			e.printStackTrace();
-			IMDLogger.log("Exception in AnimalSrvc.addCowMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
-			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
-		}
-    }	
 
 	@POST
 	@Path("/monthlymilkingrecord")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveMonthlyMilkingRecord(MilkingDetailBean searchBean){
+		String methodName = "";
 		IMDLogger.log("retrieveMonthlyMilkingRecord Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveMonthlyMilkingRecord",searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveMonthlyMilkingRecord", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
@@ -1144,7 +1098,7 @@ public class AnimalSrvc {
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		AnimalLoader animalLoader = new AnimalLoader();
     		AnimalBean animalBean = new AnimalBean();
-    		animalBean.setOrgID(searchBean.getOrgID());
+    		animalBean.setOrgId(searchBean.getOrgID());
     		animalBean.setAnimalTag(searchBean.getAnimalTag());    		
     		List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean);
     		if (animals.size() != 1) {
@@ -1250,17 +1204,18 @@ public class AnimalSrvc {
 	@Path("/retrievefarmsire")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveFarmSire(AnimalBean searchBean){
-		IMDLogger.log("retrieveFarmSire Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveFarmSire",searchBean.getLoginToken());
+		String methodName = "retrieveFarmSire";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() +  "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveFarmSire", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		String sireValueResult = "";
     	searchBean.setGender(Util.GENDER_CHAR.MALE);
     	searchBean.setActiveOnly(true);
@@ -1297,28 +1252,29 @@ public class AnimalSrvc {
 	@Path("/retrieveaisire")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAISires(AnimalBean searchBean){
-		IMDLogger.log("retrieveAISires Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveAISires",searchBean.getLoginToken());
+		String methodName = "retrieveAISires";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveAISires", Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 		String sireValueResult = "";
     	try {
     		AnimalLoader loader = new AnimalLoader();
-			List<Sire> sireValues = loader.retrieveAISire();
-			if (sireValues == null || sireValues.size() == 0)
+			List<Sire> inseminateSireAndFarmSireValues = loader.retrieveAISire();
+			if (inseminateSireAndFarmSireValues == null || inseminateSireAndFarmSireValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No Sire record found\"}").build();
 
 			}
-	    	Iterator<Sire> sireValueIt = sireValues.iterator();
+	    	Iterator<Sire> sireValueIt = inseminateSireAndFarmSireValues.iterator();
 	    	while (sireValueIt.hasNext()) {
 	    		Sire sireValue = sireValueIt.next();
 	    		sireValueResult += "{\n" + sireValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
@@ -1329,7 +1285,7 @@ public class AnimalSrvc {
 	    		sireValueResult = "[]";
 		} catch (Exception e) {
 			e.printStackTrace();
-			IMDLogger.log("Exception in AnimalSrvc.retrieveAISires() service method: " + e.getMessage(),  Util.ERROR);
+			IMDLogger.log("Exception in " + this.getClass().getName() +  "." + methodName + " service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(sireValueResult, Util.INFO);
@@ -1343,16 +1299,16 @@ public class AnimalSrvc {
 	public Response retrieveProgney(AnimalBean searchBean){
 		String methodName = "retrieveProgney";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + methodName + ".",searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + methodName + ".",searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + methodName + ".", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
     	String animalValueResult = "";
     	try {
@@ -1361,7 +1317,7 @@ public class AnimalSrvc {
 
     		
     		AnimalLoader loader = new AnimalLoader();
-    		List<Animal> animalValues = loader.retrieveSpecifiedAnimalProgney(searchBean.getOrgID(), searchBean.getAnimalTag());
+    		List<Animal> animalValues = loader.retrieveSpecifiedAnimalProgney(searchBean.getOrgId(), searchBean.getAnimalTag());
 			if (animalValues == null || animalValues.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"Our farm does not have any progney of this animal\"}").build();
@@ -1391,16 +1347,16 @@ public class AnimalSrvc {
 	public Response retrieveLactationInformation(AnimalBean searchBean){
 		String methodName = "retrieveLactationInformation";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + methodName + ".",searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + methodName + ".",searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + methodName + ".", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		searchBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
     	String lacDetailResult = "";
     	try {
@@ -1431,6 +1387,74 @@ public class AnimalSrvc {
     	IMDLogger.log(lacDetailResult, Util.INFO);
 		return Response.status(Util.HTTPCodes.OK).entity(lacDetailResult).build();
     }	
+
+	@POST
+	@Path("/validateanimaltags")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response validateAnimalTags(AnimalBean searchBean){
+		String methodName = "validateAnimalTags";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName, searchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName()  + "." + methodName, Util.INFO);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgId(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+		
+		if (searchBean.getAnimalTagsList() == null && searchBean.getAnimalTagsList().isEmpty()) {
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"No Animal Tags were provided for validation. Please specify at least one animal tag and then try again.\"}").build();
+		}
+		
+    	try {
+    		AnimalLoader loader = new AnimalLoader();
+    		List<Animal> animalValues = null;
+    		String tagInClause = "";
+    		HashMap<String,String> inputTagsMap = new HashMap<String, String>();
+    		if (searchBean.getAnimalTagsList() != null && !searchBean.getAnimalTagsList().isEmpty()) {
+    			Iterator<String> tagsToBeValidateIt = searchBean.getAnimalTagsList().iterator();
+    			int index = 0;
+    			while (tagsToBeValidateIt.hasNext()) {
+    				String tag = tagsToBeValidateIt.next().trim();
+    				inputTagsMap.put(tag, tag);
+    				tagInClause += (index == 0 ? "'" : ",'") + tag + "'";
+    				index++;
+    			}
+    			searchBean.setAnimalTag( "(" + tagInClause + ")");
+    		} 
+			animalValues = loader.retrieveMatchingAnimals(searchBean);
+			String validTags = "";
+			String invalidTags = "";
+			if(animalValues == null || animalValues.isEmpty()) {
+				invalidTags = tagInClause;
+			} else {
+		    	Iterator<Animal> animalValueIt = animalValues.iterator();
+		    	while (animalValueIt.hasNext()) {
+		    		Animal animalValue = animalValueIt.next();
+		    		if (inputTagsMap.get(animalValue.getAnimalTag()) != null) {
+		    			validTags   += (validTags.isEmpty() ? "" : ", ")  + animalValue.getAnimalTag();
+		    			inputTagsMap.remove(animalValue.getAnimalTag());
+		    		}
+		    	}
+		    	Iterator<String> inValidValuesIt = inputTagsMap.keySet().iterator();
+		    	while (inValidValuesIt.hasNext()) {
+		    		invalidTags   += (invalidTags.isEmpty() ? "" : ", ")  + inputTagsMap.get(inValidValuesIt.next());		    		
+		    	}
+			}
+			IMDLogger.log("Valid Tags:[" + validTags + "]", Util.INFO);
+			IMDLogger.log("Invalid Tags:[" + invalidTags + "]", Util.INFO);
+			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"validTags\":\"" + validTags + "\",\n   "
+					+ "\"invalidTags\":\"" + invalidTags + "\"\n}").build();				
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc.searchAnimals() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
+		}
+    }
 
 }
 

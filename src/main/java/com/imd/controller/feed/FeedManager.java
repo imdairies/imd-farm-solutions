@@ -1,6 +1,7 @@
 package com.imd.controller.feed;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,11 +40,49 @@ public class FeedManager {
 	public static final int MID_PARTURATION_DAYS_START = 90;
 	public static final int MID_PARTURATION_DAYS_END = 180;
 	public static final int PREGNANCY_DURATION_DAYS = 275;
+	public static final int PREGNANCY_DURATION_DAYS_OVERFLOW = 15;
 	public static final int NEAR_PARTURATION_THRESHOLD_DAYS = 15;
-	private static final float HIGH_PRODUCING_THRESHOLD = 28.0f;
+	private static final float HIGH_PRODUCING_THRESHOLD_FRESH = 28.0f;
+	private static final float HIGH_PRODUCING_THRESHOLD_MID = 26.0f;
+	private static final float HIGH_PRODUCING_THRESHOLD_OLD = 24.0f;
 	private static final int PAST_DAYS_TO_CONSIDER_FOR_AVERAGE = 10;
 	public static final int MILK_AVERAGE_START_FROM_DAYS = 2;
-
+	
+	public HashMap<String,FeedItem> getFarmFeedItemsDailyIntake(String orgId) {
+		HashMap<String,FeedItem> feedItems = new HashMap<String,FeedItem>();
+		AnimalLoader aLoader = new AnimalLoader();
+		List<Animal> farmActiveHerd;
+		try {
+			farmActiveHerd = aLoader.retrieveActiveAnimals(orgId);
+			if (farmActiveHerd != null) {
+				Iterator<Animal> herdIt = farmActiveHerd.iterator();
+				while (herdIt.hasNext()) {
+					Animal animal = herdIt.next();
+					FeedPlan animalFeedPlan = this.getPersonalizedFeedPlan(animal);
+					List<FeedItem> items = animalFeedPlan.getFeedPlanItems();
+					if (items != null) {
+						Iterator<FeedItem> itemIt = items.iterator();
+						while (itemIt.hasNext()) {
+							FeedItem item = itemIt.next();
+							FeedItem existingItemInfo = feedItems.get(item.getFeedItemLookupValue().getLookupValueCode());
+							if (existingItemInfo == null) {
+								feedItems.put(item.getFeedItemLookupValue().getLookupValueCode(), item);
+							} else {
+								existingItemInfo.setCostOfIntake(existingItemInfo.getCostOfIntake() + item.getCostOfIntake());
+								existingItemInfo.setDailyIntake(existingItemInfo.getDailyIntake() + item.getDailyIntake());
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			IMDLogger.log("Exception occurred while executing FeedManager.getFarmFeedItemDailyIntake. Will abort the execution", Util.ERROR);
+			e.printStackTrace();
+		}
+		return feedItems;
+	}
+	
+	
 	public List<Animal> getFeedCohortInformationForFarmActiveAnimals(String orgID) throws Exception {
 		AnimalLoader aLoader = new AnimalLoader();
 		List<Animal> farmActiveHerd = aLoader.retrieveActiveAnimals(orgID);
@@ -59,14 +98,13 @@ public class FeedManager {
 		while (it.hasNext()) {
 			try {
 				animal = it.next();
-				animal.setWeight(getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag()));
-				animal.setFeedCohortInformation(getAnimalFeedCohort(animal.getOrgID(), animal.getAnimalTag()));
+				animal.setWeight(getLatestEventWeight(animal.getOrgId(), animal.getAnimalTag()));
+				animal.setFeedCohortInformation(getAnimalFeedCohort(animal.getOrgId(), animal.getAnimalTag()));
 				animal.getFeedCohortInformation().setCohortNutritionalNeeds(this.getFeedCohortNutritionalNeeds(animal.getFeedCohortInformation(),animal));
 				animal.setAnimalNutritionalNeeds(getAnimalNutritionalNeeds(animal));
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				IMDLogger.log("Exception occurred while retrieving feed information for the animal " + animal.getAnimalTag(), Util.ERROR);
-				
 			}
 		}
 		return farmActiveHerd;
@@ -80,8 +118,8 @@ public class FeedManager {
 		Float end = null;
 		if (feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FEMALECALF) || 
 				feedCohort.getFeedCohortLookupValue().getLookupValueCode().equalsIgnoreCase(Util.FeedCohortType.FMLWNDOFF)) {
-			start = new Float(animal.getCurrentAgeInDays());
-			end = new Float(animal.getCurrentAgeInDays());
+			start = (float)(animal.getCurrentAgeInDays());
+			end = (float)(animal.getCurrentAgeInDays());
 		}
 		
 		needs = feedLoader.retrieveCohortNutritionalNeeds(feedCohort, start, end);
@@ -122,20 +160,17 @@ public class FeedManager {
 				Float threeDaysMilkingAverage = animal.getMilkingAverage();
 				if (threeDaysMilkingAverage == null) {
 					if (animal.isLactating()) {
-						threeDaysMilkingAverage = getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
+						threeDaysMilkingAverage = getMilkAverage(animal.getOrgId(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
 					}
 					else 
 						threeDaysMilkingAverage = 0f;
 					animal.setMilkingAverage(threeDaysMilkingAverage);
 				}
-	//			if (animal.isLactating()) {
-	//				threeDaysMilkingAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS).doubleValue();
-	//			}
 				Integer daysIntoPregnancy = null;
 				LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 				if (animal.isPregnant()) {
-					List<LifecycleEvent> evts = loader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), 
-							animal.getAnimalTag(), DateTime.now(IMDProperties.getServerTimeZone()).minusDays(PREGNANCY_DURATION_DAYS),null,
+					List<LifecycleEvent> evts = loader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), 
+							animal.getAnimalTag(), DateTime.now(IMDProperties.getServerTimeZone()).minusDays(PREGNANCY_DURATION_DAYS + PREGNANCY_DURATION_DAYS_OVERFLOW),null,
 							Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
 					if (evts != null && !evts.isEmpty()) {
 						if (evts.get(0).getEventType().getEventCode().equals(Util.LifeCycleEvents.INSEMINATE) && 
@@ -149,7 +184,7 @@ public class FeedManager {
 					if (daysIntoPregnancy == null)
 						IMDLogger.log("Animal " + animal.getAnimalTag() + " has been marked pregnant but its last insemination/mating was not marked as successful. We will assume that the animal is NOT pregnant in our getMetabolizableEnergyRequiremnt calculations", Util.ERROR);
 				}
-				CohortNutritionalNeeds calculation = this.getMetabolizableEnergyRequiremnt(new Double(wt), threeDaysMilkingAverage.doubleValue(), daysIntoPregnancy, feedCohort.getFeedCohortLookupValue().getLookupValueCode(), null, null);
+				CohortNutritionalNeeds calculation = this.getMetabolizableEnergyRequiremnt(Double.parseDouble(wt+""), threeDaysMilkingAverage.doubleValue(), daysIntoPregnancy, feedCohort.getFeedCohortLookupValue().getLookupValueCode(), null, null);
 				cohortNeed.setMetabloizableEnergy(calculation.getMetabloizableEnergy());
 				cohortNeed.setNutritionalNeedsTDN(calculation.getNutritionalNeedsTDN());
 			}
@@ -168,7 +203,7 @@ public class FeedManager {
 			throw new IMDException("Multiple animals found for the ORG-TAG [" + orgID + "-" + animalTag + "]. This indicates that the data has been corrupted. Please remove the duplicate record.");			
 		}
 		Animal animal = animals.get(0);
-		animal.setWeight(this.getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag()));
+		animal.setWeight(this.getLatestEventWeight(animal.getOrgId(), animal.getAnimalTag()));
 		animal.setLifeCycleEvents(eventLoader.retrieveAllLifeCycleEventsForAnimal(orgID, animalTag));
 		return findAnimalFeedCohort(animal);
 	}
@@ -183,14 +218,12 @@ public class FeedManager {
 		return getPersonalizedPlanOfAnAnimal(animal, null);
 	}
 	
-
-
 	public FeedPlan getPersonalizedPlanOfAnAnimal(Animal animal, FeedPlan cohortFeedPlan) throws Exception {
 		FeedPlan personalizePlan = new FeedPlan();
 		FeedLoader feedLoader = new FeedLoader();
 		FeedCohort animalFeedCohort = animal.getFeedCohortInformation();
 		if (animalFeedCohort == null || animalFeedCohort.getCohortNutritionalNeeds() == null) {
-			animalFeedCohort = this.getAnimalFeedCohort(animal.getOrgID(), animal.getAnimalTag());
+			animalFeedCohort = this.getAnimalFeedCohort(animal.getOrgId(), animal.getAnimalTag());
 			if (animalFeedCohort == null) {
 				personalizePlan.setPlanAnalysisComments("Could not determine the feed cohort of " + animal.getAnimalTag() + " probably because of some missing configurations. It's personalized feed plan can not be determined.");
 				return personalizePlan;
@@ -202,7 +235,7 @@ public class FeedManager {
 		// A lot of our calculations depend on the animal's weight.
 		Float animalWeight = animal.getWeight();
 		if (animalWeight == null) {
-			animalWeight = this.getLatestEventWeight(animal.getOrgID(), animal.getAnimalTag());
+			animalWeight = this.getLatestEventWeight(animal.getOrgId(), animal.getAnimalTag());
 			if (animalWeight == null) {
 				// assume a weight based on the animal's age.
 				personalizePlan.setPlanAnalysisComments(animal.getAnimalTag() + " has never been weighed. Animal must have a weight event before we can determine its personalized feed plan");
@@ -212,7 +245,7 @@ public class FeedManager {
 		}
 		//... now we have the cohort and the weight.
 		if (animal.getMilkingAverage() == null && animal.isLactating()) {
-			animal.setMilkingAverage(getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS));
+			animal.setMilkingAverage(getMilkAverage(animal.getOrgId(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS));
 		}
 		
 		// Now we need to figure out the specific nutritional needs of THIS particular animal.
@@ -224,7 +257,7 @@ public class FeedManager {
 		String feedCohortCD =  animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode();
 		// Now we get the feed plan with which we wish to fulfill the cohort needs.
 		if (cohortFeedPlan == null)
-			cohortFeedPlan = feedLoader.retrieveFeedPlan(animal.getOrgID(), feedCohortCD);
+			cohortFeedPlan = feedLoader.retrieveFeedPlan(animal.getOrgId(), feedCohortCD);
 		// Finally we get to determining the feed plan for THIS animal with which we will meet THIS animal's nutritional needs.
 		personalizePlan = this.getAnimalPersonalizePlanFromCohortFeedPlan(cohortFeedPlan, animal);
 		return personalizePlan;
@@ -252,9 +285,9 @@ public class FeedManager {
 
 	private FeedPlan getAnimalPersonalizePlanFromCohortFeedPlan(FeedPlan cohortFeedPlan, Animal animal) {
 		FeedPlan animalSpecificFeedPlan = new FeedPlan();
-		animalSpecificFeedPlan.setFeedPlan(new ArrayList<FeedItem>());
+		animalSpecificFeedPlan.setFeedPlanItems(new ArrayList<FeedItem>());
 		Float animalWeight = animal.getWeight();
-		Iterator<FeedItem> it = cohortFeedPlan.getFeedPlan().iterator();
+		Iterator<FeedItem> it = cohortFeedPlan.getFeedPlanItems().iterator();
 		while (it.hasNext()) {
 			FeedItem feedItem = it.next();
 			String fulFillmentTypeCD = feedItem.getFulFillmentTypeCD();
@@ -274,9 +307,8 @@ public class FeedManager {
 
 				feedItem.setPersonalizedFeedMessage("Give the animal " + dailyIntake + " " + feedItem.getUnits() + " of " + feedItem.getFeedItemLookupValue().getShortDescription());
 				
-				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan.getFeedPlanItems().add(feedItem);
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, dm, cp, me, feedItem.getFeedItemNutritionalStats().getCostPerUnit());
-				
 			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.FREEFLOW)) {
 				feedItem.setPersonalizedFeedMessage("Put " + feedItem.getFeedItemLookupValue().getShortDescription() + " infront of the animal and let it consume "  + feedItem.getFeedItemLookupValue().getShortDescription() + " freely.");
 				Float dm = 0f;
@@ -288,7 +320,7 @@ public class FeedManager {
 				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
 				feedItem.setCostOfIntake(0f * feedItem.getDailyIntake());
 				feedItem.getFeedItemNutritionalStats().setCostPerUnit(feedItem.getCostOfIntake());
-				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan.getFeedPlanItems().add(feedItem);
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, dm, cp, me, 0f);
 			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.BODYWEIGHT)) {
 				Float dailyIntake = (float)(feedItem.getFulfillmentPct() * animalWeight);
@@ -308,7 +340,7 @@ public class FeedManager {
 				feedItem.getFeedItemNutritionalStats().setCostPerUnit(feedItem.getCostOfIntake());
 
 				feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces(dailyIntake,2) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (last measured weight of the animal was: " + animalWeight + " Kgs.)");
-				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan.getFeedPlanItems().add(feedItem);
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, feedItem.getFeedItemNutritionalStats().getDryMatter(), cp, me, feedItem.getFeedItemNutritionalStats().getCostPerUnit());
 				
 			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.BYDMREQPCT)) {
@@ -323,8 +355,6 @@ public class FeedManager {
 				Float animalDMNeedsToBeFilledByThisItem = animalDMNeeds * feedItem.getFulfillmentPct();
 				Float dailyIntake = animalDMNeedsToBeFilledByThisItem / feedItemDM;
 				dailyIntake = getAllowedDailyIntakeValue(feedItem,dailyIntake);
-//				dailyIntake = dailyIntake > feedItem.getMaximumFulfillment() ?  feedItem.getMaximumFulfillment() : dailyIntake;
-//				dailyIntake = feedItem.getMaximumFulfillment() != null && dailyIntake > feedItem.getMaximumFulfillment() ?  feedItem.getMaximumFulfillment() : dailyIntake;
 
 				Float cp = itemStats.getCrudeProtein() * animalDMNeedsToBeFilledByThisItem;
 				Float me = itemStats.getMetabolizableEnergy() * animalDMNeedsToBeFilledByThisItem;
@@ -339,14 +369,14 @@ public class FeedManager {
 
 				feedItem.setPersonalizedFeedMessage("Give the animal " + dailyIntake + " " + feedItem.getUnits() + " of " + feedItem.getFeedItemLookupValue().getShortDescription());
 				
-				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan.getFeedPlanItems().add(feedItem);
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, animalDMNeedsToBeFilledByThisItem, cp, me, feedItem.getFeedItemNutritionalStats().getCostPerUnit());
 			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.MILKPROD)) {
 				Float dailyIntake = null;
 				Float milkAverage = animal.getMilkingAverage();
 				if ( milkAverage == null) {
 					if (animal.isLactating())
-						milkAverage = getMilkAverage(animal.getOrgID(), animal.getAnimalTag(),LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
+						milkAverage = getMilkAverage(animal.getOrgId(), animal.getAnimalTag(),LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
 					else 
 						milkAverage = 0f;
 					animal.setMilkingAverage(milkAverage);
@@ -358,7 +388,8 @@ public class FeedManager {
 					milkAverage = Util.DefaultValues.THREE_DAY_MILKING_AVERAGE.floatValue();
 				}
 				else {
-					dailyIntake = (float)(milkAverage/feedItem.getFulfillmentPct());
+					Float intakeMultiplier = feedItem.getMinimumFulfillment() == null ? 1.0f : feedItem.getMinimumFulfillment() ;
+					dailyIntake = (float)(milkAverage/feedItem.getFulfillmentPct()) * intakeMultiplier;
 					dailyIntake = getAllowedDailyIntakeValue(feedItem,dailyIntake);
 					feedItem.setPersonalizedFeedMessage("Give the animal " + Util.formatToSpecifiedDecimalPlaces(dailyIntake,1) + " " + feedItem.getUnits() + " " + feedItem.getFeedItemLookupValue().getShortDescription() + " (animal's last " + (MILK_AVERAGE_DAYS) + " days' milk average was: " + Util.formatToSpecifiedDecimalPlaces(milkAverage,1) + " Liters)");
 				}
@@ -374,14 +405,56 @@ public class FeedManager {
 				feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
 				feedItem.setCostOfIntake(unitCost * feedItem.getDailyIntake());
 				feedItem.getFeedItemNutritionalStats().setCostPerUnit(feedItem.getCostOfIntake());
-				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan.getFeedPlanItems().add(feedItem);
 				animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, dm, cp, me, feedItem.getFeedItemNutritionalStats().getCostPerUnit());				
+			} else if (fulFillmentTypeCD.equals(Util.FulfillmentType.CLVNGWINDO)) {
+				DateTime calvingTimestamp = null;
+				if (animal.isPregnant()) {
+					calvingTimestamp = getLatestEventTimeStamp(animal, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
+					if (calvingTimestamp != null) 
+						calvingTimestamp = calvingTimestamp.plusDays(PREGNANCY_DURATION_DAYS);
+				} else {
+					calvingTimestamp = getLatestEventTimeStamp(animal, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION);
+				}
+				if (calvingTimestamp != null && isAnimalWithinTimeWindow(feedItem.getMinimumFulfillment().intValue(), 
+						calvingTimestamp, feedItem.getMaximumFulfillment().intValue())) {
+					float dailyIntake = feedItem.getFulfillmentPct();
+					FeedItemNutritionalStats itemStats = feedItem.getFeedItemNutritionalStats();
+					Float dm = itemStats.getDryMatter() * dailyIntake;
+					Float cp = itemStats.getCrudeProtein() * dm;
+					Float me = itemStats.getMetabolizableEnergy() * dm;
+					Float unitCost = (itemStats.getCostPerUnit() == null ? 0f : itemStats.getCostPerUnit());
+
+					feedItem.setDailyIntake(dailyIntake);				
+					feedItem.getFeedItemNutritionalStats().setDryMatter(dm);
+					feedItem.getFeedItemNutritionalStats().setCrudeProtein(cp);
+					feedItem.getFeedItemNutritionalStats().setMetabolizableEnergy(me);
+					feedItem.setCostOfIntake(unitCost * feedItem.getDailyIntake());
+					feedItem.getFeedItemNutritionalStats().setCostPerUnit(feedItem.getCostOfIntake());
+					feedItem.setPersonalizedFeedMessage("Give the animal " + dailyIntake + " " + feedItem.getUnits() + " of " + feedItem.getFeedItemLookupValue().getShortDescription());
+					animalSpecificFeedPlan.getFeedPlanItems().add(feedItem);
+					animalSpecificFeedPlan = updatePlanNutritionalStats(animalSpecificFeedPlan, dm, cp, me, feedItem.getFeedItemNutritionalStats().getCostPerUnit());
+				}
 			} else {
 				feedItem.setPersonalizedFeedMessage("Unable to determine the usage of " + feedItem.getFeedItemLookupValue());
-				animalSpecificFeedPlan.getFeedPlan().add(feedItem);
+				animalSpecificFeedPlan.getFeedPlanItems().add(feedItem);
 			}
 		}
 		return animalSpecificFeedPlan;
+	}
+	
+	private boolean isAnimalWithinTimeWindow(int windowStartDays, DateTime windowReferenceTimeStamp, int windowEndDate) {
+		// returns true if today falls within [(windowReferenceTimeStamp-windowStartDays) <=> windowReferenceTimeStamp+windowEndDate]
+		
+		if (windowReferenceTimeStamp == null) {
+			IMDLogger.log("A request was received to determine if current timestamp is with in the time window but the window reference timestamp was null. The requested feed item will not be applied to this animal", Util.WARNING);
+			return false;
+		} 
+		
+		return 
+				DateTime.now(IMDProperties.getServerTimeZone()).isAfter((windowReferenceTimeStamp.minusDays(windowStartDays+1))) && 
+				DateTime.now(IMDProperties.getServerTimeZone()).isBefore((windowReferenceTimeStamp.plusDays(windowEndDate+1)));
+		
 	}
 
 	private Float getAllowedDailyIntakeValue(FeedItem feedItem, Float dailyIntake) {
@@ -443,15 +516,15 @@ public class FeedManager {
 					if (daysProcessed < pastNumOfDaysToAverage) {
 						daysProcessed++;
 						if (milkAverage == null)
-							milkAverage = new Float(milkInfo.get(i).getMilkVolume().floatValue());
+							milkAverage = (float)(milkInfo.get(i).getMilkVolume().floatValue());
 						else
-							milkAverage = new Float(milkAverage.floatValue() + milkInfo.get(i).getMilkVolume().floatValue());
+							milkAverage = (float)(milkAverage.floatValue() + milkInfo.get(i).getMilkVolume().floatValue());
 					} else
 						break;
 				}
 				if (milkAverage != null)
-//					milkAverage = new Float((float)milkAverage.floatValue() / (float)milkInfo.size());
-					milkAverage = new Float((float)milkAverage.floatValue() / (float)daysProcessed);
+//					milkAverage = (float)((float)milkAverage.floatValue() / (float)milkInfo.size());
+					milkAverage = (float)((float)milkAverage.floatValue() / (float)daysProcessed);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -487,7 +560,7 @@ public class FeedManager {
 			return null;
 		}		
 	}
-
+	
 	private FeedCohort findAnimalFeedCohort(Animal animal) throws IMDException{
 		String animalFeedCohortCD = null;
 		String duplicateCheck = "";
@@ -572,7 +645,7 @@ public class FeedManager {
 		Float milkAverage = animal.getMilkingAverage();
 		if ( milkAverage == null) {
 			if (animal.isLactating()) {
-				milkAverage = getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
+				milkAverage = getMilkAverage(animal.getOrgId(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
 				if (milkAverage == null) {
 					milkAverage = Util.DefaultValues.THREE_DAY_MILKING_AVERAGE.floatValue();
 					IMDLogger.log("Milking average could not be determined for " + animal.getAnimalTag() + " we could not determine if its high or low producing animal, will assume that its NOT a high producing animal and will use the farm's default lpd average of " + milkAverage, Util.WARNING);
@@ -586,7 +659,7 @@ public class FeedManager {
 		
 		if (animal.isLactating()  && 
 				latestParturationEventTS != null && now.isBefore(latestParturationEventTS.plusDays(RECENT_PARTURATION_DAYS_LIMIT))) {
-			if (milkAverage >= HIGH_PRODUCING_THRESHOLD) {
+			if (milkAverage >= HIGH_PRODUCING_THRESHOLD_FRESH) {
 				animalFeedCohortCD = Util.FeedCohortType.LCTEARLYHI;
 				duplicateCheck += animalFeedCohortCD + " ";
 				animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is " + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), latestParturationEventTS)+ " days ago";
@@ -604,7 +677,7 @@ public class FeedManager {
 				   latestParturationEventTS != null && 
 				   now.isAfter(latestParturationEventTS.plusDays(MID_PARTURATION_DAYS_START)) && 
 				   now.isBefore(latestParturationEventTS.plusDays(MID_PARTURATION_DAYS_END))) {
-			if (milkAverage >= HIGH_PRODUCING_THRESHOLD) {
+			if (milkAverage >= HIGH_PRODUCING_THRESHOLD_MID) {
 				animalFeedCohortCD = Util.FeedCohortType.LCTMIDHIGH;
 				duplicateCheck += animalFeedCohortCD + " ";
 				animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is "  + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), latestParturationEventTS)+ " days ago";
@@ -621,7 +694,7 @@ public class FeedManager {
 		if (animal.isLactating()  && 
 				   latestParturationEventTS != null && 
 				   !now.isBefore(latestParturationEventTS.plusDays(MID_PARTURATION_DAYS_END))){
-			if (milkAverage >= HIGH_PRODUCING_THRESHOLD) {
+			if (milkAverage >= HIGH_PRODUCING_THRESHOLD_OLD) {
 				animalFeedCohortCD = Util.FeedCohortType.LCTOLDHIGH;
 				duplicateCheck += animalFeedCohortCD + " ";
 				animalFeedCohortDeterminatationMessage = animal.getAnimalTag() + " is "  + animalFeedCohortCD + ". It calved " + Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()), latestParturationEventTS)+ " days ago";
@@ -664,7 +737,7 @@ public class FeedManager {
 		
 		if (animalFeedCohortCD == null) {
 			cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, "UNDETERMINED", "UNDETERMINED", "", "", "");
-			cohort = new FeedCohort(animal.getOrgID(),cohortLV, "");
+			cohort = new FeedCohort(animal.getOrgId(),cohortLV, "");
 			cohort.setAnimalFeedCohortDeterminatationMessage("The animal " + animal.getAnimalTag() + " could not be mapped to any Feed Cohort.");
 			cohort.setFeedCohortDeterminationCriteria("None of the determination criteria matches the profle of this animal");
 		} else {
@@ -672,7 +745,7 @@ public class FeedManager {
 			cohortLV = lvLoader.retrieveLookupValue(Util.LookupValues.FEEDCOHORT, animalFeedCohortCD);
 			if (cohortLV == null)
 				cohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT, animalFeedCohortCD, animalFeedCohortCD, "", "", "");
-			cohort = new FeedCohort(animal.getOrgID(),cohortLV, "");
+			cohort = new FeedCohort(animal.getOrgId(),cohortLV, "");
 			if (duplicateCheck.trim().equals(animalFeedCohortCD)) {
 				cohort.setAnimalFeedCohortDeterminatationMessage(animalFeedCohortDeterminatationMessage);
 				cohort.setFeedCohortDeterminationCriteria(animalFeedCohortDeterminationCriteria); 
@@ -695,9 +768,18 @@ public class FeedManager {
 	private LifecycleEvent getLatestEvent(Animal animal, String targetEventType1, String targetEventType2) {
 		List<LifecycleEvent> sortedEvents = animal.getLifeCycleEvents();
 		// events are assumed to be sorted by date with latest on top and oldest at bottom.
-		if (sortedEvents == null || sortedEvents.isEmpty())
-			return null;
-		else {
+		if (sortedEvents == null || sortedEvents.isEmpty()) {
+			LifeCycleEventsLoader evtLoader = new LifeCycleEventsLoader();
+			sortedEvents = evtLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(), 
+					null, null, 
+					targetEventType1, targetEventType2,
+					null, null, null, null);
+			if (sortedEvents == null || sortedEvents.isEmpty())
+				return null;
+			else
+				return sortedEvents.get(0);
+		} else {
+			// case when the animal object already contains all the animal events.
 			Iterator<LifecycleEvent> it = sortedEvents.iterator();
 			while (it.hasNext()) {
 				LifecycleEvent event = it.next();
@@ -741,45 +823,9 @@ public class FeedManager {
 
 	public FeedPlan getPersonalizedFeedPlan(FeedCohort feedCohortType, String animalTag) throws Exception {
 		AnimalLoader anmlLoader = new AnimalLoader();
-		Animal animal = anmlLoader.getAnimalRawInfo(feedCohortType.getOrgID(), animalTag).get(0);		
+		Animal animal = anmlLoader.getAnimalRawInfo(feedCohortType.getOrgId(), animalTag).get(0);		
 		return getPersonalizedFeedPlan(feedCohortType,animal);
 	}
-	
-	/**
-	 * Determine Energy, DM, CP requirements of dairy cow based on the information provided in the following
-	 * text (Chapter 6 & 7): 
-	 * Tropical dairy farming : feeding management for small holder dairy farmers in the humid tropics By John Moran, 312 pp., Landlinks Press, 2005
-	 * @param Animal
-	 * @return NutritionalStats
-	 */
-//	public CohortNutritionalNeeds determineFeedRequirementsOfLactatingCow(Animal animal) throws IMDException {
-//		if (animal.getWeight() == null) {
-//			throw new IMDException ("We can not calculate the dietary requirements of the animal " + animal.getAnimalTag() + " without its weight. Please add a Weight event for this animal and try again");
-//		}
-//		Float milkAverage = 0f;
-//		Double animalWeight = new Double (animal.getWeight());
-//		if (animal.isLactating())  {
-//			milkAverage = this.getMilkAverage(animal.getOrgID(), animal.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(MILK_AVERAGE_START_FROM_DAYS), MILK_AVERAGE_DAYS);
-//			if (milkAverage == null) {
-//				throw new IMDException ("We can not calculate the dietary requirements of the animal " + animal.getAnimalTag() + " without its milking average. Please add its milking information for at least the last " + (MILK_AVERAGE_START_FROM_DAYS + MILK_AVERAGE_DAYS) + " days");
-//			}
-//		}
-//		
-//		Integer pregnancyDays = null;
-//		if (animal.isPregnant()) {
-//			DateTime latestInseminationOrMatingEventTS = getLatestEventTimeStamp(animal,Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING);
-//			if (latestInseminationOrMatingEventTS != null) {
-//				pregnancyDays = Util.getDaysBetween(DateTime.now(IMDProperties.getServerTimeZone()),latestInseminationOrMatingEventTS);		
-//			}
-//		}
-//		CohortNutritionalNeeds nutritionalNeeds = getMetabolizableEnergyRequiremnt(animalWeight,new Double(milkAverage), pregnancyDays, animal.getFeedCohortInformation().getFeedCohortLookupValue().getLookupValueCode(),null,null);
-//		// CP
-//		// DM
-//		return nutritionalNeeds;
-//	}
-	
-	
-	
 	
 	/**
 	 * Source: https://www.calfnotes.com/pdffiles/CN071.pdf 
@@ -793,7 +839,7 @@ public class FeedManager {
 		double mem = 0.10 * Math.pow(animalWeight,0.75);
 		double meg = 0.84 * Math.pow(animalWeight,0.355) * Math.pow(Util.DefaultValues.DESIRED_CALF_DAILY_WEIGHT_GAIN_KG,1.2);
 
-		needs.setMetabloizableEnergy(new Float((mem + meg) * 4.184));
+		needs.setMetabloizableEnergy((float)((float)mem + (float)meg) * 4.184f);
 		return needs;
 	}	
 	
@@ -822,8 +868,8 @@ public class FeedManager {
 		Double milkTDN = milkProdNeeds == null || milkProdNeeds.getNutritionalNeedsTDN() == null ? 0d : milkProdNeeds.getNutritionalNeedsTDN();
 		Double pregTDN = pregnancyNeeds == null || pregnancyNeeds.getNutritionalNeedsTDN() == null ? 0d : pregnancyNeeds.getNutritionalNeedsTDN();
 		
-		needs.setMetabloizableEnergy(new Float(maintenanceME + pregME + milkME));
-		needs.setNutritionalNeedsTDN(new Float(maintenanceTDN + pregTDN + milkTDN));
+		needs.setMetabloizableEnergy((float)(maintenanceME + pregME + milkME));
+		needs.setNutritionalNeedsTDN((float)(maintenanceTDN + pregTDN + milkTDN));
 		return needs;
 	}
 
@@ -870,7 +916,7 @@ public class FeedManager {
 		int rowIndex = determineIndex(fat,3d,6d,0.2d);
 		int colIndex = determineIndex(protein,2.6d,4.4d,0.2d);
 		CohortNutritionalNeeds needs = new CohortNutritionalNeeds();
-		needs.setMetabloizableEnergy(new Float(meMatrix[rowIndex][colIndex] * threeDaysMilkingAverage));
+		needs.setMetabloizableEnergy((float)(meMatrix[rowIndex][colIndex] * threeDaysMilkingAverage));
 //		IMDLogger.log(">>>>>> Milking Energy Requirement: [" + meMatrix[rowIndex][colIndex] + " * " + threeDaysMilkingAverage+ "]" + (meMatrix[rowIndex][colIndex] * threeDaysMilkingAverage), Util.INFO);
 
 		
@@ -910,7 +956,7 @@ public class FeedManager {
 
 		rowIndex = determineIndex(fat,3d,6d,0.2d);
 		colIndex = determineIndex(protein,2.6d,4.4d,0.2d);
-		needs.setNutritionalNeedsTDN(new Float(tdnMatrix[rowIndex][colIndex] * threeDaysMilkingAverage));	
+		needs.setNutritionalNeedsTDN((float)(tdnMatrix[rowIndex][colIndex] * threeDaysMilkingAverage));	
 		return needs;
 	}
 	private int determineIndex(Double fat, double start, double end, double increment) {
@@ -945,24 +991,24 @@ public class FeedManager {
 		if (daysSinceSuccessfulInsemination == null)
 			return null;
 		else if (daysSinceSuccessfulInsemination <= 150f) {
-			me = new Float(0);
-			tdn = new Float(0);
+			me = (float)(0);
+			tdn = (float)(0);
 		} else if (daysSinceSuccessfulInsemination > 150 && daysSinceSuccessfulInsemination <= 180) {
 			// sixth month of pregnancy
-			me = new Float(8f);
-			tdn = new Float(0.6f);
+			me = 8f;
+			tdn = 0.6f;
 		} else if (daysSinceSuccessfulInsemination > 180 && daysSinceSuccessfulInsemination <= 210) {
 			// seventh month of pregnancy
-			me = new Float(10f);
-			tdn = new Float(0.7f);
+			me = 10f;
+			tdn = 0.7f;
 		} else if (daysSinceSuccessfulInsemination > 210 && daysSinceSuccessfulInsemination <= 240) {
 			// eighth month of pregnancy
-			me = new Float(15f);
-			tdn = new Float(1.1f);
+			me = 15f;
+			tdn = 1.1f;
 		} else if (daysSinceSuccessfulInsemination > 240) {
 			// ninth month of pregnancy
-			me = new Float(20f);
-			tdn = new Float(1.4f);
+			me = 20f;
+			tdn = 1.4f;
 		}
 		CohortNutritionalNeeds energyRequirements = new CohortNutritionalNeeds();
 		energyRequirements.setMetabloizableEnergy(me);
@@ -1068,8 +1114,8 @@ public class FeedManager {
 			z1 = 4.1f;
 			z2 = z1 + 0.3f;
 		}
-		me = new Float( Util.formatTwoDecimalPlaces((x1 + ((animalWeight - y1) *  (x2 - x1)/ (y2-y1)))));
-		tdn = new Float(  Util.formatTwoDecimalPlaces(z1 + ((animalWeight - y1) *  (z2 - z1)/ (y2-y1))));
+		me = Float.parseFloat( Util.formatTwoDecimalPlaces((x1 + ((animalWeight - y1) *  (x2 - x1)/ (y2-y1)))));
+		tdn = Float.parseFloat(  Util.formatTwoDecimalPlaces(z1 + ((animalWeight - y1) *  (z2 - z1)/ (y2-y1))));
 		CohortNutritionalNeeds energyRequirements = new CohortNutritionalNeeds();
 		energyRequirements.setMetabloizableEnergy(me);
 		energyRequirements.setNutritionalNeedsTDN(tdn);
