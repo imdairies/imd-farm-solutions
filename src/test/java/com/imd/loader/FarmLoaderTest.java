@@ -64,9 +64,9 @@ class FarmLoaderTest {
 			String animalTagFeb1980 = "TST_FEB1980";
 			Animal animalJan1980 = createTestAnimal(animalTagJan1980);
 			Animal animalFeb1980 = createTestAnimal(animalTagFeb1980);
-			int delCount = loader.deleteAnimal(animalJan1980.getOrgID(),animalTagJan1980);
+			int delCount = loader.deleteAnimal(animalJan1980.getOrgId(),animalTagJan1980);
 			assertTrue( delCount == 0 || delCount == 1);
-			 delCount = loader.deleteAnimal(animalFeb1980.getOrgID(),animalTagFeb1980);
+			 delCount = loader.deleteAnimal(animalFeb1980.getOrgId(),animalTagFeb1980);
 			assertTrue( delCount == 0 || delCount == 1);			
 			
 			animalJan1980.setHerdJoiningDate(new DateTime(1980,1,31,0,0));
@@ -84,8 +84,8 @@ class FarmLoaderTest {
 
 			assertEquals(1,loader.getActiveHerdCountForDate(new LocalDate(animalJan1980.getHerdJoiningDate()))-janCount1);			
 			
-			assertEquals(1,loader.deleteAnimal(animalJan1980.getOrgID(),animalTagJan1980));
-			assertEquals(1,loader.deleteAnimal(animalFeb1980.getOrgID(),animalTagFeb1980));
+			assertEquals(1,loader.deleteAnimal(animalJan1980.getOrgId(),animalTagJan1980));
+			assertEquals(1,loader.deleteAnimal(animalFeb1980.getOrgId(),animalTagFeb1980));
 
 			
 		} catch (Exception e) {

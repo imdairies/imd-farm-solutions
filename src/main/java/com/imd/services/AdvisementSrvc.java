@@ -31,15 +31,16 @@ public class AdvisementSrvc {
 	@Path("/retrieveanimaladvisement")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAnimalAdvisement(AdvisementBean advBean){
-		IMDLogger.log("retrieveAnimalAdvisement Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveAnimalAdvisement",advBean.getLoginToken());
+		String methodName = "retrieveAnimalAdvisement";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,advBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveAnimalAdvisement", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
 		IMDLogger.log(advBean.toString(), Util.INFO);
 
@@ -94,15 +95,16 @@ public class AdvisementSrvc {
 	@Path("/retrievealladvisement")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveAllAdvisement(AdvisementBean advBean){
-		IMDLogger.log("retrieveAllAdvisement Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveAllAdvisement",advBean.getLoginToken());
+		String methodName = "retrieveAllAdvisement";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,advBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveAllAdvisement", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
 		IMDLogger.log(advBean.toString(), Util.INFO);
 

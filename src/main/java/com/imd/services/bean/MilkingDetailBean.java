@@ -21,7 +21,71 @@ public class MilkingDetailBean {
 	private Float humidity;
 	private String comments;
 	private String loginToken;
+	private Float phValue;
+	private Float forCalvesUse;
+	private Float forFarmUse;
+	private Float forPersonalUse;
+	private Float forFamilyUse;
+	private Float forOtherUse;
+	private Float forWasteAdj;
+	private String dataStartReferenceEvent;
+	
+	public Float getPhValue() {
+		return phValue;
+	}
 
+	public void setPhValue(Float phValue) {
+		this.phValue = phValue;
+	}
+
+	public Float getForCalvesUse() {
+		return forCalvesUse;
+	}
+
+	public void setForCalvesUse(Float forCalvesUse) {
+		this.forCalvesUse = forCalvesUse;
+	}
+
+	public Float getForFarmUse() {
+		return forFarmUse;
+	}
+
+	public void setForFarmUse(Float forFarmUse) {
+		this.forFarmUse = forFarmUse;
+	}
+
+	public Float getForPersonalUse() {
+		return forPersonalUse;
+	}
+
+	public void setForPersonalUse(Float forPersonalUse) {
+		this.forPersonalUse = forPersonalUse;
+	}
+
+	public Float getForFamilyUse() {
+		return forFamilyUse;
+	}
+
+	public void setForFamilyUse(Float forFamilyUse) {
+		this.forFamilyUse = forFamilyUse;
+	}
+
+	public Float getForOtherUse() {
+		return forOtherUse;
+	}
+
+	public void setForOtherUse(Float forOtherUse) {
+		this.forOtherUse = forOtherUse;
+	}
+
+	public Float getForWasteAdj() {
+		return forWasteAdj;
+	}
+
+	public void setForWasteAdj(Float forWasteAdj) {
+		this.forWasteAdj = forWasteAdj;
+	}
+	
 	public String getLoginToken() {
 		return loginToken;
 	}
@@ -61,7 +125,36 @@ public class MilkingDetailBean {
 		this.temperatureInCentigrade = searchBean.getTemperatureInCentigrade();
 		this.humidity = searchBean.getHumidity();
 		this.comments = searchBean.getComments();
+		this.phValue = searchBean.getPhValue();
+		this.forCalvesUse = searchBean.getForCalvesUse();
+		this.forFarmUse = searchBean.getForFarmUse();
+		this.forPersonalUse = searchBean.getForPersonalUse();
+		this.forFamilyUse = searchBean.getForFamilyUse();
+		this.forOtherUse = searchBean.getForOtherUse();
+		this.forWasteAdj = searchBean.getForWasteAdj();
+
+	
 	}
+	public MilkingDetailBean(FarmMilkingDetailBean milkingEventRecord) {
+		this.setOrgID(milkingEventRecord.getOrgID());
+		this.setRecordDate(milkingEventRecord.getRecordDate());
+		this.setRecordTime(milkingEventRecord.getRecordTime());
+		this.setMilkingEventNumber(milkingEventRecord.getMilkingEventNumber());
+		this.setLrValue(milkingEventRecord.getLrValue());
+		this.setFatValue(milkingEventRecord.getFatValue());
+		this.setToxinValue(milkingEventRecord.getToxinValue());
+		this.setTemperatureInCentigrade(milkingEventRecord.getTemperatureInCentigrade());
+		this.setHumidity(milkingEventRecord.getHumidity());
+		this.setComments(milkingEventRecord.getComments());
+		this.setPhValue(milkingEventRecord.getPhValue());
+		this.setForCalvesUse(milkingEventRecord.getForCalvesUse());
+		this.setForFarmUse(milkingEventRecord.getForFarmUse());
+		this.setForPersonalUse(milkingEventRecord.getForPersonalUse());
+		this.setForFamilyUse(milkingEventRecord.getForFamilyUse());
+		this.setForOtherUse(milkingEventRecord.getForOtherUse());
+		this.setForWasteAdj(milkingEventRecord.getForWasteAdj());
+	}
+
 	public String getAnimalTag() {
 		return animalTag;
 	}
@@ -76,7 +169,6 @@ public class MilkingDetailBean {
 	}
 	public LocalDate getRecordDate() {
 		return new LocalDate(milkingDateStr, IMDProperties.getServerTimeZone());
-		//return new LocalDate();
 	}
 	public LocalTime getRecordTime() {
 		return new LocalTime(this.milkingTimeStr, IMDProperties.getServerTimeZone());
@@ -93,7 +185,13 @@ public class MilkingDetailBean {
 		"toxinValue:" +  this.toxinValue + "\n" + 
 		"temperatureInCentigrade:" +  this.temperatureInCentigrade + "\n" + 
 		"humidity:" +  this.humidity + "\n" + 
-		"comments:" +  this.comments + "\n";
+		"comments:" +  this.comments + "\n" +
+		"forCalvesUse:" +  this.forCalvesUse + "\n" +		
+		"forFarmUse:" +  this.forFarmUse + "\n" +
+		"forPersonalUse:" +  this.forPersonalUse + "\n" +
+		"forFamilyUse:" +  this.forFamilyUse + "\n" +
+		"forOtherUse:" +  this.forOtherUse + "\n" +
+		"forWasteAdj:" +  this.forWasteAdj + "\n";
 	}
 	public String getMilkingDateStr() {
 		return milkingDateStr;
@@ -162,4 +260,13 @@ public class MilkingDetailBean {
 	public void setHumidity(Float humidity) {
 		this.humidity = humidity;
 	}
+
+	public String getDataStartReferenceEvent() {
+		return dataStartReferenceEvent;
+	}
+
+	public void setDataStartReferenceEvent(String dataStartReferenceEvent) {
+		this.dataStartReferenceEvent = dataStartReferenceEvent;
+	}
+
 }

@@ -41,17 +41,17 @@ public class LifecycleEventSrvc {
 	@Path("/search")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAnimalLifecycleEvent(LifeCycleEventBean animalEventBean){
-
-		IMDLogger.log("getAnimalLifecycleEvent Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".getAnimalLifecycleEvent",animalEventBean.getLoginToken());
+		String methodName = "getAnimalLifecycleEvent";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalEventBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".getAnimalLifecycleEvent", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		animalEventBean.setOrgID(orgID);
 		IMDLogger.log(animalEventBean.toString(), Util.INFO);		
 		
@@ -60,7 +60,7 @@ public class LifecycleEventSrvc {
 		String animalEvents = "";
 		AnimalBean animalBean = new AnimalBean();
 		animalBean.setAnimalTag(animalEventBean.getAnimalTag());
-		animalBean.setOrgID(animalEventBean.getOrgID());
+		animalBean.setOrgId(animalEventBean.getOrgID());
 		try {
 			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null,null);
 			if (animalValues == null || animalValues.size() == 0)
@@ -70,7 +70,7 @@ public class LifecycleEventSrvc {
 			String eventTypeCD = animalEventBean.getEventCode();
 			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
 				eventTypeCD = null;
-			List<LifecycleEvent> events = animalEventsloader.retrieveSpecificLifeCycleEventsForAnimal(animalBean.getOrgID(),animalValues.get(0).getAnimalTag(),eventTypeCD);
+			List<LifecycleEvent> events = animalEventsloader.retrieveSpecificLifeCycleEventsForAnimal(animalBean.getOrgId(),animalValues.get(0).getAnimalTag(),eventTypeCD);
 			if (events == null || events.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No life events found for specified animal\"}").build();
@@ -146,17 +146,17 @@ public class LifecycleEventSrvc {
 	@Path("/retrieveoneevent")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response retrieveOneEvent(LifeCycleEventBean eventBean){
-
-		IMDLogger.log("retrieveOneEvent Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveOneEvent",eventBean.getLoginToken());
+		String methodName = "retrieveOneEvent";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,eventBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveOneEvent", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		eventBean.setOrgID(orgID);
 		IMDLogger.log(eventBean.toString(), Util.INFO);				
 		
@@ -173,7 +173,10 @@ public class LifecycleEventSrvc {
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"The requested life event could not be found.\"}").build();
 			}
-	    	animalEvent = "[\n{" + event.dtoToJson("   ") + "}\n]";
+			
+//			DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+			DateTimeFormatter fmt = DateTimeFormat.forPattern("MMMM d, yyyy HH:mm:ss");
+	    	animalEvent = "[\n{" + event.dtoToJson("   ", fmt) + "}\n]";
 	    	IMDLogger.log(animalEvent, Util.INFO);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -185,16 +188,17 @@ public class LifecycleEventSrvc {
 	@Path("/deleteoneevent")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteOneEvent(LifeCycleEventBean eventBean){
-		IMDLogger.log("deleteOneEvent Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".deleteOneEvent",eventBean.getLoginToken());
+		String methodName = "deleteOneEvent";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,eventBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".deleteOneEvent", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		eventBean.setOrgID(orgID);
 		IMDLogger.log(eventBean.toString(), Util.INFO);				
 
@@ -218,18 +222,17 @@ public class LifecycleEventSrvc {
 	@Path("/addbatch")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addEventForMultipleAnimals(LifeCycleEventBean eventBean){
-
 		String methodName = "addEventForMultipleAnimals";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,eventBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,eventBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + "." + methodName, Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		eventBean.setOrgID(orgID);
 		IMDLogger.log(eventBean.toString(), Util.INFO);				
 		
@@ -251,7 +254,7 @@ public class LifecycleEventSrvc {
 		String userID  = (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID);		
 		String animalTags[] = {""};
 		AnimalBean animalBean = new AnimalBean();
-		animalBean.setOrgID(orgID);
+		animalBean.setOrgId(orgID);
 		if (animalTag.indexOf(",") <0)
 			animalTags[0] = animalTag;
 		else
@@ -322,17 +325,17 @@ public class LifecycleEventSrvc {
 	@Path("/add")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response addEvent(LifeCycleEventBean eventBean){
-
-		IMDLogger.log("addEvent Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".addEvent",eventBean.getLoginToken());
+		String methodName = "addEvent";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,eventBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".addEvent", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		eventBean.setOrgID(orgID);
 		IMDLogger.log(eventBean.toString(), Util.INFO);				
 		
@@ -355,7 +358,7 @@ public class LifecycleEventSrvc {
 		
 		AnimalBean animalBean = new AnimalBean();
 		animalBean.setAnimalTag(animalTag);
-		animalBean.setOrgID(orgID);
+		animalBean.setOrgId(orgID);
 		
 		LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 		String validationResult = eventsLoader.performEventSpecificValidations(eventBean, animalBean);
@@ -436,12 +439,12 @@ public class LifecycleEventSrvc {
 			calfBean.setDateOfBirthStr(Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp(),"yyyy-MM-dd HH:mm"));
 			calfBean.setBreed(animal.getBreed());
 			calfBean.setDam(animal.getAnimalTag());
-			calfBean.setOrgID(animal.getOrgID());
+			calfBean.setOrgId(animal.getOrgId());
 			calfBean.setDobAccuracyInd(Util.YES);
 			calfBean.setHerdJoiningDttmStr(calfBean.getDateOfBirthStr());
 	
 			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
-			List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
+			List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING,null,null,null,null);
 			if (events == null || events.isEmpty())
 				return ". " + Util.ERROR_POSTFIX + "No insemination or mating event found for this animal. "
 						+ "This indicates that you have not added a corresponding mating/insemination event for the parturition. "
@@ -488,7 +491,23 @@ public class LifecycleEventSrvc {
 		if (event.getEventType().getEventCode().equals(Util.LifeCycleEvents.HEAT)) {
 			message += ". The ideal insemination window of this animal is " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(12),"yyyy-MM-dd hh:mm a") +
 					" - " + Util.getDateTimeInSpecifiedFormat(event.getEventTimeStamp().plusHours(18),"yyyy-MM-dd hh:mm a")
-					+ " (i.e. 12-18 hours after the standing heat)";			
+					+ " (i.e. 12-18 hours after the standing heat)";
+		} else if (event.getEventType().getEventCode().equals(Util.LifeCycleEvents.WEIGHT)) {
+			LifeCycleEventsLoader evtLdr = new LifeCycleEventsLoader();
+			List<LifecycleEvent> wtEvents = evtLdr.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(), Util.LifeCycleEvents.WEIGHT);
+			message = "";
+			if (wtEvents != null &&  wtEvents.size() >1) {
+				Float lastWt = Float.parseFloat(wtEvents.get(1).getAuxField1Value());
+				DateTime wtMeasuredTimestamp = wtEvents.get(1).getEventTimeStamp();
+				float daysSinceLastMeasurement = Util.getDaysBetween(event.getEventTimeStamp(), wtMeasuredTimestamp);
+				if (daysSinceLastMeasurement == 0)
+					// case when we enter two weight events on the same day. Shouldn't happen but just in case it does, we 
+					// save ourselves from divide by zero.
+					daysSinceLastMeasurement = 1;
+				Float rateOfWtIncrease = (Float.parseFloat(event.getAuxField1Value()) - lastWt) / daysSinceLastMeasurement;
+				message = ". This animal's last weight as measured on " + Util.getDateTimeInSpecifiedFormat(wtMeasuredTimestamp,"yyyy-MM-dd hh:mm a") + " was " + 
+				Util.formatToSpecifiedDecimalPlaces(lastWt, 1) + " Kgs. In the last " + daysSinceLastMeasurement + " days this animal grew at an average of " + rateOfWtIncrease + " Kgs. per day";
+			}
 		}
 		return message;
 	}
@@ -521,7 +540,7 @@ public class LifecycleEventSrvc {
 			IMDLogger.log("Updating the inventory", Util.INFO);
 			if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.INSEMINATE)) {
 				IMDLogger.log("Updating the Semen inventory", Util.INFO);
-				inventory.setOrgID(eventBean.getOrgID()); 
+				inventory.setOrgId(eventBean.getOrgID()); 
 				inventory.setItemSKU(eventBean.getAuxField1Value()); // bull code
 				inventory.setInventoryAddDttm(eventBean.getEventTimeStamp() == null ? null : DateTime.parse(eventBean.getEventTimeStamp(), DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm"))); // when was this item consumed
 				inventory.setItemType(eventBean.getAuxField2Value() != null && eventBean.getAuxField2Value().trim().length() >= 1 ? eventBean.getAuxField2Value().charAt(0) + "" : eventBean.getAuxField2Value()); // sexed or not
@@ -564,16 +583,19 @@ public class LifecycleEventSrvc {
 	@Path("/update")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateEvent(LifeCycleEventBean eventBean){
-		IMDLogger.log("updateEvent Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".updateEvent",eventBean.getLoginToken());
+
+		String methodName = "updateEvent";
+
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,eventBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".updateEvent", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		eventBean.setOrgID(orgID);
 		IMDLogger.log(eventBean.toString(), Util.INFO);				
 		
@@ -619,33 +641,30 @@ public class LifecycleEventSrvc {
 	@Path("/viewsirerecord")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getSireInseminationRecord(LifeCycleEventBean animalEventBean) {
-//		int loggingMode = IMDLogger.loggingMode;
-//		IMDLogger.loggingMode = Util.INFO;
-
-		IMDLogger.log("getSireInseminationRecord Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".getSireInseminationRecord",animalEventBean.getLoginToken());
+		String methodName = "getSireInseminationRecord";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalEventBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".getSireInseminationRecord", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName, Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		animalEventBean.setOrgID(orgID);
 		IMDLogger.log(animalEventBean.toString(), Util.INFO);		
 		
 		LifeCycleEventsLoader animalEventsloader = new LifeCycleEventsLoader();
-		AnimalLoader animalLoader = new AnimalLoader();
 		String animalEvents = "";
 		AnimalBean animalBean = new AnimalBean();
 		animalBean.setAnimalTag(animalEventBean.getAnimalTag());
-		animalBean.setOrgID(animalEventBean.getOrgID());
+		animalBean.setOrgId(animalEventBean.getOrgID());
 		try {
 			String eventTypeCD = animalEventBean.getEventCode();
 			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
 				eventTypeCD = null;
-			List<LifecycleEvent> events = animalEventsloader.retrieveSireInseminationRecord(animalBean.getOrgID(),animalEventBean.getAuxField1Value(),animalEventBean.getAuxField3Value());
+			List<LifecycleEvent> events = animalEventsloader.retrieveSireInseminationRecord(animalBean.getOrgId(),animalEventBean.getAuxField1Value(),animalEventBean.getAuxField3Value());
 			if (events == null || events.size() == 0)
 			{
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No insemination/mating records found for the specified sire\"}").build();
@@ -663,9 +682,6 @@ public class LifecycleEventSrvc {
 			e.printStackTrace();
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" +  e.getMessage() + "\"}").build();
 		} 
-//		finally {
-//			IMDLogger.loggingMode = loggingMode;
-//		}
 		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity(animalEvents).build();
     }
     

@@ -4,6 +4,7 @@ public class InputDelimitedFileBean {
 	private boolean shouldAdd;
 	private String inputDelimitedFileContents;
 	private String loginToken;
+	private boolean donotOverwrite;
 
 	public String getLoginToken() {
 		return loginToken;
@@ -31,8 +32,17 @@ public class InputDelimitedFileBean {
 	
 	public String toString() {
 		return "\"shouldAdd\":" + shouldAdd + "\n" +
+				"\"donotOverwrite\":" + donotOverwrite + "\n" +
 			   "\"inputDelimitedFileContents\":" + inputDelimitedFileContents;
 	
+	}
+
+	public boolean isDonotOverwrite() {
+		return donotOverwrite;
+	}
+
+	public void setDonotOverwrite(boolean donotOverwrite) {
+		this.donotOverwrite = donotOverwrite;
 	}
 
 }

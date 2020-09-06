@@ -112,7 +112,7 @@ public class SpecifiedLactationTotalProductionMilestoneEvaluator extends Milesto
 			return couldnotBeEvaluatedMilestone;
 		}
 		Animal animal = animals.get(0);
-		List<LifecycleEvent> calvingEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(),
+		List<LifecycleEvent> calvingEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(),
 				animal.getDateOfBirth(), null,
 				Util.LifeCycleEvents.PARTURATE,Util.LifeCycleEvents.ABORTION, null, null, null, null);
 		if (calvingEvents == null || calvingEvents.isEmpty()) {
@@ -145,7 +145,7 @@ public class SpecifiedLactationTotalProductionMilestoneEvaluator extends Milesto
 		}
 		
 		MilkingDetailLoader milkLoader = new MilkingDetailLoader();
-		float totalMilkInSpecifiedLactation = milkLoader.getTotalProductionOfCow(animal.getOrgID(), animal.getAnimalTag(),measurementStartTS, measurementEndTS);
+		float totalMilkInSpecifiedLactation = milkLoader.getTotalProductionOfCow(animal.getOrgId(), animal.getAnimalTag(),measurementStartTS, measurementEndTS);
 		
 		if (totalMilkInSpecifiedLactation == 0) {
 			evaluationResultMessage = "The maximum daily production during lactation #" + this.lactationNumber + " could not be deduced for this animal, probably because it doesn't have any milking record between " + 

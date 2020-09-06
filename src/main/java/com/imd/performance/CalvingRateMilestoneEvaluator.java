@@ -101,7 +101,7 @@ public class CalvingRateMilestoneEvaluator extends MilestoneEvaluator {
 			return couldnotBeEvaluatedMilestone;
 		}
 		Animal animal = animals.get(0);
-		List<LifecycleEvent> calvingEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgID(), animal.getAnimalTag(),
+		List<LifecycleEvent> calvingEvents = parturitionEventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal.getOrgId(), animal.getAnimalTag(),
 				animal.getDateOfBirth(), null,
 				Util.LifeCycleEvents.PARTURATE,null, null, null, null, null);
 		if (calvingEvents == null || calvingEvents.size() < 2) {

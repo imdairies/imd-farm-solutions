@@ -35,22 +35,24 @@ public class PerformanceMilestoneManager {
 		if (milestoneRules == null || milestoneRules.isEmpty()) {
 			return null;
 		}
-//		int originalLoggingMode = IMDLogger.loggingMode;
-//		IMDLogger.loggingMode = Util.INFO;
 
 		Iterator<PerformanceMilestone> milestoneIt = milestoneRules.iterator();
 		while (milestoneIt.hasNext()) {
 			PerformanceMilestone milestoneRule = milestoneIt.next();
 			MilestoneEvaluator evl = performanceEvaluators.get(milestoneRule.getMilestoneID());
+			IMDLogger.log(milestoneRule.getMilestoneID(), Util.INFO);
 			if (evl == null) {
 				IMDLogger.log("The performance milestone " + milestoneRule.getMilestoneID() + " has been defined in the database but it does not have any implementation. We will ignore this rule", Util.WARNING);
 			} else {
 				try {
 					PerformanceMilestone milestone = evl.evaluatePerformanceMilestone(milestoneRule, orgID, animalTag, langCd);
-					if (milestone.getStarRating() >= Util.StarRating.COULD_NOT_COMPUTE_RATING)
+					if (milestone != null && milestone.getStarRating() != null && 
+							milestone.getStarRating() >= Util.StarRating.COULD_NOT_COMPUTE_RATING)
 						milestoneEvaluationOutcome.add(milestone);
 					else {
-						IMDLogger.log(milestone.getEvaluationResultMessage(), Util.WARNING);
+						IMDLogger.log(milestone != null && milestone.getEvaluationResultMessage() != null ? milestone.getEvaluationResultMessage() : 
+							" Could not detemine " + milestoneRule.getMilestoneID() + " for animal " + animalTag + 
+							". Perhaps the animal does not exist or its data is incomplete or inconsistent.", Util.WARNING);
 					}
 				} catch (Exception ex) {
 					IMDLogger.log("Could not evaluate performance milestone " + evl.getMilestoneID() + " for animal " + animalTag, Util.ERROR);

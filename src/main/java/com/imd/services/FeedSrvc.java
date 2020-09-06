@@ -18,7 +18,6 @@ import org.joda.time.format.DateTimeFormatter;
 import com.imd.controller.feed.FeedManager;
 import com.imd.dto.Animal;
 import com.imd.dto.CohortNutritionalNeeds;
-import com.imd.dto.FeedCohort;
 import com.imd.dto.FeedItem;
 import com.imd.dto.FeedPlan;
 import com.imd.dto.LookupValues;
@@ -44,52 +43,45 @@ public class FeedSrvc {
 	@Path("/updatefeedplan")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response updateFeedPlan(FeedPlanBean feedPlanBean){
-//		int loggingMode = IMDLogger.loggingMode;
-//		IMDLogger.loggingMode = Util.INFO;
 
 		IMDLogger.log("updateFeedPlan Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".updateFeedPlan",feedPlanBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + ".updateFeedPlan",feedPlanBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + ".updateFeedPlan", Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		feedPlanBean.setOrgID(orgID);
     	IMDLogger.log(feedPlanBean.toString(), Util.INFO);
     	
     	String validationOutcome = validateInputValues(feedPlanBean);
     	if (validationOutcome != null) {
-//    		IMDLogger.loggingMode = loggingMode;   	
     		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\""+ validationOutcome + "\"}").build();
     	} else {
-    		
     		FeedLoader loader = new FeedLoader();
     		FeedPlan feedPlan = new FeedPlan(feedPlanBean, user);
     		int updatedRecord = 0;
     		try {
 				 updatedRecord = loader.updateFeedPlan(feedPlan);
-				 if (updatedRecord < 0) {
-		    		validationOutcome = " An unknown error occurred while updating the feed plan for the cohort (" +feedPlanBean.getFeedCohortCD() + ") ";
-//		    		IMDLogger.loggingMode = loggingMode;   	
+				 if (updatedRecord == Util.ERROR_CODE.DUPLICATE_ENTRY) {
+		    		validationOutcome = " Error Code :" + updatedRecord + ". A duplicate entry was encountered while trying to update the feed plan for the " +feedPlanBean.getFeedCohortCD() + " cohort. You can not add the same feed item multiple times.";
+		    		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\""+ validationOutcome + "\"}").build();
+				 } else if (updatedRecord < 0) {
+		    		validationOutcome = " Error Code :" + updatedRecord + ". An unknown error occurred while updating the feed plan for the cohort (" +feedPlanBean.getFeedCohortCD() + ") ";
 		    		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\""+ validationOutcome + "\"}").build();
 				 }
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 	    		validationOutcome = " The following error occurred while updating the feed plan for the cohort (" +feedPlanBean.getFeedCohortCD() + ") :" + e.getMessage();
-//	    		IMDLogger.loggingMode = loggingMode;   	
 	    		return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\""+ validationOutcome + "\"}").build();
 			}    		
     		validationOutcome = feedPlanBean.getFeedPlanItems().size() + " feed items successfully added to the feed plan for the cohort:" + feedPlanBean.getFeedCohortCD();
-//    		IMDLogger.loggingMode = loggingMode;   	
     		return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\""+ validationOutcome + "\"}").build();
     	}
 	}
-	
-	
 	
 	private String validateInputValues(FeedPlanBean feedPlanBean) {
 		String validationResult = null;
@@ -124,34 +116,28 @@ public class FeedSrvc {
 		return validationResult;
 	}
 
-
-
 	@POST
 	@Path("/retrievefeedplan")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveFeedPlan(AnimalBean animalBean){
-//		int loggingMode = IMDLogger.loggingMode;
-//		IMDLogger.loggingMode = Util.INFO;		
 		String methodName = "retrieveFeedPlan";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + "." + methodName, Util.WARNING);
-//			IMDLogger.loggingMode = loggingMode;
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
-		animalBean.setOrgID(orgID);
+		animalBean.setOrgId(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
 		String responseJson = "";
 		String feedCohortCD = animalBean.getAnimalType();
 		String prefix = "  ";
 		boolean shouldTranslate = false;
 		if ( feedCohortCD == null || feedCohortCD.isEmpty()) {
-//			IMDLogger.loggingMode = loggingMode;
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Please specify a valid cohort type.\"}").build();
 		}
 
@@ -162,9 +148,9 @@ public class FeedSrvc {
     				!langCd.equals(Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD))) {
     			shouldTranslate = true;
     		}
-			if (feedPlan == null || feedPlan.getFeedPlan().isEmpty())
+			if (feedPlan == null || feedPlan.getFeedPlanItems().isEmpty())
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Could not find feed plan for the cohort: " + feedCohortCD + " .\"}").build();
-			Iterator<FeedItem> it = feedPlan.getFeedPlan().iterator();
+			Iterator<FeedItem> it = feedPlan.getFeedPlanItems().iterator();
 			while(it.hasNext()) {
 				FeedItem item = it.next();
 				if (shouldTranslate) {
@@ -179,17 +165,14 @@ public class FeedSrvc {
 			}	
 	    	responseJson = "[" + responseJson + "]";
 	    	IMDLogger.log(responseJson, Util.INFO);
-//			IMDLogger.loggingMode = loggingMode;
 			return Response.status(Util.HTTPCodes.OK).entity(responseJson).build(); 
 		} catch (IMDException e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.retrieveFeedPlan() service method: " + e.getMessage(),  Util.ERROR);
-//			IMDLogger.loggingMode = loggingMode;
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"" + e.getMessage() + "\"}").build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			IMDLogger.log("Exception in FeedSrvc.retrieveFeedPlan() service method: " + e.getMessage(),  Util.ERROR);
-//			IMDLogger.loggingMode = loggingMode;
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Following error was encountered in retrieving cohort feed plan: " + e.getMessage() + "\"}").build();
 		}
 	}
@@ -199,16 +182,16 @@ public class FeedSrvc {
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response determineAnimalFeed(AnimalBean animalBean){
 		IMDLogger.log("determineAnimalFeed Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".determineAnimalFeed",animalBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + ".determineAnimalFeed",animalBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + ".determineAnimalFeed", Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		animalBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgId(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
 		String responseJson = "";
 		if (animalBean.getAnimalTag() == null || animalBean.getAnimalTag().isEmpty())
@@ -216,19 +199,15 @@ public class FeedSrvc {
 
     	try {
 			FeedManager mgr = new FeedManager();
-			//mgr.getFeedCohortInformationForSpecifcAnimals(orgID, tagInClause);
-//			FeedCohort feedCohortType = mgr.getAnimalFeedCohort(orgID, animalBean.getAnimalTag());
 			AnimalLoader anmlLoader = new AnimalLoader();
 			List<Animal> animals = anmlLoader.getAnimalRawInfo(animalBean);
 			if (animals == null || animals.isEmpty())
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Animal " + animalBean.getAnimalTag() + " not found\"}").build();
 			Animal animalValue = animals.get(0);
 			String prefix = "  ";
-			animalValue.setMilkingAverage(mgr.getMilkAverage(animalValue.getOrgID(), animalValue.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.MILK_AVERAGE_START_FROM_DAYS), FeedManager.MILK_AVERAGE_DAYS));
-			
+			animalValue.setMilkingAverage(mgr.getMilkAverage(animalValue.getOrgId(), animalValue.getAnimalTag(), LocalDate.now(IMDProperties.getServerTimeZone()).minusDays(FeedManager.MILK_AVERAGE_START_FROM_DAYS), FeedManager.MILK_AVERAGE_DAYS));
 			animalValue.setAnimalNutritionalNeeds(new CohortNutritionalNeeds());
 			FeedPlan plan = mgr.getPersonalizedFeedPlan(animalValue);
-
 	    	responseJson =  "\n{\n" + animalValue + "\n" + prefix + "\"feedPlan\":" + "[{\n" +   (plan != null ? plan.dtoToJson("  ") : "")+  "\n}\n" + "]\n}";
 	    	IMDLogger.log(responseJson, Util.INFO);
 			return Response.status(Util.HTTPCodes.OK).entity(responseJson).build(); 
@@ -247,17 +226,18 @@ public class FeedSrvc {
 	@Path("/farmactiveanimalfeedlisting")
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response retrieveActiveAnimalFeedListing(AnimalBean animalBean){
-		IMDLogger.log("retrieveActiveAnimalFeedListing Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + ".retrieveActiveAnimalFeedListing",animalBean.getLoginToken());
+		String methodName = "retrieveActiveAnimalFeedListing";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,animalBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() + ".retrieveActiveAnimalFeedListing", Util.WARNING);
+					+ this.getClass().getName() + "." + methodName , Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		animalBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgId(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
 		String responseJson = "";
 		HashMap<String,Float> intakeQuantity = new HashMap<String, Float>();
@@ -283,8 +263,8 @@ public class FeedSrvc {
 				Animal animalValue = it.next();
 				try {
 					FeedPlan rawPlan = manager.getPersonalizedFeedPlan(animalValue);
-					List<FeedItem> formattedPlan = formatFeedPlan(allFeedItems.getFeedPlan(), rawPlan, intakeQuantity);
-					rawPlan.setFeedPlan(formattedPlan); 
+					List<FeedItem> formattedPlanItems = formatFeedPlanItems(allFeedItems.getFeedPlanItems(), rawPlan, intakeQuantity);
+					rawPlan.setFeedPlanItems(formattedPlanItems); 
 					animalFeedInfoJson += prefix + prefix + "\n{\n" + createFeedListingJson(orgID, animalValue,rawPlan,prefix+prefix+prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + prefix + prefix + "\n} " 
 							+ (herd.size() == count ?  "" : ",");
 				} catch (Exception ex) {
@@ -295,22 +275,20 @@ public class FeedSrvc {
 							+ (herd.size() == count ?  "" : ",");
 				}
 			}
-			
-			
-			Iterator<FeedItem> it1 = allFeedItems.getFeedPlan().iterator();
+			Iterator<FeedItem> it1 = allFeedItems.getFeedPlanItems().iterator();
 			while (it1.hasNext()) {
 				FeedItem item = it1.next();
 				String code = item.getFeedItemLookupValue().getLookupValueCode();
 				item.setDailyIntake(intakeQuantity.get(code));
 			}
 			feedItemsJson = allFeedItems.dtoToJson(prefix + prefix+prefix, false);
-    		responseJson = "\n{\n" + prefix
+			responseJson = "\n{\n" + prefix
     				+ "\"feedItems\":{" + feedItemsJson + prefix + "},\n" + prefix
     				+ "\"animalFeedInfo\":["  + animalFeedInfoJson + "]\n"
     				+ "}";
 		} catch (Exception e) {
 			e.printStackTrace();
-			IMDLogger.log("Exception in FeedSrvc.retrieveActiveAnimalFeedListing() service method: " + e.getMessage(),  Util.ERROR);
+			IMDLogger.log("Exception in FeedSrvc." + methodName + " service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An error occurred while analyzing the farm feed needs: " +  e.getClass().getName() + "-" + e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(responseJson, Util.INFO);
@@ -323,7 +301,7 @@ public class FeedSrvc {
 	public Response retrieveSpecificAnimalFeedListing(AnimalBean animalBean){
 		String methodName = "retrieveSpecificAnimalFeedListing";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,animalBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
@@ -333,9 +311,9 @@ public class FeedSrvc {
 		if (animalBean == null || animalBean.getAnimalTag() == null || animalBean.getAnimalTag().trim().isEmpty()) {
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The service was not called with correct parameters \"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
-		animalBean.setOrgID(orgID);
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		animalBean.setOrgId(orgID);
     	IMDLogger.log(animalBean.toString(), Util.INFO);
 		String responseJson = "";
 		HashMap<String,Float> intakeQuantity = new HashMap<String, Float>();
@@ -370,8 +348,8 @@ public class FeedSrvc {
 				Animal animalValue = it.next();
 				try {
 					FeedPlan rawPlan = manager.getPersonalizedFeedPlan(animalValue);
-					List<FeedItem> formattedPlan = formatFeedPlan(allFeedItems.getFeedPlan(), rawPlan, intakeQuantity);
-					rawPlan.setFeedPlan(formattedPlan); 
+					List<FeedItem> formattedPlan = formatFeedPlanItems(allFeedItems.getFeedPlanItems(), rawPlan, intakeQuantity);
+					rawPlan.setFeedPlanItems(formattedPlan); 
 					animalFeedInfoJson += prefix + prefix + "\n{\n" + createFeedListingJson(orgID, animalValue,rawPlan,prefix+prefix+prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + prefix + prefix + "\n} " 
 							+ (herd.size() == count ?  "" : ",");
 				} catch (Exception ex) {
@@ -382,9 +360,7 @@ public class FeedSrvc {
 							+ (herd.size() == count ?  "" : ",");
 				}
 			}
-			
-			
-			Iterator<FeedItem> it1 = allFeedItems.getFeedPlan().iterator();
+			Iterator<FeedItem> it1 = allFeedItems.getFeedPlanItems().iterator();
 			while (it1.hasNext()) {
 				FeedItem item = it1.next();
 				String code = item.getFeedItemLookupValue().getLookupValueCode();
@@ -408,41 +384,36 @@ public class FeedSrvc {
 		FeedPlan allFeedItems = loader.retrieveDistinctFeedItemsInFeedPlan(orgID);
 		List<FeedItem> feedItemsPlusTotalCostItem = new ArrayList<FeedItem>();
 		FeedItem totalCostDummyFeedItem = new FeedItem();
-		totalCostDummyFeedItem.setOrgID(orgID);				
+		totalCostDummyFeedItem.setOrgId(orgID);				
 		LookupValues feedItemLV = new LookupValues(ITEM_COST,ITEM_COST, 
 				ITEM_COST,ITEM_COST,"","");
 		totalCostDummyFeedItem.setFeedItemLookupValue(feedItemLV);	
 		totalCostDummyFeedItem.setUnits("");
-		//totalCostDummyFeedItem.setDailyIntake(100f);
-		
 		
 		feedItemsPlusTotalCostItem.add(totalCostDummyFeedItem);
-		feedItemsPlusTotalCostItem.addAll(allFeedItems.getFeedPlan());
-		allFeedItems.setFeedPlan(feedItemsPlusTotalCostItem);
+		feedItemsPlusTotalCostItem.addAll(allFeedItems.getFeedPlanItems());
+		allFeedItems.setFeedPlanItems(feedItemsPlusTotalCostItem);
 		return allFeedItems;
 	}
 
 
-	private List<FeedItem> formatFeedPlan(List<FeedItem> allFeedItems, FeedPlan rawPlan, HashMap<String,Float> intakeQuantity) {
+	private List<FeedItem> formatFeedPlanItems(List<FeedItem> allFeedItems, FeedPlan rawPlan, HashMap<String,Float> intakeQuantity) {
 		List<FeedItem> formattedItems = new ArrayList<FeedItem>();
 		Iterator<FeedItem> allItemsit = allFeedItems.iterator();
 		FeedItem formattedItem = null;
-		Float cost = 0f;
 		while (allItemsit.hasNext()) {
 			FeedItem item = allItemsit.next();
 			String itemCode = item.getFeedItemLookupValue().getLookupValueCode();
 			formattedItem = item;
-
 			FeedItem dummyItemForShowingItemCost = new FeedItem();
-			dummyItemForShowingItemCost.setOrgID(item.getOrgID());				
+			dummyItemForShowingItemCost.setOrgId(item.getOrgId());				
 			LookupValues feedItemLV = new LookupValues(ITEM_COST,ITEM_COST, 
 					ITEM_COST,ITEM_COST,"","");
 			dummyItemForShowingItemCost.setFeedItemLookupValue(feedItemLV);	
 			dummyItemForShowingItemCost.setUnits("Rs.");
 			dummyItemForShowingItemCost.setDailyIntake(rawPlan.getPlanCost());
-			rawPlan.getFeedPlan().add(dummyItemForShowingItemCost);
-			
-			Iterator<FeedItem> rawItemsIt = rawPlan.getFeedPlan().iterator();
+			rawPlan.getFeedPlanItems().add(dummyItemForShowingItemCost);
+			Iterator<FeedItem> rawItemsIt = rawPlan.getFeedPlanItems().iterator();
 			while (rawItemsIt.hasNext()) {
 				FeedItem rawItem = rawItemsIt.next();
 				String rawItemCode = rawItem.getFeedItemLookupValue().getLookupValueCode();
@@ -461,7 +432,7 @@ public class FeedSrvc {
 			formattedItems.add(formattedItem);
 		}
 		if (intakeQuantity.get(ITEM_COST) != null)
-			intakeQuantity.put(ITEM_COST, new Float(Util.formatToSpecifiedDecimalPlaces(intakeQuantity.get(ITEM_COST),0)));
+			intakeQuantity.put(ITEM_COST, Float.parseFloat(Util.formatToSpecifiedDecimalPlaces(intakeQuantity.get(ITEM_COST),0)));
 			
 		return formattedItems;
 	}
@@ -493,18 +464,6 @@ public class FeedSrvc {
 				"\"feedPlanItems\" :[]";
   	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

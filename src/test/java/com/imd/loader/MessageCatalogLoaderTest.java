@@ -56,7 +56,7 @@ class MessageCatalogLoaderTest {
 			boolean found = false;
 			while (msgIt.hasNext()) {
 				Message msg = msgIt.next();
-				if (( msg.getOrgID() + msg.getLanguageCD() + msg.getMessageCD() + msg.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+msg.getMessageText())) {
+				if (( msg.getOrgId() + msg.getLanguageCD() + msg.getMessageCD() + msg.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+msg.getMessageText())) {
 					found = true;
 					break;
 				}
@@ -71,7 +71,7 @@ class MessageCatalogLoaderTest {
 			Message msg = null;
 			while (msgIt.hasNext()) {
 				msg = msgIt.next();
-				if (( msg.getOrgID() + msg.getLanguageCD() + msg.getMessageCD() + msg.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+msg.getMessageText())) {
+				if (( msg.getOrgId() + msg.getLanguageCD() + msg.getMessageCD() + msg.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+msg.getMessageText())) {
 					found = true;
 					break;
 				}
@@ -92,7 +92,7 @@ class MessageCatalogLoaderTest {
 			Message modifiedMessage = null;
 			while (msgIt.hasNext()) {
 				modifiedMessage = msgIt.next();
-				if (( modifiedMessage.getOrgID() + modifiedMessage.getLanguageCD() + modifiedMessage.getMessageCD() + modifiedMessage.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+bean.getMessageText())) {
+				if (( modifiedMessage.getOrgId() + modifiedMessage.getLanguageCD() + modifiedMessage.getMessageCD() + modifiedMessage.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+bean.getMessageText())) {
 					found = true;
 					break;
 				}
@@ -119,7 +119,7 @@ class MessageCatalogLoaderTest {
 			found = false;
 			while (msgIt.hasNext()) {
 				msg = msgIt.next();
-				if (( msg.getOrgID() + msg.getLanguageCD() + msg.getMessageCD() + msg.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+msg.getMessageText())) {
+				if (( msg.getOrgId() + msg.getLanguageCD() + msg.getMessageCD() + msg.getMessageText()).equalsIgnoreCase(messageBean.getOrgId()+messageBean.getLanguageCD()+messageBean.getMessageCD()+msg.getMessageText())) {
 					found = true;
 					break;
 				}
@@ -127,7 +127,7 @@ class MessageCatalogLoaderTest {
 			assertTrue(!found);
 			
 			Message notFoundMessage = MessageCatalogLoader.getMessage("HAHA", "KOK", "7007");
-			assertEquals("HAHA",notFoundMessage.getOrgID());
+			assertEquals("HAHA",notFoundMessage.getOrgId());
 			assertEquals("KOK",notFoundMessage.getLanguageCD());
 			assertEquals("7007",notFoundMessage.getMessageCD());
 			assertEquals("The requested message does not exist in the catalog [HAHA-KOK-7007]",notFoundMessage.getMessageText());
@@ -145,21 +145,21 @@ class MessageCatalogLoaderTest {
 		MessageCatalogLoader ldr = new MessageCatalogLoader();
 		Message testMessage =  new Message("IMD",Util.LanguageCode.ENG, "-99999");
 		testMessage.setMessageText("This is a Test Message the first parameter is: %1 and the second is :%2");
-		String key = testMessage.getOrgID()+"-"+testMessage.getLanguageCD()+"-"+testMessage.getMessageCD();
+		String key = testMessage.getOrgId()+"-"+testMessage.getLanguageCD()+"-"+testMessage.getMessageCD();
 		ldr.getMessageCache().put(key, testMessage);
 		List<String> values = new ArrayList<String>();
 		values.add("first");
 		values.add("second");
 		assertEquals("This is a Test Message the first parameter is: first and the second is :second",
-				MessageCatalogLoader.getDynamicallyPopulatedMessage(testMessage.getOrgID(),testMessage.getLanguageCD(),testMessage.getMessageCD(),values).getMessageText());
+				MessageCatalogLoader.getDynamicallyPopulatedMessage(testMessage.getOrgId(),testMessage.getLanguageCD(),testMessage.getMessageCD(),values).getMessageText());
 		values.remove(0);
 		values.remove(0);
 		values.add("1st");
 		values.add("2nd");
 		assertEquals("This is a Test Message the first parameter is: 1st and the second is :2nd",
-				MessageCatalogLoader.getDynamicallyPopulatedMessage(testMessage.getOrgID(),testMessage.getLanguageCD(),testMessage.getMessageCD(),values).getMessageText());
+				MessageCatalogLoader.getDynamicallyPopulatedMessage(testMessage.getOrgId(),testMessage.getLanguageCD(),testMessage.getMessageCD(),values).getMessageText());
 		MessageBean msgBn = new MessageBean();
-		msgBn.setOrgId(testMessage.getOrgID());
+		msgBn.setOrgId(testMessage.getOrgId());
 		msgBn.setLanguageCD(testMessage.getLanguageCD());
 		msgBn.setMessageCD(testMessage.getMessageCD());
 		ldr.deleteMessage(msgBn);

@@ -2,7 +2,6 @@ package com.imd.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -12,21 +11,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.imd.advisement.CalfWeightAdvisement;
 import com.imd.dto.Advisement;
 import com.imd.dto.Animal;
 import com.imd.dto.Dam;
 import com.imd.dto.LifecycleEvent;
-import com.imd.dto.Note;
-import com.imd.dto.Person;
 import com.imd.dto.User;
 import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.UserLoader;
 import com.imd.services.bean.AdvisementBean;
-import com.imd.services.bean.LifeCycleEventBean;
-import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
 
@@ -86,16 +80,16 @@ class AdvisementSrvcTest {
 			
 			LifeCycleEventsLoader evtLoader = new LifeCycleEventsLoader();
 			AdvisementLoader advLdr =  new AdvisementLoader();
-			List<Advisement> rules = advLdr.getSpecifiedActiveAdvisementRules(youngAnimalTh1.getOrgID(), Util.AdvisementRules.CALFWEIGHT);
+			List<Advisement> rules = advLdr.getSpecifiedActiveAdvisementRules(youngAnimalTh1.getOrgId(), Util.AdvisementRules.CALFWEIGHT);
 			
 			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 			DateTime dob = now.minusDays(Integer.parseInt(rules.get(0).getAuxInfo1()));
 			AnimalLoader ldr = new AnimalLoader();
 			
 			
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) >= 0);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) >= 0);
 			
-			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) >= 0);
 
 			youngAnimalTh1.setDateOfBirth(dob.plusDays(10));
 			
@@ -103,7 +97,7 @@ class AdvisementSrvcTest {
 			User kashif = new User("KASHIF");
 
 			
-			LifecycleEvent weightMeasurementEvent = new LifecycleEvent(youngAnimalTh1.getOrgID(), 0,youngAnimalTh1.getAnimalTag(), Util.LifeCycleEvents.WEIGHT, 
+			LifecycleEvent weightMeasurementEvent = new LifecycleEvent(youngAnimalTh1.getOrgId(), 0,youngAnimalTh1.getAnimalTag(), Util.LifeCycleEvents.WEIGHT, 
 					kashif,dob.plusMonths(1), kashif, dob.plusMonths(1));
 			weightMeasurementEvent.setEventNote("Test  Event - Weight 1");
 			weightMeasurementEvent.setEventTimeStamp(youngAnimalTh1.getDateOfBirth().plusDays(15));
@@ -138,8 +132,8 @@ class AdvisementSrvcTest {
 			assertEquals(Util.LanguageCode.URD,Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.LANG_CD));
 			assertTrue(serviceResponseJson.indexOf("ان جانوروں کا وزن آدھہ کلو یومیہ سے کم بڑھا ہے") > 0,serviceResponseJson);
 			
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) == 2);
-			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) == 1);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) == 2);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) == 1);
 			assertEquals(1,userLoader.logoutUser(user.getPassword()));
 			
 		} catch (Exception e) {

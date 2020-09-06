@@ -1,11 +1,16 @@
 package com.imd.services.bean;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AnimalBean {
-	private String orgID;
+	private String orgId;
 	private String animalTag;
 	private String alias;
 	private boolean activeOnly;
@@ -29,6 +34,17 @@ public class AnimalBean {
 	private String herdJoiningDttmStr;
 	private String loginToken;
 	private String operatorAtBirth;
+	
+	@JsonProperty("animalTagsList")
+    private List<String> animalTagsList;
+
+	public List<String> getAnimalTagsList() {
+		return animalTagsList;
+	}
+	public void setAnimalTagsList(List<String> tagList) {
+		animalTagsList = tagList;
+	}
+
 
 	public String getAnimalTag() {
 		return animalTag;
@@ -58,8 +74,9 @@ public class AnimalBean {
 	}
 	
 	public String toString() {
-		return 	"\n orgID:" + orgID + 
+		return 	"\n orgID:" + orgId + 
 				"\n animalTag:" + animalTag + 
+				"\n animalTagsList:" + getValueList(animalTagsList) + 
 				"\n animalType:" + animalType + 
 				"\n loginToken: " + loginToken +
 				"\n alias:" + alias + 
@@ -76,11 +93,21 @@ public class AnimalBean {
 				"\n leftPoseImage:" + leftPoseImage +
 				"\n activeOnly:" + activeOnly;
 	}
-	public String getOrgID() {
-		return orgID;
+	private String getValueList(List<String> tagsList) {
+		String valueList = "";
+		if (tagsList != null && !tagsList.isEmpty()) {
+			Iterator<String> it = tagsList.iterator();
+			while(it.hasNext()) {
+				valueList += (valueList.isEmpty() ? "" : ",") + it.next().toString();
+			}
+		}
+		return valueList;
 	}
-	public void setOrgID(String orgID) {
-		this.orgID = orgID;
+	public String getOrgId() {
+		return orgId;
+	}
+	public void setOrgId(String orgID) {
+		this.orgId = orgID;
 	}
 	public String getGender() {
 		return gender;

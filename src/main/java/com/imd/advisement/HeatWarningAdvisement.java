@@ -1,12 +1,10 @@
 package com.imd.advisement;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,13 +48,13 @@ public class HeatWarningAdvisement extends AdvisementRule {
 
 			if (ruleDto != null) {
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					Message localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					Message localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgId(), languageCd, ruleDto.getFirstThresholdMessageCode());
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setFirstThresholdMessage(localizedMessage.getMessageText());
-					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgId(), languageCd, ruleDto.getSecondThresholdMessageCode());
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setSecondThresholdMessage(localizedMessage.getMessageText());
-					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgId(), languageCd, ruleDto.getThirdThresholdMessageCode());
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setThirdThresholdMessage(localizedMessage.getMessageText());
 				}

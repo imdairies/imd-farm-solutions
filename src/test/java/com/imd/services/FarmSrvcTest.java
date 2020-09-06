@@ -17,6 +17,8 @@ import com.imd.dto.Person;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.UserLoader;
+import com.imd.services.bean.LookupValuesBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
@@ -64,16 +66,23 @@ class FarmSrvcTest {
 		IMDLogger.loggingMode = Util.INFO;
 		
 		try {
+			
 			Animal anml = createTestAnimal("-999", Util.AnimalTypes.DRYPREG);
 			String controller = "IMD";
-			User user = new User("TEST");
 
 			AnimalLoader aLoader = new AnimalLoader();
 			LifeCycleEventsLoader eLoader = new LifeCycleEventsLoader();
 			
+			UserLoader userLoader = new UserLoader();
+			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
+			assertTrue(user != null);
+			assertTrue(user.getPassword() != null);
 			
-			assertTrue(aLoader.deleteAnimal(anml.getOrgID(), anml.getAnimalTag()) >= 0);
-			assertTrue(eLoader.deleteAnimalLifecycleEvents(anml.getOrgID(), anml.getAnimalTag()) >= 0);
+			LookupValuesBean bean = new LookupValuesBean();
+			bean.setLoginToken(user.getPassword());
+
+			assertTrue(aLoader.deleteAnimal(anml.getOrgId(), anml.getAnimalTag()) >= 0);
+			assertTrue(eLoader.deleteAnimalLifecycleEvents(anml.getOrgId(), anml.getAnimalTag()) >= 0);
 			
 			
 			LifecycleEvent inseminationEvent = new LifecycleEvent(controller,0,anml.getAnimalTag(),Util.LifeCycleEvents.INSEMINATE,
@@ -89,29 +98,23 @@ class FarmSrvcTest {
 //			inseminationEvent.setUpdatedBy(user);
 //			inseminationEvent.setCreatedDTTM(DateTime.now());
 //			inseminationEvent.setUpdatedDTTM(DateTime.now());
-			
 
 			assertEquals(1,aLoader.insertAnimal(anml));
 			assertTrue(eLoader.insertLifeCycleEvent(inseminationEvent) > 0);
 			
-			
 			FarmSrvc farmSrvc = new FarmSrvc();
 			
-			
-			String expectedCalvingThisMonthListValue = farmSrvc.retrieveBreedingEventForThisMonth().getEntity().toString();
+			String expectedCalvingThisMonthListValue = farmSrvc.retrieveBreedingEventForThisMonth(bean).getEntity().toString();
 			int start = expectedCalvingThisMonthListValue.indexOf("\"expectedCalvingThisMonthList\"");
-			assertTrue(start>=0, "" + start);
+			assertTrue(start >= 0, expectedCalvingThisMonthListValue);
 			int end = expectedCalvingThisMonthListValue.indexOf("\",", start);
 			assertTrue(end>start);
 			assertTrue(expectedCalvingThisMonthListValue.substring(start, end).indexOf(anml.getAnimalTag()) >=0,expectedCalvingThisMonthListValue.substring(start, end));
 			
-		
-			assertEquals(1,eLoader.deleteAnimalLifecycleEvents(anml.getOrgID(), anml.getAnimalTag()));
-			assertEquals(1,aLoader.deleteAnimal(anml.getOrgID(), anml.getAnimalTag()));
-		
+			assertEquals(1,eLoader.deleteAnimalLifecycleEvents(anml.getOrgId(), anml.getAnimalTag()));
+			assertEquals(1,aLoader.deleteAnimal(anml.getOrgId(), anml.getAnimalTag()));
 		
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			fail("Exception in FarmSrvcTest.testUpcomingCalvings");
 		} finally {

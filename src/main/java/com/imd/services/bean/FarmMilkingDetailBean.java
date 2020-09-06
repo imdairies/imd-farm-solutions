@@ -7,9 +7,12 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.imd.util.IMDProperties;
+
+
+
 
 public class FarmMilkingDetailBean {
-//	private String animalTag;
 	private String orgID;
 	private String milkingDateStr;
 	private String milkingTimeStr;
@@ -20,12 +23,64 @@ public class FarmMilkingDetailBean {
 	private Float temperatureInCentigrade;
 	private Float humidity;
 	private String loginToken;
+	private String comments;
+	
 	@JsonProperty("farmMilkingEventRecords")
     private List<TagVolumeCommentTriplet> farmMilkingEventRecords;
-//    private String tagVolume;
 
+	private Float phValue;
+	private Float forCalvesUse;
+	private Float forFarmUse;
+	private Float forPersonalUse;
+	private Float forFamilyUse;
+	private Float forOtherUse;
+	private Float forWasteAdj;
+
+	public Float getForFamilyUse() {
+		return forFamilyUse;
+	}
+	public void setForFamilyUse(Float forFamilyUse) {
+		this.forFamilyUse = forFamilyUse;
+	}
+	public Float getForOtherUse() {
+		return forOtherUse;
+	}
+	public void setForOtherUse(Float forOtherUse) {
+		this.forOtherUse = forOtherUse;
+	}
+	public Float getForWasteAdj() {
+		return forWasteAdj;
+	}
+	public void setForWasteAdj(Float forWasteAdj) {
+		this.forWasteAdj = forWasteAdj;
+	}
+
+
+	public Float getPhValue() {
+		return phValue;
+	}
+	public void setPhValue(Float phValue) {
+		this.phValue = phValue;
+	}
+	public Float getForCalvesUse() {
+		return forCalvesUse;
+	}
+	public void setForCalvesUse(Float forCalvesUse) {
+		this.forCalvesUse = forCalvesUse;
+	}
+	public Float getForFarmUse() {
+		return forFarmUse;
+	}
+	public void setForFarmUse(Float forFarmUse) {
+		this.forFarmUse = forFarmUse;
+	}
+	public Float getForPersonalUse() {
+		return forPersonalUse;
+	}
+	public void setForPersonalUse(Float forPersonalUse) {
+		this.forPersonalUse = forPersonalUse;
+	}
 	public FarmMilkingDetailBean() {
-		// TODO Auto-generated constructor stub
 	}
 	public FarmMilkingDetailBean( String orgID2, String milkingDateStr2, String milkingTimeStr2, short milkingEventNumber2,
 			float milkVolume2, Float fatValue2, Float lrValue2, Float toxinValue2, Float temperatureInCentigrade2,
@@ -47,7 +102,7 @@ public class FarmMilkingDetailBean {
 		this.orgID = orgID;
 	}
 	public LocalDate getRecordDate() {
-		return new LocalDate(milkingDateStr);
+		return new LocalDate(milkingDateStr, IMDProperties.getServerTimeZone());
 		//return new LocalDate();
 	}
 	public LocalTime getRecordTime() {
@@ -63,6 +118,14 @@ public class FarmMilkingDetailBean {
 		"toxinValue:" +  this.toxinValue + "\n" + 
 		"temperatureInCentigrade:" +  this.temperatureInCentigrade + "\n" + 
 		"humidity:" +  this.humidity + "\n" + 
+		"comments:" +  this.comments + "\n" + 
+		"phValue:" +  this.phValue + "\n" + 
+		"forCalvesUse:" +  this.forCalvesUse + "\n" + 
+		"forFarmUse:" +  this.forFarmUse + "\n" + 
+		"forPersonalUse:" +  this.forPersonalUse + "\n" + 
+		"forFamilyUse:" +  this.forFamilyUse + "\n" + 
+		"forOtherUse:" +  this.forOtherUse + "\n" + 
+		"forWasteAdj:" +  this.forWasteAdj + "\n" + 
 		"farmMilkingEventRecords:" + this.farmMilkingEventRecords;
 		return value;
 	}
@@ -134,4 +197,20 @@ public class FarmMilkingDetailBean {
 	public void setLoginToken(String loginToken) {
 		this.loginToken = loginToken;
 	}
+	public String getComments() {
+		return comments;
+	}
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+	
 }
+
+
+
+
+
+
+
+
+

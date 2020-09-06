@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 
 import com.imd.dto.Animal;
 import com.imd.dto.LifeCycleEventCode;
@@ -24,7 +23,6 @@ import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
-import com.imd.util.Util.LifeCycleEvents;
 
 public class LifeCycleEventsLoader {
 
@@ -54,7 +52,7 @@ public class LifeCycleEventsLoader {
 		Connection conn = DBManager.getDBConnection();
 		try {
 			preparedStatement = conn.prepareStatement(qryString, Statement.RETURN_GENERATED_KEYS);
-			preparedStatement.setString(1, event.getOrgID());
+			preparedStatement.setString(1, event.getOrgId());
 			preparedStatement.setString(2, event.getAnimalTag());
 			preparedStatement.setString(3, event.getEventType().getEventCode());
 			preparedStatement.setString(4, event.getEventTimeStampSQLFormat());
@@ -521,7 +519,7 @@ public class LifeCycleEventsLoader {
 				while (it.hasNext()) {
 					preparedStatement.setString(i++,it.next());
 				}
-				preparedStatement.setString(i++,event.getOrgID());
+				preparedStatement.setString(i++,event.getOrgId());
 				preparedStatement.setInt(i,event.getEventTransactionID());
 				IMDLogger.log(preparedStatement.toString(), Util.INFO);
 
@@ -631,7 +629,7 @@ public class LifeCycleEventsLoader {
 				Animal animal = animalLoader.getAnimalRawInfo(animalBean).get(0);
 				AnimalBean mateBean = new AnimalBean();
 				mateBean.setAnimalTag(eventBean.getAuxField1Value());
-				mateBean.setOrgID(animal.getOrgID());
+				mateBean.setOrgId(animal.getOrgId());
 				List<Animal> matchingMates = animalLoader.getAnimalRawInfo(mateBean);
 				if (matchingMates != null && !matchingMates.isEmpty()) {
 					if (matchingMates.get(0).getGender() == animal.getGender()) {
@@ -644,7 +642,7 @@ public class LifeCycleEventsLoader {
 			}
 		} else if (eventBean.getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.PARTURATE) && eventBean.getAuxField3Value() != null && !eventBean.getAuxField3Value().trim().isEmpty()) {
 			try {
-				List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean.getOrgID(),eventBean.getAuxField3Value().trim());
+				List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean.getOrgId(),eventBean.getAuxField3Value().trim());
 				if (animals != null && !animals.isEmpty())
 					validationMessage = "You have assigned tag# " + eventBean.getAuxField3Value().trim() + " to the new born calf. This tag# is already in use. Please assign another tag#. If you do not wish to add the calf to the herd at this moment, please remove the tag# and try again";
 					
@@ -678,7 +676,7 @@ public class LifeCycleEventsLoader {
 					event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.SOLD) ||
 					event.getEventType().getEventCode().equalsIgnoreCase(Util.LifeCycleEvents.DEATH)) {
 				AnimalLoader loader = new AnimalLoader();
-				int recordUpdated = loader.updateAnimalHerdLeavingDTTM(animal.getOrgID(), animal.getAnimalTag(), event.getEventTimeStampSQLFormat(), user);
+				int recordUpdated = loader.updateAnimalHerdLeavingDTTM(animal.getOrgId(), animal.getAnimalTag(), event.getEventTimeStampSQLFormat(), user);
 				if (recordUpdated == 1)
 					outcome = ". The animal's herd leaving date has been set to : " + event.getEventTimeStampSQLFormat();
 				else
@@ -699,13 +697,13 @@ public class LifeCycleEventsLoader {
 			if (shouldUpdateInseminationResults(sourceEvent)) {
 				IMDLogger.log("Updating the last insemination results", Util.INFO);
 				
-				List<LifecycleEvent> parturationAbortionEvents = retrieveSpecificLifeCycleEventsForAnimal(sourceEvent.getOrgID(), sourceEvent.getAnimalTag(), null, null, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,null,null,null);
+				List<LifecycleEvent> parturationAbortionEvents = retrieveSpecificLifeCycleEventsForAnimal(sourceEvent.getOrgId(), sourceEvent.getAnimalTag(), null, null, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,null,null,null);
 				if (parturationAbortionEvents != null && parturationAbortionEvents.size() >0)
 					// the latest insemination should be after the latest parturation else we may end up updating an insmemination
 					// from past lactation
 					latestParturationOrAbortionTS = parturationAbortionEvents.get(0).getEventTimeStamp();
 
-				List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(sourceEvent.getOrgID(), sourceEvent.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
+				List<LifecycleEvent> inseminationEvents = retrieveSpecificLifeCycleEventsForAnimal(sourceEvent.getOrgId(), sourceEvent.getAnimalTag(), null, null, Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, null,null,null,null);
 				outcome = ". We could not update the last insemination event outcome because no past Insemination or Mating event exists for this animal. This either indicates data entry problem or it could be that this is the first time this animal has come into heat. "
 						+ "If this is the first time this animal has come into heat then you can ignore this warning; else "
 						+ "make sure you have added an insemination or mating event for this animal and manually set the \"Insemination Successful?\" to \"NO\"";
@@ -780,11 +778,15 @@ public class LifeCycleEventsLoader {
 				null, null, null, null);
 	}
 
-	public List<LifecycleEvent> retrieveSireInseminationRecord(String orgID, String auxField1Value,
-			String auxField3Value) {
-		return retrieveSpecificLifeCycleEvents(orgID, null, null, 
-				Util.LifeCycleEvents.INSEMINATE, Util.LifeCycleEvents.MATING, 
-				auxField1Value, null, auxField3Value, null);
+	public List<LifecycleEvent> retrieveSireInseminationRecord(String orgID, String sireTag,
+			String eventOutcome) {
+		List<LifecycleEvent> insemAndMatingList = retrieveSpecificLifeCycleEvents(orgID, null, null,
+				Util.LifeCycleEvents.INSEMINATE, null,
+				sireTag, null, eventOutcome, null);
+		insemAndMatingList.addAll(retrieveSpecificLifeCycleEvents(orgID, null, null,
+				Util.LifeCycleEvents.MATING, null,
+				sireTag, eventOutcome, null,null));
+		return insemAndMatingList;
 	}
 
 	public List<LifecycleEvent> retrieveTwoRelevantWeightEvents(Animal animal, DateTime plusDays) {
@@ -812,10 +814,10 @@ public class LifeCycleEventsLoader {
 		int i=1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(i++, animal.getOrgID());
+			preparedStatement.setString(i++, animal.getOrgId());
 			preparedStatement.setString(i++, animal.getAnimalTag());
 			preparedStatement.setString(i++, Util.getDateInSQLFormat(plusDays));
-			preparedStatement.setString(i++, animal.getOrgID());
+			preparedStatement.setString(i++, animal.getOrgId());
 			preparedStatement.setString(i++, animal.getAnimalTag());
 			preparedStatement.setString(i, Util.getDateInSQLFormat(plusDays));
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
@@ -825,7 +827,7 @@ public class LifeCycleEventsLoader {
 		    }
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			IMDLogger.log("Could not retrieve two relevant weight events for the animal [" + animal.getOrgID() +"-" + animal.getAnimalTag() + "]", Util.ERROR);
+			IMDLogger.log("Could not retrieve two relevant weight events for the animal [" + animal.getOrgId() +"-" + animal.getAnimalTag() + "]", Util.ERROR);
 		} finally {
 		    try {
 				if (rs != null && !rs.isClosed()) {

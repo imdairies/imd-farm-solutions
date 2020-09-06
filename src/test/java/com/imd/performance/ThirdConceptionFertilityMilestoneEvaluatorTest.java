@@ -58,13 +58,13 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			
 			assertTrue(anmlLdr.deleteAnimal(male) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female.getOrgID(), female.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(male.getOrgID(), male.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female.getOrgId(), female.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(male.getOrgId(), male.getAnimalTag())>= 0);
 			
 			assertEquals(1, anmlLdr.insertAnimal(male));
 			assertEquals(1, anmlLdr.insertAnimal(female));
 
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, male.getOrgID(), male.getAnimalTag(), Util.LanguageCode.ENG);			
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, male.getOrgId(), male.getAnimalTag(), Util.LanguageCode.ENG);			
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating(), " Male animal not eligible for this");
 			
 			DateTime firstHeat = female.getDateOfBirth().plusDays(14*30);
@@ -73,7 +73,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, firstHeat.plusDays(1), "UNKNOWN","NO", "YES",null);
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, firstHeat.plusMonths(9));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgID(), female.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgId(), female.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating(), " Only one calving not eligible for this");
 			
 			DateTime secondHeat = firstHeat.plusMonths(12);
@@ -82,7 +82,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, secondHeat.plusDays(1), "UNKNOWN","NO", "YES",null);
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, secondHeat.plusMonths(9));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgID(), female.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgId(), female.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE,outcome.getStarRating(), " Two clavings not eligible for this");
 
 			DateTime thirdHeat = secondHeat.plusMonths(12);
@@ -95,14 +95,14 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeat.plusDays(42),"UNKNOWN","NO","YES",null);
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeat.plusDays(42).plusMonths(9));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgID(), female.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgId(), female.getAnimalTag(), Util.LanguageCode.ENG);
 			assertTrue(outcome.getStarRating() >= 0, "Three inseminations animal is eligible");
 			
 			
 			assertEquals(1, anmlLdr.deleteAnimal(male));
 			assertEquals(1, anmlLdr.deleteAnimal(female));
-			assertEquals(13, evtLdr.deleteAnimalLifecycleEvents(female.getOrgID(), female.getAnimalTag()));
-			assertEquals(0, evtLdr.deleteAnimalLifecycleEvents(male.getOrgID(), male.getAnimalTag()));
+			assertEquals(13, evtLdr.deleteAnimalLifecycleEvents(female.getOrgId(), female.getAnimalTag()));
+			assertEquals(0, evtLdr.deleteAnimalLifecycleEvents(male.getOrgId(), male.getAnimalTag()));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -128,7 +128,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			Animal female = TestDataCreationUtil.createTestAnimal(orgId, femaleTag, dob, true);
 			
 			assertTrue(anmlLdr.deleteAnimal(female) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female.getOrgID(), female.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female.getOrgId(), female.getAnimalTag())>= 0);
 			
 			assertEquals(1, anmlLdr.insertAnimal(female));
 
@@ -165,12 +165,12 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate.plusDays(63),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate.plusDays(63).plusMonths(9));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgID(), female.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female.getOrgId(), female.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.NO_STAR, outcome.getStarRating());
 			IMDLogger.log(outcome.getEvaluationValue(), Util.INFO);
 			
 			assertEquals(1, anmlLdr.deleteAnimal(female));
-			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female.getOrgID(), female.getAnimalTag()));
+			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female.getOrgId(), female.getAnimalTag()));
 			
 		} catch (Exception e) {
 			fail("Exception : " + e.getMessage());
@@ -202,9 +202,9 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			assertTrue(anmlLdr.deleteAnimal(female1) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female2) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female3) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag())>= 0);
 			
 			assertEquals(1, anmlLdr.insertAnimal(female1));
 			assertEquals(1, anmlLdr.insertAnimal(female2));
@@ -250,7 +250,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate1.plusDays(63),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate1.plusDays(63).plusMonths(9));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgID(), female1.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgId(), female1.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[4YY]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate1.plusDays(63)) + ")");
 			assertNotEquals(Util.StarRating.ONE_STAR, outcome.getStarRating(), outcome.getStarRating()+"");// should be two star
 			
@@ -279,7 +279,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate2.plusDays(63),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate2.plusDays(63).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgID(), female2.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgId(), female2.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[4NY]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be Normal semen in HARSH weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate2.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating());
 
@@ -308,16 +308,16 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate3.plusDays(63),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate3.plusDays(63).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgID(), female3.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgId(), female3.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[4YN]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate3.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating());
 
 			assertEquals(1, anmlLdr.deleteAnimal(female1));
-			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag()));
+			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female2));
-			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag()));
+			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female3));
-			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag()));
+			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag()));
 		} catch (Exception e) {
 			fail("Exception : " + e.getMessage());
 			e.printStackTrace();
@@ -348,9 +348,9 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			assertTrue(anmlLdr.deleteAnimal(female1) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female2) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female3) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag())>= 0);
 			
 			assertEquals(1, anmlLdr.insertAnimal(female1));
 			assertEquals(1, anmlLdr.insertAnimal(female2));
@@ -396,7 +396,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate1.plusDays(63),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate1.plusDays(63).plusMonths(9));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgID(), female1.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgId(), female1.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[4YY]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate1.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.TWO_STAR, outcome.getStarRating(), outcome.getStarRating()+"");
 			
@@ -425,7 +425,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate2.plusDays(63),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate2.plusDays(63).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgID(), female2.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgId(), female2.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[3NY]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be Normal semen in HARSH weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate2.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.TWO_STAR, outcome.getStarRating());
 
@@ -454,16 +454,16 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate3.plusDays(63),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate3.plusDays(63).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgID(), female3.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgId(), female3.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[3NN]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate3.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.TWO_STAR, outcome.getStarRating());
 
 			assertEquals(1, anmlLdr.deleteAnimal(female1));
-			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag()));
+			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female2));
-			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag()));
+			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female3));
-			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag()));
+			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag()));
 		} catch (Exception e) {
 			fail("Exception : " + e.getMessage());
 			e.printStackTrace();
@@ -491,8 +491,8 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			
 			assertTrue(anmlLdr.deleteAnimal(female1) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female2) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag())>= 0);
 			
 			assertEquals(1, anmlLdr.insertAnimal(female1));
 			assertEquals(1, anmlLdr.insertAnimal(female2));
@@ -532,7 +532,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate1.plusDays(63),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate1.plusDays(63).plusMonths(9));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgID(), female1.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgId(), female1.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[4YY]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate1.plusDays(63)) + ")");
 			assertNotEquals(Util.StarRating.THREE_STAR, outcome.getStarRating(), outcome.getStarRating()+"");
 			
@@ -561,14 +561,14 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate2.plusDays(63),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate2.plusDays(63).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgID(), female2.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgId(), female2.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[3YN]", outcome.getEvaluationValue(),"Should have taken 3 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate2.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.THREE_STAR, outcome.getStarRating());
 
 			assertEquals(1, anmlLdr.deleteAnimal(female1));
-			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag()));
+			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female2));
-			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag()));
+			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag()));
 			
 		} catch (Exception e) {
 			fail("Exception : " + e.getMessage());
@@ -599,9 +599,9 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			assertTrue(anmlLdr.deleteAnimal(female1) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female2) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female3) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag())>= 0);
 			
 			assertEquals(1, anmlLdr.insertAnimal(female1));
 			assertEquals(1, anmlLdr.insertAnimal(female2));
@@ -647,7 +647,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate1.plusDays(63),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate1.plusDays(63).plusMonths(9));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgID(), female1.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgId(), female1.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[4YY]", outcome.getEvaluationValue(),"Should have taken 4 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate1.plusDays(63)) + ")");
 			assertNotEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating(), outcome.getStarRating()+"");
 			
@@ -676,7 +676,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate2.plusDays(63),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate2.plusDays(63).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgID(), female2.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgId(), female2.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[2NN]", outcome.getEvaluationValue(),"Should have taken 2 attempts to conceive and the last one should be Normal semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate2.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating());
 
@@ -705,16 +705,16 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate3.plusDays(63),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate3.plusDays(63).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgID(), female3.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgId(), female3.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[3YY]", outcome.getEvaluationValue(),"Should have taken 3 attempts to conceive and the last one should be sexed semen in HARSH weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate3.plusDays(63)) + ")");
 			assertEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating());
 
 			assertEquals(1, anmlLdr.deleteAnimal(female1));
-			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag()));
+			assertEquals(21, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female2));
-			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag()));
+			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female3));
-			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag()));
+			assertEquals(19, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag()));
 		} catch (Exception e) {
 			fail("Exception : " + e.getMessage());
 			e.printStackTrace();
@@ -757,13 +757,13 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			assertTrue(anmlLdr.deleteAnimal(female5) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female6) >= 0);
 			assertTrue(anmlLdr.deleteAnimal(female7) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female4.getOrgID(), female4.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female5.getOrgID(), female5.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female6.getOrgID(), female6.getAnimalTag())>= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female7.getOrgID(), female7.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female4.getOrgId(), female4.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female5.getOrgId(), female5.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female6.getOrgId(), female6.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(female7.getOrgId(), female7.getAnimalTag())>= 0);
 			
 			assertEquals(1, anmlLdr.insertAnimal(female1));
 			assertEquals(1, anmlLdr.insertAnimal(female2));
@@ -819,7 +819,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate1,"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female1.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate1.plusMonths(9));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgID(), female1.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, female1.getOrgId(), female1.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[1YY]", outcome.getEvaluationValue(),"Should have taken 1 attempt to conceive and the last one should be sexed semen in HARSH weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate1) + ")");
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating(), outcome.getStarRating()+"");
 			
@@ -842,7 +842,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate2.plusDays(1),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female2.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate2.plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgID(), female2.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female2.getOrgId(), female2.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[1YN]", outcome.getEvaluationValue(),"Should have taken 2 attempts to conceive and the last one should be Normal semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate2.plusDays(1)) + ")");
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 
@@ -865,7 +865,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate3.plusDays(1),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female3.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate3.plusDays(1).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgID(), female3.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female3.getOrgId(), female3.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[1NY]", outcome.getEvaluationValue(),"Should have taken 1 attempt to conceive and the last one should be normal semen in HARSH weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate3.plusDays(1)) + ")");
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 
@@ -889,7 +889,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female4.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate4.plusDays(22),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female4.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate4.plusDays(22).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female4.getOrgID(), female4.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female4.getOrgId(), female4.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[2YY]", outcome.getEvaluationValue(),"Should have taken 2 attempts to conceive and the last one should be sexed semen in HARSH weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate4.plusDays(22)) + ")");
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 
@@ -913,7 +913,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female5.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate5.plusDays(21),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female5.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate5.plusDays(21).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female5.getOrgID(), female5.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female5.getOrgId(), female5.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[1NN]", outcome.getEvaluationValue(),"Should have taken 1 attempt to conceive and the last one should be normal semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate5.plusDays(21)) + ")");
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 
@@ -938,7 +938,7 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female6.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate6.plusDays(22),"UNKNOWN",/*sexed semen*/"YES",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female6.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate6.plusDays(22).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female6.getOrgID(), female6.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female6.getOrgId(), female6.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[2YN]", outcome.getEvaluationValue(),"Should have taken 2 attempts to conceive and the last one should be sexed semen in favourable weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate6.plusDays(22)) + ")");
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 			
@@ -962,27 +962,27 @@ class ThirdConceptionFertilityMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(female7.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, thirdHeatDate7.plusDays(22),"UNKNOWN",/*sexed semen*/"NO",/* insemination successful*/"YES",null);
 			TestDataCreationUtil.insertEvent(female7.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, thirdHeatDate7.plusDays(22).plusMonths(9));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, female7.getOrgID(), female7.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, female7.getOrgId(), female7.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals("[2NY]", outcome.getEvaluationValue(),"Should have taken 2 attempts to conceive and the last one should be normal semen in HARSH weather (Inseminated on: " + Util.getDateInSQLFormat(thirdHeatDate7.plusDays(22)) + ")");
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 			
 		
 
 			assertEquals(1, anmlLdr.deleteAnimal(female1));
-			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgID(), female1.getAnimalTag()));
+			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female1.getOrgId(), female1.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female2));
-			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgID(), female2.getAnimalTag()));
+			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female2.getOrgId(), female2.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female3));
-			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgID(), female3.getAnimalTag()));
+			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female3.getOrgId(), female3.getAnimalTag()));
 			
 			assertEquals(1, anmlLdr.deleteAnimal(female4));
-			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female4.getOrgID(), female4.getAnimalTag()));
+			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female4.getOrgId(), female4.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female5));
-			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female5.getOrgID(), female5.getAnimalTag()));
+			assertEquals(15, evtLdr.deleteAnimalLifecycleEvents(female5.getOrgId(), female5.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female6));
-			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female6.getOrgID(), female6.getAnimalTag()));
+			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female6.getOrgId(), female6.getAnimalTag()));
 			assertEquals(1, anmlLdr.deleteAnimal(female7));
-			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female7.getOrgID(), female7.getAnimalTag()));
+			assertEquals(17, evtLdr.deleteAnimalLifecycleEvents(female7.getOrgId(), female7.getAnimalTag()));
 		} catch (Exception e) {
 			fail("Exception : " + e.getMessage());
 			e.printStackTrace();

@@ -3,13 +3,10 @@ package com.imd.loader;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.AfterAll;
@@ -30,7 +27,6 @@ import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
-import com.imd.util.Util.LifeCycleEvents;
 
 class LifeCycleEventLoaderTest {
 
@@ -127,7 +123,7 @@ class LifeCycleEventLoaderTest {
 			cullingEvent.setEventTimeStamp(cullingTS);
 			
 			LifecycleEvent deathEvent = new LifecycleEvent(orgID,0,animalTag,deathCD.getEventCode(),user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
-			deathEvent.setOrgID(orgID);
+			deathEvent.setOrgId(orgID);
 			deathEvent.setAnimalTag(animalTag);
 			deathEvent.setEventNote("test");
 			deathEvent.setAuxField1Value(null);
@@ -138,7 +134,7 @@ class LifeCycleEventLoaderTest {
 			deathEvent.setEventTimeStamp(deathTS);
 						
 			LifecycleEvent soldEvent = new LifecycleEvent(orgID,0,animalTag,soldCD.getEventCode(),user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
-			soldEvent.setOrgID(orgID);
+			soldEvent.setOrgId(orgID);
 			soldEvent.setAnimalTag(animalTag);
 			soldEvent.setEventNote("test");
 			soldEvent.setAuxField1Value(null);
@@ -173,7 +169,7 @@ class LifeCycleEventLoaderTest {
 			inseminationEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 
 			LifecycleEvent parturitionEvent = new LifecycleEvent(orgID,0,animalTag,parturitionCD.getEventCode(),user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
-			parturitionEvent.setOrgID(orgID);
+			parturitionEvent.setOrgId(orgID);
 			parturitionEvent.setAnimalTag(animalTag);
 			parturitionEvent.setAuxField1Value(Util.GENDER_CHAR.FEMALE + ""); 
 			parturitionEvent.setAuxField2Value(null);
@@ -251,7 +247,7 @@ class LifeCycleEventLoaderTest {
 			loader.deleteAnimalLifecycleEvents(orgID, animalTag);
 			
 			AnimalLoader animalLoader = new AnimalLoader();
-			assertTrue(animalLoader.deleteAnimal(animal.getOrgID(), animal.getAnimalTag()) >= 0);
+			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag()) >= 0);
 			assertEquals(0,loader.performPostEventAdditionEventsUpdates(cullingEvent, animal, user).indexOf(". " + Util.ERROR_POSTFIX + "The animal's herd leaving date could NOT be set to :"));
 			
 
@@ -301,7 +297,7 @@ class LifeCycleEventLoaderTest {
 			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
 			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
 			
-			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));			
+			event = new LifecycleEvent(animal999.getOrgId(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));			
 			event.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10));
 			event.setAuxField1Value("BQ");
 			event.setAuxField2Value("BQGOVT");
@@ -318,9 +314,9 @@ class LifeCycleEventLoaderTest {
 			transactionID = eventLoader.insertLifeCycleEvent(event);
 			assertTrue(transactionID>0,"Exactly one event should have been added successfully");
 			
-			List<LifecycleEvent> retevents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal999.getOrgID(), animal999.getAnimalTag(),null);
+			List<LifecycleEvent> retevents = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal999.getOrgId(), animal999.getAnimalTag(),null);
 			assertEquals(1,retevents.size());
-			LifecycleEvent retevent = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal999.getOrgID(), animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE).get(0);
+			LifecycleEvent retevent = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(animal999.getOrgId(), animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE).get(0);
 			assertEquals(event.getAuxField1Value(),retevent.getAuxField1Value());
 			assertEquals(event.getAuxField2Value(),retevent.getAuxField2Value());
 			assertEquals(event.getAuxField3Value(),retevent.getAuxField3Value());
@@ -335,8 +331,8 @@ class LifeCycleEventLoaderTest {
 			assertEquals(null,retevent.getEventType().getField4DataType());
 			assertEquals(null,retevent.getEventType().getField4DataUnit());
 			
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgId(), animal999.getAnimalTag()),"One record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgId(), animal999.getAnimalTag()),"One record should have been deleted");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -356,7 +352,7 @@ class LifeCycleEventLoaderTest {
 			
 			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
 			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
-			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));			
+			event = new LifecycleEvent(animal999.getOrgId(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.VACCINE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));			
 			event.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(10));
 			event.setAuxField1Value("BQ");
 			event.setAuxField2Value("BQGOVT");
@@ -373,7 +369,7 @@ class LifeCycleEventLoaderTest {
 			transactionID = eventLoader.insertLifeCycleEvent(event);
 			assertTrue(transactionID>0,"Exactly one event should have been added successfully");
 			
-			LifecycleEvent retevent = eventLoader.retrieveLifeCycleEvent(animal999.getOrgID(), transactionID);
+			LifecycleEvent retevent = eventLoader.retrieveLifeCycleEvent(animal999.getOrgId(), transactionID);
 			assertEquals(event.getAuxField1Value(),retevent.getAuxField1Value());
 			assertEquals(event.getAuxField2Value(),retevent.getAuxField2Value());
 			assertEquals(event.getAuxField3Value(),retevent.getAuxField3Value());
@@ -387,8 +383,8 @@ class LifeCycleEventLoaderTest {
 			assertEquals(null,retevent.getEventType().getField4DataType());
 			assertEquals(null,retevent.getEventType().getField4DataUnit());
 			
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgId(), animal999.getAnimalTag()),"One record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgId(), animal999.getAnimalTag()),"One record should have been deleted");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -458,7 +454,7 @@ class LifeCycleEventLoaderTest {
 			animalLoader.deleteAnimal("IMD", animal999.getAnimalTag());
 			eventLoader.deleteAnimalLifecycleEvents("IMD","-999");
 
-			event = new LifecycleEvent(animal999.getOrgID(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.BIRTH,user,
+			event = new LifecycleEvent(animal999.getOrgId(), 0, animal999.getAnimalTag(),Util.LifeCycleEvents.BIRTH,user,
 					startDate.plusDays(3),user,DateTime.now(IMDProperties.getServerTimeZone()));			
 			event.setEventTimeStamp(endDate.minusDays(10));
 			event.setAuxField1Value(Util.GENDER_CHAR.FEMALE + "");
@@ -494,8 +490,8 @@ class LifeCycleEventLoaderTest {
 			}
 			assertTrue(found);
 			assertEquals(Util.LifeCycleEvents.BIRTH,resultEvents.get(0).getEventType().getEventCode());
-			assertEquals(3,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgID(), animal999.getAnimalTag()),"Three records should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgID(), animal999.getAnimalTag()),"One record should have been deleted");
+			assertEquals(3,eventLoader.deleteAnimalLifecycleEvents(animal999.getOrgId(), animal999.getAnimalTag()),"Three records should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal(animal999.getOrgId(), animal999.getAnimalTag()),"One record should have been deleted");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -669,12 +665,7 @@ class LifeCycleEventLoaderTest {
 			fail("LifeCycleEvent Creation and/or insertion Failed.");
 		}
 	}	
-	
 }
-
-
-
-
 
 
 

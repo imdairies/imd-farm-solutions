@@ -12,14 +12,18 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.util.BufferRecyclers;
 import com.imd.dto.Animal;
+import com.imd.dto.LifecycleEvent;
 import com.imd.dto.MilkingDetail;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
+import com.imd.loader.LifeCycleEventsLoader;
 import com.imd.loader.MessageCatalogLoader;
 import com.imd.loader.MilkingDetailLoader;
 import com.imd.services.bean.AnimalBean;
@@ -30,8 +34,7 @@ import com.imd.services.bean.TagVolumeCommentTriplet;
 import com.imd.util.IMDException;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
-import com.imd.util.Util;;
-
+import com.imd.util.Util;
 @Path("/milkinginfo")
 public class MilkingInformationSrvc {
 
@@ -45,15 +48,15 @@ public class MilkingInformationSrvc {
 		// Feb average will be for Febs of all the years, instead of only the Feb for a given year. This is not the right way to deduce monthly average.
 		String methodName = "retrieveLactatingAnimalsMilkRecord";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,selectedDateSearchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,selectedDateSearchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		selectedDateSearchBean.setOrgID(orgID);
 		IMDLogger.log(selectedDateSearchBean.toString(), Util.INFO);
 
@@ -90,18 +93,21 @@ public class MilkingInformationSrvc {
 	    		else
 	    			prevDayMilkingInfo = milkingLoader.retrieveSingleMilkingRecordsOfCow(previousDateSearchBean, false);
 	    		
-	    		animalValueResult += appendMilkingDetails(selectedDateMilkingInfo,prevDayMilkingInfo,selectedDateSearchBean);
+	    		animalValueResult +=  appendMilkingDetails(selectedDateMilkingInfo,prevDayMilkingInfo,selectedDateSearchBean);
 	    	}
 	    	if (animalValueResult != null && !animalValueResult.trim().isEmpty() )
 	    		animalValueResult = "[" + animalValueResult.substring(0,animalValueResult.lastIndexOf(",\n")) + "]";
 	    	else
 	    		animalValueResult = "[]";
 	    	IMDLogger.log(animalValueResult, Util.INFO);
-		} catch (Exception e) {
+    	} catch (java.lang.IllegalArgumentException e) {
 			e.printStackTrace();
-			IMDLogger.log("Exception in AnimalSrvc.retrieveLactatingAnimalsMilkRecord() service method: " + e.getMessage(),  Util.ERROR);
+			IMDLogger.log("Exception in AnimalSrvc." + methodName + "() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\" One or more input parameters were invalid. Please review the input parameters, especially the timestamps and try again. The timestamps must be in yyyy-dd-mm hh:mm format." + "\"}").build();
+    	} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc." + methodName + "() service method: " + e.getMessage(),  Util.ERROR);
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
-//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getMessage() + "\"}").build();
 		}
     	IMDLogger.log(animalValueResult, Util.INFO);
 		return Response.status(Util.HTTPCodes.OK).entity(animalValueResult).build();
@@ -115,7 +121,7 @@ public class MilkingInformationSrvc {
 	    	recordDetail.setAdditionalStatistics(getPreviousDaysVolumeForAnimal(searchBean.getAnimalTag(),previousDaysMilkingRecords));
 	    	Float daysInMilking = getDaysInMilking(searchBean.getOrgID(), searchBean.getAnimalTag(),searchBean.getRecordDate());
 			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.DAYS_IN_MILKING, daysInMilking < 0 ? null : daysInMilking);
-	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
+	    	milkingDetail = "{\n" + recordDetail.dtoToJson(prefix/*,DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")*/) + "\n},\n";
 		} else {
 	    	Iterator<MilkingDetail> recordsIt = selectedDaysMilkingRecords.iterator();
 	    	while (recordsIt.hasNext()) {
@@ -125,7 +131,7 @@ public class MilkingInformationSrvc {
 	    		if (prevDayValues != null) {
 	    			recordDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL, prevDayValues.get(Util.MilkingDetailStatistics.YESTERDAY_SEQ_NBR_VOL));
 	    		}
-	    		milkingDetail += "{\n" + recordDetail.dtoToJson(prefix, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";
+	    		milkingDetail += "{\n" + recordDetail.dtoToJson(prefix/*,*DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")*/) + "\n},\n";
 	    		IMDLogger.log(milkingDetail, Util.INFO);
 	    	}
 		}
@@ -133,7 +139,7 @@ public class MilkingInformationSrvc {
 	}	
 	private Float getDaysInMilking(String orgID, String animalTag, LocalDate toDateForDaysInMilking) {
 		MilkingDetailLoader loader = new MilkingDetailLoader();
-		return new Float(loader.getDaysInMilkingOfCow(orgID, animalTag, toDateForDaysInMilking));
+		return (float)(loader.getDaysInMilkingOfCow(orgID, animalTag, toDateForDaysInMilking));
 	}
 	private HashMap <String, Float> getPreviousDaysVolumeForAnimal(String animalTag, List<MilkingDetail> previousDaysMilkingRecords) {
 		HashMap <String, Float> values = null;
@@ -155,15 +161,15 @@ public class MilkingInformationSrvc {
 	public Response retrieveMilkingRecordOfSpecifiedYear(MilkingDetailBean searchBean){
 		String methodName = "retrieveMilkingRecordOfSpecifiedYear";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
@@ -214,15 +220,15 @@ public class MilkingInformationSrvc {
 
 		String methodName = "retrieveMilkingRecordOfSpecifiedMonth";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
@@ -281,15 +287,15 @@ public class MilkingInformationSrvc {
 
 		String methodName = "retrieveMilkingRecordOfSpecifiedAnimal";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
@@ -336,15 +342,15 @@ public class MilkingInformationSrvc {
 
 		String methodName = "retrieveMilkingRecordOfEachDayOfYear";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
@@ -399,9 +405,6 @@ public class MilkingInformationSrvc {
 		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
     }		
 		
-	
-
-
 	@POST
 	@Path("/addfarmmilkingevent")
 	@Consumes (MediaType.APPLICATION_JSON)
@@ -409,15 +412,15 @@ public class MilkingInformationSrvc {
 
 		String methodName = "addFarmMilkingRecord";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,milkingEventRecord.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,milkingEventRecord.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		milkingEventRecord.setOrgID(orgID);
 		IMDLogger.log(milkingEventRecord.toString(), Util.INFO);
 
@@ -426,15 +429,45 @@ public class MilkingInformationSrvc {
     	try {
 			if (milkingEventRecord.getMilkingEventNumber() <1)
 			{
-				// bad request
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
 			}
+			
+			if (milkingEventRecord.getTemperatureInCentigrade() == null)
+			{
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid temperature\"}").build();
+			}
+			
+			if (milkingEventRecord.getRecordDate() == null)
+			{
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid milking timestamp\"}").build();
+			}
+			
+			if (milkingEventRecord.getRecordTime() == null)
+			{
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid milking timestamp\"}").build();
+			}
+			
+			if (milkingEventRecord.getFarmMilkingEventRecords() == null || milkingEventRecord.getFarmMilkingEventRecords().isEmpty())
+			{
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify at least one cow's milking information\"}").build();
+			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
-    		List<TagVolumeCommentTriplet> outcomeInfo = loader.addOrEditFarmMilkingEventRecord(milkingEventRecord);
-    		
+    		MilkingDetail farmMilkingDetail = new MilkingDetail(milkingEventRecord);
+    		farmMilkingDetail.setCreatedBy(user);
+    		farmMilkingDetail.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+    		farmMilkingDetail.setUpdatedBy(user);
+    		farmMilkingDetail.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+    		String farmMilkingEventAddOutcome = loader.addOrUpdateFarmMilkingRecord(farmMilkingDetail, false /*inputInformation.isDonotOverwrite()*/);
+    		if (farmMilkingEventAddOutcome == null) {
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"One or more required parameters were missing in the request. Farm Milking Information could not be updated" + "\"}").build();
+    		}
+    		IMDLogger.log("Farm Milking Record was " + farmMilkingEventAddOutcome,Util.INFO);
+    		List<TagVolumeCommentTriplet> outcomeInfo = loader.addOrEditFarmAnimalsMilkingEventRecords(milkingEventRecord,
+    				user, DateTime.now(IMDProperties.getServerTimeZone()),
+    				user, DateTime.now(IMDProperties.getServerTimeZone()),
+    				false);
     		String outcomeString = "";
     		int count=0;
-    		
     		Iterator<TagVolumeCommentTriplet> it = outcomeInfo.iterator();
     		while (it.hasNext()) {
     			count++;
@@ -446,17 +479,16 @@ public class MilkingInformationSrvc {
     		if (outcomeInfo == null || outcomeInfo.isEmpty())
         		outcomeString = "[]";
     		else
-        		outcomeString = "["+ outcomeString + "]";
-    			
+    			outcomeString = "["+ outcomeString + "]";
         	IMDLogger.log(outcomeString, Util.INFO);
     		return Response.status(Util.HTTPCodes.OK).entity(outcomeString).build();
 
     	} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
-//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getMessage() + "\"}").build();
 		}
-    }	
+    }
+	
 	@POST
 	@Path("/uploadfarmmilkingevent")
 	@Consumes (MediaType.APPLICATION_JSON)
@@ -464,15 +496,15 @@ public class MilkingInformationSrvc {
 
 		String methodName = "uploadFarmMilkingEventRecord";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,inputInformation.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,inputInformation.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		IMDLogger.log(inputInformation.toString(), Util.INFO);
 
 		String prefix = "   ";
@@ -482,6 +514,8 @@ public class MilkingInformationSrvc {
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Unable to parse the information. The service seemed to have been called with invalid or missing parameter (inputDelimitedFileContents)\"}").build();    			
     		}
         	FarmMilkingDetailBean milkingEventRecord = Util.parseFarmMilkingDetailBean(inputInformation);
+    		IMDLogger.log(milkingEventRecord.toString(), Util.INFO);
+        	
         	milkingEventRecord.setOrgID(orgID);
         	if (milkingEventRecord.getTemperatureInCentigrade() == null) {
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid Temperature \"}").build();
@@ -493,6 +527,8 @@ public class MilkingInformationSrvc {
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
 			} else if (milkingEventRecord.getFarmMilkingEventRecords() == null || milkingEventRecord.getFarmMilkingEventRecords().isEmpty()) {
 				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify at least one milking record\"}").build();
+			} else if (milkingEventRecord.getRecordDate().isAfter(LocalDate.now(IMDProperties.getServerTimeZone()))) {
+				return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You can not specify a future date \"}").build();				
 			}
         	if (!inputInformation.getShouldAdd() ) {
 				// only parse and show the results
@@ -506,23 +542,42 @@ public class MilkingInformationSrvc {
 						"\"fat\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getFatValue()) + "\",\n" +
 						"\"lr\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getLrValue()) + "\",\n" +
 						"\"toxin\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getToxinValue()) + "\",\n" +
+						"\"ph\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getPhValue()) + "\",\n" +
+						"\"forCalvesUse\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getForCalvesUse()) + "\",\n" +
+						"\"forFarmUse\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getForFarmUse()) + "\",\n" +
+						"\"forFamilyUse\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getForFamilyUse()) + "\",\n" +
+						"\"forPersonalUse\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getForPersonalUse()) + "\",\n" +
+						"\"forOtherUse\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getForOtherUse()) + "\",\n" +
+						"\"forWasteAdj\":\"" + Util.substituteEmptyForNull(milkingEventRecord.getForWasteAdj()) + "\",\n" +
 						"\"message\":\"All recrods have been successfully parsed\",\n" +
 						"\"totalMilkRecords\":\"" + milkingEventRecord.getFarmMilkingEventRecords().size() + "\",\n";
 				Iterator<TagVolumeCommentTriplet> it = milkingEventRecord.getFarmMilkingEventRecords().iterator();
 				String milkRecords = "";
 				int count = 1;
+				String cowTags = "";
 				String comma = ",";
 				while (it.hasNext()) {
 					TagVolumeCommentTriplet record = it.next();
 					if (count == milkingEventRecord.getFarmMilkingEventRecords().size())
 						comma ="";
 					count++;
+					cowTags += " " + record.getTag() + comma;
 					milkRecords += "\n  {\n   \"tag\":\"" + record.getTag() + "\",\n" + 
 							"   \"volume\":\"" + record.getVolume() + "\",\n" + 
 							"   \"comments\":\"" + Util.substituteEmptyForNull(record.getComments()) + "\"\n  }" + comma;
 					totalVolume += Float.parseFloat(record.getVolume());
 				}
-				parseResult += "\"totalVolume\":\"" + totalVolume + "\",\n"  +
+				float notForSale = (milkingEventRecord.getForCalvesUse() == null ? 0f : milkingEventRecord.getForCalvesUse()) +
+									(milkingEventRecord.getForFamilyUse()  == null ? 0f : + milkingEventRecord.getForFamilyUse()) +
+									(milkingEventRecord.getForFarmUse()  == null ? 0f : + milkingEventRecord.getForFarmUse()) +
+									(milkingEventRecord.getForOtherUse()  == null ? 0f : + milkingEventRecord.getForOtherUse()) +
+									(milkingEventRecord.getForPersonalUse()  == null ? 0f : + milkingEventRecord.getForPersonalUse()) +
+									(milkingEventRecord.getForWasteAdj() == null ? 0f : milkingEventRecord.getForWasteAdj());
+				IMDLogger.log("Available for Sale: " + (totalVolume - notForSale), Util.INFO);
+				parseResult +=
+						"\"totalVolume\":\"" + totalVolume + "\",\n"  +
+						"\"availableForSale\":\"" + (totalVolume - notForSale) + "\",\n"  +
+						"\"parsedCowTags\":\"" + cowTags + "\",\n"  +
 						"\"milkingRecords\":[";
 				
 				parseResult += milkRecords + "]\n}"; 
@@ -530,8 +585,23 @@ public class MilkingInformationSrvc {
 				return Response.status(Util.HTTPCodes.OK).entity(parseResult).build();
 			} else {
 	    		MilkingDetailLoader loader = new MilkingDetailLoader();
-	    		List<TagVolumeCommentTriplet> outcomeInfo = loader.addOrEditFarmMilkingEventRecord(milkingEventRecord);
+	    		MilkingDetail farmMilkingDetail = new MilkingDetail(milkingEventRecord);
+	    		farmMilkingDetail.setCreatedBy(user);
+	    		farmMilkingDetail.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+	    		farmMilkingDetail.setUpdatedBy(farmMilkingDetail.getCreatedBy());
+	    		farmMilkingDetail.setUpdatedDTTM(farmMilkingDetail.getCreatedDTTM());
 	    		
+	    		String farmMilkingEventAddOutcome = loader.addOrUpdateFarmMilkingRecord(farmMilkingDetail, false /*inputInformation.isDonotOverwrite()*/);
+	    		if (farmMilkingEventAddOutcome == null) {
+	    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"One or more required parameters were missing in the request. Farm Milking Information could not be updated" + "\"}").build();
+	    		}
+	    		IMDLogger.log("Farm Milking Record was " + farmMilkingEventAddOutcome,Util.INFO);
+	    		List<TagVolumeCommentTriplet> outcomeInfo = loader.addOrEditFarmAnimalsMilkingEventRecords(milkingEventRecord, 
+	    				user, DateTime.now(IMDProperties.getServerTimeZone()),
+	    				user, DateTime.now(IMDProperties.getServerTimeZone()),inputInformation.isDonotOverwrite());
+	    		if (outcomeInfo == null) {
+	    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"One or more required parameters were missing in the request. Farm Milking Information could not be updated" + "\"}").build();
+	    		}
 	    		String outcomeString = "";
 	    		int count=0;
 	    		
@@ -566,15 +636,15 @@ public class MilkingInformationSrvc {
 		
 		String methodName = "addCowMilkingRecord";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,milkingRecord.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,milkingRecord.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		milkingRecord.setOrgID(orgID);
 		IMDLogger.log(milkingRecord.toString(), Util.INFO);
 
@@ -595,8 +665,14 @@ public class MilkingInformationSrvc {
 				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
 			}
     		MilkingDetailLoader loader = new MilkingDetailLoader();
-    		responseCode = loader.insertMilkRecord(milkingRecord);
-    		if (responseCode == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
+    		MilkingDetail milkingDetail = new MilkingDetail(milkingRecord);
+    		milkingDetail.setCreatedBy(user);
+    		milkingDetail.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
+    		milkingDetail.setUpdatedBy(milkingDetail.getCreatedBy());
+    		milkingDetail.setUpdatedDTTM(milkingDetail.getCreatedDTTM());
+    		
+    		responseCode = loader.insertMilkRecord(milkingDetail);
+    		if (responseCode == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION || responseCode ==Util.ERROR_CODE.DUPLICATE_ENTRY)
     			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
     		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
     			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
@@ -607,7 +683,6 @@ public class MilkingInformationSrvc {
     	} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
-//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(" The following exception occurred while processing " + methodName + " request: " + e.getMessage())) + "}").build();
 		}
     }	
 	
@@ -619,15 +694,15 @@ public class MilkingInformationSrvc {
 		
 		String methodName = "retrieveMonthlyMilkingRecord";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
@@ -643,7 +718,7 @@ public class MilkingInformationSrvc {
     		MilkingDetailLoader loader = new MilkingDetailLoader();
     		AnimalLoader animalLoader = new AnimalLoader();
     		AnimalBean animalBean = new AnimalBean();
-    		animalBean.setOrgID(searchBean.getOrgID());
+    		animalBean.setOrgId(searchBean.getOrgID());
     		animalBean.setAnimalTag(searchBean.getAnimalTag());    		
     		List<Animal> animals = animalLoader.getAnimalRawInfo(animalBean);
     		if (animals.size() != 1) {
@@ -677,7 +752,6 @@ public class MilkingInformationSrvc {
 	    			IMDLogger.log(currentDate.toString(), Util.INFO);
 	    		}
 	    		dailyRecords.add(recValue);
-//	    		milkingInformation += "{\n" + recValue.dtoToJson("  ", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm")) + "\n},\n";	    		
 	    	}
     		milkingInformation += consolidateDailyMilkingRecord(dailyRecords) + "\n";
 	    	if (milkingInformation != null && !milkingInformation.trim().isEmpty() )
@@ -687,7 +761,6 @@ public class MilkingInformationSrvc {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
-//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":" + new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(" The following exception occurred while processing " + methodName + " request: " + e.getMessage())) + "}").build();
 		}
 		return Response.status(Util.HTTPCodes.OK).entity(milkingInformation).build();
     }	
@@ -746,15 +819,15 @@ public class MilkingInformationSrvc {
 
 		String methodName = "retrieveCompleteMilkingRecordOfFarm";
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
-					+ this.getClass().getName() +  "." + methodName , Util.WARNING);
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		searchBean.setOrgID(orgID);
 		IMDLogger.log(searchBean.toString(), Util.INFO);
 
@@ -769,7 +842,6 @@ public class MilkingInformationSrvc {
 		MilkingDetailLoader loader = new MilkingDetailLoader();
     	IMDLogger.log(searchBean.toString(), Util.INFO);
     	MilkingDetail milkRec = null;
-    	MilkingDetail lastValidMilkRec = null;
     	try {
 			MilkingDetail[]  milkRecords = loader.retrieveFarmMilkVolumeForEachDayOfSpecifiedDateRange(null, null);
 			for (int i=0; i<milkRecords.length; i++) {
@@ -813,9 +885,263 @@ public class MilkingInformationSrvc {
 		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
     }		
 		
+	@POST
+	@Path("/completemilkingrecordofanimal")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveCompleteMilkingRecordOfAnimal(MilkingDetailBean searchBean){
+
+		String methodName = "retrieveCompleteMilkingRecordOfAnimal";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+
+		String milkDayList = "";
+		String recordCount = "";
+		String dailyVolList = "";
+		String dateList = "";
+		String milkingRecordInformation = "";
+		String prefix = "   ";
+    	
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	MilkingDetail milkRec = null;
+    	if (searchBean.getAnimalTag() == null || searchBean.getAnimalTag().isEmpty()) {
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag whose milk information you wish to retrieve \"}").build();    		
+    	}
+    	AnimalLoader animalLdr = new AnimalLoader();
+    	LocalDate startDate = null;
+    	try {
+			List<Animal> animal = animalLdr.getAnimalRawInfo(searchBean.getOrgID(), searchBean.getAnimalTag());
+			if (animal != null && !animal.isEmpty() && animal.get(0).getDateOfBirth() != null) {
+				if (searchBean.getDataStartReferenceEvent() != null &&
+					!searchBean.getDataStartReferenceEvent().isEmpty() &&
+					searchBean.getDataStartReferenceEvent().equalsIgnoreCase(Util.LifeCycleEvents.BIRTH)) {
+					startDate = new LocalDate(animal.get(0).getDateOfBirth(), IMDProperties.getServerTimeZone());
+				} else {
+					LifeCycleEventsLoader lcycleLoader = new LifeCycleEventsLoader();
+					List<LifecycleEvent> insemEvents = lcycleLoader.retrieveSpecificLifeCycleEventsForAnimal(searchBean.getOrgID(), searchBean.getAnimalTag(), 
+							null, null, Util.LifeCycleEvents.ABORTION, Util.LifeCycleEvents.PARTURATE, null, null, 
+							null, null);
+					if (insemEvents == null || insemEvents.isEmpty())
+						return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An animal that has ever lactated must have a calving or abortion event. Can not retrieve the milking information\"}").build();    		
+					
+					startDate = new LocalDate(insemEvents.get(insemEvents.size()-1).getEventTimeStamp(), IMDProperties.getServerTimeZone());
+				}
+			}
+			else
+				startDate = new LocalDate(1900,1,1);
+		} catch (Exception e) {
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"Could not retrieve the animal information.\"}").build();    		
+		}
+    	
+    	try {
+			List <MilkingDetail>  milkRecords = loader.retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(orgID, searchBean.getAnimalTag(), 
+					startDate, null, true);
+			for (int i=0; i < milkRecords.size(); i++) {
+				milkRec = milkRecords.get(i);
+				milkDayList += milkRec.getRecordDate().getDayOfYear() + ",";
+				dailyVolList += milkRec.getMilkVolume() + ",";
+				recordCount += i + ",";
+				dateList += "\"" + Util.getDateInSpecifiedFormart(milkRec.getRecordDate(),"dd-MMM-YYYY") + "\",";
+			}
+			if (!recordCount.isEmpty()) {
+				int commatoremove = recordCount.lastIndexOf(",");
+				recordCount = commatoremove < 0 ? recordCount : recordCount.substring(0,commatoremove);
+			}
+			if (dateList != null) {
+				int commatoremove = dateList.lastIndexOf(",");
+				dateList = commatoremove < 0 ? dateList : dateList.substring(0,commatoremove);
+			}
+			if (milkDayList != null) {
+				int commatoremove = milkDayList.lastIndexOf(",");
+				milkDayList = commatoremove < 0 ? milkDayList : milkDayList.substring(0,commatoremove);
+			}
+			if (dailyVolList != null) {
+				int commatoremove = dailyVolList.lastIndexOf(",");
+				dailyVolList = commatoremove < 0 ? dailyVolList : dailyVolList.substring(0,commatoremove);
+			}
+			String title = milkRecords != null && milkRecords.size() > 0 ? 
+					Util.getDateInSpecifiedFormart(milkRecords.get(0).getRecordDate(), "MMM YYYY")  + " - " + Util.getDateInSpecifiedFormart(milkRecords.get(milkRecords.size()-1).getRecordDate(), "MMM YYYY") 
+					: "";
+			milkingRecordInformation += "[" + "\n" + prefix + "{" +  "\n" 
+					+ prefix + prefix + "\"title\":\"" + title + "\"," + "\n" 
+					+ prefix + prefix + "\"max\":600, " + "\n" 
+					+ prefix + prefix + "\"min\":100, " + "\n" 
+					+ prefix + prefix +  "\"count\":[" + recordCount + "],\n"   
+					+ prefix + prefix +  "\"days\":[" + milkDayList + "],\n"   
+					+ prefix + prefix +  "\"dates\":[" + dateList + "],\n"  
+					+ prefix + prefix + "\"volumes\":[" + dailyVolList + "]\n" + prefix + "}\n]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception occurred while processing milk information for the animal " + searchBean.getAnimalTag() + " for the following record: " +  milkRec, Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(milkingRecordInformation, Util.INFO);
+		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
+    }		
+
+	@POST
+	@Path("/retrievenextmilkingevent")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveNextMilkingEvent(MilkingDetailBean searchBean){
+
+		String methodName = "retrieveNextMilkingEvent";
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,searchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String milkingRecordInformation = "[]";
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		searchBean.setOrgID(orgID);
+		IMDLogger.log(searchBean.toString(), Util.INFO);
+
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+    	IMDLogger.log(searchBean.toString(), Util.INFO);
+    	MilkingDetail lastValidMilkRec = new MilkingDetail();
+    	try {
+    		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
+			lastValidMilkRec = loader.getLatestMilkingEvent(orgID);
+			if (lastValidMilkRec.getRecordDate() == null || 
+					lastValidMilkRec.getRecordTime() == null) {
+				lastValidMilkRec.setRecordDate(LocalDate.now(IMDProperties.getServerTimeZone()));
+				lastValidMilkRec.setMilkingEventNumber(Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY);
+				lastValidMilkRec.setRecordTime(fmt.parseLocalTime(Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY_TIME));
+			} else {
+				if (lastValidMilkRec.getMilkingEventNumber() == Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY) {
+					lastValidMilkRec.setMilkingEventNumber(Util.DefaultValues.SECOND_MILKING_EVENT_OF_THE_DAY);
+					lastValidMilkRec.setRecordTime(fmt.parseLocalTime(Util.DefaultValues.SECOND_MILKING_EVENT_OF_THE_DAY_TIME));
+				} else if (lastValidMilkRec.getMilkingEventNumber() == Util.DefaultValues.SECOND_MILKING_EVENT_OF_THE_DAY) {
+					lastValidMilkRec.setMilkingEventNumber(Util.DefaultValues.THIRD_MILKING_EVENT_OF_THE_DAY);
+					lastValidMilkRec.setRecordTime(fmt.parseLocalTime(Util.DefaultValues.THIRD_MILKING_EVENT_OF_THE_DAY_TIME));
+				} else if (lastValidMilkRec.getMilkingEventNumber() == Util.DefaultValues.THIRD_MILKING_EVENT_OF_THE_DAY) {
+					lastValidMilkRec.setMilkingEventNumber(Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY);
+					lastValidMilkRec.setRecordTime(fmt.parseLocalTime(Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY_TIME));
+					lastValidMilkRec.setRecordDate(lastValidMilkRec.getRecordDate().plusDays(1));
+				} else {
+					return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"An Invalid Milking event number (" + lastValidMilkRec.getMilkingEventNumber() + ") was recorded the last time the milking record was saved on : " 
+							+ Util.getDateInSQLFormat(lastValidMilkRec.getRecordDate()) + ". Please fix the milking event number for this date and try again. Error in : " + methodName + "\"}").build();					
+				}
+			}
+			milkingRecordInformation = "[\n{\n" +  lastValidMilkRec.dtoToJson("   ",DateTimeFormat.forPattern("yyyy-MM-dd")) + "   \n}\n]";
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception occurred while retrieving last milk event information", Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(milkingRecordInformation, Util.INFO);
+		return Response.status(Util.HTTPCodes.OK).entity(milkingRecordInformation).build();
+    }		
+
+	@POST
+	@Path("/farmmilkrecord")
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response retrieveFarmMilkRecord(MilkingDetailBean selectedDateSearchBean) {
+		String methodName = "retrieveFarmMilkRecord";
+		IMDLogger.log(methodName + " Called ", Util.INFO);
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName ,selectedDateSearchBean.getLoginToken(),/*renewToken*/ true);
+		if (user == null) {
+			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+					+ this.getClass().getName() +  "." + methodName , Util.INFO);
+			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+		}
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+		selectedDateSearchBean.setOrgID(orgID);
+		IMDLogger.log(selectedDateSearchBean.toString(), Util.INFO);
+
+    	String farmMilkingInformation = "";
+    	try {
+    		MilkingDetailLoader milkingLoader = new MilkingDetailLoader();
+    		if (selectedDateSearchBean.getRecordDate() == null || selectedDateSearchBean.getMilkingEventNumber() <= 0) {
+    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"One or more required parameters were missing. You must specify both milkingDateStr (in yyyy-mm-dd format) and milkingEventNumber. \"}").build();
+    		}
+    		List<MilkingDetail> farmMilkingRecords = milkingLoader.retrieveFarmMilkRecord(selectedDateSearchBean);
+    		if (farmMilkingRecords != null && farmMilkingRecords.size() > 1) {
+    			return Response.status(Util.HTTPCodes.INTERNAL_SERVER_ERROR).entity("{ \"error\": true, \"message\":\"We expected to receive only ZERO OR ONE Farm Milk Record for the requested date and milking even number; instead we received " + farmMilkingRecords.size() + ". Please submit a bug report.\"}").build();
+    		} else if (farmMilkingRecords.size() == 1) {
+    			farmMilkingInformation = "[{\n" + farmMilkingRecords.get(0).dtoToJson("  ") + "}]";    			
+    		} else {
+    			farmMilkingInformation = "[]";
+    		}
+	    	IMDLogger.log(farmMilkingInformation, Util.INFO);
+    	} catch (java.lang.IllegalArgumentException e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc." + methodName + "() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\" One or more input parameters were invalid. Please review the input parameters, especially the timestamps and try again. The timestamps must be in yyyy-dd-mm hh:mm format." + "\"}").build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			IMDLogger.log("Exception in AnimalSrvc." + methodName + "() service method: " + e.getMessage(),  Util.ERROR);
+			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"The following exception occurred while processing " + methodName + " request: " + e.getClass() + ' ' + e.getMessage() + "\"}").build();
+		}
+    	IMDLogger.log(farmMilkingInformation, Util.INFO);
+		return Response.status(Util.HTTPCodes.OK).entity(farmMilkingInformation).build();
+    }	
 	
-	
-	
+//	@POST
+//	@Path("/addmilkingrecord")
+//	@Consumes (MediaType.APPLICATION_JSON)
+//	public Response addCowMilkingRecord(MilkingDetailBean milkingRecord){
+//		String methodName = "addCowMilkingRecord";
+//		IMDLogger.log(methodName + " Called ", Util.INFO);
+//		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,milkingRecord.getLoginToken(),/*renewToken*/ true);
+//		if (user == null) {
+//			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
+//					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
+//					+ this.getClass().getName() +  "." + methodName, Util.INFO);
+//			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
+//		}
+//		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
+//		milkingRecord.setOrgID(orgID);
+//		IMDLogger.log(milkingRecord.toString(), Util.INFO);
+//
+//    	int responseCode = 0;
+//    	try {
+//			if (milkingRecord.getAnimalTag() == null || milkingRecord.getAnimalTag().isEmpty())
+//			{
+//				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid animal tag\"}").build();
+//			}
+//			if (milkingRecord.getMilkingEventNumber() <1)
+//			{
+//				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking event number\"}").build();
+//			}
+//			if (!(milkingRecord.getMilkVolume() > 0))
+//			{
+//				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"You must specify a valid milking volume\"}").build();
+//			}
+//    		MilkingDetailLoader loader = new MilkingDetailLoader();
+//    		MilkingDetail milkingDetail = new MilkingDetail(milkingRecord);
+//    		responseCode = loader.insertMilkRecord(milkingDetail);
+//    		if (responseCode == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION)
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"This milking record already exists. Please edit the record instead of trying to add it again\"}").build();
+//    		else if (responseCode == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There is an error in your add request. Please consult the system administrator\"}").build();
+//    		else if (responseCode == Util.ERROR_CODE.UNKNOWN_ERROR)
+//    			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. Please consult the system administrator\"}").build();
+//    		else
+//    			return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": false, \"message\":\"" + responseCode + " record added" + "\"}").build();
+//    	} catch (Exception e) {
+//			e.printStackTrace();
+//			IMDLogger.log("Exception in AnimalSrvc.addCowMilkingRecord() service method: " + e.getMessage(),  Util.ERROR);
+//			return Response.status(Util.HTTPCodes.BAD_REQUEST).entity("{ \"error\": true, \"message\":\"There was an unknown error in trying to add the milkiing record. " +  e.getMessage() + "\"}").build();
+//		}
+//    }	
+//	
+//	
 	
 }
 

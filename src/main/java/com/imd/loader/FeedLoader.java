@@ -33,7 +33,7 @@ public class FeedLoader {
 		try {
 			int i= 1;
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(i++, feedItem.getOrgID());
+			preparedStatement.setString(i++, feedItem.getOrgId());
 			preparedStatement.setString(i++, feedItem.getFeedItemLookupValue().getLookupValueCode());
 			preparedStatement.setString(i++, feedItem.getFeedCohortCD().getLookupValueCode());
 			if (start != null)
@@ -56,7 +56,7 @@ public class FeedLoader {
 		return result;
 	}	
 	public int deleteFeedPlan(FeedPlan feedPlan) {
-		return deleteFeedPlan(feedPlan.getOrgID(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
+		return deleteFeedPlan(feedPlan.getOrgId(), feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode());
 	}
 	public int deleteFeedPlan(String orgID, String feedCohortLookupCode) {
 		String qryString = "DELETE FROM imd.FEED_PLAN WHERE ORG_ID=? AND FEED_COHORT = ? ";
@@ -95,7 +95,7 @@ public class FeedLoader {
 		Connection conn = DBManager.getDBConnection();
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, dietReq.getOrgID());
+			preparedStatement.setString(1, dietReq.getOrgId());
 			preparedStatement.setString(2, dietReq.getFeedCohortCD());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);			
 			result = preparedStatement.executeUpdate();			
@@ -132,7 +132,7 @@ public class FeedLoader {
 		Connection conn = DBManager.getDBConnection();
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1,  dietReq.getOrgID());
+			preparedStatement.setString(1,  dietReq.getOrgId());
 			preparedStatement.setString(2,  dietReq.getFeedCohortCD());
 			preparedStatement.setFloat(3,  dietReq.getStart());
 			preparedStatement.setFloat(4,  dietReq.getEnd());
@@ -193,7 +193,7 @@ public class FeedLoader {
 		int i = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(i++,  feedItem.getOrgID());
+			preparedStatement.setString(i++,  feedItem.getOrgId());
 			preparedStatement.setString(i++,  feedItem.getFeedItemLookupValue().getLookupValueCode());
 			preparedStatement.setString(i++,  feedItem.getFeedCohortCD().getLookupValueCode());
 			preparedStatement.setFloat(i++,  feedItem.getStart());
@@ -300,7 +300,7 @@ public class FeedLoader {
 
 	private CohortNutritionalNeeds getCohortNutritionalNeedsFromSQLRecord(ResultSet rs) throws SQLException, IMDException {
 		CohortNutritionalNeeds cohortNeeds = new CohortNutritionalNeeds();
-		cohortNeeds.setOrgID(rs.getString("ORG_ID"));
+		cohortNeeds.setOrgId(rs.getString("ORG_ID"));
 		cohortNeeds.setFeedCohortCD(rs.getString("FEED_COHORT"));
 		cohortNeeds.setStart(rs.getFloat("START"));
 		cohortNeeds.setEnd(rs.getFloat("END"));
@@ -317,7 +317,7 @@ public class FeedLoader {
 	
 	private FeedItem getFeedPlanItemFromSQLRecord(ResultSet rs) throws Exception {
 		FeedItem feedItem = new FeedItem();
-		feedItem.setOrgID(rs.getString("ORG_ID"));
+		feedItem.setOrgId(rs.getString("ORG_ID"));
 		
 		LookupValues feedCohortLV = new LookupValues(Util.LookupValues.FEEDCOHORT,
 				rs.getString("FEED_COHORT"), 
@@ -365,13 +365,13 @@ public class FeedLoader {
 			String[] stats = dmCpMeCost.split("\n");
 			for (int i=0; i<stats.length; i++) {
 				if (stats[i].indexOf(Util.NutritionalStats.DM_POSTFIX) >=0)
-					dm =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.DM_POSTFIX) + Util.NutritionalStats.DM_POSTFIX.length()));
+					dm =  Float.parseFloat(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.DM_POSTFIX) + Util.NutritionalStats.DM_POSTFIX.length()));
 				else if (stats[i].indexOf(Util.NutritionalStats.CP_POSTFIX) >=0)
-					cp =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.CP_POSTFIX) + Util.NutritionalStats.CP_POSTFIX.length()));
+					cp =  Float.parseFloat(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.CP_POSTFIX) + Util.NutritionalStats.CP_POSTFIX.length()));
 				else if (stats[i].indexOf(Util.NutritionalStats.ME_POSTFIX) >=0)
-					me =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.ME_POSTFIX) + Util.NutritionalStats.ME_POSTFIX.length()));
+					me =  Float.parseFloat(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.ME_POSTFIX) + Util.NutritionalStats.ME_POSTFIX.length()));
 				else if (stats[i].indexOf(Util.NutritionalStats.COST_POSTFIX) >=0)
-					unitCost =  new Float(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.COST_POSTFIX) + Util.NutritionalStats.COST_POSTFIX.length()));
+					unitCost =  Float.parseFloat(stats[i].substring(stats[i].indexOf(Util.NutritionalStats.COST_POSTFIX) + Util.NutritionalStats.COST_POSTFIX.length()));
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -398,7 +398,7 @@ public class FeedLoader {
 			int index = 1;
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(index++,cohort.getOrgID());
+			preparedStatement.setString(index++,cohort.getOrgId());
 			preparedStatement.setString(index++,cohort.getFeedCohortLookupValue().getLookupValueCode());
 			if (start != null)
 				preparedStatement.setFloat(index++,start);
@@ -462,7 +462,7 @@ public class FeedLoader {
 			preparedStatement = conn.prepareStatement(qryString);
 			preparedStatement.setString(i++,Util.LookupValues.FEED);
 			preparedStatement.setString(i++,Util.LookupValues.FEEDCOHORT);
-			preparedStatement.setString(i++,feedItem.getOrgID());
+			preparedStatement.setString(i++,feedItem.getOrgId());
 			preparedStatement.setString(i++,feedItem.getFeedItemLookupValue().getLookupValueCode());
 			preparedStatement.setString(i++,feedItem.getFeedCohortCD().getLookupValueCode());
 			preparedStatement.setFloat(i++,gteStart);
@@ -526,11 +526,11 @@ public class FeedLoader {
 		    	FeedItem item = getFeedPlanItemFromSQLRecord(rs);
 		    	if (feedPlan == null) {
 		    		feedPlan = new FeedPlan();
-				    feedPlan.setOrgID(item.getOrgID());
-				    feedPlan.setFeedCohort(new FeedCohort(item.getOrgID(),item.getFeedCohortCD(), ""));
-				    feedPlan.setFeedPlan(new ArrayList<FeedItem>());
+				    feedPlan.setOrgId(item.getOrgId());
+				    feedPlan.setFeedCohort(new FeedCohort(item.getOrgId(),item.getFeedCohortCD(), ""));
+				    feedPlan.setFeedPlanItems(new ArrayList<FeedItem>());
 		    	}
-		    	feedPlan.getFeedPlan().add(item);
+		    	feedPlan.getFeedPlanItems().add(item);
 		    }
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -547,7 +547,7 @@ public class FeedLoader {
 	}
 	
 	public int updateFeedPlan(FeedPlan feedPlan) throws Exception {
-		if (feedPlan == null || feedPlan.getOrgID() == null || feedPlan.getOrgID().isEmpty() || 
+		if (feedPlan == null || feedPlan.getOrgId() == null || feedPlan.getOrgId().isEmpty() || 
 				feedPlan.getFeedCohort() == null || 
 				feedPlan.getFeedCohort().getFeedCohortLookupValue() == null ||
 				feedPlan.getFeedCohort().getFeedCohortLookupValue().getLookupValueCode() == null ||
@@ -566,7 +566,7 @@ public class FeedLoader {
 	public int insertFeedPlan(FeedPlan feedPlan) {
 		int recordAdded = -1;
 		
-		if (feedPlan == null || feedPlan.getFeedPlan() == null)
+		if (feedPlan == null || feedPlan.getFeedPlanItems() == null)
 			return 0;
 		
 		String qryString = "insert into  imd.FEED_PLAN (ORG_ID,"
@@ -587,58 +587,63 @@ public class FeedLoader {
 				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
-		Iterator<FeedItem> feedItemsIt = feedPlan.getFeedPlan().iterator();
+		Iterator<FeedItem> feedItemsIt = feedPlan.getFeedPlanItems().iterator();
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
 			while (feedItemsIt.hasNext()) {
 				FeedItem feedItem = feedItemsIt.next();
 				int i = 1;
-					preparedStatement.setString(i++,  feedItem.getOrgID());
-					preparedStatement.setString(i++,  feedItem.getFeedItemLookupValue().getLookupValueCode());
-					preparedStatement.setString(i++,  feedItem.getFeedCohortCD().getLookupValueCode());
-					preparedStatement.setString(i++,  formatFieldValue(feedItem.getStart()));
-					preparedStatement.setString(i++,  formatFieldValue(feedItem.getEnd()));
-					preparedStatement.setString(i++, formatFieldValue(feedItem.getMinimumFulfillment()));
-					preparedStatement.setString(i++, formatFieldValue(feedItem.getFulfillmentPct()));
-					preparedStatement.setString(i++, formatFieldValue(feedItem.getMaximumFulfillment()));
-					preparedStatement.setString(i++,  feedItem.getFulFillmentTypeCD());
-					preparedStatement.setString(i++, feedItem.getUnits());
-					preparedStatement.setString(i++, formatFieldValue(feedItem.getDailyFrequency()));
-					preparedStatement.setString(i++, feedItem.getComments());
-					preparedStatement.setString(i++, feedItem.getCreatedBy().getUserId());
-					preparedStatement.setString(i++, feedItem.getCreatedDTTMSQLFormat());
-					preparedStatement.setString(i++, feedItem.getUpdatedBy().getUserId());
-					preparedStatement.setString(i++, feedItem.getUpdatedDTTMSQLFormat());
-					preparedStatement.addBatch();
-				}
-				long[] recodAdditionCounts = preparedStatement.executeLargeBatch();
-				recordAdded = 0;
-				for (int i=0; i< recodAdditionCounts.length; i++) {
-					recordAdded += recodAdditionCounts[i];
-				}
-			} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-				recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
-				ex.printStackTrace();
-			} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
-				recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
-				ex.printStackTrace();
-			} catch (java.sql.SQLSyntaxErrorException ex) {
-				recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
-				ex.printStackTrace();
-			} catch (java.sql.SQLException ex) {
-				recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
-				ex.printStackTrace();
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			} finally {
-			    try {
-					if (preparedStatement != null && !preparedStatement.isClosed()) {
-						preparedStatement.close();	
-					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+				preparedStatement.setString(i++,  feedItem.getOrgId());
+				preparedStatement.setString(i++,  feedItem.getFeedItemLookupValue().getLookupValueCode());
+				preparedStatement.setString(i++,  feedItem.getFeedCohortCD().getLookupValueCode());
+				preparedStatement.setString(i++,  formatFieldValue(feedItem.getStart()));
+				preparedStatement.setString(i++,  formatFieldValue(feedItem.getEnd()));
+				preparedStatement.setString(i++, formatFieldValue(feedItem.getMinimumFulfillment()));
+				preparedStatement.setString(i++, formatFieldValue(feedItem.getFulfillmentPct()));
+				preparedStatement.setString(i++, formatFieldValue(feedItem.getMaximumFulfillment()));
+				preparedStatement.setString(i++,  feedItem.getFulFillmentTypeCD());
+				preparedStatement.setString(i++, feedItem.getUnits());
+				preparedStatement.setString(i++, formatFieldValue(feedItem.getDailyFrequency()));
+				preparedStatement.setString(i++, feedItem.getComments());
+				preparedStatement.setString(i++, feedItem.getCreatedBy().getUserId());
+				preparedStatement.setString(i++, feedItem.getCreatedDTTMSQLFormat());
+				preparedStatement.setString(i++, feedItem.getUpdatedBy().getUserId());
+				preparedStatement.setString(i++, feedItem.getUpdatedDTTMSQLFormat());
+				preparedStatement.addBatch();
 			}
+			long[] recodAdditionCounts = preparedStatement.executeLargeBatch();
+			recordAdded = 0;
+			for (int i=0; i< recodAdditionCounts.length; i++) {
+				recordAdded += recodAdditionCounts[i];
+			}
+		} catch (java.sql.BatchUpdateException ex) {
+			ex.getMessage().contains("Duplicate entry");
+			recordAdded = Util.ERROR_CODE.DUPLICATE_ENTRY;
+			IMDLogger.log(ex.getMessage(), Util.ERROR);
+			ex.printStackTrace();
+		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
+			ex.printStackTrace();
+		} catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation ex) {
+			recordAdded = Util.ERROR_CODE.DATA_LENGTH_ISSUE;
+			ex.printStackTrace();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 		return recordAdded;		
 	}
 	public FeedPlan retrieveDistinctFeedItemsInFeedPlan(String orgID) throws IMDException {
@@ -663,7 +668,7 @@ public class FeedLoader {
 		    rs = preparedStatement.executeQuery();
 		    while (rs.next()) {
 				FeedItem feedItem = new FeedItem();
-				feedItem.setOrgID(rs.getString("ORG_ID"));				
+				feedItem.setOrgId(rs.getString("ORG_ID"));				
 				LookupValues feedItemLV = new LookupValues(Util.LookupValues.FEED,rs.getString("FEED_ITEM"), 
 						rs.getString("ITEM_SHORT_DESCR"),
 						rs.getString("ITEM_LONG_DESCR"),
@@ -673,10 +678,10 @@ public class FeedLoader {
 				feedItem.setUnits(rs.getString("UNITS"));
 		    	if (feedPlan == null) {
 		    		feedPlan = new FeedPlan();
-				    feedPlan.setOrgID(feedItem.getOrgID());
-				    feedPlan.setFeedPlan(new ArrayList<FeedItem>());
+				    feedPlan.setOrgId(feedItem.getOrgId());
+				    feedPlan.setFeedPlanItems(new ArrayList<FeedItem>());
 		    	}
-		    	feedPlan.getFeedPlan().add(feedItem);
+		    	feedPlan.getFeedPlanItems().add(feedItem);
 		    }
 		} catch (Exception ex) {
 			ex.printStackTrace();

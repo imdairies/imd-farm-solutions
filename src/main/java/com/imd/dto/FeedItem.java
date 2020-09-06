@@ -71,7 +71,7 @@ public class FeedItem extends IMDairiesDTO {
 	}
 	public void setMinimumFulfillment(String minFulfillment) {
 		if (minFulfillment !=  null)
-			setMinimumFulfillment(new Float(minFulfillment));
+			setMinimumFulfillment(Float.parseFloat(minFulfillment));
 		else
 			this.minimumFulfillment = null;
 	}
@@ -83,7 +83,7 @@ public class FeedItem extends IMDairiesDTO {
 	}
 	public void setMaximumFulfillment(String maxFulfillment) {
 		if (maxFulfillment !=  null)
-			setMaximumFulfillment(new Float(maxFulfillment));
+			setMaximumFulfillment(Float.parseFloat(maxFulfillment));
 		else
 			this.maximumFulfillment = null;
 	}

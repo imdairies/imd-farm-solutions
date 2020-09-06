@@ -9,7 +9,7 @@ public class FeedCohort extends IMDairiesDTO{
 	private String animalFeedCohortDeterminatationMessage;
 	private CohortNutritionalNeeds cohortNutritionalNeeds;
 	public FeedCohort(String orgID, LookupValues cohortLV, String cohortShortDescr) {
-		this.setOrgID(orgID);
+		this.setOrgId(orgID);
 		this.feedCohortLookupValue = cohortLV;		
 		this.feedCohortTypeShortDescription = cohortShortDescr;
 	}

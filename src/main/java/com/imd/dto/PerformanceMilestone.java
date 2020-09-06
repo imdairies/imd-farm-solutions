@@ -24,6 +24,7 @@ public class PerformanceMilestone extends IMDairiesDTO {
 	private String animalTag;
 	private String evaluationValue;
 	private String evaluationResultMessage;
+	private Integer sequenceNbr;
 	
 	public String getMilestoneID() {
 		return milestoneID;
@@ -132,8 +133,9 @@ public class PerformanceMilestone extends IMDairiesDTO {
 		return stringify(" ");
 	}
 	private String stringify(String prefix) {
-		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
+		return  prefix + fieldToJson("orgID", getOrgId()) + ",\n" + 
 				prefix + fieldToJson("milestoneID", this.milestoneID) + ",\n" +
+				prefix + fieldToJson("sequenceNbr", this.sequenceNbr) + ",\n" +
 				prefix + fieldToJson("shortDescription", this.shortDescription) + ",\n" +
 				prefix + fieldToJson("longDescription", this.longDescription) + ",\n" +
 				prefix + fieldToJson("shortDescriptionCd", this.shortDescriptionCd) + ",\n" +
@@ -184,6 +186,12 @@ public class PerformanceMilestone extends IMDairiesDTO {
 	}
 	public void setEvaluationResultMessage(String evaluationResultMessage) {
 		this.evaluationResultMessage = evaluationResultMessage;
+	}
+	public Integer getSequenceNbr() {
+		return sequenceNbr;
+	}
+	public void setSequenceNbr(Integer sequenceNbr) {
+		this.sequenceNbr = sequenceNbr;
 	}
 
 }

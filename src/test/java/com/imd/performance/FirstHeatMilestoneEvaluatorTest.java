@@ -53,7 +53,6 @@ class FirstHeatMilestoneEvaluatorTest {
 
 		String orgID = "IMD";
 		String oneStarTag = "-999";
-		User user = new User("KASHIF");
 		DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 		
 		List<PerformanceMilestone> milestones = perfLdr.retrieveSpecificPerformanceMilestone(orgID,Util.PerformanceMilestone.FIRSTHEAT);
@@ -72,7 +71,7 @@ class FirstHeatMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(notEligibleAnimal.getOrgID(), notEligibleAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(notEligibleAnimal.getOrgId(), notEligibleAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(null,evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.ANIMAL_NOT_ELIGIBLE,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
@@ -88,7 +87,7 @@ class FirstHeatMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(notEligibleAnimal.getOrgID(), notEligibleAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(notEligibleAnimal.getOrgId(), notEligibleAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(null,evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.ANIMAL_NOT_ELIGIBLE,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
@@ -133,7 +132,7 @@ class FirstHeatMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(Util.getDaysBetween(thisStarWtEvent1.getEventTimeStamp(),oneStarAnimal.getDateOfBirth()),Integer.parseInt(evaluatedMilestone.getEvaluationValue()),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.TWO_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
@@ -180,7 +179,7 @@ class FirstHeatMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(Util.getDaysBetween(thisStarWtEvent1.getEventTimeStamp(),oneStarAnimal.getDateOfBirth()),Integer.parseInt(evaluatedMilestone.getEvaluationValue()),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.FIVE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
@@ -228,7 +227,7 @@ class FirstHeatMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(Util.getDaysBetween(thisStarWtEvent1.getEventTimeStamp(),oneStarAnimal.getDateOfBirth()),Integer.parseInt(evaluatedMilestone.getEvaluationValue()),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.FOUR_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
@@ -276,7 +275,7 @@ class FirstHeatMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(Util.getDaysBetween(thisStarWtEvent1.getEventTimeStamp(),oneStarAnimal.getDateOfBirth()),Integer.parseInt(evaluatedMilestone.getEvaluationValue()),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.THREE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
@@ -321,7 +320,7 @@ class FirstHeatMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(Util.getDaysBetween(oneStarWtEvent1.getEventTimeStamp(),oneStarAnimal.getDateOfBirth()),Integer.parseInt(evaluatedMilestone.getEvaluationValue()),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.ONE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 			}
@@ -338,9 +337,9 @@ class FirstHeatMilestoneEvaluatorTest {
 	private void addAnimalAndMilestoneTestData(Animal oneStarAnimal, LifecycleEvent oneStarWtEvent1, LifecycleEvent oneStarWtEvent2) throws Exception {
 		LifeCycleEventsLoader evtLdr = new LifeCycleEventsLoader();
 		AnimalLoader anmlLdr = new AnimalLoader();
-		anmlLdr.deleteAnimal(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag());
+		anmlLdr.deleteAnimal(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag());
 		anmlLdr.insertAnimal(oneStarAnimal);		
-		evtLdr.deleteAnimalLifecycleEvents(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag());
+		evtLdr.deleteAnimalLifecycleEvents(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag());
 		if (oneStarWtEvent1 != null)
 			evtLdr.insertLifeCycleEvent(oneStarWtEvent1);
 		if (oneStarWtEvent2 != null)

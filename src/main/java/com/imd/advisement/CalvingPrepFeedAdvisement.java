@@ -1,22 +1,22 @@
 package com.imd.advisement;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 
 import com.imd.dto.Advisement;
 import com.imd.dto.Animal;
 import com.imd.dto.LifecycleEvent;
+import com.imd.dto.LookupValues;
 import com.imd.dto.Message;
 import com.imd.dto.Note;
 import com.imd.loader.AdvisementLoader;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.MessageCatalogLoader;
 import com.imd.loader.LifeCycleEventsLoader;
+import com.imd.loader.LookupValuesLoader;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
 import com.imd.util.Util;
@@ -40,13 +40,13 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 				return null;
 			} else {
 				if (languageCd != null && !languageCd.equalsIgnoreCase(Util.LanguageCode.ENG)) {
-					Message localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getFirstThresholdMessageCode());
+					Message localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgId(), languageCd, ruleDto.getFirstThresholdMessageCode());
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setFirstThresholdMessage(localizedMessage.getMessageText());
-					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getSecondThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgId(), languageCd, ruleDto.getSecondThresholdMessageCode());
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setSecondThresholdMessage(localizedMessage.getMessageText());
-					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgID(), languageCd, ruleDto.getThirdThresholdMessageCode());
+					localizedMessage  = MessageCatalogLoader.getMessage(ruleDto.getOrgId(), languageCd, ruleDto.getThirdThresholdMessageCode());
 					if (localizedMessage != null && localizedMessage.getMessageText() != null)
 						ruleDto.setThirdThresholdMessage(localizedMessage.getMessageText());
 				}
@@ -84,20 +84,31 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								while (calvingIt.hasNext()) {
 									LifecycleEvent feedEvt = calvingIt.next();
 									String feedItemCode = feedEvt.getAuxField1Value() == null ? "" : feedEvt.getAuxField1Value();
+									LookupValuesLoader lvLoader = new LookupValuesLoader();
+									LookupValues lv = lvLoader.retrieveLookupValue(Util.LookupValues.FEED, feedItemCode);
 									//String feedItemTypeCode = feedEvt.getAuxField2Value() == null ? "" : feedEvt.getAuxField2Value();
-									if (!item1Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo1()))) {
+									if (!item1Found && 
+										lv != null && lv.getAdditionalField3().contains(this.getFeedItemCode(ruleDto.getAuxInfo1()) + "=Y")) {
 										// feed item 1 should be given and there is an event that indicates it was in fact given.
 										item1Found = true;
-									} else if (!item2Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo2()))) {
+									} else if (!item2Found && 
+											lv != null && 
+											lv.getAdditionalField3().contains(this.getFeedItemCode(ruleDto.getAuxInfo2()) + "=Y")) {
 										// feed item 2 should be given and there is an event that indicates it was in fact given.
 										item2Found = true;
-									} else if (!item3Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo3()))) {
+									} else if (!item3Found && 
+											lv != null && 
+											lv.getAdditionalField3().contains(this.getFeedItemCode(ruleDto.getAuxInfo3()) + "=Y")) {
 										// feed item 3 should be given and there is an event that indicates it was in fact given.
 										item3Found = true;
-									} else if (!item4Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo4()))) {
+									} else if (!item4Found && 
+											lv != null && 
+											lv.getAdditionalField3().contains(this.getFeedItemCode(ruleDto.getAuxInfo4()) + "=Y")) {
 										// feed item 4 should be given and there is an event that indicates it was in fact given.
 										item4Found = true;
-									} else if (!item5Found && feedItemCode.equalsIgnoreCase(this.getFeedItemCode(ruleDto.getAuxInfo5()))) {
+									} else if (!item5Found &&
+											lv != null && 
+											lv.getAdditionalField3().contains(this.getFeedItemCode(ruleDto.getAuxInfo5()) + "=Y")) {
 										// feed item 5 should be given and there is an event that indicates it was in fact given.
 										item5Found = true;
 									} else {
@@ -111,7 +122,9 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								
 							}
 							
-							String ruleNote = "";
+							String ruleNote1 = "";
+							String ruleNote2 = "";
+							String ruleNote3 = "";
 							String animalNote = "This cow is expected to parturate after " + daysToParturition + " days and ";						
 
 							if (!item1Found) {
@@ -120,15 +133,15 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								float th2 = ruleDto.getSecondThreshold() + this.getFeedItemThreshold2(ruleDto.getAuxInfo1());
 								float th3 = ruleDto.getThirdThreshold() + this.getFeedItemThreshold3(ruleDto.getAuxInfo1());
 								if (th3 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getThirdThresholdMessage();
+									ruleNote1 += ruleDto.getThirdThresholdMessage();
 									animal.setThreshold3Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo1()) + ". Immediately start " + this.getFeedItemCode(ruleDto.getAuxInfo1());
 								} else if (th2 > 0.0f && (daysToParturition <= th2)) {
-									ruleNote += ruleDto.getSecondThresholdMessage();
+									ruleNote2 += ruleDto.getSecondThresholdMessage();
 									animal.setThreshold2Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo1()) + ". Please start " + this.getFeedItemCode(ruleDto.getAuxInfo1());
 								} else if (th1 > 0.0f && (daysToParturition <= th1)) {
-									ruleNote += ruleDto.getFirstThresholdMessage();
+									ruleNote3 += ruleDto.getFirstThresholdMessage();
 									animal.setThreshold1Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo1()) + ". Start your preparation for giving " + this.getFeedItemCode(ruleDto.getAuxInfo1());
 								}
@@ -139,15 +152,15 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								float th2 = ruleDto.getSecondThreshold() + this.getFeedItemThreshold2(ruleDto.getAuxInfo2());
 								float th3 = ruleDto.getThirdThreshold() + this.getFeedItemThreshold3(ruleDto.getAuxInfo2());
 								if (th3 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getThirdThresholdMessage();
+									ruleNote1 += ruleNote1.isEmpty() ? ruleDto.getThirdThresholdMessage() : "";
 									animal.setThreshold3Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo2()) + ". Immediately start " + this.getFeedItemCode(ruleDto.getAuxInfo2());
 								} else if (th2 > 0.0f && (daysToParturition <= th2)) {
-									ruleNote += ruleDto.getSecondThresholdMessage();
+									ruleNote2 += ruleNote2.isEmpty() ? ruleDto.getSecondThresholdMessage() : "";
 									animal.setThreshold2Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo2()) + ". Please start " + this.getFeedItemCode(ruleDto.getAuxInfo2());
 								} else if (th1 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getFirstThresholdMessage();
+									ruleNote3 += ruleNote3.isEmpty() ? ruleDto.getFirstThresholdMessage() : "";
 									animal.setThreshold1Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo2()) + ". Start your preparation for giving " + this.getFeedItemCode(ruleDto.getAuxInfo2());
 								}
@@ -158,15 +171,15 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								float th2 = ruleDto.getSecondThreshold() + this.getFeedItemThreshold2(ruleDto.getAuxInfo3());
 								float th3 = ruleDto.getThirdThreshold() + this.getFeedItemThreshold3(ruleDto.getAuxInfo3());
 								if (th3 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getThirdThresholdMessage();
+									ruleNote1 += ruleNote1.isEmpty() ? ruleDto.getThirdThresholdMessage() : "";
 									animal.setThreshold3Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo3()) + ". Immediately start " + this.getFeedItemCode(ruleDto.getAuxInfo3());
 								} else if (th2 > 0.0f && (daysToParturition <= th2)) {
-									ruleNote += ruleDto.getSecondThresholdMessage();
+									ruleNote2 += ruleNote2.isEmpty() ? ruleDto.getSecondThresholdMessage() : "";
 									animal.setThreshold2Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo3()) + ". Please start " + this.getFeedItemCode(ruleDto.getAuxInfo3());
 								} else if (th1 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getFirstThresholdMessage();
+									ruleNote3 += ruleNote3.isEmpty() ? ruleDto.getFirstThresholdMessage() : "";
 									animal.setThreshold1Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo3()) + ". Start your preparation for giving " + this.getFeedItemCode(ruleDto.getAuxInfo3());
 								}
@@ -177,15 +190,15 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								float th2 = ruleDto.getSecondThreshold() + this.getFeedItemThreshold2(ruleDto.getAuxInfo4());
 								float th3 = ruleDto.getThirdThreshold() + this.getFeedItemThreshold3(ruleDto.getAuxInfo4());
 								if (th3 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getThirdThresholdMessage();
+									ruleNote1 += ruleNote1.isEmpty() ? ruleDto.getThirdThresholdMessage() : "";
 									animal.setThreshold3Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo4()) + ". Immediately start " + this.getFeedItemCode(ruleDto.getAuxInfo4());
 								} else if (th2 > 0.0f && (daysToParturition <= th2)) {
-									ruleNote = ruleDto.getSecondThresholdMessage();
+									ruleNote2 += ruleNote2.isEmpty() ? ruleDto.getSecondThresholdMessage() : "";
 									animal.setThreshold2Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo4()) + ". Please start " + this.getFeedItemCode(ruleDto.getAuxInfo4());
 								} else if (th1 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getFirstThresholdMessage();
+									ruleNote3 += ruleNote3.isEmpty() ? ruleDto.getFirstThresholdMessage() : "";
 									animal.setThreshold1Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo4()) + ". Start your preparation for giving " + this.getFeedItemCode(ruleDto.getAuxInfo4());
 								}
@@ -196,15 +209,15 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								float th2 = ruleDto.getSecondThreshold() + this.getFeedItemThreshold2(ruleDto.getAuxInfo5());
 								float th3 = ruleDto.getThirdThreshold() + this.getFeedItemThreshold3(ruleDto.getAuxInfo5());
 								if (th3 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getThirdThresholdMessage();
+									ruleNote1 += ruleNote1.isEmpty() ? ruleDto.getThirdThresholdMessage() : "";
 									animal.setThreshold3Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo5()) + ". Immediately start " + this.getFeedItemCode(ruleDto.getAuxInfo5());
 								} else if (th2 > 0.0f && (daysToParturition <= th2)) {
-									ruleNote += ruleDto.getSecondThresholdMessage();
+									ruleNote2 += ruleNote2.isEmpty() ? ruleDto.getSecondThresholdMessage() : "";
 									animal.setThreshold2Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo5()) + ". Please start " + this.getFeedItemCode(ruleDto.getAuxInfo5());
 								} else if (th1 > 0.0f && (daysToParturition <= th3)) {
-									ruleNote += ruleDto.getFirstThresholdMessage();
+									ruleNote3 += ruleNote3.isEmpty() ? ruleDto.getFirstThresholdMessage() : "";
 									animal.setThreshold1Violated(true);
 									animalNote += " it hasn't yet been fed " + this.getFeedItemCode(ruleDto.getAuxInfo5()) + ". Start your preparation for giving " + this.getFeedItemCode(ruleDto.getAuxInfo5());
 								}
@@ -213,7 +226,7 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 								// This cow has pending pre-calving feed items.
 								animal.addLifecycleEvent(lifeEvents.get(0));
 								ArrayList<Note> notesList = new ArrayList<Note>();
-								notesList.add(new Note(1,ruleNote));
+								notesList.add(new Note(1,ruleNote1 + " " + ruleNote2 + " " + ruleNote3));
 								notesList.add(new Note(2,animalNote));
 								animal.setNotes(notesList);
 								eligiblePopulation.add(animal);
@@ -225,7 +238,6 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 				}
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return eligiblePopulation;
@@ -249,7 +261,7 @@ public class CalvingPrepFeedAdvisement extends AdvisementRule {
 		try {
 			int startIndex = auxInfo.indexOf("[TH" + thresholdNum + "=");
 			int endIndex = auxInfo.indexOf("]",startIndex);
-			threshold = new Float(auxInfo.substring(startIndex + ("[TH" + thresholdNum + "=").length(),endIndex));
+			threshold = Float.parseFloat(auxInfo.substring(startIndex + ("[TH" + thresholdNum + "=").length(),endIndex));
 		} catch (Exception ex) {
 			IMDLogger.log("Exception occurred while extracting the Threshold Value from the event Aux Info: " + auxInfo, Util.WARNING);
 			ex.printStackTrace();

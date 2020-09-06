@@ -57,11 +57,11 @@ class CalvingRateMilestoneEvaluatorTest {
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(noStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(noStarFemale.getOrgID(), noStarFemale.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(noStarFemale.getOrgId(), noStarFemale.getAnimalTag())>= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(noStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, noStarFemale.getOrgID(), noStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, noStarFemale.getOrgId(), noStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
 			int firstCalvingAgeInDays = 365 + 275;
@@ -70,7 +70,7 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(noStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, noStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays - 275 + 1));
 			TestDataCreationUtil.insertEvent(noStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, noStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, noStarFemale.getOrgID(), noStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, noStarFemale.getOrgId(), noStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 			
 			int noStarCalvingAvg = milestone.getOneStarThreshold().intValue() + 1;
@@ -83,11 +83,11 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(noStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, noStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + noStarCalvingAvg + noStarCalvingAvg - 275));
 			TestDataCreationUtil.insertEvent(noStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, noStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + noStarCalvingAvg + noStarCalvingAvg));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, noStarFemale.getOrgID(), noStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, noStarFemale.getOrgId(), noStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.NO_STAR, outcome.getStarRating());
 			
 			assertEquals(1,anmlLdr.deleteAnimal(noStarFemale));
-			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(noStarFemale.getOrgID(), noStarFemale.getAnimalTag()));
+			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(noStarFemale.getOrgId(), noStarFemale.getAnimalTag()));
 			
 			
 		} catch (Exception e) {
@@ -136,16 +136,16 @@ class CalvingRateMilestoneEvaluatorTest {
 			assertEquals(1, anmlLdr.insertAnimal(oldMale));
 			assertEquals(1, anmlLdr.insertAnimal(oldFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, youngFemale.getOrgID(), youngFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, youngFemale.getOrgId(), youngFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, youngMale.getOrgID(), youngMale.getAnimalTag(), Util.LanguageCode.ENG);			
+			outcome = evl.evaluatePerformanceMilestone(milestone, youngMale.getOrgId(), youngMale.getAnimalTag(), Util.LanguageCode.ENG);			
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, oldMale.getOrgID(), oldMale.getAnimalTag(), Util.LanguageCode.ENG);			
+			outcome = evl.evaluatePerformanceMilestone(milestone, oldMale.getOrgId(), oldMale.getAnimalTag(), Util.LanguageCode.ENG);			
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, oldFemale.getOrgID(), oldFemale.getAnimalTag(), Util.LanguageCode.ENG);			
+			outcome = evl.evaluatePerformanceMilestone(milestone, oldFemale.getOrgId(), oldFemale.getAnimalTag(), Util.LanguageCode.ENG);			
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
 			assertEquals(1,anmlLdr.deleteAnimal(youngFemale));
@@ -180,11 +180,11 @@ class CalvingRateMilestoneEvaluatorTest {
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*2), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(oneStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag())>= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(oneStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
 			int firstCalvingAgeInDays = 365 + 275;
@@ -193,7 +193,7 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, oneStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays - 275 + 1));
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, oneStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 			
 			int oneStarCalvingAvg = milestone.getTwoStarThreshold().intValue() + 1;
@@ -202,11 +202,11 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, oneStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + oneStarCalvingAvg - 275));
 			TestDataCreationUtil.insertEvent(oneStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, oneStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + oneStarCalvingAvg));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating());
 			
 			assertEquals(1,anmlLdr.deleteAnimal(oneStarFemale));
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgID(), oneStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag()));
 			
 			
 		} catch (Exception e) {
@@ -236,11 +236,11 @@ class CalvingRateMilestoneEvaluatorTest {
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*2), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(twoStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag())>= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(twoStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
 			int firstCalvingAgeInDays = 365 + 275;
@@ -249,7 +249,7 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(twoStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, twoStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays - 275 + 1));
 			TestDataCreationUtil.insertEvent(twoStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, twoStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 			
 			int twoStarCalvingAvg = milestone.getThreeStarThreshold().intValue() + 1;
@@ -258,11 +258,11 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(twoStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, twoStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + twoStarCalvingAvg - 275));
 			TestDataCreationUtil.insertEvent(twoStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, twoStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + twoStarCalvingAvg));
 			
-			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.TWO_STAR, outcome.getStarRating());
 			
 			assertEquals(1,anmlLdr.deleteAnimal(twoStarFemale));
-			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgID(), twoStarFemale.getAnimalTag()));
+			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag()));
 			
 			
 		} catch (Exception e) {
@@ -292,11 +292,11 @@ class CalvingRateMilestoneEvaluatorTest {
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(threeStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag())>= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(threeStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
 			int firstCalvingAgeInDays = 365 + 275;
@@ -305,7 +305,7 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(threeStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, threeStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays - 275 + 1));
 			TestDataCreationUtil.insertEvent(threeStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, threeStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 			
 			int threeStarCalvingAvg = milestone.getFourStarThreshold().intValue() + 1;
@@ -318,11 +318,11 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(threeStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, threeStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + threeStarCalvingAvg + threeStarCalvingAvg - 275));
 			TestDataCreationUtil.insertEvent(threeStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, threeStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + threeStarCalvingAvg + threeStarCalvingAvg));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.THREE_STAR, outcome.getStarRating());
 			
 			assertEquals(1,anmlLdr.deleteAnimal(threeStarFemale));
-			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgID(), threeStarFemale.getAnimalTag()));
+			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag()));
 			
 			
 		} catch (Exception e) {
@@ -352,11 +352,11 @@ class CalvingRateMilestoneEvaluatorTest {
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(fourStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag())>= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(fourStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
 			int firstCalvingAgeInDays = 365 + 275;
@@ -365,7 +365,7 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(fourStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fourStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays - 275 + 1));
 			TestDataCreationUtil.insertEvent(fourStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fourStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 			
 			int fourStarCalvingAvg = milestone.getFiveStarThreshold().intValue() + 1;
@@ -378,11 +378,11 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(fourStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fourStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + fourStarCalvingAvg + fourStarCalvingAvg - 275));
 			TestDataCreationUtil.insertEvent(fourStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fourStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + fourStarCalvingAvg + fourStarCalvingAvg));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating());
 			
 			assertEquals(1,anmlLdr.deleteAnimal(fourStarFemale));
-			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgID(), fourStarFemale.getAnimalTag()));
+			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag()));
 			
 			
 		} catch (Exception e) {
@@ -412,11 +412,11 @@ class CalvingRateMilestoneEvaluatorTest {
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
 			assertTrue(anmlLdr.deleteAnimal(fiveStarFemale) >= 0);
-			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag())>= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag())>= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(fiveStarFemale));
 			
-			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 
 			int firstCalvingAgeInDays = 365 + 275;
@@ -425,7 +425,7 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fiveStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays - 275 + 1));
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fiveStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.COULD_NOT_COMPUTE_RATING, outcome.getStarRating());
 			
 			int fiveStarCalvingAvg = milestone.getFiveStarThreshold().intValue();
@@ -438,11 +438,11 @@ class CalvingRateMilestoneEvaluatorTest {
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Inseminated : To be deleted", Util.LifeCycleEvents.INSEMINATE, fiveStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + fiveStarCalvingAvg + fiveStarCalvingAvg - 275));
 			TestDataCreationUtil.insertEvent(fiveStarFemale.getAnimalTag(), "Calved : To be deleted", Util.LifeCycleEvents.PARTURATE, fiveStarFemale.getDateOfBirth().plusDays(firstCalvingAgeInDays + fiveStarCalvingAvg + fiveStarCalvingAvg));
 
-			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
+			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 			
 			assertEquals(1,anmlLdr.deleteAnimal(fiveStarFemale));
-			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgID(), fiveStarFemale.getAnimalTag()));
+			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()));
 			
 			
 		} catch (Exception e) {

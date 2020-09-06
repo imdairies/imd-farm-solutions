@@ -49,8 +49,8 @@ class PerformanceMilestoneManagerTest {
 			Animal testAnimal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, 
 					dob, true);
 			assertTrue(TestDataCreationUtil.deleteAnimal(testAnimal) >= 0);
-			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(testAnimal.getOrgID(), testAnimal.getAnimalTag()) >= 0);
-			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(testAnimal.getOrgID(), testAnimal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(testAnimal.getOrgId(), testAnimal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(testAnimal.getOrgId(), testAnimal.getAnimalTag()) >= 0);
 			
 			int heatEventId = TestDataCreationUtil.insertEvent(testAnimal.getAnimalTag(), "Heat", 
 					Util.LifeCycleEvents.HEAT, dob.plusMonths(13));
@@ -71,12 +71,12 @@ class PerformanceMilestoneManagerTest {
 			assertTrue(dryOffEventID >= 0);
 
 
-			MilkingDetail milkRecord = TestDataCreationUtil.createMilkingRecord(testAnimal.getOrgID(), testAnimal.getAnimalTag(), 
+			MilkingDetail milkRecord = TestDataCreationUtil.createMilkingRecord(testAnimal.getOrgId(), testAnimal.getAnimalTag(), 
 					new LocalDate(dob.plusMonths(13).plusDays(275).plusDays(30), IMDProperties.getServerTimeZone()),
 					1, 9000);
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRecord));
 			assertEquals(1,TestDataCreationUtil.insertAnimal(testAnimal));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRecord));
 			
 			PerformanceMilestoneManager manager = new PerformanceMilestoneManager();
 			List<PerformanceMilestone> milestoneEvaluationOutcome = new ArrayList<PerformanceMilestone>();
@@ -84,9 +84,9 @@ class PerformanceMilestoneManagerTest {
 			HashMap<String, Boolean> badges = manager.getAllBadges(milestoneEvaluationOutcome );
 			assertTrue(badges.get(Util.PerformanceBadges.MILK_PLUS_BADGE));
 			
+			assertEquals(4,TestDataCreationUtil.deleteAllAnimalEvents(testAnimal.getOrgId(), testAnimal.getAnimalTag()));
+			assertEquals(1,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(testAnimal.getOrgId(), testAnimal.getAnimalTag()));
 			assertEquals(1,TestDataCreationUtil.deleteAnimal(testAnimal));
-			assertEquals(4,TestDataCreationUtil.deleteAllAnimalEvents(testAnimal.getOrgID(), testAnimal.getAnimalTag()));
-			assertEquals(1,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(testAnimal.getOrgID(), testAnimal.getAnimalTag()));
 			
 		} catch (Exception e) {
 			e.printStackTrace();

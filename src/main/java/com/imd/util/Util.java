@@ -5,7 +5,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.core.Response.Status;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -13,7 +12,6 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
-import org.joda.time.ReadableDuration;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -31,22 +29,35 @@ public class Util {
 	public static final int LACTATION_DURATION = 275;
 	public static final int YOUNG_ANIMAL_AGE_LIMIT = 180;
 
-
-	
 	public static String COW_FRONT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/1.png";
 	public static String COW_BACK_IMAGE_PHOTO_URL = "/assets/img/cow-photos/2.png";
 	public static String COW_RIGHT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/3.png";
 	public static String COW_LEFT_IMAGE_PHOTO_URL = "/assets/img/cow-photos/4.png";
 
-	
 	 public static final class LookupValues {
 		public static final  String LCYCL = "LCYCL";
 		public static final String FEED = "FEED";
 		public static final String FEEDCOHORT = "FEEDCOHORT";
 		public static final String BRUCELLA = "BRUCELLA";
+		public static final String NORMAL = "1.NORMAL";
 	}
 
-	
+	 public static final class PhotoIdentifiers {
+		public static final String ANIMAL = "ANIMAL";
+		public static final String LOOKUP = "LOOKUP";
+		public static final String CODE = "CODE";
+		public static final String PHOTO_ID = "PHOTO_ID";
+	}
+	 
+	 
+	 public static final class Outcome {
+		 public static final  String ADDED = "ADDED";
+		 public static final String EDIT = "EDIT";
+		 public static final  String DELETED = "DELETED";
+		public static final  String ERROR = "ERROR";
+		public static final String OK = "OK";
+		public static final String NOT_OVERWRITTEN = "NOT_OVERWRITTEN";
+	}
 	
 	 public static final class PROPERTIES {
 		public static final String JDBC_DRIVER = "JDBC_DRIVER";
@@ -76,11 +87,9 @@ public class Util {
 	public static final String Y = "Y";
 	public static final String N = "N";
 	
-	
 	public static final String FILE_NEW_LINE_SEPARATOR = "\n";
 	public static final String FILE_RECORD_SEPARATOR = "\t";
 	private static final String FILE_FIELD_ESCAPE_SEQUENCE = "\\";
-
 
 	public static final String ERROR_POSTFIX = "ERROR: ";
 	public static final String SUCCESS_POSTFIX = "SUCCESS: ";
@@ -100,6 +109,7 @@ public class Util {
 	public static final long MAX_PHOTO_SIZE_IN_BYTES = 5*1024*1024;
 
 	public static final String ANIMAL_PHOTO_UPLOAD_PATH = "/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions-responsive-client/public/assets/img/cow-photos";
+	public static final String LOOKUP_PHOTO_UPLOAD_PATH = "/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions-responsive-client/public/assets/img/lookupvalues";
 
 	public static final class DurationType {
 		public static final int DAYS = 1;
@@ -108,7 +118,6 @@ public class Util {
 	}
 
 	public static final class StarRating {
-
 		public static final Float FIVE_STAR = 5.0f;
 		public static final Float FOUR_POINT_FIVE_STAR = 4.5f;
 		public static final Float FOUR_STAR = 4.0f;
@@ -136,14 +145,12 @@ public class Util {
 		public static final String FIRSTLACTATIONFERTILITY = "FIRSTLACTATIONFERTILITY";
 		public static final String SECONDLACTATIONFERTILITY = "SECONDLACTATIONFERTILITY";
 		public static final String THIRDLACTATIONFERTILITY = "THIRDLACTATIONFERTILITY";
-
 		public static final String FIRSTLACTATIONPRODUCTION = "FIRSTLACTATIONPRODUCTION";
 		public static final String SECONDLACTATIONPRODUCTION = "SECONDLACTATIONPRODUCTION";
 		public static final String THIRDLACTATIONPRODUCTION = "THIRDLACTATIONPRODUCTION";
 
 	}
 	public static final class PerformanceBadges {
-
 		public static final String GROWTH_PLUS_BADGE = "growthPlusBadge";
 		public static final String MILK_PLUS_BADGE = "milkPlusBadge";
 		public static final String FERTILITY_PLUS_BADGE = "fertilityPlusBadge";
@@ -157,6 +164,7 @@ public class Util {
 		public static final int BAD_REQUEST = 400;
 		public static final int NOT_IMPLEMENTED = 501;
 		public static final int OK = 200;
+		public static final int INTERNAL_SERVER_ERROR = 500;
 	}
 
 	public static final class MessageCatalog {
@@ -169,7 +177,6 @@ public class Util {
 		public static final String PREGNANCY_TEST_ADVISEMENT_TH1 = "5";
 		public static final String PREGNANCY_TEST_ADVISEMENT_TH2 = "6";
 		public static final String PREGNANCY_TEST_ADVISEMENT_TH3 = "7";
-
 		public static final String DEWORMING_ADVISEMENT_TH1 = "8";
 		public static final String DEWORMING_ADVISEMENT_TH2 = "9";
 		public static final String DEWORMING_ADVISEMENT_TH3 = "10";
@@ -198,11 +205,9 @@ public class Util {
 		public static final String WEANOFF_ADVISEMENT_TH3 = "33";
 		public static final String WEANOFF_ADVISEMENT_TH2 = "34";
 		public static final String WEANOFF_ADVISEMENT_TH1 = "35";
-
 		public static final String BRUCELLAVACCINE_ADVISEMENT_TH1 = "36";
 		public static final String BRUCELLAVACCINE_ADVISEMENT_TH2 = "37";
 		public static final String BRUCELLAVACCINE_ADVISEMENT_TH3 = "38";
-		
 		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH1 = "39";
 		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH2 = "40";
 		public static final String WEIGHT_MEASUREMENT_ADVISEMENT_TH3 = "41";
@@ -223,16 +228,13 @@ public class Util {
 		public static final String MALE = "MALE";
 	}
 
-	
-	
 	public static final class DefaultValues {
-
-		public static final Double THREE_DAY_MILKING_AVERAGE = new Double(18.0d);
-		public static final Double DEFAULT_FAT_PCT = new Double(3.7d);
-		public static final Double DEFAULT_PROTEIN_PCT = new Double(3.4d);
-		public static final Double ADULT_COW_WEIGHT = new Double(500d);
-		public static final Double HEIFER_TARGET_WEIGHT = new Double(300d);
-		public static final Double YOUNG_ANIMAL_AGE_LIMIT = new Double(400d);
+		public static final Double THREE_DAY_MILKING_AVERAGE = 18.0d; 
+		public static final Double DEFAULT_FAT_PCT = 3.7d;
+		public static final Double DEFAULT_PROTEIN_PCT = 3.4d;
+		public static final Double ADULT_COW_WEIGHT = 500d;
+		public static final Double HEIFER_TARGET_WEIGHT = 300d;
+		public static final Double YOUNG_ANIMAL_AGE_LIMIT = 400d;
 		public static final int CALFWEIGHT_ADVISEMENT_AGE = 180;
 		public static final float DESIRED_CALF_DAILY_WEIGHT_GAIN_KG = 0.83f;
 		public static final float WEIGHT_AT_BIRTH = 30f;
@@ -241,7 +243,13 @@ public class Util {
 		 */
 		public static final int MAX_LPD_AVERAGED_OVER_RECORD_COUNT = 3;
 		public static final int CLOSTRUM_DAYS = 7;
-		
+		public static final Short FIRST_MILKING_EVENT_OF_THE_DAY = 1;
+		public static final Short SECOND_MILKING_EVENT_OF_THE_DAY = 2;
+		public static final Short THIRD_MILKING_EVENT_OF_THE_DAY = 3;
+		public static final String FIRST_MILKING_EVENT_OF_THE_DAY_TIME = "4:00";
+		public static final String SECOND_MILKING_EVENT_OF_THE_DAY_TIME = "12:00";
+		public static final String THIRD_MILKING_EVENT_OF_THE_DAY_TIME = "20:00";
+
 	}
 
 	public static final class FeedItems {
@@ -251,6 +259,7 @@ public class Util {
 		public static final String MILK = "MILK";
 		public static final String CORNSILAGE = "CORNSILAGE";
 		public static final String GLUCOSA = "GLUCOSA";
+		public static final String GLYCOLINE = "GLYCOLINE";
 		public static final String OIL = "OIL";
 		public static final String ALFAALFA = "ALFAALFA";
 		public static final String HDVANDA = "HDVANDA";
@@ -269,14 +278,14 @@ public class Util {
 		
 	}
 
-
 	public static final class FulfillmentType {
 		public static final String ABSOLUTE = "ABSOLUTE";
 		public static final String BODYWEIGHT = "BODYWEIGHT";
 		public static final String FREEFLOW = "FREEFLOW";
 		public static final String MILKPROD = "MILKPROD";
 		public static final String BYDMREQPCT = "BYDMREQPCT";
-		public static final Float NO_DM_MEASUREONVOLUME = new Float(0f);
+		public static final String CLVNGWINDO = "CLVNGWINDO";
+		public static final Float NO_DM_MEASUREONVOLUME = 0f;
 	}
 
 	public static final class Breed  {
@@ -292,7 +301,6 @@ public class Util {
 		public static final String LV_SIRE = "LV:/sire";
 		public static final String CATEGORY_CD = "CATEGORY_CD";
 	}
-
 	
 	public static final class MilkingDetailStatistics {
 		public static final String DAILY_AVERAGE = "DAILY_AVERAGE";
@@ -341,7 +349,6 @@ public class Util {
 		public static final String MASTITIS = "MASTITIS";
 		public static final String BRUCELLAVACCINE = "BRUCELLAVACCINE";
 	}
-	
 	
 	public static final class AnimalTypes {
 		public static final String HEIFER = "HEIFER";
@@ -401,8 +408,6 @@ public class Util {
 			public static final String TOKEN_EXPIRY_MINUTES = "TOKEN_EXPIRY_MINUTES";
 		}
 
-	 
-	 
 	 public static final class ERROR_CODE {
 			public static final int UNKNOWN_ERROR = -1000;
 			public static final int KEY_INTEGRITY_VIOLATION = -1001;
@@ -410,8 +415,9 @@ public class Util {
 			public static final int SQL_SYNTAX_ERROR = -1003;
 			public static final int DOES_NOT_EXIST = -1004;
 			public static final int PARTIAL_SUCCESS = -1005;
+			public static final int DUPLICATE_ENTRY = -1006;
+			public static final int ANIMAL_DOES_NOT_EXIST = -1007;
 	 }
-	 
 	 
 	 public static final class ANIMAL_STATUS {
 		public static final String ACTIVE = "ACTIVE";
@@ -468,8 +474,6 @@ public class Util {
 		return fmt.parseLocalTime(time);
 	}
 	
-	
-	
 	public static String getTimeInSQLFormart(LocalTime tm) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
 		return fmt.print(tm);
@@ -496,7 +500,8 @@ public class Util {
 	}
 	public static String getYearMonthDaysBetween(DateTime endTimeStamp, DateTime startTimeStamp) {
 		Period dateDifference = new Period(startTimeStamp, endTimeStamp, PeriodType.yearMonthDay());
-		return (dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") + (dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") + (dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "");
+//		return (dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr(s) " : "") + (dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo(s) " : "") + (dateDifference.getDays() > 0 ?  dateDifference.getDays() + " day(s) " : "");
+		return (dateDifference.getYears() > 0 ?  dateDifference.getYears() + " yr " : "") + (dateDifference.getMonths() > 0 ? dateDifference.getMonths() + " mo " : "") + (dateDifference.getDays() > 0 ?  dateDifference.getDays() + " dy " : "");
 	}
 	public static String encodeJson(String rawString) {
 		return new String(BufferRecyclers.getJsonStringEncoder().quoteAsString(rawString));
@@ -563,6 +568,8 @@ public class Util {
 				bean = parseTempHumidity(bean, 2, line, records);
 			} else if (i == 2) {
 				bean = parseFatLRToxin(bean,3,line,records);
+			} else if (i == 3) {
+				bean = parseMilkNotForSale(bean,6,line,records);
 			} else {
 				// tag, milk_volume
 				TagVolumeCommentTriplet milkRecordOfACow = parseCowMilkingEvent(bean,(i+1),line,records);
@@ -574,7 +581,6 @@ public class Util {
 		}
 		return bean;
 	}
-	
 	
 	private static TagVolumeCommentTriplet parseCowMilkingEvent(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
 			throws IMDException {
@@ -597,7 +603,7 @@ public class Util {
 			throw new IMDException(exceptionMessage);				
 		} else {
 			try {
-				volume = new Float(records[1].trim());
+				volume = Float.parseFloat(records[1].trim());
 			} catch (Exception ex) {
 				exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Milk Volume (AAA" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "AAA) but found (" + line + ") which does not comply with the expected format. Milking Volume is not properly formatted";
 				throw new IMDException(exceptionMessage);								
@@ -614,7 +620,6 @@ public class Util {
 		return parsedRecord;
 	}		
 	
-	
 	private static FarmMilkingDetailBean parseTimeStampEventNum(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
 			throws IMDException {
 		String exceptionMessage;
@@ -623,7 +628,7 @@ public class Util {
 			throw new IMDException(exceptionMessage);
 		}
 		try {
-			LocalDate milkingDate = new LocalDate(records[0].trim());
+			LocalDate milkingDate = new LocalDate(records[0].trim(), IMDProperties.getServerTimeZone());
 			bean.setMilkingDateStr(Util.getDateInSQLFormat(milkingDate));
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -639,7 +644,7 @@ public class Util {
 			throw new IMDException(exceptionMessage);
 		}
 		try {
-			short milkingEventNumber = new Short(records[2].trim());
+			short milkingEventNumber = Short.parseShort(records[2].trim());
 			bean.setMilkingEventNumber(milkingEventNumber);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -661,7 +666,7 @@ public class Util {
 				exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see Temperature In Centigrade and humidity (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format. Temperature CAN NOT be null";
 				throw new IMDException(exceptionMessage);				
 			} else {
-				Float tempInC = new Float(records[0].trim());
+				Float tempInC = Float.parseFloat(records[0].trim());
 				bean.setTemperatureInCentigrade(tempInC);
 				
 			}				
@@ -674,7 +679,7 @@ public class Util {
 			if (records.length < 2 || records[1].trim().isEmpty()) {
 				bean.setHumidity(null);
 			} else {
-				Float humidity = new Float(records[1].trim());
+				Float humidity = Float.parseFloat(records[1].trim());
 				bean.setHumidity(humidity);
 			}				
 		} catch (Exception ex) {
@@ -684,11 +689,6 @@ public class Util {
 		}
 		return bean;
 	}	
-	
-	
-	
-	
-	
 	
 	private static FarmMilkingDetailBean parseFatLRToxin(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
 			throws IMDException {
@@ -701,7 +701,7 @@ public class Util {
 			if (records == null || records.length < 1 || records[0].trim().isEmpty()) {
 				bean.setFatValue(null);
 			} else {
-				Float fat = new Float(records[0].trim());
+				Float fat = Float.parseFloat(records[0].trim());
 				bean.setFatValue(fat);
 			}				
 		} catch (Exception ex) {
@@ -713,7 +713,7 @@ public class Util {
 			if (records == null || records.length < 2 || records[1].trim().isEmpty()) {
 				bean.setLrValue(null);
 			} else {
-				Float lr = new Float(records[1].trim());
+				Float lr = Float.parseFloat(records[1].trim());
 				bean.setLrValue(lr);
 			}				
 		} catch (Exception ex) {
@@ -725,7 +725,7 @@ public class Util {
 			if (records == null || records.length < 3 || records[2].trim().isEmpty()) {
 				bean.setToxinValue(null);
 			} else {
-				Float toxin = new Float(records[2].trim());
+				Float toxin = Float.parseFloat(records[2].trim());
 				bean.setToxinValue(toxin);
 			}				
 		} catch (Exception ex) {
@@ -736,13 +736,113 @@ public class Util {
 
 		return bean;
 	}
+	
+	private static FarmMilkingDetailBean parseMilkNotForSale(FarmMilkingDetailBean bean, int lineNumber, String line, String[] records)
+			throws IMDException {
+		String exceptionMessage;
+		if (records.length > 6) {
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to see 6 values for forXXUse, (ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff" + FILE_RECORD_SEPARATOR + "ff.ff) but found (" + line + ") which does not comply with the expected format";
+			throw new IMDException(exceptionMessage);
+		}
+		Float value = null;
+		String fieldName = "";
+		int posNbr = -1;
+		try {
+			posNbr++;
+			if (records == null || records.length < 1 || records[posNbr].trim().isEmpty()) {
+				bean.setForCalvesUse(null);
+			} else {
+				fieldName = "forCalvesUse";
+				value = Float.parseFloat(records[posNbr].trim());
+				bean.setForCalvesUse(value);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse " + fieldName + " at position number the " + posNbr + " but found (" + line + ") which does not comply with the expected format. Invalid " + fieldName + " found." + fieldName + " is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+
+		try {
+			posNbr++;
+			if (records == null || records.length < 2 || records[posNbr].trim().isEmpty()) {
+				bean.setForFarmUse(null);
+			} else {
+				fieldName = "forFarmUse";
+				value =Float.parseFloat(records[posNbr].trim());
+				bean.setForFarmUse(value);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse " + fieldName + " at position number the " + posNbr + " but found (" + line + ") which does not comply with the expected format. Invalid " + fieldName + " found." + fieldName + " is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		
+		try {
+			posNbr++;
+			if (records == null || records.length < 3 || records[posNbr].trim().isEmpty()) {
+				bean.setForFamilyUse(null);
+			} else {
+				fieldName = "forFamilyUse";
+				value = Float.parseFloat(records[posNbr].trim());
+				bean.setForFamilyUse(value);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse " + fieldName + " at position number the " + posNbr + " but found (" + line + ") which does not comply with the expected format. Invalid " + fieldName + " found." + fieldName + " is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			posNbr++;
+			if (records == null || records.length < 4 || records[posNbr].trim().isEmpty()) {
+				bean.setForPersonalUse(null);
+			} else {
+				fieldName = "forPersonalUse";
+				value = Float.parseFloat(records[posNbr].trim());
+				bean.setForPersonalUse(value);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse " + fieldName + " at position number the " + posNbr + " but found (" + line + ") which does not comply with the expected format. Invalid " + fieldName + " found." + fieldName + " is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		try {
+			posNbr++;
+			if (records == null || records.length < 5 || records[posNbr].trim().isEmpty()) {
+				bean.setForOtherUse(null);
+			} else {
+				fieldName = "forOtherUse";
+				value = Float.parseFloat(records[posNbr].trim());
+				bean.setForOtherUse(value);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse " + fieldName + " at position number the " + posNbr + " but found (" + line + ") which does not comply with the expected format. Invalid " + fieldName + " found." + fieldName + " is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		
+		try {
+			posNbr++;
+			if (records == null || records.length < 6 || records[posNbr].trim().isEmpty()) {
+				bean.setForWasteAdj(null);
+			} else {
+				fieldName = "forWasteAdj";
+				value = Float.parseFloat(records[posNbr].trim());
+				bean.setForWasteAdj(value);
+			}				
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			exceptionMessage = " Error processing line # " + (lineNumber) + ". Expected to parse " + fieldName + " at position number the " + posNbr + " but found (" + line + ") which does not comply with the expected format. Invalid " + fieldName + " found." + fieldName + " is optional so you can specify an empty value; but you can't leave this out of your record.";
+			throw new IMDException(exceptionMessage);
+		}
+		return bean;
+	}
 	public static String substituteEmptyForNull(Object val) {
 		return val == null ? "" : val.toString();
 	}
-	public static User verifyAccess(String restrictedObjectName, String loginToken) {
+	public static User verifyAccess(String restrictedObjectName, String loginToken, boolean renewToken) {
 		//TODO: As of now anyone who is authenticated can access everything. In future when we enhance our 
 		// user authorization security model we would update this method.
-		return (new UserLoader()).isUserAuthenticated(loginToken);
+		return (new UserLoader()).isUserAuthenticated(loginToken, renewToken);
 	}
 	public static boolean isLeapYear(LocalDate date) {
 		return (date.getYear() % 4) == 0;
@@ -772,7 +872,6 @@ public class Util {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
 		return DateTime.parse(timeStampStr, fmt);
 	}
-	
 	
 }
 

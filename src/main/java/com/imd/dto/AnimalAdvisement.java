@@ -49,7 +49,7 @@ public class AnimalAdvisement extends IMDairiesDTO {
 	}
 
 	private String stringify(String prefix) {
-		return  prefix + fieldToJson("orgID", getOrgID()) + ",\n" + 
+		return  prefix + fieldToJson("orgID", getOrgId()) + ",\n" + 
 				prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
 				prefix + fieldToJson("severityLevel", this.severityLevel) + ",\n" +
 				prefix + fieldToJson("ruleOutcomeLongMessage", this.ruleOutcomeLongMessage) + ",\n" +

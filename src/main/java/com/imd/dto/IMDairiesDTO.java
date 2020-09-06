@@ -18,7 +18,7 @@ public class IMDairiesDTO {
 	private User updatedBy;
 	private DateTime updatedDTTM;
 	private DateTime createdDTTM;
-	private String orgID;
+	private String orgId;
 
 	public User getCreatedBy() {
 		return createdBy;
@@ -101,7 +101,8 @@ public class IMDairiesDTO {
 		String json = prefix + fieldToJson("createdBy", this.createdBy) + ",\n" + 
 				prefix + fieldToJson("createdDTTM", this.getCreatedDTTMSQLFormat()) + ",\n" +
 				prefix + fieldToJson("updatedBy", this.updatedBy) + ",\n" +
-				prefix + fieldToJson("updatedDTTM", this.getUpdatedDTTMSQLFormat());
+				prefix + fieldToJson("updatedDTTM", this.getUpdatedDTTMSQLFormat())+ ",\n" +
+				prefix + fieldToJson("orgId", this.orgId);
 		return json;
 
 	}
@@ -109,7 +110,8 @@ public class IMDairiesDTO {
 		String json = prefix + fieldToJson("createdBy", this.createdBy) + ",\n" + 
 				prefix + fieldToJson("createdDTTM", this.getCreatedDTTMSQLFormat(fmt)) + ",\n" +
 				prefix + fieldToJson("updatedBy", this.updatedBy) + ",\n" +
-				prefix + fieldToJson("updatedDTTM", this.getUpdatedDTTMSQLFormat(fmt));
+				prefix + fieldToJson("updatedDTTM", this.getUpdatedDTTMSQLFormat(fmt)) + ",\n" +
+				prefix + fieldToJson("orgId", this.orgId);
 		return json;
 
 	}
@@ -201,10 +203,10 @@ public class IMDairiesDTO {
 	public String fieldToJson(String fieldName, boolean boolValue) {
 		return ("\"" + fieldName + "\":" + (boolValue ? "true" : "false"));
 	}
-	public String getOrgID() {
-		return orgID;
+	public String getOrgId() {
+		return orgId;
 	}
-	public void setOrgID(String orgID) {
-		this.orgID = orgID;
+	public void setOrgId(String orgId) {
+		this.orgId = orgId;
 	}
 }

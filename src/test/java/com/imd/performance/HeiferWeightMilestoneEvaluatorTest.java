@@ -17,7 +17,6 @@ import com.imd.dto.Dam;
 import com.imd.dto.LifecycleEvent;
 import com.imd.dto.Note;
 import com.imd.dto.PerformanceMilestone;
-import com.imd.performance.HeiferWeightMilestoneEvaluator;
 import com.imd.dto.User;
 import com.imd.loader.AnimalLoader;
 import com.imd.loader.LifeCycleEventsLoader;
@@ -79,7 +78,7 @@ class HeiferWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals(null,evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertTrue(evaluatedMilestone.getEvaluationResultMessage().indexOf("younger than") >= 0);
 				assertEquals((float)Util.StarRating.ANIMAL_NOT_ELIGIBLE,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
@@ -131,7 +130,7 @@ class HeiferWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("296.67",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.NO_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
@@ -181,7 +180,7 @@ class HeiferWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("303.33",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.ONE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
@@ -231,7 +230,7 @@ class HeiferWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("307.5",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.TWO_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
@@ -280,7 +279,7 @@ class HeiferWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("312.5",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.THREE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
@@ -330,7 +329,7 @@ class HeiferWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("317",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.FOUR_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
@@ -380,7 +379,7 @@ class HeiferWeightMilestoneEvaluatorTest {
 			while (milestoneIt.hasNext()) {
 				perfmile = milestoneIt.next();
 				assertTrue(perfmile.isEnabled() && perfmile.isEnabledForOrg());
-				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
+				PerformanceMilestone evaluatedMilestone = eval.evaluatePerformanceMilestone(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag(), Util.LanguageCode.ENG);
 				assertEquals("322.5",evaluatedMilestone.getEvaluationValue(),evaluatedMilestone.getEvaluationResultMessage());
 				assertEquals((float)Util.StarRating.FIVE_STAR,evaluatedMilestone.getStarRating().floatValue(),evaluatedMilestone.getEvaluationResultMessage());
 
@@ -400,9 +399,9 @@ class HeiferWeightMilestoneEvaluatorTest {
 	private void addAnimalMilestoneTestData(Animal oneStarAnimal, LifecycleEvent oneStarWtEvent1, LifecycleEvent oneStarWtEvent2) throws Exception {
 		LifeCycleEventsLoader evtLdr = new LifeCycleEventsLoader();
 		AnimalLoader anmlLdr = new AnimalLoader();
-		anmlLdr.deleteAnimal(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag());
+		anmlLdr.deleteAnimal(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag());
 		anmlLdr.insertAnimal(oneStarAnimal);		
-		evtLdr.deleteAnimalLifecycleEvents(oneStarAnimal.getOrgID(), oneStarAnimal.getAnimalTag());
+		evtLdr.deleteAnimalLifecycleEvents(oneStarAnimal.getOrgId(), oneStarAnimal.getAnimalTag());
 		evtLdr.insertLifeCycleEvent(oneStarWtEvent1);
 		evtLdr.insertLifeCycleEvent(oneStarWtEvent2);
 	}

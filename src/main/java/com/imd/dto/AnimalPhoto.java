@@ -1,6 +1,8 @@
 package com.imd.dto;
 
 import org.joda.time.DateTime;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.util.Util;
@@ -15,7 +17,7 @@ public class AnimalPhoto extends IMDairiesDTO {
 	private DateTime dob;
 	
 	public AnimalPhoto(String orgID, String animalTag2) {
-		this.setOrgID(orgID);
+		this.setOrgId(orgID);
 		this.animalTag = animalTag2;
 	}
 	public AnimalPhoto() {
@@ -73,26 +75,34 @@ public class AnimalPhoto extends IMDairiesDTO {
 	
 	public String stringify(String prefix, DateTimeFormatter fmt)  {
 		String json = prefix + fieldToJson("animalTag", this.animalTag) + ",\n" +
+				prefix + fieldToJson("dob",this.dob) + ",\n" +
 				prefix + fieldToJson("photoID",this.photoID) + ",\n" +
 				prefix + fieldToJson("photoURI", this.photoURI) + ",\n" + 
 				prefix + fieldToJson("comments", this.comments) + ",\n" +
 				prefix + fieldToJson("ageAtPhotoTimeStamp", this.getAgeAtPhotoDTTM()) + ",\n";
-		if (fmt == null) 
+		if (fmt == null || this.photoTimeStamp == null) 
 			json += prefix + fieldToJson("photoTimeStamp",this.photoTimeStamp) + ",\n";
 		else 
 			json += prefix + fieldToJson("photoTimeStamp",getDateInSQLFormart(this.photoTimeStamp, fmt)) + ",\n";
 		return json;
 	}
-	public void setAgeAtPhotoDTTM(DateTime animalDOB) {
+	public void setDob(DateTime animalDOB) {
 		this.dob = animalDOB;
 	}
-	public String getAgeAtPhotoDTTM() {
-		if (this.dob == null || this.photoTimeStamp == null)
-			return "";
-		else 
-			return Util.getYearMonthDaysBetween(this.photoTimeStamp, this.dob);
+	public Period getAgeAtPhotoDTTM() {
+		if (this.dob == null || this.photoTimeStamp == null) {
+			return null;
+		} else {
+			if (Util.getDaysBetween(this.photoTimeStamp,this.dob) <= 1) {
+				return new Period(this.dob, this.photoTimeStamp, PeriodType.yearMonthDayTime());
+			}
+			else {
+				return new Period(this.dob, this.photoTimeStamp, PeriodType.yearMonthDay());			
+			}
+		}
+	
 	}
 	
-	
-	
 }
+
+

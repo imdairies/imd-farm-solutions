@@ -2,6 +2,7 @@ package com.imd.services.bean;
 
 
 public class LifeCycleEventCodeBean {
+	private String orgId;
 	private String eventCode;
 	private String eventShortDescription;
 	private String eventLongDescription;
@@ -49,6 +50,14 @@ public class LifeCycleEventCodeBean {
 
 	public void setActiveIndicator(String activeIndicator) {
 		this.activeIndicator = activeIndicator;
+	}
+
+	public String getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(String orgId) {
+		this.orgId = orgId;
 	}
 
 

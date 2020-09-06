@@ -37,7 +37,7 @@ public class MilkingDetailLoader {
 	public static final Integer ANIMAL_IS_NOT_LACTATING = -995;
 
 
-	public int insertMilkRecord(MilkingDetailBean milkingRecord)  {
+	public int insertMilkRecord(MilkingDetail milkingRecord)  {
 		int recordAdded = -1;
 		String qryString = "insert into MILK_LOG (ORG_ID,"
 				+ "ANIMAL_TAG,"
@@ -58,30 +58,39 @@ public class MilkingDetailLoader {
 				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
+		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, (milkingRecord.getOrgID() == null ? null : milkingRecord.getOrgID()));
-			preparedStatement.setString(2, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
-			preparedStatement.setString(3, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingRecord.getRecordDate())));
-			preparedStatement.setShort(4, milkingRecord.getMilkingEventNumber());
-			preparedStatement.setString(5, (milkingRecord.getRecordTime() == null ? null : Util.getTimeInSQLFormart(milkingRecord.getRecordTime())));
-			preparedStatement.setString(6, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getMilkVolume().toString());
-			preparedStatement.setString(7, Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.VOL_UNIT).toString());
-			preparedStatement.setString(8,  (milkingRecord.getLrValue() == null ? null : milkingRecord.getLrValue().toString()));
-			preparedStatement.setString(9,  (milkingRecord.getFatValue() == null ? null : milkingRecord.getFatValue().toString()));
-			preparedStatement.setString(10, (milkingRecord.getToxinValue() == null ? null : milkingRecord.getToxinValue().toString()));
-			preparedStatement.setString(11, (milkingRecord.getTemperatureInCentigrade() == null ? null : milkingRecord.getTemperatureInCentigrade().toString()));
-			preparedStatement.setString(12,  (milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
-			preparedStatement.setString(13, milkingRecord.getComments());
-			preparedStatement.setString(14, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(15, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
-			preparedStatement.setString(16, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(17, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
+			preparedStatement.setString(index++, (milkingRecord.getOrgId() == null ? null : milkingRecord.getOrgId()));
+			preparedStatement.setString(index++, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
+			preparedStatement.setString(index++, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingRecord.getRecordDate())));
+			preparedStatement.setShort(index++, milkingRecord.getMilkingEventNumber());
+			preparedStatement.setString(index++, (milkingRecord.getRecordTime() == null ? null : Util.getTimeInSQLFormart(milkingRecord.getRecordTime())));
+			preparedStatement.setString(index++, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getMilkVolume().toString());
+			preparedStatement.setString(index++, Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.VOL_UNIT).toString());
+			preparedStatement.setString(index++,  (milkingRecord.getLrValue() == null ? null : milkingRecord.getLrValue().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getFatValue() == null ? null : milkingRecord.getFatValue().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getToxinValue() == null ? null : milkingRecord.getToxinValue().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getTemperatureInCentigrade() == null ? null : milkingRecord.getTemperatureInCentigrade().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
+			preparedStatement.setString(index++, milkingRecord.getComments());
+			preparedStatement.setString(index++, milkingRecord.getCreatedBy() == null ? null : milkingRecord.getCreatedBy().getUserId());
+			preparedStatement.setString(index++, milkingRecord.getCreatedDTTM() == null ? Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())) :milkingRecord.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(index++, milkingRecord.getUpdatedBy() == null ? null : milkingRecord.getUpdatedBy().getUserId());
+			preparedStatement.setString(index++, milkingRecord.getUpdatedDTTM() == null ? Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())) :milkingRecord.getUpdatedDTTMSQLFormat());
+
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-			recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
-			ex.printStackTrace();
+			if (ex.getMessage().toUpperCase().contains("ORG_ANIMAL_ORG_FK")) {
+				recordAdded = Util.ERROR_CODE.ANIMAL_DOES_NOT_EXIST;				
+				ex.printStackTrace();
+			} else if (ex.getMessage().toUpperCase().contains("DUPLICATE ENTRY")) {
+				recordAdded = Util.ERROR_CODE.DUPLICATE_ENTRY;				
+			} else {
+				recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
+				ex.printStackTrace();
+			}
 		} catch (java.sql.SQLSyntaxErrorException ex) {
 			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
 			ex.printStackTrace();
@@ -102,9 +111,86 @@ public class MilkingDetailLoader {
 		return recordAdded;
 	}
 	
-	
+	public int insertFarmMilkRecord(MilkingDetail milkingRecord)  {
+		int recordAdded = -1;
+		
+		String qryString = "insert into imd.FARM_MILK_LOG (ORG_ID,"
+				+ "MILK_DATE,"
+				+ "SEQ_NBR,"
+				+ "MILK_TIME,"
+				+ "LR,"
+				+ "FAT,"
+				+ "TOXIN,"
+				+ "TEMP_C,"
+				+ "HUMIDITY,"
+				+ "PH,"
+				+ "COMMENTS,"
+				+ "FOR_CALVES_USE,"
+				+ "FOR_FARM_USE,"
+			    + "FOR_PERSONAL_USE,"
+			    + "FOR_FAMILY_USE,"
+			    + "FOR_OTHER_USE,"
+			    + "FOR_WASTE_ADJ,"
+				+ "CREATED_BY,"
+				+ "CREATED_DTTM,"
+				+ "UPDATED_BY,"
+				+ "UPDATED_DTTM) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, (milkingRecord.getOrgId() == null ? null : milkingRecord.getOrgId()));
+			preparedStatement.setString(index++, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingRecord.getRecordDate())));
+			preparedStatement.setShort(index++, milkingRecord.getMilkingEventNumber());
+			preparedStatement.setString(index++, (milkingRecord.getRecordTime() == null ? null : Util.getTimeInSQLFormart(milkingRecord.getRecordTime())));
+			preparedStatement.setString(index++,  (milkingRecord.getLrValue() == null ? null : milkingRecord.getLrValue().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getFatValue() == null ? null : milkingRecord.getFatValue().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getToxinValue() == null ? null : milkingRecord.getToxinValue().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getTemperatureInCentigrade() == null ? null : milkingRecord.getTemperatureInCentigrade().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getPhValue() == null ? null : milkingRecord.getPhValue().toString()));
+			preparedStatement.setString(index++, milkingRecord.getComments());
+			preparedStatement.setString(index++,  (milkingRecord.getForCalvesUse() == null ? null : milkingRecord.getForCalvesUse().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getForFarmUse() == null ? null : milkingRecord.getForFarmUse().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getForPersonalUse() == null ? null : milkingRecord.getForPersonalUse().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getForFamilyUse() == null ? null : milkingRecord.getForFamilyUse().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getForOtherUse() == null ? null : milkingRecord.getForOtherUse().toString()));
+			preparedStatement.setString(index++,  (milkingRecord.getForWasteAdj() == null ? null : milkingRecord.getForWasteAdj().toString()));
+			preparedStatement.setString(index++, milkingRecord.getCreatedBy() == null ? null : milkingRecord.getCreatedBy().getUserId());
+			preparedStatement.setString(index++, milkingRecord.getCreatedDTTM() == null ? Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())) :milkingRecord.getCreatedDTTMSQLFormat());
+			preparedStatement.setString(index++, milkingRecord.getUpdatedBy() == null ? null : milkingRecord.getUpdatedBy().getUserId());
+			preparedStatement.setString(index++, milkingRecord.getUpdatedDTTM() == null ? Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())) :milkingRecord.getUpdatedDTTMSQLFormat());
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			recordAdded = preparedStatement.executeUpdate();
+		} catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+			if (ex.getMessage().toUpperCase().contains("DUPLICATE ENTRY")) {
+				recordAdded = Util.ERROR_CODE.DUPLICATE_ENTRY;				
+			} else {
+				recordAdded = Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
+			}
+			ex.printStackTrace();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordAdded;
+	}
 
-	public int updateMilkRecord(MilkingDetailBean milkingRecord)  {
+	public int updateMilkRecord(MilkingDetail milkingRecord)  {
 		int recordAdded = -1;
 		String qryString = "UPDATE MILK_LOG SET "
 				+ "VOL=? ,"
@@ -120,23 +206,25 @@ public class MilkingDetailLoader {
 				+ "UPDATED_DTTM=? WHERE ORG_ID=? AND ANIMAL_TAG=? AND MILK_DATE=? AND SEQ_NBR=?";
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
+		int index = 1;
 		try {
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(1, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getMilkVolume().toString());
-			preparedStatement.setString(2, (milkingRecord.getRecordTime() == null ? null : Util.getTimeInSQLFormart(milkingRecord.getRecordTime())));
-			preparedStatement.setString(3, Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.VOL_UNIT).toString());
-			preparedStatement.setString(4,  (milkingRecord.getMilkVolume() == null || milkingRecord.getLrValue() == null ? null : milkingRecord.getLrValue().toString()));
-			preparedStatement.setString(5,  (milkingRecord.getMilkVolume() == null || milkingRecord.getFatValue() == null ? null : milkingRecord.getFatValue().toString()));
-			preparedStatement.setString(6, (milkingRecord.getMilkVolume() == null || milkingRecord.getToxinValue() == null ? null : milkingRecord.getToxinValue().toString()));
-			preparedStatement.setString(7, (milkingRecord.getMilkVolume() == null || milkingRecord.getTemperatureInCentigrade() == null ? null : milkingRecord.getTemperatureInCentigrade().toString()));
-			preparedStatement.setString(8,  (milkingRecord.getMilkVolume() == null || milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
-			preparedStatement.setString(9, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getComments());
-			preparedStatement.setString(10, (String)Util.getConfigurations().getSessionConfigurationValue(Util.ConfigKeys.USER_ID));
-			preparedStatement.setString(11, Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())));
-			preparedStatement.setString(12, (milkingRecord.getOrgID() == null ? null : milkingRecord.getOrgID()));
-			preparedStatement.setString(13, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
-			preparedStatement.setString(14, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingRecord.getRecordDate())));
-			preparedStatement.setShort(15, milkingRecord.getMilkingEventNumber());
+			preparedStatement.setString(index++, milkingRecord.getMilkVolume() == null ? null : milkingRecord.getMilkVolume().toString());
+			preparedStatement.setString(index++, (milkingRecord.getRecordTime() == null ? null : Util.getTimeInSQLFormart(milkingRecord.getRecordTime())));
+			preparedStatement.setString(index++, Util.getConfigurations().getOrganizationConfigurationValue(Util.ConfigKeys.VOL_UNIT).toString());
+			preparedStatement.setString(index++, (milkingRecord.getMilkVolume() == null || milkingRecord.getLrValue() == null ? null : milkingRecord.getLrValue().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getMilkVolume() == null || milkingRecord.getFatValue() == null ? null : milkingRecord.getFatValue().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getMilkVolume() == null || milkingRecord.getToxinValue() == null ? null : milkingRecord.getToxinValue().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getMilkVolume() == null || milkingRecord.getTemperatureInCentigrade() == null ? null : milkingRecord.getTemperatureInCentigrade().toString()));
+			preparedStatement.setString(index++, (milkingRecord.getMilkVolume() == null || milkingRecord.getHumidity() == null ? null : milkingRecord.getHumidity().toString()));
+			preparedStatement.setString(index++,  milkingRecord.getComments());
+			preparedStatement.setString(index++, milkingRecord.getUpdatedBy() == null ? null : milkingRecord.getUpdatedBy().getUserId());
+			preparedStatement.setString(index++, milkingRecord.getUpdatedDTTM() == null ? Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())) :milkingRecord.getUpdatedDTTMSQLFormat());
+			
+			preparedStatement.setString(index++, (milkingRecord.getOrgId() == null ? null : milkingRecord.getOrgId()));
+			preparedStatement.setString(index++, (milkingRecord.getAnimalTag() == null ? null : milkingRecord.getAnimalTag()));
+			preparedStatement.setString(index++, (milkingRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingRecord.getRecordDate())));
+			preparedStatement.setShort(index++, milkingRecord.getMilkingEventNumber());
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 			recordAdded = preparedStatement.executeUpdate();
 		} catch (java.sql.SQLSyntaxErrorException ex) {
@@ -160,18 +248,28 @@ public class MilkingDetailLoader {
 	}	
 	
 	
-	public int deleteMilkingRecordOfaDay(String orgID, String animalTag, LocalDate recordDate) {
-		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "' AND MILK_DATE='" + Util.getDateInSQLFormat(recordDate) + "'";
-		return performDeletion(qryString);
-	}
-	public int deleteAllMilkingRecordOfanAnimal(String orgID, String animalTag) {
-		if (orgID == null || orgID.isEmpty() || animalTag == null || animalTag.isEmpty())
+	public int deleteFarmMilkingRecord(String orgId, LocalDate recordDate, Integer seqNbr) {
+		String qryString = "";
+		if (orgId == null || orgId.isEmpty() || recordDate == null)
 			return 0;
-		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + "'";
+		else if (seqNbr != null)
+			qryString = "DELETE FROM imd.FARM_MILK_LOG where ORG_ID='" + orgId + "' AND MILK_DATE = '" + Util.getDateInSQLFormat(recordDate) + "' AND SEQ_NBR='" + seqNbr + "' ";
+		else
+			qryString = "DELETE FROM imd.FARM_MILK_LOG where ORG_ID='" + orgId + "' AND MILK_DATE = '" + Util.getDateInSQLFormat(recordDate) + "'";
 		return performDeletion(qryString);
 	}
-	public int deleteOneMilkingRecord(String orgID, String animalTag, LocalDate recordDate, int sequenceNbr) {
-		String qryString = "DELETE FROM MILK_LOG where ORG_ID='" + orgID + "' AND ANIMAL_TAG = '" + animalTag + 
+	public int deleteMilkingRecordOfaDay(String orgId, String animalTag, LocalDate recordDate) {
+		String qryString = "DELETE FROM imd.MILK_LOG where ORG_ID='" + orgId + "' AND ANIMAL_TAG = '" + animalTag + "' AND MILK_DATE='" + Util.getDateInSQLFormat(recordDate) + "'";
+		return performDeletion(qryString);
+	}
+	public int deleteAllMilkingRecordOfanAnimal(String orgId, String animalTag) {
+		if (orgId == null || orgId.isEmpty() || animalTag == null || animalTag.isEmpty())
+			return 0;
+		String qryString = "DELETE FROM imd.MILK_LOG where ORG_ID='" + orgId + "' AND ANIMAL_TAG = '" + animalTag + "'";
+		return performDeletion(qryString);
+	}
+	public int deleteOneMilkingRecord(String orgId, String animalTag, LocalDate recordDate, int sequenceNbr) {
+		String qryString = "DELETE FROM imd.MILK_LOG where ORG_ID='" + orgId + "' AND ANIMAL_TAG = '" + animalTag + 
 				"' AND MILK_DATE='" + Util.getDateInSQLFormat(recordDate) + "' AND SEQ_NBR=" + sequenceNbr;
 		return performDeletion(qryString);
 	}
@@ -200,7 +298,7 @@ public class MilkingDetailLoader {
 				"where A.org_id=? " + 
 				"and A.animal_tag=? ORDER BY A.MILK_DATE, A.SEQ_NBR DESC";
 		List<String> values = new ArrayList<String> ();
-		values.add(milkingSearchParam.getOrgID());		
+		values.add(milkingSearchParam.getOrgId());		
 		values.add(milkingSearchParam.getAnimalTag());
 		return readRecords(qryString, values);
 	}
@@ -210,13 +308,13 @@ public class MilkingDetailLoader {
 				searchBean.getRecordDate().getYear());
 	}
 	
-	private List<MilkingDetail> retrieveMonthlyMilkingRecordsOfCow(String orgID, String tagNbr, int monthOfYear, int year) throws Exception {
+	private List<MilkingDetail> retrieveMonthlyMilkingRecordsOfCow(String orgId, String tagNbr, int monthOfYear, int year) throws Exception {
 		String qryString = "SELECT *, 0 AS AVERAGE_VOL FROM imd.MILK_LOG " + 
 				"where org_id=? " + 
 				"and animal_tag=? and MILK_DATE >= CAST(? AS DATE) and MILK_DATE < CAST(? AS DATE) ORDER BY MILK_DATE, SEQ_NBR ASC";
 		LocalDate fromDate = new LocalDate(year, monthOfYear, 1);
 		List<String> values = new ArrayList<String> ();
-		values.add(orgID);
+		values.add(orgId);
 		values.add(tagNbr);
 		values.add(fromDate.toString());
 		values.add(fromDate.plusMonths(1).toString());
@@ -234,7 +332,7 @@ public class MilkingDetailLoader {
 		int i=1;
 		while (it.hasNext())
 			preparedStatement.setString(i++,it.next());
-		IMDLogger.log(preparedStatement.toString(),Util.INFO);		
+		IMDLogger.log(preparedStatement.toString(),Util.ERROR);		
 	    rs = preparedStatement.executeQuery();
 	    while (rs.next()) {
 	    	MilkingDetail milkingRecord = getMilkingDetailFromSQLRecord(rs);
@@ -478,58 +576,73 @@ public class MilkingDetailLoader {
 		ResultSet rs = null;
 		int i = 1;
 		PreparedStatement preparedStatement = null;
-		Connection conn = DBManager.getDBConnection();
-		preparedStatement = conn.prepareStatement(qryString);
-		if (startDate != null)
-			preparedStatement.setString(i++,Util.getDateInSpecifiedFormart(startDate, "yyyy-MM-dd"));
-		if (endDate != null)
-			preparedStatement.setString(i++,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
-		IMDLogger.log(preparedStatement.toString(),Util.INFO);
-	    rs = preparedStatement.executeQuery();
-	    LocalDate dateInProcess = startDate;
-	    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");			
-	    while (rs.next()) {
-	    	if (dateInProcess == null) {
-	    		// case when the calling function did not specify any start date.
-	    		dateInProcess = dtf.parseLocalDate(rs.getString("MILK_DATE"));
-	    		dateInProcess = new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(),1);
-	    	}
-			MilkingDetail milkDetail = new MilkingDetail();
-			milkDetail.setRecordDate(new LocalDate(dtf.parseLocalDate(rs.getString("MILK_DATE"))));
-			milkDetail.setMilkVolume(rs.getFloat("VOLUME"));
-			milkDetail.setLrValue(rs.getFloat("AVG_LR"));
-			milkDetail.setFatValue(rs.getFloat("AVG_FAT"));
-			milkDetail.setTemperatureInCentigrade(rs.getFloat("AVG_TEMPERATURE"));
-			milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT,rs.getFloat("MILKED_ANIMALS"));
-			milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, new Float(milkDetail.getMilkVolume()/rs.getInt("MILKED_ANIMALS")));
+		try {
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			if (startDate != null)
+				preparedStatement.setString(i++,Util.getDateInSpecifiedFormart(startDate, "yyyy-MM-dd"));
+			if (endDate != null)
+				preparedStatement.setString(i++,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    LocalDate dateInProcess = startDate;
+		    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");			
+		    while (rs.next()) {
+		    	if (dateInProcess == null) {
+		    		// case when the calling function did not specify any start date.
+		    		dateInProcess = dtf.parseLocalDate(rs.getString("MILK_DATE"));
+		    		dateInProcess = new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(),1);
+		    	}
+				MilkingDetail milkDetail = new MilkingDetail();
+				milkDetail.setRecordDate(new LocalDate(dtf.parseLocalDate(rs.getString("MILK_DATE"))));
+				milkDetail.setMilkVolume(rs.getFloat("VOLUME"));
+				milkDetail.setLrValue(rs.getFloat("AVG_LR"));
+				milkDetail.setFatValue(rs.getFloat("AVG_FAT"));
+				milkDetail.setTemperatureInCentigrade(rs.getFloat("AVG_TEMPERATURE"));
+				milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT,rs.getFloat("MILKED_ANIMALS"));
+				milkDetail.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, (float)(milkDetail.getMilkVolume()/rs.getInt("MILKED_ANIMALS")));
+				if (shouldIncludeMissingDays) {
+					while (dateInProcess.isBefore(milkDetail.getRecordDate())) {
+						MilkingDetail noRecord = new MilkingDetail();
+						noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
+						noRecord.setMilkVolume(0f);
+						noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
+						noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0f);
+						allMatchingValues.add(noRecord);
+						dateInProcess = dateInProcess.plusDays(1);
+						IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
+					}
+				}
+				allMatchingValues.add(milkDetail);
+				IMDLogger.log(milkDetail.getRecordDate().toString() + ": " + milkDetail.getMilkVolume(), Util.INFO);
+				dateInProcess = dateInProcess.plusDays(1);
+		    }
+		    
 			if (shouldIncludeMissingDays) {
-				while (dateInProcess.isBefore(milkDetail.getRecordDate())) {
+				while (!dateInProcess.isAfter(endDate)) {
 					MilkingDetail noRecord = new MilkingDetail();
 					noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
 					noRecord.setMilkVolume(0f);
-					noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
 					noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0f);
+					noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
 					allMatchingValues.add(noRecord);
-					dateInProcess = dateInProcess.plusDays(1);
 					IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
-				}
+					dateInProcess = dateInProcess.plusDays(1);
+			    }
 			}
-			allMatchingValues.add(milkDetail);
-			IMDLogger.log(milkDetail.getRecordDate().toString() + ": " + milkDetail.getMilkVolume(), Util.INFO);
-			dateInProcess = dateInProcess.plusDays(1);
-	    }
-	    
-		if (shouldIncludeMissingDays) {
-			while (!dateInProcess.isAfter(endDate)) {
-				MilkingDetail noRecord = new MilkingDetail();
-				noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
-				noRecord.setMilkVolume(0f);
-				noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.LACTATING_ANIMALS_COUNT, 0f);
-				noRecord.getAdditionalStatistics().put(Util.MilkingDetailStatistics.DAILY_AVERAGE, 0f);
-				allMatchingValues.add(noRecord);
-				IMDLogger.log(noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
-				dateInProcess = dateInProcess.plusDays(1);
-		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+		    	if (rs != null && !rs.isClosed()) {
+		    		rs.close();
+		    	}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	    return allMatchingValues;
 	}
@@ -538,73 +651,117 @@ public class MilkingDetailLoader {
 	/**
 	 * Retrieves data from the startDate till endDate both dates inclusive. The data is grouped by day i.e. each record represents the consolidated milk volume for a given day.
 	 * If a day does not have any milking information recorded in the DB then a 0 milking volume is reported for that day.
-	 * @param orgID
+	 * @param orgId
 	 * @param animalTag
-	 * @param startDate
-	 * @param endDate
+	 * @param startDate if set to null the records will be brought from whenever the first milking was recorded for this animal
+	 * @param endDate if set to null the records will be brought till whenever the last milking was recorded for this animal
 	 * @param shouldIncludeMissingDays If set to true then even if there is no record for a day, the output will have a zero volume for that day. If set to false then the days with no record will not be included in the return array.
 	 * @param isDescendingOrder 
 	 * @return
 	 * @throws SQLException 
 	 */
-	public List<MilkingDetail> retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(String orgID, String animalTag, LocalDate startDate, LocalDate endDate, boolean shouldIncludeMissingDays) throws SQLException{
-		
+	public List<MilkingDetail> retrieveFarmMilkVolumeForSpecifiedDateRangeForSpecificAnimal(String orgId, String animalTag, LocalDate startDate, LocalDate endDate, boolean shouldIncludeMissingDays) throws SQLException{
+
+		if (startDate == null) {
+	    	AnimalLoader animalLdr = new AnimalLoader();
+	    	try {
+				List<Animal> animal = animalLdr.getAnimalRawInfo(orgId, animalTag);
+				if (animal != null && !animal.isEmpty() && animal.get(0).getDateOfBirth() != null)
+					startDate = new LocalDate(animal.get(0).getDateOfBirth(), IMDProperties.getServerTimeZone());
+				else
+					startDate = new LocalDate(1900,1,1);
+			} catch (Exception e) {
+				startDate = new LocalDate(1900,1,1);
+				e.printStackTrace();
+			}
+	    }
+	    
+		if (endDate == null)
+	    	endDate = LocalDate.now(IMDProperties.getServerTimeZone());
+	    
+
 		String qryString = "SELECT sum(vol) AS VOLUME, MILK_DATE " +
-				" FROM imd.MILK_LOG where ORG_ID=? AND animal_tag=? AND " + 
-				" MILK_DATE >= CAST(? AS DATE) AND MILK_DATE <= CAST(? AS  DATE) group by milk_date order by milk_date asc";
+				" FROM imd.MILK_LOG where ORG_ID=? AND animal_tag=? " + 
+				" AND MILK_DATE >= CAST(? AS DATE) " +
+				" AND MILK_DATE <= CAST(? AS  DATE) "+
+				" group by milk_date order by milk_date asc";
 		ArrayList<MilkingDetail> allMatchingValues = new ArrayList<MilkingDetail>();
 		ResultSet rs = null;
+		int parameterIndex = 1;
 		PreparedStatement preparedStatement = null;
-		Connection conn = DBManager.getDBConnection();
-		preparedStatement = conn.prepareStatement(qryString);
-		preparedStatement.setString(1,orgID);
-		preparedStatement.setString(2,animalTag);
-		preparedStatement.setString(3,Util.getDateInSpecifiedFormart(startDate, "yyyy-MM-dd"));
-		preparedStatement.setString(4,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
-		IMDLogger.log(preparedStatement.toString(),Util.INFO);
-	    rs = preparedStatement.executeQuery();
-	    LocalDate dateInProcess = startDate;
-	    while (rs.next()) {
-			MilkingDetail milkDetail = new MilkingDetail();
-			DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
-			milkDetail.setAnimalTag(animalTag);
-			milkDetail.setOrgID(orgID);
-			milkDetail.setRecordDate(new LocalDate(dtf.parseLocalDate(rs.getString("MILK_DATE"))));
-			milkDetail.setMilkVolume(rs.getFloat("VOLUME"));
+		try {
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(parameterIndex++,orgId);
+			preparedStatement.setString(parameterIndex++,animalTag);
+			preparedStatement.setString(parameterIndex++,Util.getDateInSpecifiedFormart(startDate, "yyyy-MM-dd"));
+			preparedStatement.setString(parameterIndex++,Util.getDateInSpecifiedFormart(endDate, "yyyy-MM-dd"));
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    
+		    LocalDate dateInProcess = startDate;
+		    while (rs.next()) {
+				MilkingDetail milkDetail = new MilkingDetail();
+				DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
+				milkDetail.setAnimalTag(animalTag);
+				milkDetail.setOrgId(orgId);
+				milkDetail.setRecordDate(new LocalDate(dtf.parseLocalDate(rs.getString("MILK_DATE"))));
+				milkDetail.setMilkVolume(rs.getFloat("VOLUME"));
+				if (shouldIncludeMissingDays) {
+					while (dateInProcess.isBefore(milkDetail.getRecordDate())) {
+						MilkingDetail noRecord = new MilkingDetail();
+						noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
+						noRecord.setMilkVolume(0f);
+						allMatchingValues.add(noRecord);
+						dateInProcess = dateInProcess.plusDays(1);
+						IMDLogger.log("Adding empty record" + noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
+					}
+				}
+				allMatchingValues.add(milkDetail);
+				IMDLogger.log(milkDetail.getRecordDate().toString() + ": " + milkDetail.getMilkVolume(), Util.INFO);
+				dateInProcess = dateInProcess.plusDays(1);
+		    }
+		    
+		    //dateInProcess = endDate;
+	
 			if (shouldIncludeMissingDays) {
-				while (dateInProcess.isBefore(milkDetail.getRecordDate())) {
+				while (!dateInProcess.isAfter(endDate)) {
 					MilkingDetail noRecord = new MilkingDetail();
 					noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
 					noRecord.setMilkVolume(0f);
 					allMatchingValues.add(noRecord);
+					IMDLogger.log("Adding trailing empty records" + noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
 					dateInProcess = dateInProcess.plusDays(1);
-					IMDLogger.log("Adding empty record" + noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
-				}
+			    }
 			}
-			allMatchingValues.add(milkDetail);
-			IMDLogger.log(milkDetail.getRecordDate().toString() + ": " + milkDetail.getMilkVolume(), Util.INFO);
-			dateInProcess = dateInProcess.plusDays(1);
-	    }
-	    
-	    //dateInProcess = endDate;
-
-		if (shouldIncludeMissingDays) {
-			while (!dateInProcess.isAfter(endDate)) {
-				MilkingDetail noRecord = new MilkingDetail();
-				noRecord.setRecordDate(new LocalDate(dateInProcess.getYear(), dateInProcess.getMonthOfYear(), dateInProcess.getDayOfMonth()));
-				noRecord.setMilkVolume(0f);
-				allMatchingValues.add(noRecord);
-				IMDLogger.log("Adding trailing empty records" + noRecord.getRecordDate().toString() + ": " + noRecord.getMilkVolume(), Util.INFO);
-				dateInProcess = dateInProcess.plusDays(1);
-		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+		    	if (rs != null && !rs.isClosed()) {
+		    		rs.close();
+		    	}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	    return allMatchingValues;
 	}	
 	
 	private MilkingDetail getMilkingDetailFromSQLRecord(ResultSet rs) throws Exception {
 		MilkingDetail milkDetail = new MilkingDetail();
-		milkDetail.setOrgID(rs.getString("ORG_ID"));
-		milkDetail.setAnimalTag(rs.getString("ANIMAL_TAG"));
+		boolean isFarmMilkRecord = false;
+		milkDetail.setOrgId(rs.getString("ORG_ID"));
+		try {
+			milkDetail.setAnimalTag(rs.getString("ANIMAL_TAG"));
+		} catch (Exception ex) {
+			// case when this query is run on imd.FARM_MILK_LOG table.
+			milkDetail.setAnimalTag("N/A");
+			isFarmMilkRecord = true;
+		}
 		Date milkingDate = rs.getDate("MILK_DATE");
 		
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
@@ -612,20 +769,32 @@ public class MilkingDetailLoader {
 		milkDetail.setRecordDate(new LocalDate(milkingDate, IMDProperties.getServerTimeZone()));
 		milkDetail.setRecordTime(new LocalTime(localTime));
 		milkDetail.setMilkingEventNumber(rs.getShort("SEQ_NBR"));
-		milkDetail.setMilkVolume(rs.getString("VOL") == null || rs.getString("VOL").isEmpty() ? null : rs.getFloat("VOL"));
-		milkDetail.setVolUnit(rs.getString("VOL_UNIT"));
+		milkDetail.setMilkVolume(isFarmMilkRecord || rs.getString("VOL") == null || rs.getString("VOL").isEmpty() ? null : rs.getFloat("VOL"));
+		milkDetail.setVolUnit(isFarmMilkRecord ? null : rs.getString("VOL_UNIT"));
 		milkDetail.setLrValue(rs.getString("LR") == null || rs.getString("LR").isEmpty() ? null : rs.getFloat("LR"));
 		milkDetail.setFatValue(rs.getString("FAT") == null || rs.getString("FAT").isEmpty() ? null : rs.getFloat("FAT"));
 		milkDetail.setToxinValue(rs.getString("TOXIN") == null || rs.getString("TOXIN").isEmpty() ? null : rs.getFloat("TOXIN"));		
 		milkDetail.setTemperatureInCentigrade(rs.getString("TEMP_C") == null || rs.getString("TEMP_C").isEmpty() ? null : rs.getFloat("TEMP_C"));
 		milkDetail.setHumidity(rs.getString("HUMIDITY") == null || rs.getString("HUMIDITY").isEmpty() ? null : rs.getFloat("HUMIDITY"));
 		milkDetail.setComments(rs.getString("COMMENTS"));
+
+		// Farm Record Specific Values
+		milkDetail.setPhValue(isFarmMilkRecord && rs.getString("PH") != null && !rs.getString("PH").isEmpty() ? rs.getFloat("PH") : null);
+		milkDetail.setForCalvesUse(isFarmMilkRecord && rs.getString("FOR_CALVES_USE") != null && !rs.getString("FOR_CALVES_USE").isEmpty() ? rs.getFloat("FOR_CALVES_USE") : null);
+		milkDetail.setForFarmUse(isFarmMilkRecord && rs.getString("FOR_FARM_USE") != null && !rs.getString("FOR_FARM_USE").isEmpty() ? rs.getFloat("FOR_FARM_USE") : null);
+		milkDetail.setForPersonalUse(isFarmMilkRecord && rs.getString("FOR_PERSONAL_USE") != null && !rs.getString("FOR_PERSONAL_USE").isEmpty() ? rs.getFloat("FOR_PERSONAL_USE") : null);
+		milkDetail.setForFamilyUse(isFarmMilkRecord && rs.getString("FOR_FAMILY_USE") != null && !rs.getString("FOR_FAMILY_USE").isEmpty() ? rs.getFloat("FOR_FAMILY_USE") : null);
+		milkDetail.setForOtherUse(isFarmMilkRecord && rs.getString("FOR_OTHER_USE") != null && !rs.getString("FOR_OTHER_USE").isEmpty() ? rs.getFloat("FOR_OTHER_USE") : null);
+		milkDetail.setForWasteAdj(isFarmMilkRecord && rs.getString("FOR_WASTE_ADJ") != null && !rs.getString("FOR_WASTE_ADJ").isEmpty() ? rs.getFloat("FOR_WASTE_ADJ") : null);
+		//
+		
 		milkDetail.setCreatedBy(new User(rs.getString("CREATED_BY")));
 		milkDetail.setCreatedDTTM(new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()));
 		milkDetail.setUpdatedBy(new User(rs.getString("UPDATED_BY")));
 		milkDetail.setUpdatedDTTM(new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone()));
 		try {
-			milkDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE, (rs.getString("AVERAGE_VOL") == null || rs.getString("AVERAGE_VOL").isEmpty() ? 0f :Float.parseFloat(rs.getString("AVERAGE_VOL"))));
+			if (!isFarmMilkRecord)
+				milkDetail.addToAdditionalStatistics(Util.MilkingDetailStatistics.SEQ_NBR_MONTHLY_AVERAGE, (rs.getString("AVERAGE_VOL") == null || rs.getString("AVERAGE_VOL").isEmpty() ? 0f :Float.parseFloat(rs.getString("AVERAGE_VOL"))));
 		} catch (SQLException ex) {
 			IMDLogger.log("The column AVERAGE_VOL does not exist in the resultset. This is probably because the query does not have a join with milk_seq_avg_vw view. This may not be a critical error and may be ignored, but its certainly worth investigating. [ANIMAL_TAG=" + milkDetail.getAnimalTag() +"]", Util.WARNING);
 			ex.printStackTrace();
@@ -633,9 +802,11 @@ public class MilkingDetailLoader {
 			
 		return milkDetail;
 	}
-	public List<TagVolumeCommentTriplet> addOrEditFarmMilkingEventRecord(FarmMilkingDetailBean milkingEventRecord) {
+	public List<TagVolumeCommentTriplet> addOrEditFarmAnimalsMilkingEventRecords(FarmMilkingDetailBean milkingEventRecord, 
+			User createdBy, DateTime createTS, 
+			User updatedBy, DateTime updatedTS, boolean donotOverwrite) {
 		
-		if (milkingEventRecord.getFarmMilkingEventRecords() == null || milkingEventRecord.getFarmMilkingEventRecords().isEmpty())
+		if (milkingEventRecord == null || milkingEventRecord.getFarmMilkingEventRecords() == null || milkingEventRecord.getFarmMilkingEventRecords().isEmpty())
 			return null;
 		
 		Iterator<TagVolumeCommentTriplet> it = milkingEventRecord.getFarmMilkingEventRecords().iterator();
@@ -645,8 +816,8 @@ public class MilkingDetailLoader {
 		while (it.hasNext()) {
 			try {
 				cowMilkInfo = it.next();
-				MilkingDetailBean cowMilkingDetail = new MilkingDetailBean();
-				cowMilkingDetail.setOrgID(milkingEventRecord.getOrgID());
+				MilkingDetail cowMilkingDetail = new MilkingDetail();
+				cowMilkingDetail.setOrgId(milkingEventRecord.getOrgID());
 				cowMilkingDetail.setAnimalTag(cowMilkInfo.getTag());
 				cowMilkingDetail.setRecordDate(milkingEventRecord.getRecordDate());
 				cowMilkingDetail.setRecordTime(milkingEventRecord.getRecordTime());
@@ -658,6 +829,12 @@ public class MilkingDetailLoader {
 				cowMilkingDetail.setTemperatureInCentigrade(milkingEventRecord.getTemperatureInCentigrade());
 				cowMilkingDetail.setHumidity(milkingEventRecord.getHumidity());
 				cowMilkingDetail.setComments(cowMilkInfo.getComments());
+				cowMilkingDetail.setCreatedBy(createdBy);
+				cowMilkingDetail.setCreatedDTTM(createTS);
+				cowMilkingDetail.setUpdatedBy(updatedBy);
+				cowMilkingDetail.setUpdatedDTTM(updatedTS);
+				
+				
 				int response =  Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION;
 				if (cowMilkingDetail.getMilkVolume() != null)
 					// case when a cow was set in lactation now and we update an older farm milking
@@ -666,28 +843,40 @@ public class MilkingDetailLoader {
 					// deliberately wants an addition which will be indicated by the fact that 
 					// he mentions a non null milk volume for that animal.
 					response = insertMilkRecord(cowMilkingDetail);
-				if (response == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION) {
-					response = updateMilkRecord(cowMilkingDetail);
-					if (response == 1)
-						cowMilkInfo.setOutcome("EDIT");
-					else if (response == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
-						cowMilkInfo.setOutcome("ERROR");
-					else if (response == Util.ERROR_CODE.UNKNOWN_ERROR)
-						cowMilkInfo.setOutcome("ERROR");
-					else 
-						cowMilkInfo.setOutcome("ERROR");
+				if (response == Util.ERROR_CODE.DUPLICATE_ENTRY) {
+					if (donotOverwrite) {
+						// the record already exists and the instructions are not to overwrite an existing record.
+						cowMilkInfo.setOutcome(Util.Outcome.NOT_OVERWRITTEN);
+					} else {
+						response = updateMilkRecord(cowMilkingDetail);
+						if (response == 1)
+							cowMilkInfo.setOutcome(Util.Outcome.EDIT);
+						else if (response == Util.ERROR_CODE.SQL_SYNTAX_ERROR)
+							cowMilkInfo.setOutcome(Util.Outcome.ERROR);
+						else if (response == Util.ERROR_CODE.UNKNOWN_ERROR)
+							cowMilkInfo.setOutcome(Util.Outcome.ERROR);
+						else if (response == 0) {
+							// case when the cow tag is invalid i.e. FK violation
+							cowMilkInfo.setOutcome(Util.Outcome.ERROR);
+						} else 
+							cowMilkInfo.setOutcome(Util.Outcome.ERROR);
+					}
+				} else if (response == Util.ERROR_CODE.ANIMAL_DOES_NOT_EXIST) {
+					cowMilkInfo.setOutcome(Util.Outcome.ERROR);
+				} else if (response == Util.ERROR_CODE.KEY_INTEGRITY_VIOLATION) {
+					cowMilkInfo.setOutcome(Util.Outcome.ERROR);
 				} else if (response == Util.ERROR_CODE.SQL_SYNTAX_ERROR) {
-					cowMilkInfo.setOutcome("ERROR");
+					cowMilkInfo.setOutcome(Util.Outcome.ERROR);
 				} else if (response == Util.ERROR_CODE.UNKNOWN_ERROR) {
-					cowMilkInfo.setOutcome("ERROR");
+					cowMilkInfo.setOutcome(Util.Outcome.ERROR);
 				} else {
-					cowMilkInfo.setOutcome("OK");
+					cowMilkInfo.setOutcome(Util.Outcome.OK);
 				}
 				responseList.add(cowMilkInfo);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				if (cowMilkInfo != null && cowMilkInfo.getTag() != null && !cowMilkInfo.getTag().trim().isEmpty()) {
-					cowMilkInfo.setOutcome("ERROR");
+					cowMilkInfo.setOutcome(Util.Outcome.ERROR);
 					responseList.add(cowMilkInfo);
 				}
 			}
@@ -695,18 +884,18 @@ public class MilkingDetailLoader {
 		return responseList;		
 	}
 
-	public Integer getDaysInMilkingOfCow(String orgID, String animalTag) {
-		return getDaysInMilkingOfCow(orgID, animalTag, null);
+	public Integer getDaysInMilkingOfCow(String orgId, String animalTag) {
+		return getDaysInMilkingOfCow(orgId, animalTag, null);
 	}
 
-	public Integer getDaysInMilkingOfCow(String orgID, String animalTag, LocalDate toDateOfDaysInMilking) {
+	public Integer getDaysInMilkingOfCow(String orgId, String animalTag, LocalDate toDateOfDaysInMilking) {
 		Integer dim = null;
 		DateTime dimWindowStart = null;
 		AnimalLoader animalLoader = new AnimalLoader();
 		LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
 		DateTime targetDateTime = toDateOfDaysInMilking == null ? DateTime.now(IMDProperties.getServerTimeZone()) : new DateTime(toDateOfDaysInMilking.getYear(),toDateOfDaysInMilking.getMonthOfYear(),toDateOfDaysInMilking.getDayOfMonth(),0,0, IMDProperties.getServerTimeZone());
 		try {
-			List<Animal> animals = animalLoader.getAnimalRawInfo(orgID, animalTag);
+			List<Animal> animals = animalLoader.getAnimalRawInfo(orgId, animalTag);
 			if (animals == null || animals.isEmpty()) {
 				IMDLogger.log("The animal " + animalTag + " does not exist. Can't calculate its Days in Milking", Util.ERROR);
 				dim = ANIMAL_DOES_NOT_EXIST;
@@ -714,7 +903,7 @@ public class MilkingDetailLoader {
 //				dim = ANIMAL_IS_NOT_LACTATING;
 //				IMDLogger.log("The animal's type indicates that " + animalTag + " is not lactating. Days in Milking can only be calculated for lactating animals", Util.ERROR);
 			} else {
-				List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(orgID, animalTag, null, targetDateTime, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,  null,  null, null);
+				List<LifecycleEvent> events = eventLoader.retrieveSpecificLifeCycleEventsForAnimal(orgId, animalTag, null, targetDateTime, Util.LifeCycleEvents.PARTURATE, Util.LifeCycleEvents.ABORTION, null,  null,  null, null);
 				if (events == null || events.isEmpty()) {
 					IMDLogger.log("Did not find any parturation or abortion event for the animal " + animalTag + "; Days in Milking won't be calculated for this animal", Util.ERROR);
 					dim = NO_PARTURATION_OR_ABORTION_EVENT_FOUND;
@@ -736,13 +925,13 @@ public class MilkingDetailLoader {
 	 * In general its not a good idea to take one day maximum production as the peak of the cow in that lactation. Therefore as a
 	 * best practise we take the top Util.DefaultValues.MAX_LPD_AVERAGED_OVER_RECORD_COUNT daily production value and then take the
 	 * average of the til.DefaultValues.MAX_LPD_AVERAGED_OVER_RECORD_COUNT days and use that as the maximum daily production value
-	 * @param orgID
+	 * @param orgId
 	 * @param animalTag
 	 * @param milkDateStartTS
 	 * @param milkDateEndTS
 	 * @return
 	 */
-	public float getMaximumDailyProductionOfCow(String orgID, String animalTag, DateTime milkDateStartTS,
+	public float getMaximumDailyProductionOfCow(String orgId, String animalTag, DateTime milkDateStartTS,
 			DateTime milkDateEndTS) {
 		
 		String qryString = "SELECT " +
@@ -752,13 +941,13 @@ public class MilkingDetailLoader {
 				" ORG_ID = ? AND ANIMAL_TAG = ? AND " + 
 				" MILK_DATE >= ? " + (milkDateEndTS == null ? "" : " AND MILK_DATE <= ? ") + " GROUP BY MILK_DATE ORDER BY LPD DESC";
 		
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
 		try {
 			int i = 1;
-			ResultSet rs = null;
-			PreparedStatement preparedStatement = null;
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(i++,orgID);
+			preparedStatement.setString(i++,orgId);
 			preparedStatement.setString(i++,animalTag);
 			preparedStatement.setString(i++,Util.getDateInSQLFormat(milkDateStartTS));
 			if (milkDateEndTS != null)
@@ -779,10 +968,21 @@ public class MilkingDetailLoader {
 		} catch (SQLException e) {
 			IMDLogger.log("Exception occurred while retrieving maximum daily production of the animal " + animalTag, Util.ERROR);
 			e.printStackTrace();
+		} finally {
+		    try {
+		    	if (rs != null && !rs.isClosed()) {
+		    		rs.close();
+		    	}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return 0;
 	}
-	public float getTotalProductionOfCow(String orgID, String animalTag, DateTime milkDateStartTS, DateTime milkDateEndTS) {
+	public float getTotalProductionOfCow(String orgId, String animalTag, DateTime milkDateStartTS, DateTime milkDateEndTS) {
 		
 		String qryString = "SELECT " +
 				" SUM(VOL) AS TOTAL_PRODUCTION " + 
@@ -792,13 +992,13 @@ public class MilkingDetailLoader {
 				" MILK_DATE >= ? AND MILK_DATE <= ? ";
 		
 		float totalMilk = 0;
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
 		try {
 			int i = 1;
-			ResultSet rs = null;
-			PreparedStatement preparedStatement = null;
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(i++,orgID);
+			preparedStatement.setString(i++,orgId);
 			preparedStatement.setString(i++,animalTag);
 			preparedStatement.setString(i++,Util.getDateInSQLFormat(milkDateStartTS));
 			preparedStatement.setString(i++,Util.getDateInSQLFormat(milkDateEndTS));
@@ -810,10 +1010,21 @@ public class MilkingDetailLoader {
 		} catch (SQLException e) {
 			IMDLogger.log("Exception occurred while retrieving maximum daily production of the animal " + animalTag, Util.ERROR);
 			e.printStackTrace();
+		} finally {
+		    try {
+		    	if (rs != null && !rs.isClosed()) {
+		    		rs.close();
+		    	}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return totalMilk;
 	}
-	public float getDurationInMilking(String orgID, String animalTag, DateTime searchWindowStartTS, DateTime searchWindowEndTS, int durationType) {
+	public float getDurationInMilking(String orgId, String animalTag, DateTime searchWindowStartTS, DateTime searchWindowEndTS, int durationType) {
 		
 		String qryString = "SELECT " +
 				" MIN(MILK_DATE) as MILK_START, MAX(MILK_DATE) AS MILK_END " + 
@@ -823,13 +1034,13 @@ public class MilkingDetailLoader {
 				" MILK_DATE >= ? AND MILK_DATE <= ? ";
 		
 		float duration = 0;
+		ResultSet rs = null;
+		PreparedStatement preparedStatement = null;
 		try {
 			int i = 1;
-			ResultSet rs = null;
-			PreparedStatement preparedStatement = null;
 			Connection conn = DBManager.getDBConnection();
 			preparedStatement = conn.prepareStatement(qryString);
-			preparedStatement.setString(i++,orgID);
+			preparedStatement.setString(i++,orgId);
 			preparedStatement.setString(i++,animalTag);
 			preparedStatement.setString(i++,Util.getDateInSQLFormat(searchWindowStartTS));
 			preparedStatement.setString(i++,Util.getDateInSQLFormat(searchWindowEndTS));
@@ -856,8 +1067,209 @@ public class MilkingDetailLoader {
 		} catch (SQLException e) {
 			IMDLogger.log("Exception occurred while retrieving duration in milking for the animal " + animalTag, Util.ERROR);
 			e.printStackTrace();
+		} finally {
+		    try {
+		    	if (rs != null && !rs.isClosed()) {
+		    		rs.close();
+		    	}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return duration;
+	}
+	
+	public MilkingDetail getLatestMilkingEvent(String orgId) {
+		String qryString = "SELECT "
+				+ " MILK_DATE, SEQ_NBR "
+				+ " FROM imd.MILK_LOG WHERE ORG_ID=? "
+				+ " GROUP BY MILK_DATE, SEQ_NBR "
+				+ " HAVING MILK_DATE= (SELECT MAX(MILK_DATE) FROM imd.MILK_LOG) ORDER BY SEQ_NBR DESC";
+				
+		MilkingDetail milkRecord = new MilkingDetail();
+		milkRecord.setRecordDate(LocalDate.now(IMDProperties.getServerTimeZone()));
+		milkRecord.setMilkingEventNumber(Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY);
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
+		LocalTime recordTime = fmt.parseLocalTime(Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY_TIME);
+		milkRecord.setRecordTime(recordTime);
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+		try {
+			int paramCount = 1;
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(paramCount++, orgId);
+			IMDLogger.log(preparedStatement.toString(),Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+				Date milkingDate = rs.getDate("MILK_DATE");
+				milkRecord.setRecordDate(new LocalDate(milkingDate, IMDProperties.getServerTimeZone()));
+				milkRecord.setMilkingEventNumber(rs.getShort("SEQ_NBR"));
+				
+				if (milkRecord.getMilkingEventNumber() == Util.DefaultValues.THIRD_MILKING_EVENT_OF_THE_DAY) {
+					recordTime = fmt.parseLocalTime(Util.DefaultValues.THIRD_MILKING_EVENT_OF_THE_DAY_TIME);
+				} else if (milkRecord.getMilkingEventNumber() == Util.DefaultValues.SECOND_MILKING_EVENT_OF_THE_DAY) {
+					recordTime = fmt.parseLocalTime(Util.DefaultValues.SECOND_MILKING_EVENT_OF_THE_DAY_TIME);
+				} else {
+					recordTime = fmt.parseLocalTime(Util.DefaultValues.FIRST_MILKING_EVENT_OF_THE_DAY_TIME);
+				}
+				milkRecord.setRecordTime(recordTime);
+				break;
+		    }
+		} catch (SQLException e) {
+			IMDLogger.log("Exception occurred while retrieving latest milking event", Util.ERROR);
+			e.printStackTrace();
+		} finally {
+		    try {
+		    	if (rs != null && !rs.isClosed()) {
+		    		rs.close();
+		    	}
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return milkRecord;		
+	}
+ 
+	public String addOrUpdateFarmMilkingRecord(MilkingDetail farmMilkingDetail, boolean donotOverwrite) {
+		if (farmMilkingDetail == null)
+			return null;
+		try {
+			List<MilkingDetail> farmRecords =  retrieveFarmMilkRecord(farmMilkingDetail);
+			if (farmRecords == null || farmRecords.isEmpty()) {
+				int insertedRecordCount = insertFarmMilkRecord(farmMilkingDetail);
+				if (insertedRecordCount != 1) {
+					IMDLogger.log("Could not insert the following Farm Milking Record\n " + farmMilkingDetail.toString(), Util.ERROR);
+					return Util.Outcome.ERROR;
+				} else
+					return Util.Outcome.ADDED;
+			} else if (donotOverwrite){
+				IMDLogger.log("The following Farm Milking Record already exists. It will NOT be overwritten\n" + farmRecords.get(0).toString(), Util.ERROR);
+				return Util.Outcome.NOT_OVERWRITTEN;
+			} else {
+				// record already exists and we should update it.
+				int updatedRecordCount = updateFarmMilkRecord(farmMilkingDetail);
+				if (updatedRecordCount == 1)
+					return Util.Outcome.EDIT;
+				else {
+					IMDLogger.log("The following Farm Milking Record already exists. We attempted to update it but ran into an error because of which the record could NOT be updated\n" + farmRecords.get(0).toString(), Util.ERROR);
+					return Util.Outcome.ERROR;
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return Util.Outcome.ERROR;
+		}
+	}
+	
+	private int updateFarmMilkRecord(MilkingDetail milkingEventRecord) {
+		int recordAdded = -1;
+		String qryString = "UPDATE imd.FARM_MILK_LOG SET "
+				+ "MILK_TIME=? ,"
+				+ "LR=? ,"
+				+ "FAT=? ,"
+				+ "TOXIN=? ,"
+				+ "TEMP_C=? ,"
+				+ "HUMIDITY=? ,"
+				+ "PH=? ,"
+				+ "COMMENTS=? ,"
+				+ "FOR_CALVES_USE =? , "
+				+ "FOR_FARM_USE =? ,"
+				+ "FOR_PERSONAL_USE =? ,"
+				+ "FOR_FAMILY_USE =? ,"
+				+ "FOR_OTHER_USE =? ,"
+				+ "FOR_WASTE_ADJ =? ,"
+				+ "UPDATED_BY=? ,"
+				+ "UPDATED_DTTM=? "
+				+ " WHERE ORG_ID=? AND MILK_DATE=? AND SEQ_NBR=?";
+		PreparedStatement preparedStatement = null;
+		Connection conn = DBManager.getDBConnection();
+		int index = 1;
+		try {
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, (milkingEventRecord.getRecordTime() == null ? null : Util.getTimeInSQLFormart(milkingEventRecord.getRecordTime())));
+			preparedStatement.setString(index++,  (milkingEventRecord.getLrValue() == null ? null : milkingEventRecord.getLrValue().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getFatValue() == null ? null : milkingEventRecord.getFatValue().toString()));
+			preparedStatement.setString(index++, (milkingEventRecord.getToxinValue() == null ? null : milkingEventRecord.getToxinValue().toString()));
+			preparedStatement.setString(index++, (milkingEventRecord.getTemperatureInCentigrade() == null ? null : milkingEventRecord.getTemperatureInCentigrade().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getHumidity() == null ? null : milkingEventRecord.getHumidity().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getPhValue() == null ? null : milkingEventRecord.getPhValue().toString()));
+			preparedStatement.setString(index++, milkingEventRecord.getComments());
+			preparedStatement.setString(index++,  (milkingEventRecord.getForCalvesUse() == null ? null : milkingEventRecord.getForCalvesUse().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getForFarmUse() == null ? null : milkingEventRecord.getForFarmUse().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getForPersonalUse() == null ? null : milkingEventRecord.getForPersonalUse().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getForFamilyUse() == null ? null : milkingEventRecord.getForFamilyUse().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getForOtherUse() == null ? null : milkingEventRecord.getForOtherUse().toString()));
+			preparedStatement.setString(index++,  (milkingEventRecord.getForWasteAdj() == null ? null : milkingEventRecord.getForWasteAdj().toString()));
+			preparedStatement.setString(index++, milkingEventRecord.getUpdatedBy() == null ? null : milkingEventRecord.getUpdatedBy().getUserId());
+			preparedStatement.setString(index++, milkingEventRecord.getUpdatedDTTM() == null ? Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone())) :milkingEventRecord.getUpdatedDTTMSQLFormat());
+			preparedStatement.setString(index++, (milkingEventRecord.getOrgId() == null ? null : milkingEventRecord.getOrgId()));
+			preparedStatement.setString(index++, (milkingEventRecord.getRecordDate() == null ? null : Util.getDateInSQLFormat(milkingEventRecord.getRecordDate())));
+			preparedStatement.setShort(index++, milkingEventRecord.getMilkingEventNumber());
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+			recordAdded = preparedStatement.executeUpdate();
+		} catch (java.sql.SQLSyntaxErrorException ex) {
+			recordAdded = Util.ERROR_CODE.SQL_SYNTAX_ERROR;
+			ex.printStackTrace();
+		} catch (java.sql.SQLException ex) {
+			recordAdded = Util.ERROR_CODE.UNKNOWN_ERROR;
+			ex.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (preparedStatement != null && !preparedStatement.isClosed()) {
+					preparedStatement.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return recordAdded;	
+	}
+
+	public List<MilkingDetail> retrieveFarmMilkRecord(MilkingDetail milkingEventRecord) throws Exception {
+		String qryString = "SELECT * FROM imd.FARM_MILK_LOG A ";
+		String whereClause = "";
+		List<String> values = new ArrayList<String> ();
+		if (milkingEventRecord == null)
+			return new ArrayList<MilkingDetail>();
+
+		if (milkingEventRecord.getOrgId() != null && !milkingEventRecord.getOrgId().isEmpty()) {
+			whereClause += " A.ORG_ID = ? ";
+			values.add(milkingEventRecord.getOrgId());
+		}
+
+		if (milkingEventRecord.getRecordDate() != null) {
+			whereClause += whereClause.isEmpty() ? "" : " AND " +" A.MILK_DATE = ? ";
+			values.add(Util.getDateInSQLFormat(milkingEventRecord.getRecordDate()));
+		}
+
+		if (milkingEventRecord.getMilkingEventNumber() > 0) {
+			whereClause += whereClause.isEmpty() ? "" : " AND " +" A.SEQ_NBR = ? ";
+			values.add("" + milkingEventRecord.getMilkingEventNumber());
+		}
+
+		if (!whereClause.isEmpty())
+			whereClause = " WHERE " + whereClause;
+		qryString += whereClause;
+		return readRecords(qryString, values);
+	}
+
+	public int deleteFarmMilkingRecordsWithNoChildRecords(String orgId) {
+		String qryString = "DELETE FROM imd.FARM_MILK_LOG WHERE ORG_ID='" + orgId + "' AND MILK_DATE NOT IN (SELECT MILK_DATE FROM imd.MILK_LOG WHERE ORG_ID='" + orgId + "')";
+		return performDeletion(qryString);
+	}
+
+	public List<MilkingDetail> retrieveFarmMilkRecord(MilkingDetailBean selectedDateSearchBean) throws Exception {
+		MilkingDetail milkingDetail = new MilkingDetail(selectedDateSearchBean);
+		return retrieveFarmMilkRecord(milkingDetail);
 	}
 }
 

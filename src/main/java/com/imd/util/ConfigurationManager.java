@@ -34,6 +34,15 @@ public class ConfigurationManager {
 		return sessionConfigurations.get(key);
 	}
 	
+	public Object setOrganizationConfigurationValue(String key, Object value) {
+		if (orgConfigurations == null) {
+			orgConfigurations = new HashMap<String, Object> ();
+			loadOrganizationConfigurationsIfNeeded();
+		}
+		return orgConfigurations.put(key,value);
+	}
+
+	
 	private void loadUserSessionConfigurationsIfNeeded() {
 		if (sessionConfigurations.isEmpty()) {
 			sessionConfigurations.put(Util.ConfigKeys.ORG_ID, "IMD");
@@ -73,11 +82,11 @@ public class ConfigurationManager {
 			orgConfigurations.put(Util.ConfigKeys.LANG_CD, "URD");
 			orgConfigurations.put(Util.ConfigKeys.FARM_TIMEZONE, Util.FARM_TIMEZONE);
 			orgConfigurations.put(Util.ConfigKeys.VOL_UNIT, Util.VOL_UNIT);
-			orgConfigurations.put(Util.ConfigKeys.MILKING_FREQUENCY, new Short((short)3));
+			orgConfigurations.put(Util.ConfigKeys.MILKING_FREQUENCY, (short)3);
 			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(4,0,0));
 			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(12,0,0));
 			orgConfigurations.put(Util.ConfigKeys.FIRST_MILKING_TIME, new LocalTime(20,0,0));
-			orgConfigurations.put(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES, new Integer(30));
+			orgConfigurations.put(Util.ConfigKeys.TOKEN_EXPIRY_MINUTES, (int)30/*expires after 30 minutes of inactivity*/);
 		}
 	}
 	public void reLoadOrganizationConfigurations() {

@@ -213,17 +213,17 @@ class AdvisementLoaderTest {
 			AnimalLoader ldr = new AnimalLoader();
 			
 			
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalOk.getOrgID(), youngAnimalOk.getAnimalTag()) >= 0);
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) >= 0);
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh2.getOrgID(), youngAnimalTh2.getAnimalTag()) >= 0);
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh3.getOrgID(), youngAnimalTh3.getAnimalTag()) >= 0);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalOk.getOrgId(), youngAnimalOk.getAnimalTag()) >= 0);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) >= 0);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh2.getOrgId(), youngAnimalTh2.getAnimalTag()) >= 0);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh3.getOrgId(), youngAnimalTh3.getAnimalTag()) >= 0);
 
 			
-			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) >= 0);
-			assertTrue(ldr.deleteAnimal(youngAnimalTh2.getOrgID(), youngAnimalTh2.getAnimalTag()) >= 0);
-			assertTrue(ldr.deleteAnimal(youngAnimalTh3.getOrgID(), youngAnimalTh3.getAnimalTag()) >= 0);
-			assertTrue(ldr.deleteAnimal(youngAnimalOk.getOrgID(), youngAnimalOk.getAnimalTag()) >= 0);
-			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgID(), oldAnimal.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh2.getOrgId(), youngAnimalTh2.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh3.getOrgId(), youngAnimalTh3.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(youngAnimalOk.getOrgId(), youngAnimalOk.getAnimalTag()) >= 0);
+			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgId(), oldAnimal.getAnimalTag()) >= 0);
 
 			youngAnimalTh1.setDateOfBirth(dob.plusDays(10));
 			youngAnimalTh2.setDateOfBirth(dob.plusDays(20));
@@ -239,7 +239,7 @@ class AdvisementLoaderTest {
 			
 			
 			CalfWeightAdvisement adv = new CalfWeightAdvisement();
-			List<Animal> advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgID(), Util.LanguageCode.ENG);
+			List<Animal> advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgId(), Util.LanguageCode.ENG);
 			assertTrue(advAnml != null && advAnml.size() >= 3, " At least three animals should have been retrieved");
 			Iterator<Animal> it = advAnml.iterator();
 			while (it.hasNext()) {
@@ -272,13 +272,13 @@ class AdvisementLoaderTest {
 			float th1 = rule.getFirstThreshold();
 			
 			User kashif = new User ("KASHIF");
-			LifecycleEvent weightEvent1 = new LifecycleEvent(youngAnimalOk.getOrgID(), 
+			LifecycleEvent weightEvent1 = new LifecycleEvent(youngAnimalOk.getOrgId(), 
 					0, youngAnimalOk.getAnimalTag(), Util.LifeCycleEvents.WEIGHT, 
 					kashif, now, kashif, now);
 			weightEvent1.setEventTimeStamp(now.minusDays(100));
 			weightEvent1.setAuxField1Value("50");
 			
-			LifecycleEvent weightEvent2 = new LifecycleEvent(youngAnimalOk.getOrgID(), 
+			LifecycleEvent weightEvent2 = new LifecycleEvent(youngAnimalOk.getOrgId(), 
 					0, youngAnimalOk.getAnimalTag(), Util.LifeCycleEvents.WEIGHT, 
 					kashif, now, kashif, now);
 			weightEvent2.setEventTimeStamp(now.minusDays(100-deltaDays));
@@ -305,7 +305,7 @@ class AdvisementLoaderTest {
 			evtLoader.insertLifeCycleEvent(weightEvent2);
 			evtLoader.insertLifeCycleEvent(weightEvent1);
 
-			advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgID(), null);
+			advAnml = adv.applyAdvisementRule(youngAnimalOk.getOrgId(), null);
 			assertTrue(advAnml != null && advAnml.size() >= 3, "At least three animals should have been retrieved, but we got " + advAnml.size() + " instead");
 			it = advAnml.iterator();
 			while (it.hasNext()) {
@@ -328,16 +328,16 @@ class AdvisementLoaderTest {
 				}
 			}
 			
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalOk.getOrgID(), youngAnimalOk.getAnimalTag()) == 2);
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) == 2);
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh2.getOrgID(), youngAnimalTh2.getAnimalTag()) == 2);
-			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh3.getOrgID(), youngAnimalTh3.getAnimalTag()) == 2);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalOk.getOrgId(), youngAnimalOk.getAnimalTag()) == 2);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) == 2);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh2.getOrgId(), youngAnimalTh2.getAnimalTag()) == 2);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents(youngAnimalTh3.getOrgId(), youngAnimalTh3.getAnimalTag()) == 2);
 			
-			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgID(), youngAnimalTh1.getAnimalTag()) == 1);
-			assertTrue(ldr.deleteAnimal(youngAnimalTh2.getOrgID(), youngAnimalTh2.getAnimalTag()) == 1);
-			assertTrue(ldr.deleteAnimal(youngAnimalTh3.getOrgID(), youngAnimalTh3.getAnimalTag()) == 1);
-			assertTrue(ldr.deleteAnimal(youngAnimalOk.getOrgID() , youngAnimalOk.getAnimalTag())  == 1);
-			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgID(), oldAnimal.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh1.getOrgId(), youngAnimalTh1.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh2.getOrgId(), youngAnimalTh2.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(youngAnimalTh3.getOrgId(), youngAnimalTh3.getAnimalTag()) == 1);
+			assertTrue(ldr.deleteAnimal(youngAnimalOk.getOrgId() , youngAnimalOk.getAnimalTag())  == 1);
+			assertTrue(ldr.deleteAnimal(oldAnimal.getOrgId(), oldAnimal.getAnimalTag()) == 1);
 			
 			
 		} catch (Exception e) {
@@ -1787,7 +1787,7 @@ class AdvisementLoaderTest {
 			User user = new User("KASHIF");
 			DateTime now = DateTime.now(IMDProperties.getServerTimeZone());
 
-			LifecycleEvent mastitisEventTh3Violated = new LifecycleEvent(medTestTh3.getOrgID(), 0, 
+			LifecycleEvent mastitisEventTh3Violated = new LifecycleEvent(medTestTh3.getOrgId(), 0, 
 					medTestTh3.getAnimalTag(), Util.LifeCycleEvents.MEDICALTST, user, now, 
 					user, now);
 			mastitisEventTh3Violated.setAuxField1Value(Util.AdvisementRules.MASTITIS);
@@ -1795,14 +1795,14 @@ class AdvisementLoaderTest {
 			mastitisEventTh3Violated.setEventTimeStamp(now.minusDays(22));
 
 			
-			LifecycleEvent mastitisEventTh2Violated = new LifecycleEvent(medTestTh2.getOrgID(), 0, 
+			LifecycleEvent mastitisEventTh2Violated = new LifecycleEvent(medTestTh2.getOrgId(), 0, 
 					medTestTh2.getAnimalTag(), Util.LifeCycleEvents.MEDICALTST, user, now, 
 					user, now);
 			mastitisEventTh2Violated.setAuxField1Value(Util.AdvisementRules.MASTITIS);
 			mastitisEventTh2Violated.setEventNote("Older Mastitis Test.");
 			mastitisEventTh2Violated.setEventTimeStamp(now.minusDays(17));
 			
-			LifecycleEvent mastitisEventNoViolation = new LifecycleEvent(medTestOk.getOrgID(), 0, 
+			LifecycleEvent mastitisEventNoViolation = new LifecycleEvent(medTestOk.getOrgId(), 0, 
 					medTestOk.getAnimalTag(), Util.LifeCycleEvents.MEDICALTST, user, now, 
 					user, now);
 			mastitisEventNoViolation.setAuxField1Value(Util.AdvisementRules.MASTITIS);
@@ -1820,7 +1820,7 @@ class AdvisementLoaderTest {
 			assertTrue(eventsLoader.insertLifeCycleEvent(mastitisEventTh3Violated) > 0);
 			
 			MastitisTestAdvisement adv = new MastitisTestAdvisement();
-			List<Animal> animalPop = adv.applyAdvisementRule(medTestOk.getOrgID(), null);
+			List<Animal> animalPop = adv.applyAdvisementRule(medTestOk.getOrgId(), null);
 			
 			
 
@@ -2048,7 +2048,7 @@ class AdvisementLoaderTest {
 			eventBean2.setOrgID("IMD");
 			eventBean2.setEventTimeStamp(Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(31)));
 			LifecycleEvent glucosaEvent = new LifecycleEvent(eventBean2);
-			glucosaEvent.setAuxField1Value(Util.FeedItems.GLUCOSA);
+			glucosaEvent.setAuxField1Value(Util.FeedItems.GLYCOLINE);
 			glucosaEvent.setAuxField2Value(Util.YES);
 			glucosaEvent.setCreatedBy(new User("KASHIF"));
 			glucosaEvent.setUpdatedBy(new User("KASHIF"));
@@ -2059,10 +2059,9 @@ class AdvisementLoaderTest {
 			assertEquals(1,transactionID1);
 			eventsLoader.insertLifeCycleEvent(inseminationEvent1);
 			
-			List<Animal> animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
+			List<Animal> animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgId(), null);
 
 			boolean th3Found = false;
-//			boolean th1Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
 				while (it.hasNext()) {
@@ -2081,7 +2080,7 @@ class AdvisementLoaderTest {
 			
 			// now we add the feed event and the threshold violation should go away.
 			eventsLoader.insertLifeCycleEvent(glucosaEvent);
-			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
+			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgId(), null);
 
 			th3Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -2091,7 +2090,7 @@ class AdvisementLoaderTest {
 					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
 					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
 						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.GLUCOSA) < 0);
-						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.P25) > 0);
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.VANDA) > 0);
 						// we have effectively disabled the OIL advisement by setting unachievable threshold in DB
 						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) < 0);
 						th3Found = true;
@@ -2109,7 +2108,7 @@ class AdvisementLoaderTest {
 			eventBean2.setOrgID("IMD");
 			eventBean2.setEventTimeStamp(Util.getDateTimeInSQLFormat(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(50)));
 			glucosaEvent = new LifecycleEvent(eventBean2);
-			glucosaEvent.setAuxField1Value(Util.FeedItems.P25);
+			glucosaEvent.setAuxField1Value(Util.FeedItems.VANDA);
 			glucosaEvent.setAuxField2Value(Util.YES);
 			glucosaEvent.setCreatedBy(new User("KASHIF"));
 			glucosaEvent.setUpdatedBy(new User("KASHIF"));
@@ -2118,7 +2117,7 @@ class AdvisementLoaderTest {
 
 			assertTrue(eventsLoader.insertLifeCycleEvent(glucosaEvent)>0);
 
-			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
+			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgId(), null);
 			th3Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
 				Iterator<Animal> it = animalPop.iterator();
@@ -2126,7 +2125,7 @@ class AdvisementLoaderTest {
 					Animal populationAnimal = it.next();
 					IMDLogger.log(populationAnimal.getNote(0).getNoteText() + "[" + populationAnimal.getAnimalTag() + "]", Util.INFO);
 					if (populationAnimal.getAnimalTag().equalsIgnoreCase(dryPregnant.getAnimalTag())) {
-						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.P25) < 0, populationAnimal.getNote(1).getNoteText());
+						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.VANDA) < 0, populationAnimal.getNote(1).getNoteText());
 						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.GLUCOSA) < 0, populationAnimal.getNote(1).getNoteText());
 						assertTrue(populationAnimal.getNote(1).getNoteText().indexOf(Util.FeedItems.OIL) < 0, populationAnimal.getNote(1).getNoteText());
 						th3Found = true;
@@ -2154,7 +2153,7 @@ class AdvisementLoaderTest {
 			
 			
 			
-			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgID(), null);
+			animalPop = preCalveFeedAdv.applyAdvisementRule(dryPregnant.getOrgId(), null);
 
 			th3Found = false;
 			if (animalPop != null && !animalPop.isEmpty()) {
@@ -2396,7 +2395,7 @@ class AdvisementLoaderTest {
 			AdvisementLoader advLoader = new AdvisementLoader();
 			List<Advisement> activeRules = advLoader.getAllActiveRules("IMD");
 			assertTrue(activeRules!=null && !activeRules.isEmpty(), "At least one rule should have been enabled");
-			assertTrue(activeRules.get(0).getOrgID()!=null && !activeRules.get(0).getOrgID().isEmpty(), "Org ID should have been set");
+			assertTrue(activeRules.get(0).getOrgId()!=null && !activeRules.get(0).getOrgId().isEmpty(), "Org ID should have been set");
 			AdvisementRuleManager advManager = new AdvisementRuleManager();
 			List<AnimalAdvisement> advResults = advManager.executeAllRules(activeRules,false,false,false, null);			
 			assertTrue(advResults == null || advResults.isEmpty(),"We had set all thresholds to false so nothing should have been returned");

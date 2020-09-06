@@ -41,21 +41,22 @@ class LactationInformationManagerTest {
 		String orgId = "IMD";
 		String animalTag = "-999";
 		String calfTag = "-998";
-		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(24);
+		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusYears(20);
 		try {
 			LactationInformationManager mgr = new LactationInformationManager();
 			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, dob, true);
 			Animal calf = TestDataCreationUtil.createTestAnimal(orgId, calfTag, dob.plusMonths(14).plusDays(22).plusDays(275), true);
 			
-			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()) >= 0);
-			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), calfTag) >= 0);
-			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), calfTag) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()) >= 0);
+//			assertTrue(TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), animal.getAnimalTag()) >= 0);
 			assertTrue(TestDataCreationUtil.deleteAnimal(animal) >= 0);
 			assertTrue(TestDataCreationUtil.deleteAnimal(calf) >= 0);
 			
 			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
 			assertEquals(1,TestDataCreationUtil.insertAnimal(calf));
-			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgID(), animal.getAnimalTag());
+			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgId(), animal.getAnimalTag());
 			assertTrue(lacRec == null || lacRec.isEmpty());
 
 			assertTrue(TestDataCreationUtil.insertEvent(animal.getAnimalTag(),
@@ -69,7 +70,7 @@ class LactationInformationManagerTest {
 					/*outcome*/ Util.NO, 
 					/*update inventory*/ Util.NO) > 1);
 
-			lacRec = mgr.getAnimalLactationInformation(animal.getOrgID(), animal.getAnimalTag());
+			lacRec = mgr.getAnimalLactationInformation(animal.getOrgId(), animal.getAnimalTag());
 			assertTrue(lacRec == null || lacRec.isEmpty());
 			
 			assertTrue(TestDataCreationUtil.insertEvent(animal.getAnimalTag(),
@@ -94,25 +95,24 @@ class LactationInformationManagerTest {
 					/**/animal.getAnimalTag(), 
 					null, null) > 1);
 
-			lacRec = mgr.getAnimalLactationInformation(animal.getOrgID(), animal.getAnimalTag());
+			lacRec = mgr.getAnimalLactationInformation(animal.getOrgId(), animal.getAnimalTag());
 			assertTrue(lacRec != null && !lacRec.isEmpty());
 			assertTrue(lacRec.get(0).getMilkingProduction() != null);
 			assertEquals(0f,lacRec.get(0).getMilkingProduction().floatValue());
 			assertEquals(0f,lacRec.get(0).getMaxDailyProduction().floatValue());
-			assertEquals("",lacRec.get(0).getDaysInMilking());
-
+			assertEquals(0,lacRec.get(0).getDaysInMilking());
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 10f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 9f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 11f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 10f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 9f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00", 3, 11f)));
 			// this record should not be counted as its not after calving
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.minusDays(15),IMDProperties.getServerTimeZone()), 1, 11f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.minusDays(15),IMDProperties.getServerTimeZone()),"4:00", 1, 11f)));
 			
-			lacRec = mgr.getAnimalLactationInformation(animal.getOrgID(), animal.getAnimalTag());
+			lacRec = mgr.getAnimalLactationInformation(animal.getOrgId(), animal.getAnimalTag());
 			assertTrue(lacRec != null && !lacRec.isEmpty());
 			assertEquals(1,lacRec.get(0).getLactationNumber().intValue());
 			assertEquals(calf.getAnimalTag(),lacRec.get(0).getCalfTag());
@@ -120,15 +120,15 @@ class LactationInformationManagerTest {
 			assertTrue(lacRec.get(0).getMilkingProduction() != null);
 			assertEquals(30f,lacRec.get(0).getMilkingProduction().floatValue());
 			assertEquals(30f,lacRec.get(0).getMaxDailyProduction().floatValue());
-			assertEquals("1 days",lacRec.get(0).getDaysInMilking());
+			assertEquals(1,lacRec.get(0).getDaysInMilking());
 
-			assertEquals(6,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(1,TestDataCreationUtil.deleteAllAnimalEvents(calf.getOrgID(), calf.getAnimalTag()));
-			assertEquals(4,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()));
+			assertEquals(6,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(1,TestDataCreationUtil.deleteAllAnimalEvents(calf.getOrgId(), calf.getAnimalTag()));
+			assertEquals(4,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),null));
+			assertEquals(1,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(firstCalvingTS.minusDays(15),IMDProperties.getServerTimeZone()),null));
 			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
 			assertEquals(1,TestDataCreationUtil.deleteAnimal(calf));
-
-		
 		
 		} catch (Exception e) {
 			fail("Exception");
@@ -142,13 +142,13 @@ class LactationInformationManagerTest {
 	void testTwoLactations() {
 		String orgId = "IMD";
 		String animalTag = "-999";
-		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(48);
+		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusYears(20);
 		try {
 			LactationInformationManager mgr = new LactationInformationManager();
 			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, dob, true);
 			
-			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()) >= 0);
-			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()) >= 0);
 			assertTrue(TestDataCreationUtil.deleteAnimal(animal) >= 0);
 			
 			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
@@ -178,12 +178,12 @@ class LactationInformationManagerTest {
 			
 			DateTime firstCalvingTS = dob.plusMonths(14).plusDays(21).plusDays(275);
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 10f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 9f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 11f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 10f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 9f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00", 3, 11f)));
 			///////
 			
 			assertTrue(TestDataCreationUtil.insertEvent(animal.getAnimalTag(),
@@ -199,15 +199,15 @@ class LactationInformationManagerTest {
 					Util.NO, "-997", null) > 1);
 			
 			DateTime secondCalvingTS = firstCalvingTS.plusDays(90).plusDays(275);
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 15f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 15f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 15f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 15f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 15f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00", 3, 15f)));
 			//////
 			
-			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgID(), animal.getAnimalTag());
+			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgId(), animal.getAnimalTag());
 			assertTrue(lacRec != null && lacRec.size() == 2);
 
 			assertEquals(2,lacRec.get(0).getLactationNumber().intValue());
@@ -216,7 +216,7 @@ class LactationInformationManagerTest {
 			assertTrue(lacRec.get(0).getMilkingProduction() != null);
 			assertEquals(45f,lacRec.get(0).getMilkingProduction().floatValue());
 			assertEquals(45f,lacRec.get(0).getMaxDailyProduction().floatValue());
-			assertEquals("1 days",lacRec.get(0).getDaysInMilking());
+			assertEquals(1,lacRec.get(0).getDaysInMilking());
 			
 			assertEquals(1,lacRec.get(1).getLactationNumber().intValue());
 			assertEquals("-998",lacRec.get(1).getCalfTag());
@@ -224,10 +224,12 @@ class LactationInformationManagerTest {
 			assertTrue(lacRec.get(1).getMilkingProduction() != null);
 			assertEquals(30f,lacRec.get(1).getMilkingProduction().floatValue());
 			assertEquals(30f,lacRec.get(1).getMaxDailyProduction().floatValue());
-			assertEquals("1 days",lacRec.get(1).getDaysInMilking());
+			assertEquals(1,lacRec.get(1).getDaysInMilking());
 
-			assertEquals(9,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(6,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()));
+			assertEquals(9,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(6,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(firstCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(secondCalvingTS.plusDays(5)),null));
 			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
 
 		} catch (Exception e) {
@@ -242,13 +244,13 @@ class LactationInformationManagerTest {
 	void testThreeLactations() {
 		String orgId = "IMD";
 		String animalTag = "-999";
-		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(48);
+		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusYears(20);
 		try {
 			LactationInformationManager mgr = new LactationInformationManager();
 			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, dob, true);
 			
-			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()) >= 0);
-			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()) >= 0);
 			assertTrue(TestDataCreationUtil.deleteAnimal(animal) >= 0);
 			
 			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
@@ -278,12 +280,12 @@ class LactationInformationManagerTest {
 			
 			DateTime firstCalvingTS = dob.plusMonths(14).plusDays(21).plusDays(275);
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 10f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 9f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 11f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 10f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 9f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00", 3, 11f)));
 			
 			///////
 			
@@ -300,12 +302,12 @@ class LactationInformationManagerTest {
 					Util.NO, "-997", null) > 1);
 			
 			DateTime secondCalvingTS = firstCalvingTS.plusDays(90).plusDays(275);
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00", 3, 16f)));
 			//////
 			
 			
@@ -331,22 +333,22 @@ class LactationInformationManagerTest {
 			
 			DateTime thirdCalvingTS = secondCalvingTS.plusDays(90).plusDays(275);
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 16f)));
-			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 1, 17f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 2, 17f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 3, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00", 3, 16f)));
+
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"4:00", 1, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"12:00", 2, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"20:00", 3, 17f)));
 			//////
 			
-			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgID(), animal.getAnimalTag());
+			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgId(), animal.getAnimalTag());
 			assertTrue(lacRec != null && lacRec.size() == 3);
 
 			assertEquals(3,lacRec.get(0).getLactationNumber().intValue());
@@ -355,7 +357,7 @@ class LactationInformationManagerTest {
 			assertTrue(lacRec.get(0).getMilkingProduction() != null);
 			assertEquals(99f,lacRec.get(0).getMilkingProduction().floatValue());
 			assertEquals((99f/2f),lacRec.get(0).getMaxDailyProduction().floatValue());			
-			assertEquals("2 days",lacRec.get(0).getDaysInMilking());
+			assertEquals(2,lacRec.get(0).getDaysInMilking());
 			
 			assertEquals(2,lacRec.get(1).getLactationNumber().intValue());
 			assertEquals("-997",lacRec.get(1).getCalfTag());
@@ -363,7 +365,7 @@ class LactationInformationManagerTest {
 			assertTrue(lacRec.get(1).getMilkingProduction() != null);
 			assertEquals(48f,lacRec.get(1).getMilkingProduction().floatValue());
 			assertEquals(48f,lacRec.get(1).getMaxDailyProduction().floatValue());			
-			assertEquals("1 days",lacRec.get(1).getDaysInMilking());
+			assertEquals(1,lacRec.get(1).getDaysInMilking());
 			
 			assertEquals(1,lacRec.get(2).getLactationNumber().intValue());
 			assertEquals("-998",lacRec.get(2).getCalfTag());
@@ -371,12 +373,17 @@ class LactationInformationManagerTest {
 			assertTrue(lacRec.get(2).getMilkingProduction() != null);
 			assertEquals(30f,lacRec.get(2).getMilkingProduction().floatValue());
 			assertEquals(30f,lacRec.get(2).getMaxDailyProduction().floatValue());
-			assertEquals("1 days",lacRec.get(2).getDaysInMilking());
+			assertEquals(1,lacRec.get(2).getDaysInMilking());
 
-			assertEquals(14,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(12,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()));
+			assertEquals(14,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(12,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(firstCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(secondCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(thirdCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(thirdCalvingTS.plusDays(6)),null));
 			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
 
+			
 		} catch (Exception e) {
 			fail("Exception");
 			e.printStackTrace();
@@ -388,13 +395,13 @@ class LactationInformationManagerTest {
 	void testFourLactations() {
 		String orgId = "IMD";
 		String animalTag = "-999";
-		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(62);
+		DateTime dob = DateTime.now(IMDProperties.getServerTimeZone()).minusYears(20);
 		try {
 			LactationInformationManager mgr = new LactationInformationManager();
 			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, dob, true);
 			
-			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()) >= 0);
-			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()) >= 0);
+			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()) >= 0);
 			assertTrue(TestDataCreationUtil.deleteAnimal(animal) >= 0);
 			
 			assertEquals(1,TestDataCreationUtil.insertAnimal(animal));
@@ -424,12 +431,12 @@ class LactationInformationManagerTest {
 			
 			DateTime firstCalvingTS = dob.plusMonths(14).plusDays(21).plusDays(275);
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 10f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 9f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 11f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 10f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 9f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(firstCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00",  3, 11f)));
 			
 			///////
 			
@@ -446,12 +453,12 @@ class LactationInformationManagerTest {
 					Util.NO, "-997", null) > 1);
 			
 			DateTime secondCalvingTS = firstCalvingTS.plusDays(90).plusDays(275);
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(secondCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00",  3, 16f)));
 			//////
 			
 			
@@ -477,19 +484,19 @@ class LactationInformationManagerTest {
 			
 			DateTime thirdCalvingTS = secondCalvingTS.plusDays(90).plusDays(275);
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00",  3, 16f)));
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 1, 17f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 2, 17f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 3, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"4:00", 1, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"12:00", 2, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(thirdCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"20:00",  3, 17f)));
 			//////
 			
 			
@@ -516,22 +523,22 @@ class LactationInformationManagerTest {
 			
 			DateTime fourthCalvingTS = thirdCalvingTS.plusDays(90).plusDays(275);
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(fourthCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 1, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(fourthCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 2, 16f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(fourthCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()), 3, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(fourthCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"4:00", 1, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(fourthCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"12:00", 2, 16f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(fourthCalvingTS.plusDays(5),IMDProperties.getServerTimeZone()),"20:00",  3, 16f)));
 			
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(fourthCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 1, 17f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(fourthCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 2, 17f)));
-			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgID(), animal.getAnimalTag(), 
-					new LocalDate(fourthCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()), 3, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(fourthCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"4:00", 1, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(fourthCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"12:00", 2, 17f)));
+			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(TestDataCreationUtil.createMilkingRecord(animal.getOrgId(), animal.getAnimalTag(), 
+					new LocalDate(fourthCalvingTS.plusDays(6),IMDProperties.getServerTimeZone()),"20:00", 3, 17f)));
 			//////
 
-			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgID(), animal.getAnimalTag());
+			List<LactationInformation> lacRec = mgr.getAnimalLactationInformation(animal.getOrgId(), animal.getAnimalTag());
 			assertTrue(lacRec != null && lacRec.size() == 4);
 
 			assertEquals(4,lacRec.get(0).getLactationNumber().intValue());
@@ -539,7 +546,7 @@ class LactationInformationManagerTest {
 			assertEquals(2,lacRec.get(0).getInseminationAttemptCount().intValue());
 			assertTrue(lacRec.get(0).getMilkingProduction() != null);
 			assertEquals(99f,lacRec.get(0).getMilkingProduction().floatValue());			
-			assertEquals("2 days",lacRec.get(0).getDaysInMilking());
+			assertEquals(2,lacRec.get(0).getDaysInMilking());
 		
 			
 			assertEquals(3,lacRec.get(1).getLactationNumber().intValue());
@@ -547,30 +554,44 @@ class LactationInformationManagerTest {
 			assertEquals(2,lacRec.get(1).getInseminationAttemptCount().intValue());
 			assertTrue(lacRec.get(1).getMilkingProduction() != null);
 			assertEquals(99f,lacRec.get(1).getMilkingProduction().floatValue());			
-			assertEquals("2 days",lacRec.get(1).getDaysInMilking());
+			assertEquals(2,lacRec.get(1).getDaysInMilking());
 			
 			assertEquals(2,lacRec.get(2).getLactationNumber().intValue());
 			assertEquals("-997",lacRec.get(2).getCalfTag());
 			assertEquals(1,lacRec.get(2).getInseminationAttemptCount().intValue());
 			assertTrue(lacRec.get(2).getMilkingProduction() != null);
 			assertEquals(48f,lacRec.get(2).getMilkingProduction().floatValue());
-			assertEquals("1 days",lacRec.get(2).getDaysInMilking());
+			assertEquals(1,lacRec.get(2).getDaysInMilking());
 			
 			assertEquals(1,lacRec.get(3).getLactationNumber().intValue());
 			assertEquals("-998",lacRec.get(3).getCalfTag());
 			assertEquals(2,lacRec.get(3).getInseminationAttemptCount().intValue());
 			assertTrue(lacRec.get(3).getMilkingProduction() != null);
 			assertEquals(30f,lacRec.get(3).getMilkingProduction().floatValue());
-			assertEquals("1 days",lacRec.get(3).getDaysInMilking());
+			assertEquals(1,lacRec.get(3).getDaysInMilking());
 
-			assertEquals(19,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgID(), animal.getAnimalTag()));
-			assertEquals(18,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgID(), animal.getAnimalTag()));
+			assertEquals(19,TestDataCreationUtil.deleteAllAnimalEvents(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(18,TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(animal.getOrgId(), animal.getAnimalTag()));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(firstCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(secondCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(thirdCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(thirdCalvingTS.plusDays(6)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(fourthCalvingTS.plusDays(5)),null));
+			assertEquals(3,TestDataCreationUtil.deleteFarmMilkingRecord(animal.getOrgId(), new LocalDate(fourthCalvingTS.plusDays(6)),null));
 			assertEquals(1,TestDataCreationUtil.deleteAnimal(animal));
 
 		} catch (Exception e) {
 			fail("Exception");
 			e.printStackTrace();
 		}
+	}
+	@Test
+	void testSpecificIMDFarmAnimalLactationInformation() {
+		String orgId = "IMD";
+		String animalTag = "033";
+		LactationInformationManager mgr = new LactationInformationManager();
+		
+		mgr.getAnimalLactationInformation(orgId, animalTag);
 	}
 
 }

@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.imd.dto.Animal;
 import com.imd.dto.Dam;
@@ -21,10 +23,13 @@ import com.imd.services.bean.LifeCycleEventBean;
 public class TestDataCreationUtil {
 	
 	
-	public static MilkingDetail createMilkingRecord(String orgId, String animalTag, LocalDate milkingDate, int seq_nbr, float milkingVol) throws IMDException {
+	public static MilkingDetail createMilkingRecord(String orgId, String animalTag, LocalDate milkingDate, String milkingTime, int seq_nbr, float milkingVol) throws IMDException {
 		short milkFreq = 3;
 		boolean isMachineMilked = true;	
 		MilkingDetail milkingRecord = new MilkingDetail(orgId, animalTag, milkFreq, isMachineMilked, milkingDate, null, milkingVol,(short)seq_nbr);
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
+		LocalTime localTime = fmt.parseLocalTime(milkingTime);
+		milkingRecord.setRecordTime(new LocalTime(localTime));
 		milkingRecord.setHumidity(50.0f);
 		milkingRecord.setTemperatureInCentigrade(19.3f);
 		milkingRecord.setLrValue(28.0f);
@@ -36,17 +41,53 @@ public class TestDataCreationUtil {
 		milkingRecord.setUpdatedDTTM(DateTime.now());
 		return milkingRecord;
 	}
+	public static MilkingDetail createMilkingRecord(String orgId, String animalTag, LocalDate milkingDate, int seq_nbr, float milkingVol) throws IMDException {
+		short milkFreq = 3;
+		boolean isMachineMilked = true;	
+		MilkingDetail milkingRecord = new MilkingDetail(orgId, animalTag, milkFreq, isMachineMilked, milkingDate, null, milkingVol,(short)seq_nbr);
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("HH:mm");
+		String milkingTime = "";
+		if (seq_nbr == 1)
+			milkingTime = "4:00";
+		else if (seq_nbr == 2)
+			milkingTime = "12:00";
+		else if (seq_nbr == 3)
+			milkingTime = "20:00";
+		else
+			milkingTime = "0:00";
+
+		LocalTime localTime = fmt.parseLocalTime(milkingTime);
+		milkingRecord.setRecordTime(new LocalTime(localTime));
+		milkingRecord.setHumidity(50.0f);
+		milkingRecord.setTemperatureInCentigrade(19.3f);
+		milkingRecord.setLrValue(28.0f);
+		milkingRecord.setFatValue(3.80f);
+		milkingRecord.setToxinValue(0.11f);
+		milkingRecord.setCreatedBy(new User("KASHIF"));
+		milkingRecord.setCreatedDTTM(DateTime.now());
+		milkingRecord.setUpdatedBy(new User("KASHIF"));
+		milkingRecord.setUpdatedDTTM(DateTime.now());
+		return milkingRecord;
+	}
+	
+	public static int deleteFarmMilkingRecord(String orgId, LocalDate recordDate, Integer seqNbr) {
+		MilkingDetailLoader loader = new MilkingDetailLoader();
+		return loader.deleteFarmMilkingRecord(orgId, recordDate, seqNbr);
+	}
 
 	
 	public static int deleteAllMilkingRecordOfanAnimal(String orgId, String animalTag) {
 		MilkingDetailLoader loader = new MilkingDetailLoader();
 		return loader.deleteAllMilkingRecordOfanAnimal(orgId, animalTag);
 	}
-
 	
 	public static int insertMilkingRecord(MilkingDetail milkRecord) {
 		MilkingDetailLoader loader = new MilkingDetailLoader();
-		return loader.insertMilkRecord(milkRecord.getMilkingDetailBean());		
+		int parentRecordInsertionOutcome = loader.insertFarmMilkRecord(milkRecord );
+		if (parentRecordInsertionOutcome == 1 || parentRecordInsertionOutcome == Util.ERROR_CODE.DUPLICATE_ENTRY)
+			return loader.insertMilkRecord(milkRecord );
+		else
+			return parentRecordInsertionOutcome;
 	}
 	public static Animal createTestAnimal(String orgId, String animalTag, DateTime dob, boolean isFemale) throws Exception {
 		Animal c000 = null;
@@ -80,7 +121,7 @@ public class TestDataCreationUtil {
 	}
 
 	public static int deleteAnimal(Animal animal) throws Exception {
-		return (deleteAnimal(animal.getOrgID(),animal.getAnimalTag()));
+		return (deleteAnimal(animal.getOrgId(),animal.getAnimalTag()));
 	}
 	
 	public static int deleteAnimal(String orgId, String animalTag) throws Exception {
@@ -122,6 +163,12 @@ public class TestDataCreationUtil {
 		
 		return (loader.insertLifeCycleEvent(lifecycleEvent));
 		
-	}	
+	}
+	public static int deleteFarmMilkingRecordsWithNoAnimalMilkingEvent(String orgId) {
+		
+		MilkingDetailLoader ldr = new MilkingDetailLoader();
+		return ldr.deleteFarmMilkingRecordsWithNoChildRecords(orgId);
+	}
+
 
 }

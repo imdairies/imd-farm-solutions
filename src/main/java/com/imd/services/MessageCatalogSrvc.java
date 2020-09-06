@@ -13,9 +13,7 @@ import javax.ws.rs.core.Response;
 import com.imd.dto.Message;
 import com.imd.dto.User;
 import com.imd.loader.MessageCatalogLoader;
-import com.imd.loader.UserLoader;
 import com.imd.services.bean.MessageBean;
-import com.imd.services.bean.UserBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.Util;
 
@@ -34,15 +32,15 @@ public class MessageCatalogSrvc {
 		String methodName = "searchMessageCatalog";
 
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,messageBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,messageBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + "." + methodName, Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
-		String langCd = user.getPreferredLanguage();
+		String orgID = user.getOrgId();
+//		String langCd = user.getPreferredLanguage();
 		messageBean.setOrgId(orgID);
 		messageBean.setUserId(user.getUserId());
 		IMDLogger.log(messageBean.toString(), Util.INFO);
@@ -80,14 +78,14 @@ public class MessageCatalogSrvc {
 		String methodName = "addToMessageCatalog";
 
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,messageBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,messageBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + "." + methodName, Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
 		messageBean.setOrgId(orgID);
 		messageBean.setUserId(user.getUserId());
@@ -133,14 +131,14 @@ public class MessageCatalogSrvc {
 		String methodName = "updateMessageCatalog";
 
 		IMDLogger.log(methodName + " Called ", Util.INFO);
-		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,messageBean.getLoginToken());
+		User user = Util.verifyAccess(this.getClass().getName() + "." + methodName,messageBean.getLoginToken(),/*renewToken*/ true);
 		if (user == null) {
 			IMDLogger.log(MessageCatalogLoader.getMessage((String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.ORG_ID), 
 					(String)Util.getConfigurations().getGlobalConfigurationValue(Util.ConfigKeys.LANG_CD),Util.MessageCatalog.VERIFY_ACCESS_MESSAGE)  
 					+ this.getClass().getName() + "." + methodName, Util.WARNING);
 			return Response.status(Util.HTTPCodes.UNAUTHORIZED).entity("{ \"error\": true, \"message\":\"Unauthorized\"}").build();
 		}
-		String orgID = user.getOrgID();
+		String orgID = user.getOrgId();
 		String langCd = user.getPreferredLanguage();
 		messageBean.setOrgId(orgID);
 		messageBean.setUserId(user.getUserId());
