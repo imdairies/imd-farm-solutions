@@ -53,35 +53,58 @@ public class LifecycleEventSrvc {
 		String orgID = user.getOrgId();
 //		String langCd = user.getPreferredLanguage();
 		animalEventBean.setOrgID(orgID);
-		IMDLogger.log(animalEventBean.toString(), Util.INFO);		
+		IMDLogger.log(animalEventBean.toString(), Util.ERROR);		
 		
 		LifeCycleEventsLoader animalEventsloader = new LifeCycleEventsLoader();
 		AnimalLoader animalLoader = new AnimalLoader();
 		String animalEvents = "";
 		AnimalBean animalBean = new AnimalBean();
-		animalBean.setAnimalTag(animalEventBean.getAnimalTag());
+		
+		String tagInClause = "";
+		if (animalEventBean.getAnimalTag() != null && !animalEventBean.getAnimalTag().isEmpty()) {
+			
+			String[] tags = animalEventBean.getAnimalTag().split(",");
+			for (int i=0; i<tags.length; i++) {
+				tagInClause += (i==0 ? "'" : ",'") + tags[i].trim() + "'";
+			}
+			tagInClause = "(" + tagInClause + ")";
+			animalBean.setAnimalTag(tagInClause);
+		} else  {
+			animalBean.setAnimalTag("");
+		}
+		animalBean.setAnimalTag(animalBean.getAnimalTag());
 		animalBean.setOrgId(animalEventBean.getOrgID());
 		try {
-			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null,null);
-			if (animalValues == null || animalValues.size() == 0)
-			{
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"The animal " + Util.encodeJson(animalEventBean.getAnimalTag()) + " does not exist\"}").build();
-			}
+			
+//			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean,false,null,null);
+//			List<Animal> animalValues = animalLoader.retrieveMatchingAnimals(animalBean);
+//			if (animalValues == null || animalValues.size() == 0)
+//			{
+//				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"The animal " + Util.encodeJson(animalEventBean.getAnimalTag()) + " does not exist\"}").build();
+//			}
 			String eventTypeCD = animalEventBean.getEventCode();
 			if (eventTypeCD == null || eventTypeCD.trim().isEmpty()|| eventTypeCD.trim().equalsIgnoreCase("%"))
-				eventTypeCD = null;
-			List<LifecycleEvent> events = animalEventsloader.retrieveSpecificLifeCycleEventsForAnimal(animalBean.getOrgId(),animalValues.get(0).getAnimalTag(),eventTypeCD);
-			if (events == null || events.size() == 0)
+				eventTypeCD = null; 
+			List<Animal> animalsEvents = animalEventsloader.retrieveSpecificLifeCycleEventsForMultipleAnimals(
+					orgID, tagInClause, null, null, eventTypeCD, null, null, null, null, null);
+			if (animalsEvents == null || animalsEvents.size() == 0)
 			{
-				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No life events found for specified animal\"}").build();
+				return Response.status(Util.HTTPCodes.OK).entity("{ \"error\": true, \"message\":\"No life events found for specified animal(s)\"}").build();
 
 			}
-	    	Iterator<LifecycleEvent> eventIt = events.iterator();
-	    	while (eventIt.hasNext()) {
-	    		LifecycleEvent event = eventIt.next();
-	    		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
-	    		String extendedComment = formatComent(event);
-	    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animalValues.get(0).getDateOfBirth()) + ",\n  \"formattedComments\":\"" + Util.encodeJson(extendedComment) + "\"\n},\n";	    		
+	    	Iterator<Animal> animalsEventIt = animalsEvents.iterator();
+	    	while (animalsEventIt.hasNext()) {
+	    		Animal animal = animalsEventIt.next();
+	    		List<LifecycleEvent> animalEvent = animal.getLifeCycleEvents();
+	    		if (animalEvent != null && !animalEvent.isEmpty()) {
+	    			Iterator<LifecycleEvent> eventIt = animalEvent.iterator();
+	    			while (eventIt.hasNext()) {
+	    				LifecycleEvent event = eventIt.next();
+			    		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+			    		String extendedComment = formatComent(event);
+			    		animalEvents += "{\n" + event.dtoToJson("  ", fmt, animal.getDateOfBirth()) + ",\n  \"formattedComments\":\"" + Util.encodeJson(extendedComment) + "\"\n},\n";	    		
+	    			}
+	    		}
 	    	}
 	    	animalEvents = "[" + animalEvents.substring(0,animalEvents.lastIndexOf(",\n")) + "]";
 	    	IMDLogger.log(animalEvents, Util.INFO);

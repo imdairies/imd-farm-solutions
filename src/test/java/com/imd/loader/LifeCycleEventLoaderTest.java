@@ -26,6 +26,7 @@ import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.DBManager;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
+import com.imd.util.TestDataCreationUtil;
 import com.imd.util.Util;
 
 class LifeCycleEventLoaderTest {
@@ -87,7 +88,7 @@ class LifeCycleEventLoaderTest {
 		
 		
 		String orgID = "IMD";
-		String animalTag = "TST-EVENT";
+		String animalTag = "-999";
 		String sire = "1HO10219";
 		String isSexed = "NO";
 		String isInseminationSuccessful = "TBD";
@@ -100,6 +101,7 @@ class LifeCycleEventLoaderTest {
 		DateTime deathTS = DateTime.now(IMDProperties.getServerTimeZone()).minusMonths(1);
 		
 		try {
+			
 			LifeCycleEventCode inseminateEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.INSEMINATE,"","");
 			LifeCycleEventCode matingEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.MATING,"","");
 			LifeCycleEventCode pregTestCD = new LifeCycleEventCode(Util.LifeCycleEvents.PREGTEST,"","");
@@ -111,7 +113,7 @@ class LifeCycleEventLoaderTest {
 			
 			LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 			User user = new User("TEST");
-			Animal animal = createTestAnimal(animalTag);			
+			Animal animal = TestDataCreationUtil.createTestAnimal(orgID, animalTag, DateTime.now(IMDProperties.getServerTimeZone()).minusYears(5), true);
 			
 			LifecycleEvent cullingEvent = new LifecycleEvent(orgID,0,animalTag,culledCD.getEventCode(),user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
 			cullingEvent.setEventNote("test");
@@ -178,7 +180,6 @@ class LifeCycleEventLoaderTest {
 			parturitionEvent.setEventTimeStamp(parturitionTS);
 			parturitionEvent.setEventNote("test");
 
-
 			LifeCycleEventBean pregTestEventBean = new LifeCycleEventBean();
 			pregTestEventBean.setOrgID(orgID);
 			pregTestEventBean.setAnimalTag(animalTag);
@@ -215,7 +216,12 @@ class LifeCycleEventLoaderTest {
 			heatEvent.setCreatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			heatEvent.setUpdatedDTTM(DateTime.now(IMDProperties.getServerTimeZone()));
 			
-			loader.deleteAnimalLifecycleEvents(orgID, animalTag);
+			AnimalLoader animalLoader = new AnimalLoader();
+
+			assertTrue(loader.deleteAnimalLifecycleEvents(orgID, animalTag) >= 0);
+			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag()) >= 0);
+			
+			assertEquals(1,animalLoader.insertAnimal(animal));
 			int inseminationEventID = loader.insertLifeCycleEvent(inseminationEvent);
 			//loader.insertLifeCycleEvent(pregTestEvent);
 			assertTrue(loader.performPostEventAdditionEventsUpdates(pregTestEvent, animal, user).contains("" + inseminationEventID));
@@ -246,10 +252,8 @@ class LifeCycleEventLoaderTest {
 
 			loader.deleteAnimalLifecycleEvents(orgID, animalTag);
 			
-			AnimalLoader animalLoader = new AnimalLoader();
 			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag()) >= 0);
 			assertEquals(0,loader.performPostEventAdditionEventsUpdates(cullingEvent, animal, user).indexOf(". " + Util.ERROR_POSTFIX + "The animal's herd leaving date could NOT be set to :"));
-			
 
 			assertEquals(1,animalLoader.insertAnimal(animal));
 			assertEquals(0,loader.performPostEventAdditionEventsUpdates(cullingEvent, animal, user).indexOf(". The animal's herd leaving date has been set to :"));
@@ -399,9 +403,16 @@ class LifeCycleEventLoaderTest {
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		LifecycleEvent event;
 		User user = new User("KASHIF");
+		String orgId = "IMD";
+		String tag999 = "-999";
 		try {			
-			loader.deleteAnimalLifecycleEvents("IMD","-999");			
-			event = new LifecycleEvent("IMD", 0, "-999",Util.LifeCycleEvents.PARTURATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			AnimalLoader anmlLoader = new AnimalLoader();
+			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, tag999, DateTime.now(IMDProperties.getServerTimeZone()).minusYears(5), true);
+			
+			assertTrue(loader.deleteAnimalLifecycleEvents(animal.getOrgId(),animal.getAnimalTag()) >=0);
+			assertTrue(anmlLoader.deleteAnimal(animal) >= 0);
+
+			event = new LifecycleEvent(animal.getOrgId(),0, animal.getAnimalTag(),Util.LifeCycleEvents.PARTURATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()).minusDays(180));
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF")); 
@@ -409,6 +420,9 @@ class LifeCycleEventLoaderTest {
 			event.setUpdatedBy(event.getCreatedBy());
 			event.setUpdatedDTTM(event.getCreatedDTTM());
 			event.setEventNote("...");
+
+			
+			assertEquals(1,anmlLoader.insertAnimal(animal));
 			int transactionID = loader.insertLifeCycleEvent(event);
 			assertTrue(transactionID > 0,"Event should have been added successfully");
 
@@ -429,7 +443,10 @@ class LifeCycleEventLoaderTest {
 			
 			assertEquals(3,loader.determineInseminationAttemptCountInCurrentLactation("IMD", "-999"), "Two insemination attempts and one mating attempts should have been found.");
 			//Delete the newly inserted events so that we don't have any test data in our DB.
-			assertEquals(4,loader.deleteAnimalLifecycleEvents("IMD","-999"),"Four records should have been deleted");
+			assertEquals(4,loader.deleteAnimalLifecycleEvents(animal.getOrgId(),animal.getAnimalTag()));
+			assertEquals(1,anmlLoader.deleteAnimal(animal));
+
+//			assertEquals(4,loader.deleteAnimalLifecycleEvents("IMD","-999"),"Four records should have been deleted");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -505,10 +522,16 @@ class LifeCycleEventLoaderTest {
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		LifecycleEvent event;
 		User user = new User("KASHIF");
+		String tag999 = "-999";
+		String orgId = "IMD";
 		try {
-			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
-			loader.deleteAnimalLifecycleEvents("IMD","-999");
-			event = new LifecycleEvent("IMD", 0, "-999","PREGTEST",user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			AnimalLoader anmlLoader = new AnimalLoader();
+			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, tag999, DateTime.now(IMDProperties.getServerTimeZone()).minusYears(5), true);
+			
+			assertTrue(loader.deleteAnimalLifecycleEvents("IMD",animal.getAnimalTag()) >=0);
+			assertTrue(anmlLoader.deleteAnimal(animal) >= 0);
+			
+			event = new LifecycleEvent(animal.getOrgId(), 0, animal.getAnimalTag(),"PREGTEST",user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
@@ -520,10 +543,16 @@ class LifeCycleEventLoaderTest {
 					+ "Had conception issues - was a repeater. "
 					+ "This cow had dried off after approximately 6 months of first lactation and had been "
 					+ "dried for several months by the time we sold it");
+			
+			
+			assertEquals(1,anmlLoader.insertAnimal(animal));
+
 			int transactionID = loader.insertLifeCycleEvent(event);
 			assertEquals(Util.ERROR_CODE.DATA_LENGTH_ISSUE,transactionID, "Length of comments field should have been too long");
 			event.setEventNote("Positive, الحمدُ للہ");
-			transactionID = loader.insertLifeCycleEvent(event);			
+			transactionID = loader.insertLifeCycleEvent(event);
+			assertTrue(transactionID > 0);
+
 			event.setEventTransactionID(transactionID);
 			//assertTrue(transactionID > 0,"Record should have been successfully inserted");
 			// 2: Search for the newly inserted event and verify it is retrieved properly
@@ -567,10 +596,11 @@ class LifeCycleEventLoaderTest {
 			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
 					
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
-			assertEquals(1,loader.deleteLifeCycleEvent("IMD",event.getEventTransactionID()),"One record should have been deleted");
+			assertEquals(1,loader.deleteLifeCycleEvent(animal.getOrgId(),event.getEventTransactionID()),"One record should have been deleted");
+			assertEquals(1,anmlLoader.deleteAnimal(animal));
 
 			// 6: Search for the deleted event and verify it is not retrieved.
-			event = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
+			event = loader.retrieveLifeCycleEvent(animal.getOrgId(),event.getEventTransactionID());
 			assertEquals(event,null, "Deleted record should not have been found");
 			
 		} catch (Exception e) {
@@ -583,11 +613,18 @@ class LifeCycleEventLoaderTest {
 	void testSireInseminationRecord() {
 		LifeCycleEventsLoader loader = new LifeCycleEventsLoader();
 		LifecycleEvent event;
+		String tag999 = "-999";
 		User user = new User("KASHIF");
+		String orgId = "IMD";
 		try {
-			loader.deleteAnimalLifecycleEvents("IMD","-999");
+			AnimalLoader anmlLoader = new AnimalLoader();
+			Animal animal = TestDataCreationUtil.createTestAnimal(orgId, tag999, DateTime.now(IMDProperties.getServerTimeZone()).minusYears(5), true);
+			
+			assertTrue(loader.deleteAnimalLifecycleEvents(animal.getOrgId(),animal.getAnimalTag()) >=0);
+			assertTrue(anmlLoader.deleteAnimal(animal) >= 0);
+
 			String testSire = "TSTSIRE";
-			event = new LifecycleEvent("IMD", 0, "-999",Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
+			event = new LifecycleEvent(animal.getOrgId(), 0, animal.getAnimalTag(),Util.LifeCycleEvents.INSEMINATE,user,DateTime.now(IMDProperties.getServerTimeZone()),user,DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setEventTimeStamp(DateTime.now(IMDProperties.getServerTimeZone()));
 			event.setEventOperator(new Person("EMP000'", "Kashif", "", "Manzoor"));
 			event.setCreatedBy(new User("KASHIF"));
@@ -607,6 +644,9 @@ class LifeCycleEventLoaderTest {
 					+ "Length should be too long. Length should be too long. "
 					+ "Length should be too long. Length should be too long.  ");
 			event.setAuxField1Value(testSire);
+			
+			assertEquals(1,anmlLoader.insertAnimal(animal));
+			
 			int transactionID = loader.insertLifeCycleEvent(event);
 			assertEquals(Util.ERROR_CODE.DATA_LENGTH_ISSUE,transactionID, "Length of comments field should have been too long");
 			event.setEventNote("Positive, الحمدُ للہ");
@@ -653,11 +693,13 @@ class LifeCycleEventLoaderTest {
 			assertEquals(null,evt.getAuxField4Value(),"Aux Field4 Value should have been null");
 			assertEquals(updatedDTTMStr,evt.getUpdatedDTTMSQLFormat(),"The Updated DTTM should have been updated");
 					
+			
 			// 5: Delete the newly inserted event so that we don't have any test data in our DB.
-			assertEquals(1,loader.deleteLifeCycleEvent("IMD",event.getEventTransactionID()),"One record should have been deleted");
+			assertEquals(1,loader.deleteLifeCycleEvent(animal.getOrgId(),event.getEventTransactionID()),"One record should have been deleted");
+			assertEquals(1,anmlLoader.deleteAnimal(animal));
 
 			// 6: Search for the deleted event and verify it is not retrieved.
-			event = loader.retrieveLifeCycleEvent("IMD",event.getEventTransactionID());
+			event = loader.retrieveLifeCycleEvent(animal.getOrgId(),event.getEventTransactionID());
 			assertEquals(event,null, "Deleted record should not have been found");
 			
 		} catch (Exception e) {

@@ -48,10 +48,11 @@ class PerformanceMilestoneManagerTest {
 		try {
 			Animal testAnimal = TestDataCreationUtil.createTestAnimal(orgId, animalTag, 
 					dob, true);
-			assertTrue(TestDataCreationUtil.deleteAnimal(testAnimal) >= 0);
 			assertTrue(TestDataCreationUtil.deleteAllAnimalEvents(testAnimal.getOrgId(), testAnimal.getAnimalTag()) >= 0);
 			assertTrue(TestDataCreationUtil.deleteAllMilkingRecordOfanAnimal(testAnimal.getOrgId(), testAnimal.getAnimalTag()) >= 0);
-			
+			assertTrue(TestDataCreationUtil.deleteAnimal(testAnimal) >= 0);
+
+			assertEquals(1,TestDataCreationUtil.insertAnimal(testAnimal));
 			int heatEventId = TestDataCreationUtil.insertEvent(testAnimal.getAnimalTag(), "Heat", 
 					Util.LifeCycleEvents.HEAT, dob.plusMonths(13));
 			assertTrue(heatEventId >= 0);
@@ -75,7 +76,7 @@ class PerformanceMilestoneManagerTest {
 					new LocalDate(dob.plusMonths(13).plusDays(275).plusDays(30), IMDProperties.getServerTimeZone()),
 					1, 9000);
 			
-			assertEquals(1,TestDataCreationUtil.insertAnimal(testAnimal));
+//			assertEquals(1,TestDataCreationUtil.insertAnimal(testAnimal));
 			assertEquals(1,TestDataCreationUtil.insertMilkingRecord(milkRecord));
 			
 			PerformanceMilestoneManager manager = new PerformanceMilestoneManager();

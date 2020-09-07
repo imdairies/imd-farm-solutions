@@ -19,7 +19,6 @@ public class Contact {
 	private String addressInstructions;
 	private String addressMapPin;
 	private String addressZipCode;
-	private BankDetails bankAccountInformation;
 	private URI webURI;
 	
 	public Contact(String fName, String mName, String lName) throws IMDException {
@@ -162,14 +161,6 @@ public class Contact {
 			postalAddress += System.lineSeparator() + this.addressZipCode;		
 		return postalAddress.trim();
 		
-	}
-
-	public BankDetails getBankAccountInformation() {
-		return bankAccountInformation;
-	}
-
-	public void setBankAccountInformation(BankDetails bankDetails) {
-		this.bankAccountInformation = bankDetails;
 	}
 
 	public String getAddressInstructions() {

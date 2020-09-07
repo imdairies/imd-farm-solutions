@@ -69,16 +69,16 @@ class AdvisementLoaderTest {
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
 			///// clean up /////
-			animalLoader.deleteAnimal("IMD", "-999"); // Older than 120 days
-			animalLoader.deleteAnimal("IMD", "-998"); // Younger than 120 days already weaned off - no violation
-			animalLoader.deleteAnimal("IMD", "-997"); // Younger than 120 days Th1 violated
-			animalLoader.deleteAnimal("IMD", "-996"); // Younger than 120 days Th2 violated
-			animalLoader.deleteAnimal("IMD", "-995"); // Younger than 120 days Th3 violated
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-999"); // Older than 120 days
+			animalLoader.deleteAnimal("IMD", "-998"); // Younger than 120 days already weaned off - no violation
+			animalLoader.deleteAnimal("IMD", "-997"); // Younger than 120 days Th1 violated
+			animalLoader.deleteAnimal("IMD", "-996"); // Younger than 120 days Th2 violated
+			animalLoader.deleteAnimal("IMD", "-995"); // Younger than 120 days Th3 violated
 			///////////////////
 
 			Animal oldAnimal = createTestAnimal("-999");
@@ -171,16 +171,16 @@ class AdvisementLoaderTest {
 			assertTrue(th1Found,th1Violation.getAnimalTag() +  "("+ th1Violation.getAnimalType() + ") should have been included in the Threshold1 Violation Advisement population");
 			
 			///// clean up /////
-			animalLoader.deleteAnimal("IMD", "-999");
-			animalLoader.deleteAnimal("IMD", "-998");
-			animalLoader.deleteAnimal("IMD", "-997");
-			animalLoader.deleteAnimal("IMD", "-996");
-			animalLoader.deleteAnimal("IMD", "-995");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			animalLoader.deleteAnimal("IMD", "-997");
+			animalLoader.deleteAnimal("IMD", "-996");
+			animalLoader.deleteAnimal("IMD", "-995");
 			///////////////////
 			
 		} catch (Exception ex) {
@@ -361,16 +361,16 @@ class AdvisementLoaderTest {
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
 			///// clean up /////
-			animalLoader.deleteAnimal("IMD", "-999"); // Older than 180 days
-			animalLoader.deleteAnimal("IMD", "-998"); // Younger than 180 days no violation
-			animalLoader.deleteAnimal("IMD", "-997"); // Younger than 180 days Th1 violated
-			animalLoader.deleteAnimal("IMD", "-996"); // Younger than 180 days Th2 violated
-			animalLoader.deleteAnimal("IMD", "-995"); // Younger than 180 days Th3 violated
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-999"); // Older than 180 days
+			animalLoader.deleteAnimal("IMD", "-998"); // Younger than 180 days no violation
+			animalLoader.deleteAnimal("IMD", "-997"); // Younger than 180 days Th1 violated
+			animalLoader.deleteAnimal("IMD", "-996"); // Younger than 180 days Th2 violated
+			animalLoader.deleteAnimal("IMD", "-995"); // Younger than 180 days Th3 violated
 			///////////////////
 
 			Animal oldAnimal = createTestAnimal("-999");
@@ -491,16 +491,16 @@ class AdvisementLoaderTest {
 			assertTrue(th1Found,th1Violation.getAnimalTag() +  "("+ th1Violation.getAnimalType() + ") should have been included in the Threshold1 Violation Advisement population");
 			
 			///// clean up /////
-			animalLoader.deleteAnimal("IMD", "-999");
-			animalLoader.deleteAnimal("IMD", "-998");
-			animalLoader.deleteAnimal("IMD", "-997");
-			animalLoader.deleteAnimal("IMD", "-996");
-			animalLoader.deleteAnimal("IMD", "-995");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			animalLoader.deleteAnimal("IMD", "-997");
+			animalLoader.deleteAnimal("IMD", "-996");
+			animalLoader.deleteAnimal("IMD", "-995");
 			///////////////////
 			
 		} catch (Exception ex) {
@@ -1203,14 +1203,14 @@ class AdvisementLoaderTest {
 			assertTrue(th3Found,heatWarningTh2.getAnimalTag() +  "("+ heatWarningTh3.getAnimalType() + ") should have been included in the Advisement population");
 			
 			//// CLEAN UP /////
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-999"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-998"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-997"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-996"),"Exactly one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999"),"We did not add any Lifecycle event so no record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998"),"Exactly one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997"),"Exactly one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996"),"We did not add any Lifecycle event so no record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-999"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-998"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-997"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-996"),"Exactly one record should have been deleted");
 			/////////
 			
 			
@@ -1751,18 +1751,18 @@ class AdvisementLoaderTest {
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
 			///// clean up /////
-			animalLoader.deleteAnimal("IMD", "-999");
-			animalLoader.deleteAnimal("IMD", "-998");
-			animalLoader.deleteAnimal("IMD", "-997");
-			animalLoader.deleteAnimal("IMD", "-996");
-			animalLoader.deleteAnimal("IMD", "-995");
-			animalLoader.deleteAnimal("IMD", "-994");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			animalLoader.deleteAnimal("IMD", "-997");
+			animalLoader.deleteAnimal("IMD", "-996");
+			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
 			///////////////////
 			
 
@@ -1860,18 +1860,18 @@ class AdvisementLoaderTest {
 			
 				
 			///// clean up /////
-			animalLoader.deleteAnimal("IMD", "-999");
-			animalLoader.deleteAnimal("IMD", "-998");
-			animalLoader.deleteAnimal("IMD", "-997");
-			animalLoader.deleteAnimal("IMD", "-996");
-			animalLoader.deleteAnimal("IMD", "-995");
-			animalLoader.deleteAnimal("IMD", "-994");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
 			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
+			animalLoader.deleteAnimal("IMD", "-999");
+			animalLoader.deleteAnimal("IMD", "-998");
+			animalLoader.deleteAnimal("IMD", "-997");
+			animalLoader.deleteAnimal("IMD", "-996");
+			animalLoader.deleteAnimal("IMD", "-995");
+			animalLoader.deleteAnimal("IMD", "-994");
 			///////////////////
 			
 		} catch (Exception ex) {
@@ -2249,14 +2249,14 @@ class AdvisementLoaderTest {
 			assertTrue(th1Found,dewormTh1.getAnimalTag() +  "("+ dewormTh1.getAnimalType() + ") cow should have been included in the Deworming Advisement population");
 			
 			///// clean up /////
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-995"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-994"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-993"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-992"),"Exactly one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995"),"We added a Lifecycle event so one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994"),"We added a Lifecycle event so one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993"),"We added a Lifecycle event so one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992"),"We added a Lifecycle event so one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-995"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-994"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-993"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-992"),"Exactly one record should have been deleted");
 			///////////////////
 			
 		} catch (Exception ex) {
@@ -2274,6 +2274,15 @@ class AdvisementLoaderTest {
 			LifeCycleEventsLoader eventsLoader = new LifeCycleEventsLoader();
 			
 			///// clean up /////
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993");
+			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992");
+
 			animalLoader.deleteAnimal("IMD", "-999");
 			animalLoader.deleteAnimal("IMD", "-998");
 			animalLoader.deleteAnimal("IMD", "-997");
@@ -2283,14 +2292,6 @@ class AdvisementLoaderTest {
 			animalLoader.deleteAnimal("IMD", "-993");
 			animalLoader.deleteAnimal("IMD", "-992");
 			
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999");
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998");
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997");
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-996");
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-995");
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994");
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993");
-			eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992");
 			///////////////////			
 						
 			Animal dewormTh1 = createTestAnimal("-992");
@@ -2440,14 +2441,6 @@ class AdvisementLoaderTest {
 			assertTrue(dewormFound,dewormTh1.getAnimalTag() +  "("+ dewormTh1.getAnimalType() + ") should have been included in the Deworming Test Advisement population");
 			
 			///// clean up /////
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-999"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-998"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-997"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-996"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-995"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-994"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-993"),"Exactly one record should have been deleted");
-			assertEquals(1,animalLoader.deleteAnimal("IMD", "-992"),"Exactly one record should have been deleted");
 			assertEquals(0,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-999"),"We did not add any Lifecycle event so no record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-998"),"Exactly one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-997"),"Exactly one record should have been deleted");
@@ -2456,6 +2449,14 @@ class AdvisementLoaderTest {
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-994"),"We added Lifecycle events so one record should have been deleted");
 			assertEquals(1,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-993"),"We added Lifecycle events so one record should have been deleted");
 			assertEquals(0,eventsLoader.deleteAnimalLifecycleEvents("IMD", "-992"),"We did not add any Lifecycle event so no record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-999"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-998"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-997"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-996"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-995"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-994"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-993"),"Exactly one record should have been deleted");
+			assertEquals(1,animalLoader.deleteAnimal("IMD", "-992"),"Exactly one record should have been deleted");
 			///////////////////
 			
 		} catch (Exception ex) {

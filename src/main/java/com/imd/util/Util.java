@@ -108,8 +108,8 @@ public class Util {
 
 	public static final long MAX_PHOTO_SIZE_IN_BYTES = 5*1024*1024;
 
-	public static final String ANIMAL_PHOTO_UPLOAD_PATH = "/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions-responsive-client/public/assets/img/cow-photos";
-	public static final String LOOKUP_PHOTO_UPLOAD_PATH = "/Users/kashif.manzoor/Data/Personal/DF/software/imd-farm-solutions-responsive-client/public/assets/img/lookupvalues";
+	public static final String ANIMAL_PHOTO_UPLOAD_PATH = "/Users/kashif.manzoor/Data/DF/software/imd-farm-solutions-responsive-client/public/assets/img/cow-photos";
+	public static final String LOOKUP_PHOTO_UPLOAD_PATH = "/Users/kashif.manzoor/Data/DF/software/imd-farm-solutions-responsive-client/public/assets/img/lookupvalues";
 
 	public static final class DurationType {
 		public static final int DAYS = 1;

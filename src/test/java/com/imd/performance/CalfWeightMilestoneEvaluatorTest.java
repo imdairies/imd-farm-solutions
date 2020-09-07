@@ -126,7 +126,14 @@ class CalfWeightMilestoneEvaluatorTest {
 
 			Animal neverWeighedAnimal = createTestAnimal(orgID,neverWeighedAnimalTag,now.minusYears(9));
 
-			anmlLdr.deleteAnimal(neverWeighedAnimal.getOrgId(),neverWeighedAnimal.getAnimalTag());
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(orgID, oneStarTag) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(orgID, twoStarTag) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(orgID, threeStarTag) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(orgID, fourStarTag) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(orgID, fiveStarTag) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(orgID, noStarTag) >= 0);
+			assertTrue(evtLdr.deleteAnimalLifecycleEvents(orgID, neverWeighedAnimal.getAnimalTag()) >= 0);
+			assertTrue(anmlLdr.deleteAnimal(neverWeighedAnimal.getOrgId(),neverWeighedAnimal.getAnimalTag()) >=0);
 			assertEquals(1,anmlLdr.insertAnimal(neverWeighedAnimal));
 			addAnimalMilestoneTestData(oneStarAnimal, oneStarWtEvent1, oneStarWtEvent2);
 			addAnimalMilestoneTestData(twoStarAnimal, twoStarWtEvent1, twoStarWtEvent2);

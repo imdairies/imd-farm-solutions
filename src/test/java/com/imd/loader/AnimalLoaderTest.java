@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import com.imd.dto.Advisement;
 import com.imd.dto.Animal;
 import com.imd.dto.AnimalPhoto;
-import com.imd.dto.BankDetails;
 import com.imd.dto.Contact;
 import com.imd.dto.Dam;
 import com.imd.dto.LifecycleEvent;
@@ -120,9 +119,6 @@ class AnimalLoaderTest {
 		contact.setAddressInstructions("Take motorway from Lahore to Islamabad and take the first exit and continue straight on that road for 25 km. Then take left.");
 		
 		// Test for bank details
-		BankDetails bankDetails;
-		bankDetails = new BankDetails("JATHOL AGRI & DAIRY", "Habib Bank Limited", "09977900302603", "HABB0009977900302603");
-		contact.setBankAccountInformation(bankDetails);		
 		c000.setPurchaseFrom(contact);
 	}
 	
@@ -453,14 +449,14 @@ class AnimalLoaderTest {
 
 			assertTrue(evtLoader.deleteAnimalLifecycleEvents("IMD", sireTag)>=0);
 			assertTrue(evtLoader.deleteAnimalLifecycleEvents("IMD", damTag)>=0);
+			assertTrue(animalLoader.deleteSire(sireTag) >= 0);
+			assertTrue(animalLoader.deleteAnimal("IMD", sireTag)>=0);
+			assertTrue(animalLoader.deleteAnimal("IMD", damTag)>=0);
 			
-			
-			
-			animalLoader.deleteAnimal("IMD", sireBean.getAnimalTag());
+//			assertTrue(animalLoader.deleteAnimal("IMD", sireBean.getAnimalTag()) >=0);
 
 			DateTime now = DateTime.now();
 
-			assertTrue(animalLoader.deleteSire(sireTag)>=0);
 			int result = animalLoader.insertSire(sireBean, user.getUserId(), now, user.getUserId(), now);
 			assertEquals(1,result);
 			
@@ -494,14 +490,13 @@ class AnimalLoaderTest {
 			inseminationEvent.setAuxField4Value(null);
 			inseminationEvent.setEventOperator(new Person("KASHIF","KASHIF","KASHIF","KASHIF"));
 			inseminationEvent.setEventTimeStamp(DateTime.now().minusMonths(6));
-//			inseminationEvent.setCreatedBy(user);
-//			inseminationEvent.setUpdatedBy(user);
-//			inseminationEvent.setCreatedDTTM(DateTime.now());
-//			inseminationEvent.setUpdatedDTTM(DateTime.now());
 			
-			evtLoader.deleteAnimalLifecycleEvents("IMD", sireTag);
-			evtLoader.deleteAnimalLifecycleEvents("IMD", damTag);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents("IMD", sireTag) >= 0);
+			assertTrue(evtLoader.deleteAnimalLifecycleEvents("IMD", damTag) >= 0);
 			
+//			assertEquals(1,animalLoader.insertSire(sireBean, user.getUserId(), now, user.getUserId(), now));
+			Animal dam = TestDataCreationUtil.createTestAnimal("IMD", damTag, now.minusYears(5), true);
+			assertEquals(1,animalLoader.insertAnimal(dam));
 			
 			assertTrue(evtLoader.insertLifeCycleEvent(inseminationEvent) > 0);
 			
@@ -527,6 +522,8 @@ class AnimalLoaderTest {
 			assertEquals(1,evtLoader.deleteAnimalLifecycleEvents("IMD", damTag));
 			assertEquals(1,animalLoader.deleteSire(sireTag));
 			assertTrue(animalLoader.deleteAnimal("IMD", sireTag)>=0);
+			assertEquals(1,animalLoader.deleteAnimal(dam));
+
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -738,10 +735,10 @@ class AnimalLoaderTest {
 			}
 			assertTrue(shouldBeFound, "Tag 000 should have been found as it is an adult female");
 			assertFalse(shouldNotBeFound, "Tag -999 should NOT have been found as it is NOT an adult female");
-			assertEquals(1,loader.deleteAnimal("IMD", "000"));
-			assertEquals(1,loader.deleteAnimal("IMD", "-999"));
 			assertEquals(2,eventLoader.deleteAnimalLifecycleEvents("IMD", "000"));
 			assertEquals(0,eventLoader.deleteAnimalLifecycleEvents("IMD", "-999"));
+			assertEquals(1,loader.deleteAnimal("IMD", "000"));
+			assertEquals(1,loader.deleteAnimal("IMD", "-999"));
 
 		} catch (Exception e) {
 			e.printStackTrace();

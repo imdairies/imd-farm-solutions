@@ -32,7 +32,7 @@ public class LifeCycleEventsLoader {
 	}
 	
 	public int insertLifeCycleEvent(LifecycleEvent event) throws SQLException {
-		String qryString = "insert into LIFECYCLE_EVENTS (ORG_ID,"
+		String qryString = "insert into imd.LIFECYCLE_EVENTS (ORG_ID,"
 				+ "ANIMAL_TAG,"
 				+ "EVENT_CD,"
 				+ "EVENT_DTTM,"
@@ -108,10 +108,10 @@ public class LifeCycleEventsLoader {
 				+ "B.FIELD3_LABEL, B.FIELD3_TYPE, B.FIELD3_UNIT,"
 				+ "B.FIELD4_LABEL, B.FIELD4_TYPE, B.FIELD4_UNIT,"
 				+ "C.SHORT_DESCR as OPERATOR_SHORT_DESCR "
-				+ " from LIFECYCLE_EVENTS A  "
-				+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  "
+				+ " from imd.LIFECYCLE_EVENTS A  "
+				+ "	LEFT OUTER JOIN imd.LV_LIFECYCLE_EVENT B  "
 				+ "  ON	A.EVENT_CD = B.EVENT_CD  "
-				+ "  LEFT OUTER JOIN LOOKUP_VALUES C "
+				+ "  LEFT OUTER JOIN imd.LOOKUP_VALUES C "
 				+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
 				+ " where A.ORG_ID=? AND A.ID =?  ORDER BY A.EVENT_DTTM DESC";
 		
@@ -146,12 +146,35 @@ public class LifeCycleEventsLoader {
 	    return event;
 	}
 
-	private LifecycleEvent getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
-		LifecycleEvent event;
-		event = new LifecycleEvent(rs.getString("ORG_ID"),rs.getInt("ID"),rs.getString("ANIMAL_TAG"), rs.getString("EVENT_CD"),
+	private Animal getAnimalLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
+		Animal animalWithEvent = null;
+		LifecycleEvent event = new LifecycleEvent(rs.getString("ORG_ID"),rs.getInt("ID"),rs.getString("ANIMAL_TAG"), rs.getString("EVENT_CD"),
 				new User(rs.getString("CREATED_BY")),new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()),
 				new User(rs.getString("UPDATED_BY")),new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone())
 				);
+		
+		animalWithEvent = new Animal(event.getOrgId(), event.getAnimalTag());
+		animalWithEvent.setDateOfBirth(new DateTime(rs.getTimestamp("DOB"),IMDProperties.getServerTimeZone()));
+		
+		event.getEventType().setEventShortDescription(rs.getString("EVENT_SHORT_DESCR"));
+		event.setEventTimeStamp(new DateTime(rs.getTimestamp("EVENT_DTTM"),IMDProperties.getServerTimeZone()));
+		event.setEventNote(rs.getString("COMMENTS"));
+		event.setEventOperator(new Person(rs.getString("OPERATOR"),rs.getString("OPERATOR_SHORT_DESCR"),"",""));
+		event.setAuxField1Value(rs.getString("AUX_FL1_VALUE"));
+		event.setAuxField2Value(rs.getString("AUX_FL2_VALUE"));
+		event.setAuxField3Value(rs.getString("AUX_FL3_VALUE"));
+		event.setAuxField4Value(rs.getString("AUX_FL4_VALUE"));
+		event.setEventType(getLifeCycleEventCodeFromSQLRecord(rs));
+		animalWithEvent.addLifecycleEvent(event);
+		return animalWithEvent;
+	}
+	
+	private LifecycleEvent getLifeCycleEventFromSQLRecord(ResultSet rs) throws IMDException, SQLException {
+		LifecycleEvent event = new LifecycleEvent(rs.getString("ORG_ID"),rs.getInt("ID"),rs.getString("ANIMAL_TAG"), rs.getString("EVENT_CD"),
+				new User(rs.getString("CREATED_BY")),new DateTime(rs.getTimestamp("CREATED_DTTM"),IMDProperties.getServerTimeZone()),
+				new User(rs.getString("UPDATED_BY")),new DateTime(rs.getTimestamp("UPDATED_DTTM"),IMDProperties.getServerTimeZone())
+				);
+		
 		event.getEventType().setEventShortDescription(rs.getString("EVENT_SHORT_DESCR"));
 		event.setEventTimeStamp(new DateTime(rs.getTimestamp("EVENT_DTTM"),IMDProperties.getServerTimeZone()));
 		event.setEventNote(rs.getString("COMMENTS"));
@@ -233,10 +256,10 @@ public class LifeCycleEventsLoader {
 							+ " B.FIELD2_LABEL, B.FIELD2_TYPE, B.FIELD2_UNIT, "
 							+ " B.FIELD3_LABEL, B.FIELD3_TYPE, B.FIELD3_UNIT, "
 							+ " B.FIELD4_LABEL, B.FIELD4_TYPE, B.FIELD4_UNIT  " 
-							+ " from LIFECYCLE_EVENTS A  "
-							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  " 
+							+ " from imd.LIFECYCLE_EVENTS A  "
+							+ "	LEFT OUTER JOIN imd.LV_LIFECYCLE_EVENT B  " 
 							+ "  ON	A.EVENT_CD = B.EVENT_CD  " 
-							+ "  LEFT OUTER JOIN LOOKUP_VALUES C "
+							+ "  LEFT OUTER JOIN imd.LOOKUP_VALUES C "
 							+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
 							+ " where A.ORG_ID=?  AND A.ANIMAL_TAG =?  ";
 		String event1Str = "";
@@ -310,18 +333,22 @@ public class LifeCycleEventsLoader {
 	    return allAnimalEvents;
 	}	
 	
+	
+	
+	
 	public List<LifecycleEvent> retrieveSpecificLifeCycleEvents(String orgId, DateTime fromDate, DateTime toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
+		
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
 		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
 							+ " B.FIELD1_LABEL, B.FIELD1_TYPE, B.FIELD1_UNIT, "
 							+ " B.FIELD2_LABEL, B.FIELD2_TYPE, B.FIELD2_UNIT, "
 							+ " B.FIELD3_LABEL, B.FIELD3_TYPE, B.FIELD3_UNIT, "
 							+ " B.FIELD4_LABEL, B.FIELD4_TYPE, B.FIELD4_UNIT  " 
-							+ " from LIFECYCLE_EVENTS A  "
-							+ "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  " 
+							+ " from imd.LIFECYCLE_EVENTS A  "
+							+ "	LEFT OUTER JOIN imd.LV_LIFECYCLE_EVENT B  " 
 							+ "  ON	A.EVENT_CD = B.EVENT_CD  " 
-							+ "  LEFT OUTER JOIN LOOKUP_VALUES C "
-							+ "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' "
+							+ "  LEFT OUTER JOIN imd.LOOKUP_VALUES C "
+							+ "  ON C.LOOKUP_CD=A.OPERATOR and C.CATEGORY_CD='OPRTR' "
 							+ " where A.ORG_ID=?  ";
 		String event1Str = "";
 		String event2Str = "";
@@ -366,9 +393,9 @@ public class LifeCycleEventsLoader {
 			if (auxField4Value != null)
 				preparedStatement.setString(index++, auxField4Value);
 			if (fromDate != null) 
-				preparedStatement.setString(index++, Util.getDateTimeInSQLFormat(fromDate));
+				preparedStatement.setString(index++, fromDate.toString());
 			if (toDate != null) 
-				preparedStatement.setString(index++, Util.getDateTimeInSQLFormat(toDate));
+				preparedStatement.setString(index++, toDate.toString());
 				
 			IMDLogger.log(preparedStatement.toString(), Util.INFO);
 		    rs = preparedStatement.executeQuery();
@@ -390,16 +417,18 @@ public class LifeCycleEventsLoader {
 				e.printStackTrace();
 			}
 		}
-	    return allAnimalEvents;
+	    return allAnimalEvents;		
+		
+
 	}	
 		
 	public List<LifecycleEvent> retrieveAllLifeCycleEventsForAnimal(String orgId, String tagNumber) {
 		ArrayList<LifecycleEvent> allAnimalEvents = new ArrayList<LifecycleEvent>();
 		String qryString = " Select A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
-		  " from LIFECYCLE_EVENTS A  " +
-		  "	LEFT OUTER JOIN LV_LIFECYCLE_EVENT B  " +
+		  " from imd.LIFECYCLE_EVENTS A  " +
+		  "	LEFT OUTER JOIN imd.LV_LIFECYCLE_EVENT B  " +
 		  "  ON	A.EVENT_CD = B.EVENT_CD  " +
-		  "  LEFT OUTER JOIN LOOKUP_VALUES C " +
+		  "  LEFT OUTER JOIN imd.LOOKUP_VALUES C " +
 		  "  ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' " +
 		  " where A.ORG_ID=?  AND A.ANIMAL_TAG =?  ORDER BY A.EVENT_DTTM DESC";		
 		LifecycleEvent event = null;
@@ -434,7 +463,7 @@ public class LifeCycleEventsLoader {
 	    return allAnimalEvents;
 	}
 	public int deleteLifeCycleEvent(String orgID, int transId) {
-		String qryString = "DELETE FROM LIFECYCLE_EVENTS WHERE ORG_ID=? AND ID=?";
+		String qryString = "DELETE FROM imd.LIFECYCLE_EVENTS WHERE ORG_ID=? AND ID=?";
 		int result = -1;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
@@ -556,7 +585,7 @@ public class LifeCycleEventsLoader {
 
 	public int deleteAnimalLifecycleEvents(String orgID, String animalTag) {
 		
-		String qryString = "DELETE FROM LIFECYCLE_EVENTS WHERE ORG_ID=? AND ANIMAL_TAG=?";
+		String qryString = "DELETE FROM imd.LIFECYCLE_EVENTS WHERE ORG_ID=? AND ANIMAL_TAG=?";
 		int result = -1;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
@@ -582,9 +611,9 @@ public class LifeCycleEventsLoader {
 	}
 
 	public int determineInseminationAttemptCountInCurrentLactation(String orgID, String animalTag) {
-		String qryString = "select animal_tag,count(*) AS INSEMINATION_ATTEMPTS_COUNT from LIFECYCLE_EVENTS A "
+		String qryString = "select animal_tag,count(*) AS INSEMINATION_ATTEMPTS_COUNT from imd.LIFECYCLE_EVENTS A "
 				+ "where A.ORG_ID = ? AND A.animal_tag=? and (event_cd=? OR event_cd=?) and "
-				+ "event_dttm >= (select max(EVENT_DTTM) from LIFECYCLE_EVENTS where org_id=A.org_id and animal_tag=A.animal_tag and (event_cd=? OR event_cd=?  OR event_cd=?) )";
+				+ "event_dttm >= (select max(EVENT_DTTM) from imd.LIFECYCLE_EVENTS where org_id=A.org_id and animal_tag=A.animal_tag and (event_cd=? OR event_cd=?  OR event_cd=?) )";
 		int inseminationAttemptsCount = 0;
 		PreparedStatement preparedStatement = null;
 		Connection conn = DBManager.getDBConnection();
@@ -791,19 +820,19 @@ public class LifeCycleEventsLoader {
 
 	public List<LifecycleEvent> retrieveTwoRelevantWeightEvents(Animal animal, DateTime plusDays) {
 		String qryString = "SELECT A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR " +
-				   " FROM LIFECYCLE_EVENTS A  " +
-				   " LEFT OUTER JOIN LV_LIFECYCLE_EVENT B " +
+				   " FROM imd.LIFECYCLE_EVENTS A  " +
+				   " LEFT OUTER JOIN imd.LV_LIFECYCLE_EVENT B " +
 				   " 	ON	A.EVENT_CD = B.EVENT_CD  " +
-				   " LEFT OUTER JOIN LOOKUP_VALUES C " +
+				   " LEFT OUTER JOIN imd.LOOKUP_VALUES C " +
 				   " 	ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='OPRTR' " +
 				   "     WHERE  A.ORG_ID=? AND A.ANIMAL_TAG=? AND A.EVENT_CD='" + Util.LifeCycleEvents.WEIGHT + "' AND " +
 				   " A.EVENT_DTTM = (SELECT MAX(EVENT_DTTM) FROM imd.LIFECYCLE_EVENTS WHERE ANIMAL_TAG=A.ANIMAL_TAG AND ORG_ID=A.ORG_ID AND EVENT_CD=A.EVENT_CD AND EVENT_DTTM <= ?) " +
 				   "  UNION " +
 				   " SELECT A.*, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR  " +
-				   " FROM LIFECYCLE_EVENTS A " +
-				   " LEFT OUTER JOIN LV_LIFECYCLE_EVENT B " +
+				   " FROM imd.LIFECYCLE_EVENTS A " +
+				   " LEFT OUTER JOIN imd.LV_LIFECYCLE_EVENT B " +
 				   " 	ON	A.EVENT_CD = B.EVENT_CD  " +
-				   " LEFT OUTER JOIN LOOKUP_VALUES C " +
+				   " LEFT OUTER JOIN imd.LOOKUP_VALUES C " +
 				   " 	ON C.LOOKUP_CD=A.OPERATOR and  C.CATEGORY_CD='" +  Util.LifeCycleEvents.WEIGHT + "' " +
 				   "      WHERE A.ORG_ID=? AND A.ANIMAL_TAG=? AND A.EVENT_CD='WEIGHT' AND " +
 				   "  A.EVENT_DTTM = (SELECT MIN(EVENT_DTTM) FROM imd.LIFECYCLE_EVENTS WHERE ANIMAL_TAG=A.ANIMAL_TAG AND ORG_ID=A.ORG_ID AND EVENT_CD=A.EVENT_CD AND EVENT_DTTM > ?)";
@@ -842,6 +871,103 @@ public class LifeCycleEventsLoader {
 		}
 	    return wtEvents;
 	}
+
+	
+	public List<Animal> retrieveSpecificLifeCycleEventsForMultipleAnimals(String orgId, String commaSeparatedTagNumbers, DateTime fromDate, DateTime toDate, String eventTypeCD1, String eventTypeCD2, String auxField1Value, String auxField2Value, String auxField3Value, String auxField4Value) {
+		ArrayList<Animal> allAnimalEvents = new ArrayList<Animal>();
+		String qryString = " Select A.*, ANML.DOB, B.SHORT_DESCR as EVENT_SHORT_DESCR, C.SHORT_DESCR as OPERATOR_SHORT_DESCR, "
+				+ " B.FIELD1_LABEL, B.FIELD1_TYPE, B.FIELD1_UNIT, "
+				+ " B.FIELD2_LABEL, B.FIELD2_TYPE, B.FIELD2_UNIT, "
+				+ " B.FIELD3_LABEL, B.FIELD3_TYPE, B.FIELD3_UNIT, "
+				+ " B.FIELD4_LABEL, B.FIELD4_TYPE, B.FIELD4_UNIT  " 
+				+ " from imd.LIFECYCLE_EVENTS A  "
+				+ "	LEFT OUTER JOIN imd.ANIMALS ANML  " 
+				+ "  ON	ANML.ANIMAL_TAG = A.ANIMAL_TAG AND ANML.ORG_ID AND A.ORG_ID " 
+				+ "	LEFT OUTER JOIN imd.LV_LIFECYCLE_EVENT B  " 
+				+ "  ON	A.EVENT_CD = B.EVENT_CD  " 
+				+ "  LEFT OUTER JOIN imd.LOOKUP_VALUES C "
+				+ "  ON C.LOOKUP_CD=A.OPERATOR and C.CATEGORY_CD='OPRTR' "
+				+ " where A.ORG_ID=?  AND A.ANIMAL_TAG IN " + commaSeparatedTagNumbers + " ";
+		String event1Str = "";
+		String event2Str = "";
+		if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty()) {
+			event1Str = " A.EVENT_CD=? ";
+		}
+		if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty()) {
+			event2Str = " A.EVENT_CD=? ";
+		}
+	    
+		if (event1Str.isEmpty() && event2Str.isEmpty()) {
+			;
+		} else if (event1Str.isEmpty() || event2Str.isEmpty()) {
+			qryString += " AND " + event1Str + event2Str;
+		} else if (!event1Str.isEmpty() && !event2Str.isEmpty()) {
+			qryString += " AND (" + event1Str +  " OR " + event2Str + ") ";
+		}
+		qryString += (auxField1Value != null ? " AND AUX_FL1_VALUE=? " : "") + 
+				(auxField2Value != null ? " AND AUX_FL2_VALUE=? "  :  "") + 
+				(auxField3Value != null ? " AND AUX_FL3_VALUE=? " : "") + 
+				(auxField4Value != null ? " AND AUX_FL4_VALUE=? " : "") + 
+				(fromDate != null ? " AND A.EVENT_DTTM >=? " : "" ) + (toDate != null ? " AND A.EVENT_DTTM <=? " : "" ) +  " ORDER BY A.ORG_ID, A.ANIMAL_TAG, A.EVENT_DTTM DESC";		
+		Animal animalWithEvents = null;
+		Statement st = null;
+		ResultSet rs = null;
+		int index = 1;
+		try {
+			PreparedStatement preparedStatement = null;
+			Connection conn = DBManager.getDBConnection();
+			preparedStatement = conn.prepareStatement(qryString);
+			preparedStatement.setString(index++, orgId);
+			if (eventTypeCD1 != null && !eventTypeCD1.trim().isEmpty())
+				preparedStatement.setString(index++, eventTypeCD1);
+			if (eventTypeCD2 != null && !eventTypeCD2.trim().isEmpty())
+				preparedStatement.setString(index++, eventTypeCD2);
+			if (auxField1Value != null)
+				preparedStatement.setString(index++, auxField1Value);
+			if (auxField2Value != null)
+				preparedStatement.setString(index++, auxField2Value);
+			if (auxField3Value != null)
+				preparedStatement.setString(index++, auxField3Value);
+			if (auxField4Value != null)
+				preparedStatement.setString(index++, auxField4Value);
+			if (fromDate != null) 
+				preparedStatement.setString(index++, Util.getDateTimeInSQLFormat(fromDate));
+			if (toDate != null) 
+				preparedStatement.setString(index++, Util.getDateTimeInSQLFormat(toDate));
+				
+			IMDLogger.log(preparedStatement.toString(), Util.INFO);
+		    rs = preparedStatement.executeQuery();
+		    while (rs.next()) {
+		    	animalWithEvents = getAnimalLifeCycleEventFromSQLRecord(rs);
+		        allAnimalEvents.add(animalWithEvents);
+		    }
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+		    try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();	
+				}
+				if (st != null && !st.isClosed()) {
+					st.close();	
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	    return allAnimalEvents;
+
+	}	
+	
+	
+	
+	
 }
+
+
+
+
+
+
 
 

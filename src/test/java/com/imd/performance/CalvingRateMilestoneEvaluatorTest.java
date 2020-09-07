@@ -56,8 +56,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			Animal noStarFemale = TestDataCreationUtil.createTestAnimal(orgId, noStarFemaleTag, 
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
-			assertTrue(anmlLdr.deleteAnimal(noStarFemale) >= 0);
 			assertTrue(evtLdr.deleteAnimalLifecycleEvents(noStarFemale.getOrgId(), noStarFemale.getAnimalTag())>= 0);
+			assertTrue(anmlLdr.deleteAnimal(noStarFemale) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(noStarFemale));
 			
@@ -86,8 +86,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			outcome = evl.evaluatePerformanceMilestone(milestone, noStarFemale.getOrgId(), noStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.NO_STAR, outcome.getStarRating());
 			
-			assertEquals(1,anmlLdr.deleteAnimal(noStarFemale));
 			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(noStarFemale.getOrgId(), noStarFemale.getAnimalTag()));
+			assertEquals(1,anmlLdr.deleteAnimal(noStarFemale));
 			
 			
 		} catch (Exception e) {
@@ -126,15 +126,15 @@ class CalvingRateMilestoneEvaluatorTest {
 			Animal oldMale = TestDataCreationUtil.createTestAnimal(orgId, oldMaleTag, 
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*2), false);
 			
-			assertTrue(anmlLdr.deleteAnimal(youngFemale) >= 0);
-			assertTrue(anmlLdr.deleteAnimal(youngMale) >= 0);
-			assertTrue(anmlLdr.deleteAnimal(oldMale) >= 0);
-			assertTrue(anmlLdr.deleteAnimal(oldFemale) >= 0);
-			
 			assertEquals(1, anmlLdr.insertAnimal(youngFemale));
 			assertEquals(1, anmlLdr.insertAnimal(youngMale));
 			assertEquals(1, anmlLdr.insertAnimal(oldMale));
 			assertEquals(1, anmlLdr.insertAnimal(oldFemale));
+			
+//			assertTrue(anmlLdr.deleteAnimal(youngFemale) >= 0);
+//			assertTrue(anmlLdr.deleteAnimal(youngMale) >= 0);
+//			assertTrue(anmlLdr.deleteAnimal(oldMale) >= 0);
+//			assertTrue(anmlLdr.deleteAnimal(oldFemale) >= 0);
 			
 			PerformanceMilestone outcome = evl.evaluatePerformanceMilestone(milestone, youngFemale.getOrgId(), youngFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ANIMAL_NOT_ELIGIBLE, outcome.getStarRating());
@@ -179,8 +179,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			Animal oneStarFemale = TestDataCreationUtil.createTestAnimal(orgId, oneStarFemaleTag, 
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*2), true);
 			
-			assertTrue(anmlLdr.deleteAnimal(oneStarFemale) >= 0);
 			assertTrue(evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag())>= 0);
+			assertTrue(anmlLdr.deleteAnimal(oneStarFemale) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(oneStarFemale));
 			
@@ -205,8 +205,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			outcome = evl.evaluatePerformanceMilestone(milestone, oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.ONE_STAR, outcome.getStarRating());
 			
-			assertEquals(1,anmlLdr.deleteAnimal(oneStarFemale));
 			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(oneStarFemale.getOrgId(), oneStarFemale.getAnimalTag()));
+			assertEquals(1,anmlLdr.deleteAnimal(oneStarFemale));
 			
 			
 		} catch (Exception e) {
@@ -235,8 +235,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			Animal twoStarFemale = TestDataCreationUtil.createTestAnimal(orgId, twoStarFemaleTag, 
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*2), true);
 			
-			assertTrue(anmlLdr.deleteAnimal(twoStarFemale) >= 0);
 			assertTrue(evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag())>= 0);
+			assertTrue(anmlLdr.deleteAnimal(twoStarFemale) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(twoStarFemale));
 			
@@ -261,8 +261,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			outcome = evl.evaluatePerformanceMilestone(milestone, twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.TWO_STAR, outcome.getStarRating());
 			
-			assertEquals(1,anmlLdr.deleteAnimal(twoStarFemale));
 			assertEquals(6,evtLdr.deleteAnimalLifecycleEvents(twoStarFemale.getOrgId(), twoStarFemale.getAnimalTag()));
+			assertEquals(1,anmlLdr.deleteAnimal(twoStarFemale));
 			
 			
 		} catch (Exception e) {
@@ -291,8 +291,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			Animal threeStarFemale = TestDataCreationUtil.createTestAnimal(orgId, threeStarFemaleTag, 
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
-			assertTrue(anmlLdr.deleteAnimal(threeStarFemale) >= 0);
 			assertTrue(evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag())>= 0);
+			assertTrue(anmlLdr.deleteAnimal(threeStarFemale) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(threeStarFemale));
 			
@@ -321,8 +321,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			outcome = evl.evaluatePerformanceMilestone(milestone, threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.THREE_STAR, outcome.getStarRating());
 			
-			assertEquals(1,anmlLdr.deleteAnimal(threeStarFemale));
 			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(threeStarFemale.getOrgId(), threeStarFemale.getAnimalTag()));
+			assertEquals(1,anmlLdr.deleteAnimal(threeStarFemale));
 			
 			
 		} catch (Exception e) {
@@ -351,8 +351,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			Animal fourStarFemale = TestDataCreationUtil.createTestAnimal(orgId, fourStarFemaleTag, 
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
-			assertTrue(anmlLdr.deleteAnimal(fourStarFemale) >= 0);
 			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag())>= 0);
+			assertTrue(anmlLdr.deleteAnimal(fourStarFemale) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(fourStarFemale));
 			
@@ -381,8 +381,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			outcome = evl.evaluatePerformanceMilestone(milestone, fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FOUR_STAR, outcome.getStarRating());
 			
-			assertEquals(1,anmlLdr.deleteAnimal(fourStarFemale));
 			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(fourStarFemale.getOrgId(), fourStarFemale.getAnimalTag()));
+			assertEquals(1,anmlLdr.deleteAnimal(fourStarFemale));
 			
 			
 		} catch (Exception e) {
@@ -411,8 +411,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			Animal fiveStarFemale = TestDataCreationUtil.createTestAnimal(orgId, fiveStarFemaleTag, 
 					now.minusDays(Integer.parseInt(milestone.getAuxInfo1())*4), true);
 			
-			assertTrue(anmlLdr.deleteAnimal(fiveStarFemale) >= 0);
 			assertTrue(evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag())>= 0);
+			assertTrue(anmlLdr.deleteAnimal(fiveStarFemale) >= 0);
 
 			assertEquals(1, anmlLdr.insertAnimal(fiveStarFemale));
 			
@@ -441,8 +441,8 @@ class CalvingRateMilestoneEvaluatorTest {
 			outcome = evl.evaluatePerformanceMilestone(milestone, fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag(), Util.LanguageCode.ENG);
 			assertEquals(Util.StarRating.FIVE_STAR, outcome.getStarRating());
 			
-			assertEquals(1,anmlLdr.deleteAnimal(fiveStarFemale));
 			assertEquals(9,evtLdr.deleteAnimalLifecycleEvents(fiveStarFemale.getOrgId(), fiveStarFemale.getAnimalTag()));
+			assertEquals(1,anmlLdr.deleteAnimal(fiveStarFemale));
 			
 			
 		} catch (Exception e) {

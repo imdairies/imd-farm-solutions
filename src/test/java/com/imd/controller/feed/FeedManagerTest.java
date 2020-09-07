@@ -478,11 +478,12 @@ class FeedManagerTest {
 			anmLdr.deleteAnimal(femaleCalf.getOrgId(), femaleCalf.getAnimalTag());
 			anmLdr.deleteAnimal(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag());			
 
+			assertEquals(1,anmLdr.insertAnimal(femaleCalf));
+			assertEquals(1,anmLdr.insertAnimal(femaleCalfWeanedOff));
+
 			int transactionID = eventLoader.insertLifeCycleEvent(event);
 			assertTrue(transactionID>0,"Exactly one event should have been added successfully");
 
-			assertEquals(1,anmLdr.insertAnimal(femaleCalf));
-			assertEquals(1,anmLdr.insertAnimal(femaleCalfWeanedOff));
 			assertEquals(Util.FeedCohortType.FEMALECALF,manager.getAnimalFeedCohort(femaleCalf.getOrgId(), femaleCalf.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
 			assertEquals(Util.FeedCohortType.FMLWNDOFF,manager.getAnimalFeedCohort(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag()).getFeedCohortLookupValue().getLookupValueCode());
 			
@@ -549,9 +550,9 @@ class FeedManagerTest {
 			
 			// Clean up all the test records added.
 			assertEquals(1,loader.deleteFeedPlanItem(feedItem, " AND START >= ? AND END >= ?", feedItem.getStart(), feedItem.getEnd()));
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag()));
 			assertEquals(1,anmLdr.deleteAnimal(femaleCalf.getOrgId(), femaleCalf.getAnimalTag()));
 			assertEquals(1,anmLdr.deleteAnimal(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag()));
-			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(femaleCalfWeanedOff.getOrgId(), femaleCalfWeanedOff.getAnimalTag()));
 
 		} catch (IMDException ex) {
 			ex.printStackTrace();

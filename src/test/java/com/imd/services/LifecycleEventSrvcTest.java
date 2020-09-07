@@ -23,6 +23,7 @@ import com.imd.loader.UserLoader;
 import com.imd.services.bean.LifeCycleEventBean;
 import com.imd.util.IMDLogger;
 import com.imd.util.IMDProperties;
+import com.imd.util.TestDataCreationUtil;
 import com.imd.util.Util;
 
 class LifecycleEventSrvcTest {
@@ -87,7 +88,8 @@ class LifecycleEventSrvcTest {
 
 			User user1 = new User("TEST");
 			Person kashif = new Person("KASHIF","KASHIF","KASHIF","KASHIF");
-			Animal animal = createTestAnimal(animalTag);			
+
+			Animal animal = TestDataCreationUtil.createTestAnimal(orgID, animalTag, DateTime.now(IMDProperties.getServerTimeZone()).minusYears(5), true);
 			
 
 //			LifecycleEvent matingEvent = new LifecycleEvent(orgID,0,animalTag,matingEventCD.getEventCode(),user,DateTime.now(),user,DateTime.now());
@@ -140,11 +142,13 @@ class LifecycleEventSrvcTest {
 			assertTrue(eventLoader.deleteAnimalLifecycleEvents(orgID, calfCorrectTag)>=0);
 			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag())>=0);
 			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), calfCorrectTag)>=0);
-
+			
+			
+			
+			assertEquals(1,animalLoader.insertAnimal(animal));
 			assertTrue(eventLoader.insertLifeCycleEvent(inseminationEvent) > 0);
 			assertTrue(eventLoader.insertLifeCycleEvent(pregTestEvent) > 0);
 
-			assertEquals(1,animalLoader.insertAnimal(animal));
 
 			
 			//assertTrue(eventLoader.insertLifeCycleEvent(pregTestEvent) > 0);
@@ -182,9 +186,9 @@ class LifecycleEventSrvcTest {
 			parturitionEventBean.setAuxField3Value(calfCorrectTag);
 			parturitionEventBean.setEventComments("The calf should be added as the tag is NOT in use");
 
+			assertEquals(1,animalLoader.insertAnimal(animal));
 			assertTrue(eventLoader.insertLifeCycleEvent(inseminationEvent) > 0);
 			assertTrue(eventLoader.insertLifeCycleEvent(pregTestEvent) > 0);
-			assertEquals(1,animalLoader.insertAnimal(animal));
 			
 			
 			parturitionEventBean.setLoginToken(user.getPassword());
@@ -214,4 +218,104 @@ class LifecycleEventSrvcTest {
 
 	}
 
+	@Test
+	void testEventLookupForMultipleAnimals() {
+		String orgID = "IMD";
+		String animalTag = "-999";
+		String calfTag = "-998";
+		String sire = "1HO10219";
+		String lookupAnimal = "-998,-999";
+		int originalMode = IMDLogger.loggingMode;
+		IMDLogger.loggingMode = Util.INFO;
+
+		DateTime inseminationTS = DateTime.now(IMDProperties.getServerTimeZone()).minusDays(280);
+		DateTime pregTestTS = inseminationTS.plusDays(90);
+		DateTime parturitionTS = DateTime.now(IMDProperties.getServerTimeZone());
+		
+		try {
+			LifeCycleEventCode inseminateEventCD = new LifeCycleEventCode(Util.LifeCycleEvents.INSEMINATE,"","");
+			LifeCycleEventCode pregTestCD = new LifeCycleEventCode(Util.LifeCycleEvents.PREGTEST,"","");
+			LifeCycleEventCode parturitionCD = new LifeCycleEventCode(Util.LifeCycleEvents.PARTURATE,"","");
+			
+			LifeCycleEventsLoader eventLoader = new LifeCycleEventsLoader();
+			AnimalLoader animalLoader = new AnimalLoader();
+
+			User user1 = new User("TEST");
+			Person kashif = new Person("KASHIF","KASHIF","KASHIF","KASHIF");
+			Animal animal = createTestAnimal(animalTag);			
+
+			LifecycleEvent inseminationEvent = new LifecycleEvent(orgID,0,animalTag,inseminateEventCD.getEventCode(),user1,DateTime.now(),user1,DateTime.now());
+			inseminationEvent.setAuxField1Value(sire);
+			inseminationEvent.setAuxField2Value(Util.YES /*isSexed*/);
+			inseminationEvent.setAuxField3Value(Util.YES /*isInseminationSuccessful*/);
+			inseminationEvent.setAuxField4Value(null);
+			inseminationEvent.setEventOperator(kashif);
+			inseminationEvent.setEventTimeStamp(inseminationTS);
+			inseminationEvent.setCreatedBy(user1);
+			inseminationEvent.setUpdatedBy(user1);
+			inseminationEvent.setCreatedDTTM(inseminationTS);
+			inseminationEvent.setUpdatedDTTM(inseminationTS);
+			
+			assertTrue(eventLoader.deleteAnimalLifecycleEvents(orgID, animalTag)>=0);
+			assertTrue(eventLoader.deleteAnimalLifecycleEvents(orgID, calfTag)>=0);
+			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), animal.getAnimalTag())>=0);
+			assertTrue(animalLoader.deleteAnimal(animal.getOrgId(), calfTag)>=0);
+
+			assertEquals(1,animalLoader.insertAnimal(animal));
+			assertTrue(eventLoader.insertLifeCycleEvent(inseminationEvent) > 0);
+
+			LifecycleEventSrvc lifecycleSrvc = new LifecycleEventSrvc();
+			
+			LifeCycleEventBean secondAnimalEvent = new LifeCycleEventBean();
+			secondAnimalEvent.setAnimalTag(calfTag);
+			secondAnimalEvent.setOrgID(animal.getOrgId());
+			secondAnimalEvent.setEventCode(Util.LifeCycleEvents.PARTURATE);
+			secondAnimalEvent.setAuxField1Value(Util.Gender.FEMALE);
+			secondAnimalEvent.setAuxField2Value(Util.NO);
+			secondAnimalEvent.setAuxField3Value(null);
+			secondAnimalEvent.setEventComments("The second animal event");
+			secondAnimalEvent.setEventTimeStamp(Util.getDateTimeInSpecifiedFormat(DateTime.now(IMDProperties.getServerTimeZone()),"yyyy-MM-dd HH:mm"));
+			
+			UserLoader userLoader = new UserLoader();
+			User user = userLoader.authenticateUser("IMD", "KASHIF", userLoader.encryptPassword("DUMMY"));
+			assertTrue(user != null);
+			assertTrue(user.getPassword() != null);
+			secondAnimalEvent.setLoginToken(user.getPassword());
+			
+
+			animal.setAnimalTag(calfTag);
+			assertEquals(1,animalLoader.insertAnimal(animal));
+
+			
+			String responseStr = lifecycleSrvc.addEvent(secondAnimalEvent).getEntity().toString();
+			assertTrue(responseStr.indexOf("New Lifecycle event has been created successfully") >= 0, responseStr);
+			
+			
+			LifeCycleEventBean searchBean = new LifeCycleEventBean();
+			searchBean.setAnimalTag(lookupAnimal);
+			searchBean.setLoginToken(user.getPassword());
+			
+			responseStr = lifecycleSrvc.getAnimalLifecycleEvent(searchBean).getEntity().toString();
+			assertTrue(responseStr.indexOf(calfTag) > 0 && responseStr.indexOf(animalTag) > 0, responseStr);
+
+
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), animalTag));
+			assertEquals(1,eventLoader.deleteAnimalLifecycleEvents(animal.getOrgId(), calfTag));
+			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgId(), animalTag));
+			assertEquals(1,animalLoader.deleteAnimal(animal.getOrgId(), calfTag));
+
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		} finally {
+			IMDLogger.loggingMode = originalMode;
+		}
+
+	}	
+	
+	
 }
+
+
+
